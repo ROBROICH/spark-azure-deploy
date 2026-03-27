@@ -9,7 +9,7 @@ categories:
 - workflow-management
 - case-management
 - decision-support
-roadmap: planungs-und-genehmigungsbeschleunigung/spark/agentische-ki-workflow-based/docs/roadmap.md
+roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark/agentische-ki-workflow-based/docs/roadmap.md
 developmentStatus: beta
 softwareType: standalone/web
 intendedAudience:
@@ -40,7 +40,7 @@ description:
       Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend-Dienste. Weitere Funktionen werden in den nachfolgenden Open-Source-Veröffentlichungen ergänzt.
 
       Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/-/blob/main/roadmap.md?ref_type=heads).
-    documentation: planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/README.md
+    documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/README.md
     features:
     - "KI-gestützte Inhaltsextraktion aus Antragsunterlagen"
     - "Formale Vollständigkeitsprüfung eingereichter Unterlagen"
