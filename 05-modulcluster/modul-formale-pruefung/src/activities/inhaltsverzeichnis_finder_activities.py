@@ -13,9 +13,8 @@ The activities bridge the gap between the Temporal workflow engine and the
 domain-specific logic for document analysis.
 """
 
+from prompt_injection.prompt_defense import render_prompt
 from temporalio import activity, workflow
-
-from src.utils.prompt_defense import render_prompt
 
 with workflow.unsafe.imports_passed_through():
     from src.config.config import config

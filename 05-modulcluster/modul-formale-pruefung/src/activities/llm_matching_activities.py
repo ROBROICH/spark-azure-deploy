@@ -5,6 +5,7 @@ generate summaries specifically for classification, and perform the actual
 matching of documents against a predefined list of types using an LLM.
 """
 
+from prompt_injection.prompt_defense import render_prompt
 from temporalio import activity
 
 from src.config.config import config
@@ -30,7 +31,6 @@ from src.schemas.llm_matching_schemas import (
     UnassignedDocumentAnalysisParams,
     UnassignedDocumentReason,
 )
-from src.utils.prompt_defense import render_prompt
 
 
 @activity.defn

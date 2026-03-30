@@ -5,8 +5,6 @@ Note: All examples in this file use entirely fictional names, locations, and dat
 They do not refer to any real infrastructure project, company, or municipality.
 """
 
-from src.utils.prompt_defense import wrap_system_prompt
-
 # --- Shared prompt sections ---
 
 _CLASSIFIER_RULES = """
@@ -172,7 +170,7 @@ Mit Beschluss der Ratsversammlung wurde der Klimanotstand ausgerufen. Das Projek
 
 # --- System prompts (instructions + rules + examples) ---
 
-CLASSIFIER_SYSTEM_PROMPT = wrap_system_prompt(
+CLASSIFIER_SYSTEM_PROMPT = (
     """Du bist ein juristischer Fachassistent für Infrastruktur- und Umweltrecht.
 Deine Aufgabe ist es, kurze Textausschnitte einem passenden Thema aus einer umfassenden Liste zuzuordnen.
 
@@ -212,23 +210,29 @@ Analysiere den Text und die Themenliste gemäß den Regeln. Deine Antwort MUSS e
 CLASSIFIER_USER_TEMPLATE = """### Kontextinformationen
 
 **Aktueller Abschnitt:**
-<section>{aktueller_abschnitt}</section>
+{external_data_tag_open}
+{aktueller_abschnitt}
+{external_data_tag_close}
 
 **Bekannte Kapitelüberschriften im Dokument:**
-<headings>{unterkapitel_text}</headings>
+{external_data_tag_open}
+{unterkapitel_text}
+{external_data_tag_close}
 
 ---
 
 **Text:**
-<document>{text_to_classify}</document>
+{external_data_tag_open}
+{text_to_classify}
+{external_data_tag_close}
 
 **Vollständige Themenliste:**
-<topics>{themenliste_text}</topics>
+{themenliste_text}
 
 Antwort:
 """
 
-BATCHED_CLASSIFIER_SYSTEM_PROMPT = wrap_system_prompt(
+BATCHED_CLASSIFIER_SYSTEM_PROMPT = (
     """Du bist ein juristischer Fachassistent für Infrastruktur- und Umweltrecht.
 Deine Aufgabe ist es, mehrere Textausschnitte jeweils einem passenden Thema aus einer umfassenden Liste zuzuordnen.
 
@@ -276,16 +280,20 @@ Deine Ausgabe MUSS ein einzelnes, sauberes JSON-Objekt sein mit einer Liste von 
 BATCHED_CLASSIFIER_USER_TEMPLATE = """### Kontextinformationen
 
 **Bekannte Kapitelüberschriften im Dokument:**
-<headings>{unterkapitel_text}</headings>
+{external_data_tag_open}
+{unterkapitel_text}
+{external_data_tag_close}
 
 ---
 
 Klassifiziere die folgenden nummerierten Textausschnitte. Für jeden Ausschnitt gibt es den aktuellen Abschnitt und den Textinhalt.
 
-<chunks>{chunks_text}</chunks>
+{external_data_tag_open}
+{chunks_text}
+{external_data_tag_close}
 
 **Vollständige Themenliste:**
-<topics>{themenliste_text}</topics>
+{themenliste_text}
 
 Antwort:
 """

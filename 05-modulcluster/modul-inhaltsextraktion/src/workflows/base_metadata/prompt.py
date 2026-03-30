@@ -5,10 +5,7 @@ Note: All examples in this file use entirely fictional names, locations, and dat
 They do not refer to any real infrastructure project, company, or municipality.
 """
 
-from src.utils.prompt_defense import wrap_system_prompt
-
-GATHER_EVIDENCE_SYSTEM_PROMPT = wrap_system_prompt(
-    """Based on the document text below, extract the following metadata. For each field, provide both the 'value' and the exact 'source' text snippet that justifies the value.
+GATHER_EVIDENCE_SYSTEM_PROMPT = """Based on the document text below, extract the following metadata. For each field, provide both the 'value' and the exact 'source' text snippet that justifies the value.
 
 CRITICAL FORMAT RULES:
 - Each field must have exactly TWO keys: "value" and "source"
@@ -40,16 +37,15 @@ WRONG FORMAT (DO NOT USE):
   }}
 }}
 
-Ensure your output is a clean JSON object without any markdown formatting. If a value is not found, omit the field entirely.""",
-    lang="en",
-)
+Ensure your output is a clean JSON object without any markdown formatting. If a value is not found, omit the field entirely."""
 
 GATHER_EVIDENCE_USER_TEMPLATE = """Here is the document text:
-<document>{markdown_content}</document>
+{external_data_tag_open}
+{markdown_content}
+{external_data_tag_close}
 """
 
-CONSOLIDATE_EVIDENCE_SYSTEM_PROMPT = wrap_system_prompt(
-    """You are a meticulous data analyst. Your task is to synthesize a list of metadata objects, extracted from different parts of a single document, into one definitive and accurate JSON object. Each object provides a 'value' and the 'source' text for that value.
+CONSOLIDATE_EVIDENCE_SYSTEM_PROMPT = """You are a meticulous data analyst. Your task is to synthesize a list of metadata objects, extracted from different parts of a single document, into one definitive and accurate JSON object. Each object provides a 'value' and the 'source' text for that value.
 
 Follow these field-specific instructions carefully:
 
@@ -69,10 +65,10 @@ Follow these field-specific instructions carefully:
     - Choose the single value that is the most complete, specific, and official-sounding. For example, "Beispiel Planungs GmbH & Co. KG" is better than "Beispiel Planungs GmbH".
     - If you find conflicting but equally valid information, prioritize the value that appeared earliest in the document (i.e., from the first objects in the list).
 
-Your final output must be a single, clean JSON object containing only the final, consolidated values.""",
-    lang="en",
-)
+Your final output must be a single, clean JSON object containing only the final, consolidated values."""
 
 CONSOLIDATE_EVIDENCE_USER_TEMPLATE = """Here is the list of evidence objects:
-<evidence>{evidence_list_json}</evidence>
+{external_data_tag_open}
+{evidence_list_json}
+{external_data_tag_close}
 """

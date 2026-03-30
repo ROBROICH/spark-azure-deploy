@@ -37,12 +37,8 @@ CLAIM_FORMULATION_USER_PROMPT = """
     Transformiere aus den Zitaten eine Liste atomarer, selbsterklärender Fach-Fakten.
 
     claim_quotes:
-    <<
     {claim_quotes}
-    >>
 
     Nutze ggf. auch den ganzen Chunk Kontetxt zur Referenz-Auflösung:
-    <<<
-    {chunk_text}
-    >>>
+    {chunk_text_wrapped}
 """

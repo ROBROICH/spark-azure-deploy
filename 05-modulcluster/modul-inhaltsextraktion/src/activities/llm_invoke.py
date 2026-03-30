@@ -14,6 +14,7 @@ from typing import Any, NotRequired, TypedDict
 
 import instructor
 from openai.types.chat import ChatCompletionMessageParam
+from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
 from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
@@ -21,7 +22,6 @@ from temporalio.common import RetryPolicy
 from src.config import get_config
 from src.models.llm_client import get_openai_client
 from src.models.model_manager import LLMConfig
-from src.utils.prompt_defense import sanitize_llm_input
 
 # --- Type Definitions ---
 
@@ -87,13 +87,12 @@ async def _llm_invoke_structured(input: LlmInvokeStructuredActivityInput) -> str
         client = instructor.from_openai(openai_client, mode=instructor.Mode.JSON)
 
         # Sanitize and format the prompt
-        sanitized_dict = sanitize_llm_input(input.input_dict)
-        formatted_prompt = input.prompt_template.format(**sanitized_dict, format_instructions="")
+        formatted_prompt = render_prompt_format(input.prompt_template, **input.input_dict)
 
         # Build messages list with optional system prompt
         messages: list[ChatCompletionMessageParam] = []
         if input.system_prompt:
-            messages.append({"role": "system", "content": input.system_prompt})
+            messages.append({"role": "system", "content": wrap_system_prompt(input.system_prompt)})
         messages.append({"role": "user", "content": formatted_prompt})
 
         # Call with Instructor - returns validated Pydantic model directly
@@ -186,14 +185,13 @@ async def llm_invoke_structured_direct[TOutput: BaseModel](
         client = instructor.from_openai(openai_client, mode=instructor.Mode.JSON)
 
         # Sanitize and format the prompt
-        sanitized_dict = sanitize_llm_input(input["input_dict"])
-        formatted_prompt = input["prompt_template"].format(**sanitized_dict, format_instructions="")
+        formatted_prompt = render_prompt_format(input["prompt_template"], **input["input_dict"])
 
         # Build messages list with optional system prompt
         system_prompt = input.get("system_prompt") or ""
         messages: list[ChatCompletionMessageParam] = []
         if system_prompt:
-            messages.append({"role": "system", "content": system_prompt})
+            messages.append({"role": "system", "content": wrap_system_prompt(system_prompt)})
         messages.append({"role": "user", "content": formatted_prompt})
 
         # Call with Instructor

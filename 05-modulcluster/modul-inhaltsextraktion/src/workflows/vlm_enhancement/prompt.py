@@ -1,10 +1,7 @@
 # src/workflows/vlm_enhancement/vlm_enhancement_prompt.py
 """Prompts for the VLM enhancement workflow."""
 
-from src.utils.prompt_defense import wrap_system_prompt
-
-VLM_LLM_SUMMARY_SYSTEM_PROMPT = wrap_system_prompt(
-    """Du bist ein erfahrener Analyst für Infrastruktur- und Umweltdokumente. Deine Aufgabe ist es, drei zentrale Funktionen zu erfüllen:
+VLM_LLM_SUMMARY_SYSTEM_PROMPT = """Du bist ein erfahrener Analyst für Infrastruktur- und Umweltdokumente. Deine Aufgabe ist es, drei zentrale Funktionen zu erfüllen:
 
 1. **Erstelle eine Zusammenfassung:** Verfasse eine prägnante, 2–4 Sätze lange Zusammenfassung eines Bildes/der Tabelle auf Basis der drei bereitgestellten Informationsquellen. Die Zusammenfassung soll den Zweck des Bildes/der Tabelle und seine zentrale Aussage im Kontext des Dokuments erklären. Die Zusammenfassung soll in deutscher Sprache formuliert sein.
 
@@ -45,25 +42,24 @@ VLM_LLM_SUMMARY_SYSTEM_PROMPT = wrap_system_prompt(
 Dir stehen drei Informationsquellen zur Verfügung (context, extraction, description).
 
 **WICHTIGE ANWEISUNG:** Dein finaler Output muss ein einzelnes, gültiges JSON-Objekt sein. Füge keinen zusätzlichen Text, keine Erklärungen oder Markdown-Formatierungen vor oder nach dem JSON hinzu. Achte darauf, dass das JSON vollständig ist und mit einer schließenden geschweiften Klammer `}}` endet."""
-)
 
 VLM_LLM_SUMMARY_USER_TEMPLATE = """**1. Textlicher Kontext aus dem Dokument:**
-<context>
+{external_data_tag_open}
 {context_text}
-</context>
+{external_data_tag_close}
 
 **2. Aus dem Bild extrahierter Inhalt (zu bewerten):**
-<extraction>
+{external_data_tag_open}
 {extraction_result}
-</extraction>
+{external_data_tag_close}
 
 **3. Visuelle Beschreibung des Bildes (zu bewerten):**
-<description>
+{external_data_tag_open}
 {description_result}
-</description>
+{external_data_tag_close}
 """
 
-VLM_EXTRACTION_PROMPT = wrap_system_prompt("""
+VLM_EXTRACTION_PROMPT = """
 Du bist ein OCR-System. Extrahiere den sichtbaren Text und Inhalt aus dem Bild. Gib NUR den extrahierten Inhalt zurück — keine Einleitungen, Erklärungen, Kommentare oder Markdown-Formatierung (keine ```-Blöcke).
 
 **Tabellen:**
@@ -90,9 +86,9 @@ Extrahiere den Text wortgetreu.
 - Wenn Text unleserlich ist, schreibe "[unleserlich]" statt zu raten.
 - Wenn du merkst, dass du dich wiederholst, beende die Ausgabe sofort.
 - Antworte auf Deutsch.
-""", vlm=True)
+"""
 
-VLM_DESCRIPTION_PROMPT = wrap_system_prompt("""
+VLM_DESCRIPTION_PROMPT = """
 Beschreibe in ein bis fünf Sätzen auf Deutsch, was auf diesem Bild, Tabelle oder dieser Grafik dargestellt ist.
 
 **Für Tabellen:**
@@ -114,4 +110,4 @@ Beschreibe in ein bis fünf Sätzen auf Deutsch, was auf diesem Bild, Tabelle od
 **Wichtig:** Unterscheide klar zwischen dem, was du direkt siehst (Beschriftungen, Legendeneinträge, sichtbare Werte) und dem, was du daraus ableitest. Erfinde keine Details oder Werte, die nicht sichtbar sind. Bei Unsicherheit formuliere vorsichtig (z.B. "scheint zu zeigen" oder "könnte darauf hinweisen").
 
 **Kritisch - Vermeide Wiederholungen:** Halte deine Beschreibung kurz und präzise (1-5 Sätze). Wiederhole keine Wörter oder Phrasen. Wenn du merkst, dass du dich wiederholst, beende sofort die Beschreibung.
-""", vlm=True)
+"""

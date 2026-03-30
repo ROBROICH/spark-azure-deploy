@@ -1,6 +1,6 @@
 import asyncio
 
-from prompt_defense import sanitize_llm_input, wrap_system_prompt
+from prompt_injection.prompt_defense import sanitize_and_wrap_external_data, wrap_system_prompt
 from temporalio import activity
 
 from src.config.config import config
@@ -21,25 +21,6 @@ from src.workflows.check_logic_wf.schemas.risk_screener_schemas import (
     ScreeningHit,
 )
 from src.workflows.clients import llm_client, qdrant_client
-
-
-def _build_screening_prompt(
-    check_claim: ClaimPayload,
-    reference_claims_by_idx: dict[int, ClaimPayload],
-) -> str:
-    """Assemble the screening prompt listing the current claim and reference candidates."""
-    sanitized_check = sanitize_llm_input({"claim_text": check_claim.claim_text})
-    payload = RiskScreenerPromptPayload(
-        check_claim_text=sanitized_check["claim_text"],
-        reference_claims=[
-            RiskScreenerReferencePromptItem(
-                reference_id=ref_idx,
-                claim_text=sanitize_llm_input({"claim_text": ref_claim_payload.claim_text})["claim_text"],
-            )
-            for ref_idx, ref_claim_payload in reference_claims_by_idx.items()
-        ],
-    )
-    return payload.model_dump_json(indent=2)
 
 
 def _index_reference_claims(
@@ -76,13 +57,23 @@ async def _screen_inconsistency_risks(
     reference_by_idx, idx_to_uuid = _index_reference_claims(
         {payload.claim_id: payload for payload in reference_claim_payloads}
     )
-    user_prompt = _build_screening_prompt(
-        check_claim=check_claim_payload,
-        reference_claims_by_idx=reference_by_idx,
+    prompt_payload = RiskScreenerPromptPayload(
+        check_claim_text=check_claim_payload.claim_text,
+        reference_claims=[
+            RiskScreenerReferencePromptItem(
+                reference_id=ref_idx,
+                claim_text=ref_claim_payload.claim_text,
+            )
+            for ref_idx, ref_claim_payload in reference_by_idx.items()
+        ],
     )
+
+    system_prompt = wrap_system_prompt(RISK_SCREENER_SYSTEM_PROMPT, lang="de")
+    user_prompt = sanitize_and_wrap_external_data(prompt_payload.model_dump_json(indent=2))
+
     llm_response = await llm_client.ainvoke(
+        system_prompt=system_prompt,
         user_prompt=user_prompt,
-        system_prompt=wrap_system_prompt(RISK_SCREENER_SYSTEM_PROMPT, lang="de"),
         output_format=RiskScreenerIndexedResponse,
     )
     screening_response = RiskScreenerIndexedResponse.model_validate(llm_response)

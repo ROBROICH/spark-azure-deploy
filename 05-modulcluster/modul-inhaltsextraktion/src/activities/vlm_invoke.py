@@ -19,6 +19,7 @@ from openai import AsyncOpenAI
 
 # Pillow for image processing (replaces pyvips to eliminate libvips CVEs)
 from PIL import Image
+from prompt_injection.prompt_defense import wrap_system_prompt
 from pydantic import BaseModel
 from temporal import Base64Bytes
 from temporalio import activity, workflow
@@ -242,7 +243,7 @@ async def _vlm_invoke(
         response = await async_client.chat.completions.create(
             model=model_name,
             messages=[
-                {"role": "system", "content": prompt},
+                {"role": "system", "content": wrap_system_prompt(prompt, lang="vlm_de")},
                 {
                     "role": "user",
                     "content": [

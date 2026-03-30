@@ -1,7 +1,10 @@
 import math
 
 import networkx as nx
-from prompt_defense import sanitize_llm_input, wrap_system_prompt
+from prompt_injection.prompt_defense import (
+    sanitize_and_wrap_external_data,
+    wrap_system_prompt,
+)
 from temporalio import activity
 
 from src.config.config import config
@@ -63,28 +66,23 @@ async def summarize_cluster(cluster: InconsistencyCluster) -> SummarizerResponse
                 "document_name": edge.chunk_b_document_name,
                 "page_number": edge.chunk_b_page_number,
             }
-        sanitized_edge = sanitize_llm_input(
-            {
-                "content_a_excerpt": edge.content_a_excerpt,
-                "content_b_excerpt": edge.content_b_excerpt,
-                "title": edge.title,
-                "explanation": edge.explanation,
-            }
-        )
         indexed_edges.append(
             IndexedInconsistencyEdge(
                 node_a_idx=node_a_idx,
                 node_b_idx=node_b_idx,
-                content_a_excerpt=sanitized_edge["content_a_excerpt"],
-                content_b_excerpt=sanitized_edge["content_b_excerpt"],
-                title=sanitized_edge["title"],
-                explanation=sanitized_edge["explanation"],
+                content_a_excerpt=edge.content_a_excerpt,
+                content_b_excerpt=edge.content_b_excerpt,
+                title=edge.title,
+                explanation=edge.explanation,
             )
         )
     graph_representation = InconsistencyGraph(edges=indexed_edges)
-    user_prompt = graph_representation.model_dump_json(indent=2)
+
+    system_prompt = wrap_system_prompt(CLUSTER_SUMMARIZER_SYSTEM_PROMPT, lang="de")
+    user_prompt = sanitize_and_wrap_external_data(graph_representation.model_dump_json(indent=2))
+
     llm_response = await llm_client.ainvoke(
-        system_prompt=wrap_system_prompt(CLUSTER_SUMMARIZER_SYSTEM_PROMPT, lang="de"),
+        system_prompt=system_prompt,
         output_format=InconsistencySummary,
         user_prompt=user_prompt,
     )

@@ -18,10 +18,12 @@ dependencies = [
     "pikepdf>=9.0.0",
     "imagehash>=4.3.2",
     "qdrant-client>=1.16.1,<2.0.0",
+    "prompt-injection",
 ]
 
 [tool.uv.sources]
 temporal = { workspace = true }
+prompt-injection = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

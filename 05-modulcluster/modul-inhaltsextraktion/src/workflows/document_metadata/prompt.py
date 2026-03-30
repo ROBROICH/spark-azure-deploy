@@ -5,10 +5,7 @@ Note: All examples in this file use entirely fictional names, locations, and dat
 They do not refer to any real infrastructure project, company, or municipality.
 """
 
-from src.utils.prompt_defense import wrap_system_prompt
-
-DOCUMENT_METADATA_SYSTEM_PROMPT = wrap_system_prompt(
-    """Based on the text below, extract the following metadata:
+DOCUMENT_METADATA_SYSTEM_PROMPT = """Based on the text below, extract the following metadata:
 - The main title of the document (combine main title and subtitle into a single string if both exist).
 - The document type or category (e.g., "Antragsunterlage zum Planfeststellungsverfahren").
 
@@ -26,12 +23,10 @@ WRONG FORMAT (DO NOT USE):
   "document_type": "..."
 }}
 
-Ensure your output is a clean JSON object without any markdown formatting.""",
-    lang="en",
-)
+Ensure your output is a clean JSON object without any markdown formatting."""
 
 DOCUMENT_METADATA_USER_TEMPLATE = """Here is the document text:
-<document>{markdown_content}</document>
-
-{format_instructions}
+{external_data_tag_open}
+{markdown_content}
+{external_data_tag_close}
 """

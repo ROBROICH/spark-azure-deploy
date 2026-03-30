@@ -9,13 +9,13 @@ import logging
 from typing import Any
 
 from openai import AsyncOpenAI
+from prompt_injection.prompt_defense import wrap_system_prompt
 
 from src.config.config import (
     LLMProfile,
     config,
 )
 from src.config.env import ENV
-from src.utils.prompt_defense import wrap_system_prompt
 
 logger = logging.getLogger(__name__)
 

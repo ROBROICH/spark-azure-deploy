@@ -21,7 +21,7 @@ uv pip install prompt-injection
 ### Wrapping System Prompts
 
 ```python
-from prompt_defense import wrap_system_prompt
+from prompt_injection.prompt_defense import wrap_system_prompt
 
 # German preamble (default)
 safe_prompt = wrap_system_prompt("Analysiere das Dokument.", lang="de")
@@ -36,9 +36,9 @@ safe_prompt = wrap_system_prompt("Beschreibe das Bild.", lang="de", vlm=True)
 ### Sanitizing User Inputs
 
 ```python
-from prompt_defense import sanitize_llm_input
+from prompt_injection.prompt_defense import sanitize_external_data
 
-clean = sanitize_llm_input({"text": user_provided_text})
+clean = sanitize_external_data({"text": user_provided_text})
 ```
 
 ## Detected Injection Patterns

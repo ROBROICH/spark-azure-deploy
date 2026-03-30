@@ -1,9 +1,7 @@
 # src/workflows/hypothetical_questions/prompt.py
 """Prompts for the Hypothetical Questions extraction workflow."""
 
-from src.utils.prompt_defense import wrap_system_prompt
-
-HQ_SYSTEM_PROMPT = wrap_system_prompt(
+HQ_SYSTEM_PROMPT = (
     """Du bist ein juristischer Fachassistent für Infrastruktur- und Umweltrecht.
 Deine Aufgabe ist es, hypothetische Fragen zu generieren, die ein Benutzer stellen könnte, um den Inhalt des folgenden Textabschnitts zu finden.
 
@@ -106,15 +104,19 @@ Analysiere den Text und generiere passende hypothetische Fragen. Deine Antwort M
 )
 
 HQ_USER_TEMPLATE = """**Aktueller Abschnitt:**
-<section>{aktueller_abschnitt}</section>
+{external_data_tag_open}
+{aktueller_abschnitt}
+{external_data_tag_close}
 
 **Text:**
-<document>{text_content}</document>
+{external_data_tag_open}
+{text_content}
+{external_data_tag_close}
 
 Antwort:
 """
 
-BATCHED_HQ_SYSTEM_PROMPT = wrap_system_prompt(
+BATCHED_HQ_SYSTEM_PROMPT = (
     """Du bist ein juristischer Fachassistent für Infrastruktur- und Umweltrecht.
 Deine Aufgabe ist es, für JEDEN der folgenden nummerierten Textabschnitte hypothetische Fragen zu generieren, die ein Benutzer stellen könnte, um den Inhalt des jeweiligen Textabschnitts zu finden.
 
@@ -161,7 +163,9 @@ Deine Ausgabe MUSS ein einzelnes, sauberes JSON-Objekt sein. Füge keinerlei Mar
 }}"""
 )
 
-BATCHED_HQ_USER_TEMPLATE = """<chunks>{chunks_text}</chunks>
+BATCHED_HQ_USER_TEMPLATE = """{external_data_tag_open}
+{chunks_text}
+{external_data_tag_close}
 
 Antwort:
 """

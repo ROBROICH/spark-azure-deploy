@@ -1,4 +1,7 @@
-from prompt_defense import sanitize_llm_input, wrap_system_prompt
+from prompt_injection.prompt_defense import (
+    sanitize_and_wrap_external_data,
+    wrap_system_prompt,
+)
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
@@ -25,28 +28,19 @@ def _chunk_to_text(chunk: ChunkPayload) -> str:
     """
     Convert a ChunkPayload to text for downstream LLM prompts.
 
-    - Text chunks: return verbatim chunk_content.
-    - Non-text chunks: include the (LLM-generated) summary, wrapped in clear BEGIN/END markers
+    - Text chunks: return the verbatim chunk text.
+    - Non-text chunks: include the (LLM-generated) summary wrapped in LLM-generated markers
       so it's obvious where the non-verbatim section starts and ends.
     """
     if chunk.chunk_type == "text":
-        sanitized = sanitize_llm_input({"content": chunk.chunk_content})
-        return sanitized["content"].strip()
+        return chunk.chunk_content.strip()
 
     summary = (chunk.summary or "").strip()
+
     if not summary:
         return ""
 
-    sanitized = sanitize_llm_input({"summary": summary})
-    return (
-        f"{config.CONTEXT_CHECKING.LLM_SUMMARY_BEGIN_MARKER}\n"
-        "WARNUNG: Der folgende Abschnitt ist eine LLM-generierte Zusammenfassung "
-        "eines Nicht-Text-Inhalts (z.B. Bild/Tabelle). Er ist kein wörtliches Zitat "
-        "und darf nicht als belastbarer Beleg für Aussagen oder Widersprüche verwendet werden.\n"
-        "---\n"
-        f"{sanitized['summary']}\n"
-        f"{config.CONTEXT_CHECKING.LLM_SUMMARY_END_MARKER}"
-    )
+    return f"{config.CONTEXT_CHECKING.LLM_SUMMARY_BEGIN_MARKER}\n{summary}\n{config.CONTEXT_CHECKING.LLM_SUMMARY_END_MARKER}"
 
 
 def _build_chunk_context(
@@ -125,25 +119,6 @@ def _build_chunk_context(
     )
 
 
-def _render_prompt(
-    chunk_a: ChunkWithContext,
-    chunk_b: ChunkWithContext,
-    project_meta: BaseMetadata,
-    project_meta_status: ProjectBaseMetadataStatus,
-    screening_note: str,
-) -> str:
-    """Render structured checker input as JSON for the LLM."""
-    sanitized = sanitize_llm_input({"screening_note": screening_note})
-    payload = ContextCheckerLLMInput(
-        project_base_md=project_meta,
-        project_base_md_status=project_meta_status,
-        chunk_a=chunk_a,
-        chunk_b=chunk_b,
-        screening_note=sanitized["screening_note"],
-    )
-    return payload.model_dump_json(indent=2)
-
-
 def _fetch_claim_pair_payloads(
     project_id: str, claim_id: str, reference_claim_id: str
 ) -> tuple[ClaimPayload, ClaimPayload]:
@@ -181,11 +156,14 @@ async def _verify_verdict_if_needed(
         chunk_b=chunk_b_context,
         original_verdict=original_verdict,
     )
-    verification_prompt = verification_input.model_dump_json(indent=2)
+
+    system_prompt = wrap_system_prompt(CONFLICT_VERIFIER_SYSTEM_PROMPT, lang="de")
+    user_prompt = sanitize_and_wrap_external_data(verification_input.model_dump_json(indent=2))
+
     llm_response = await llm_client.ainvoke(
-        system_prompt=wrap_system_prompt(CONFLICT_VERIFIER_SYSTEM_PROMPT, lang="de"),
+        system_prompt=system_prompt,
         output_format=VerificationOutput,
-        user_prompt=verification_prompt,
+        user_prompt=user_prompt,
     )
     return VerificationOutput.model_validate(llm_response)
 
@@ -210,19 +188,23 @@ async def check_conflict(request: ContextCheckerInput) -> ContextCheckerOutput:
         project_id=request.project_id,
     )
 
-    prompt = _render_prompt(
+    context_checker_input = ContextCheckerLLMInput(
+        project_base_md=project_meta,
+        project_base_md_status=project_meta_status,
         chunk_a=chunk_a_context,
         chunk_b=chunk_b_context,
-        project_meta=project_meta,
-        project_meta_status=project_meta_status,
         screening_note=request.screening_note,
     )
 
+    system_prompt = wrap_system_prompt(CONFLICT_CHECKER_SYSTEM_PROMPT, lang="de")
+    user_prompt = sanitize_and_wrap_external_data(context_checker_input.model_dump_json(indent=2))
+
     llm_response = await llm_client.ainvoke(
-        system_prompt=wrap_system_prompt(CONFLICT_CHECKER_SYSTEM_PROMPT, lang="de"),
+        system_prompt=system_prompt,
         output_format=ContextCheckVerdict,
-        user_prompt=prompt,
+        user_prompt=user_prompt,
     )
+
     original_verdict = ContextCheckVerdict.model_validate(llm_response)
     verification_response = await _verify_verdict_if_needed(
         original_verdict=original_verdict,

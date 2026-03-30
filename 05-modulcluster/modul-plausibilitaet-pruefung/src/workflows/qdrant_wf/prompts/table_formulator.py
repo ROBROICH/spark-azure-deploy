@@ -43,8 +43,8 @@ TABLE_FORMULATOR_SYSTEM_PROMPT = """
 TABLE_FORMULATOR_USER_PROMPT = """
     Forme folgende Tabellenzeilen in atomare Fach-Aussagen (Claims) um:
 
-    Header: {header}
-    Zeilen: {rows}
+    Header: {header_wrapped}
+    Zeilen: {rows_wrapped}
 
     Gib die Claims als JSON zurück, entsprechend dem Schema.
 """

@@ -80,4 +80,4 @@ OUTPUT:
 
 CLAIM_EXTRACTION_USER_PROMPT = """Extrahiere alle Key-Claims aus folgendem Text-Chunk als exakte wörtliche Zitate:
 
-{chunk_text}"""
+{chunk_text_wrapped}"""

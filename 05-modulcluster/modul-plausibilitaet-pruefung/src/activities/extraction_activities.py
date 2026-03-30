@@ -8,7 +8,7 @@ from src.qdrant.schemas import ChunkPayload, ClaimEvidence, ClaimMetadata, Claim
 from src.workflows.qdrant_wf.schemas.table_extraction import ParsedTable, TableExtractionResponse
 
 with workflow.unsafe.imports_passed_through():
-    from prompt_defense import sanitize_llm_input, wrap_system_prompt
+    from prompt_injection.prompt_defense import sanitize_and_wrap_external_data, wrap_system_prompt
 
     from src.workflows.clients import llm_client
     from src.workflows.qdrant_wf.prompts.table_extraction import (
@@ -71,24 +71,22 @@ def _build_claim_payloads(
 async def extract_text_claims(inp: ExtractTextClaimsInput) -> list[ClaimPayload]:
     """Extract claims from a text chunk. Makes 2 sequential LLM calls."""
     chunk = inp.chunk
-    sanitized_chunk_content = sanitize_llm_input({"chunk_text": chunk.chunk_content})
 
     extraction_res: ClaimQuotes = await llm_client.ainvoke(
-        CLAIM_EXTRACTION_USER_PROMPT.format(**sanitized_chunk_content),
+        CLAIM_EXTRACTION_USER_PROMPT.format(
+            chunk_text_wrapped=sanitize_and_wrap_external_data(chunk.chunk_content),
+        ),
         system_prompt=wrap_system_prompt(CLAIM_EXTRACTION_SYSTEM_PROMPT, lang="de"),
         output_format=ClaimQuotes,
     )
     if not extraction_res.claim_quotes:
         return []
 
-    sanitized_formulation_input = sanitize_llm_input(
-        {
-            "chunk_text": chunk.chunk_content,
-            "claim_quotes": str(extraction_res.claim_quotes),
-        }
-    )
     final_response: TextClaimFormulation = await llm_client.ainvoke(
-        CLAIM_FORMULATION_USER_PROMPT.format(**sanitized_formulation_input),
+        CLAIM_FORMULATION_USER_PROMPT.format(
+            chunk_text_wrapped=sanitize_and_wrap_external_data(chunk.chunk_content),
+            claim_quotes=sanitize_and_wrap_external_data(str(extraction_res.claim_quotes)),
+        ),
         system_prompt=wrap_system_prompt(CLAIM_FORMULATION_SYSTEM_PROMPT, lang="de"),
         output_format=TextClaimFormulation,
     )
@@ -111,9 +109,10 @@ async def parse_table_structure(chunk: ChunkPayload) -> ParsedTable:
         raise ValueError("Chunk is not a table")
 
     content = chunk.chunk_content
-    sanitized_chunk_content = sanitize_llm_input({"chunk_text": content})
     table_extraction_response: TableExtractionResponse = await llm_client.ainvoke(
-        user_prompt=TABLE_SEPARATOR_USER_PROMPT.format(**sanitized_chunk_content),
+        user_prompt=TABLE_SEPARATOR_USER_PROMPT.format(
+            chunk_text_wrapped=sanitize_and_wrap_external_data(content),
+        ),
         system_prompt=wrap_system_prompt(TABLE_SEPARATOR_SYSTEM_PROMPT, lang="de"),
         output_format=TableExtractionResponse,
     )
@@ -131,14 +130,11 @@ async def parse_table_structure(chunk: ChunkPayload) -> ParsedTable:
 async def extract_claims_from_row_batch(inp: ExtractClaimsFromRowBatchInput) -> list[ClaimPayload]:
     """Formulate atomic claims from a batch of table rows. Makes 1 LLM call."""
     table = inp.table
-    sanitized_input = sanitize_llm_input(
-        {
-            "header": table.header,
-            "rows": "\n".join([str(r) for r in table.rows]),
-        }
-    )
     result: TextClaimFormulation = await llm_client.ainvoke(
-        TABLE_FORMULATOR_USER_PROMPT.format(**sanitized_input),
+        TABLE_FORMULATOR_USER_PROMPT.format(
+            header_wrapped=sanitize_and_wrap_external_data(str(table.header)),
+            rows_wrapped=sanitize_and_wrap_external_data("\n".join([str(r) for r in table.rows])),
+        ),
         system_prompt=wrap_system_prompt(TABLE_FORMULATOR_SYSTEM_PROMPT, lang="de"),
         output_format=TextClaimFormulation,
     )

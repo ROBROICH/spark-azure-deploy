@@ -11,6 +11,7 @@ dependencies = [
     "temporal",
     "jinja2>=3.1.6",
     "pydantic>=2.10.6",
+    "prompt-injection",
 ]
 
 [dependency-groups]
@@ -32,6 +33,7 @@ package = false
 
 [tool.uv.sources]
 temporal = { workspace = true }
+prompt-injection = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]

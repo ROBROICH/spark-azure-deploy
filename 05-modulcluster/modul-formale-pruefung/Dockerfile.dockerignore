@@ -12,6 +12,7 @@
 # Workspace and used shared libraries
 !02-backend/logging
 !04-shared-services/temporal
+!04-shared-services/prompt-injection
 
 # Allow module code
 !05-modulcluster/modul-formale-pruefung/main.py

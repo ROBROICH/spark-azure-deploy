@@ -56,7 +56,5 @@ TABLE_SEPARATOR_SYSTEM_PROMPT = """
 TABLE_SEPARATOR_USER_PROMPT = """
     Forme folgenden html string in eine JSON-Tabelle um:
 
-    <<<
-    {chunk_text}
-    >>>
+    {chunk_text_wrapped}
 """
