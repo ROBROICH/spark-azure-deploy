@@ -1,6 +1,6 @@
 publiccodeYmlVersion: '0.4'
 name: SPARK Workflow
-url: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark/agentische-ki-workflow-based
+url: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow
 logo: images/logo.svg
 softwareVersion: 0.1.0-beta
 releaseDate: '2026-03-31'
@@ -10,7 +10,7 @@ categories:
 - workflow-management
 - case-management
 - decision-support
-roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark/agentische-ki-workflow-based/docs/roadmap.md
+roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/docs/roadmap.md
 developmentStatus: beta
 softwareType: standalone/web
 intendedAudience:
@@ -40,8 +40,8 @@ description:
 
       Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend-Dienste. Weitere Funktionen werden in den nachfolgenden Open-Source-Veröffentlichungen ergänzt.
 
-      Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/-/blob/main/roadmap.md?ref_type=heads).
-    documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/README.md
+      Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads).
+    documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
     features:
     - "KI-gestützte Inhaltsextraktion aus Antragsunterlagen"
     - "Formale Vollständigkeitsprüfung eingereichter Unterlagen"
@@ -56,8 +56,8 @@ description:
     shortDescription: SPARK Workflow supports and accelerates the end-to-end processing of approval procedures as an agentic AI assistance solution.
     longDescription: "## Project objective and core functionalities\n\nSPARK Workflow is an agentic AI solution that supports complex administrative planning and approval procedures as an operational assistant. The solution was conceptually developed for planning approval procedures, but is fundamentally designed to be procedure- and legal domain-agnostic. This ensures broad reusability across procedures at federal, state, and municipal levels.\n\nPlanning and approval procedures are considered a central bottleneck for maintaining and expanding infrastructure in Germany. The underlying administrative procedures are often complex, resource-intensive, and take many months or even years. SPARK supports employees in public authorities through a workflow aligned with their familiar legal working methods and through agentic AI that provides them with initial review and assessment proposals. Users always make the decisions in the review process. AI-generated suggestions can be adopted, amended, or completely\
       \ rejected.\n\nSPARK Workflow consists of several modules and services that cover all important procedural steps. These include, in particular, content extraction of the facts from application documents, formal and substantive completeness checks including plausibility checks, participation of authorities and the public, legal review and assessment, and the drafting of decisions. The AI solution is complemented by a digital legal dogmatics with legal databases, automated norm deconstruction, and legal evaluation mechanisms.\n\nThe AI-solution SPARK was developed as part of an innovation partnership of the Federal Ministry for Digital Transformation and Government Modernisation.\n\n## Project status and open source publication\n\nSPARK Workflow is being published as open source in three consecutive releases. The solution is currently in beta status. \n\nThe first release includes the modules for content extraction and formal completeness checks including plausibility checks, as well as supporting backend\
-      \ services. Additional functions will be added in subsequent releases.\n\nA detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/-/blob/main/roadmap.md?ref_type=heads)."
-    documentation: planungs-und-genehmigungsbeschleunigung/agentische-ki-assistenzloesung/README.md
+      \ services. Additional functions will be added in subsequent releases.\n\nA detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads)."
+    documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
     features:
     - "AI-assisted content extraction from application documents"
     - "Formal completeness checks of submitted documents"
