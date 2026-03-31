@@ -9,7 +9,7 @@ import asyncio
 import logging
 from typing import Any
 
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from src.processors.text_splitters import RecursiveCharacterTextSplitter
 
 from src.activities.llm_invoke import LlmInvokeInput, llm_invoke_structured_direct
 from src.concurrency import get_model_throttle

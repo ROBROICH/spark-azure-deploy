@@ -4,7 +4,14 @@ Welcome to the repository of SPARK Workflow!
 
 SPARK Workflow is developed as part of the SPARK project at BMDS and is being released as open source in three consecutive releases. This repository contains the first release. For more information, see [roadmap.md](./docs/roadmap.md).
 
-<span style="color:red"> **Security Notice:** This project provides AI-based modules for document processing and supports integration into different environments. The project does not include a complete production-ready security configuration. Secure setup, deployment, and operation should therefore be aligned with the requirements and policies of the target environment. An appropriate security review is recommended before use in test or production environments. </span>
+> [!WARNING]
+> **Security Notice:** This project provides AI-based modules for document processing and is intended as a reference and integration foundation for use in different environments. It does not include a complete production-ready security configuration.
+>
+> Configurations, defaults, example values, and supporting scripts contained in this repository may be suitable for development, testing, or integration purposes, but must not be assumed to be secure or appropriate for direct use in production environments without review and adaptation.
+>
+> Secure configuration, hardening, deployment, access control, secret handling, and operation must be implemented by the respective operator in accordance with the requirements, policies, and risk profile of the target environment.
+>
+> A dedicated security review is required before use in integration, test, or production environments.
 
 ## Getting Started
 
@@ -76,7 +83,6 @@ Then restart all containers. If the `.env` already exists and you want to regene
 </details>
 
 ## License
-
 This project is licensed under the EUPL-1.2.
 
 It also includes third-party components under other open source licenses.

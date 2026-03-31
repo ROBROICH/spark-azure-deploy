@@ -57,10 +57,6 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     SKIP_DOTENV=true
 
-# Align with nonroot user (UID 65532) from hardened DHI base images
-RUN id -u nonroot >/dev/null 2>&1 || \
-    (groupadd --gid 65532 nonroot && \
-     useradd --uid 65532 --gid nonroot --no-create-home --shell /sbin/nologin nonroot)
 
 COPY --from=selected-deps /app/.venv /app/.venv
 COPY . .
@@ -69,6 +65,7 @@ WORKDIR /src/02-backend/agent_orchestration_service
 
 EXPOSE 8000
 
-USER nonroot
+# UID 65532 -> non-root, this also works with distroless images
+USER 65532
 
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]

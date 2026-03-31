@@ -21,7 +21,7 @@ Included scope:
 * Plausibility checks
 * Supporting backend services
 
-### Second Release — 2026-05-15
+### Second Release
 
 Release two adds the capabilities for substantive completeness check, legal review and assessment and the drafting of decision. From this release onward, SPARK supports the complete handling of applications, with the exception of the participation of public authorities and the public.
 
@@ -37,7 +37,7 @@ Included scope:
 * Job status display
 * Frontend
 
-### Third Release — 2026-06-12
+### Third Release
 
 Release three completes the open-source publication. It adds participation of public authorities and the public, cross-cutting operational functions, and deployment assets.
 

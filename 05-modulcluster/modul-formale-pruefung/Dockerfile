@@ -59,14 +59,11 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     SKIP_DOTENV=true
 
-# Align with nonroot user (UID 65532) from hardened DHI base images
-RUN id -u nonroot >/dev/null 2>&1 || \
-    (groupadd --gid 65532 nonroot && \
-     useradd --uid 65532 --gid nonroot --no-create-home --shell /sbin/nologin nonroot)
 
 COPY --from=selected-deps /app/.venv /app/.venv
 COPY . .
 
-USER nonroot
+# UID 65532 -> non-root, this also works with distroless images
+USER 65532
 
 CMD ["python", "05-modulcluster/modul-formale-pruefung/main.py"]

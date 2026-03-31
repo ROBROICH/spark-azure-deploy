@@ -68,9 +68,10 @@ def setup_observability(config: ObservabilityConfig):
     )
 
     # --- Traces ---
+    id_generator = TemporalIdGenerator(RandomIdGenerator())
     tracer_provider = TracerProvider(
         resource=resource,
-        id_generator=TemporalIdGenerator(RandomIdGenerator()),
+        id_generator=id_generator,
     )
     tracer_provider.add_span_processor(TemporalContextSpanProcessor())
 
@@ -81,7 +82,7 @@ def setup_observability(config: ObservabilityConfig):
 
     tracer_provider.add_span_processor(BatchSpanProcessor(span_exporter))
 
-    _provider = CustomTracerProvider(tracer_provider)
+    _provider = CustomTracerProvider(tracer_provider, id_generator)
     trace.set_tracer_provider(_provider)
 
     # --- Logs (OTLP) ---
