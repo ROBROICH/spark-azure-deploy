@@ -21,24 +21,22 @@ intendedAudience:
   - infrastructures
 description:
   de:
-    genericName: Agentische KI-Assistenzlösung
-    shortDescription: SPARK Workflow unterstützt und beschleunigt als agentische KI-Assistenzlösung die vollständige Bearbeitung von Genehmigungsverfahren.
+    genericName: SPARK Workflow
+    shortDescription: Die KI-Module aus dem Projekt SPARK (Beschleunigung von Planungs- und Genehmigungsverfahren durch KI) unterstützen komplexe Planungs- und Genehmigungsverfahren in der öffentlichen Verwaltung.
     longDescription: |-
       ## Projektzielsetzung und Kernfunktionalitäten
 
-      SPARK Workflow ist eine agentische KI-Lösung, die komplexe verwaltungsrechtliche Planungs- und Genehmigungsverfahren als operative Assistenz unterstützt. Die Lösung wurde konzeptionell für Planfeststellungsverfahren entwickelt, ist allerdings grundsätzlich verfahrens- und rechtsgebietsagnostisch angelegt. Damit ist eine möglichst breite Nachnutzbarkeit in den Verfahren von Bund, Ländern und Kommunen sichergestellt.
+      Im Projekt SPARK hat das Bundesministerium für Digitales und Staatsmodernisierung in den vergangenen neun Monaten KI‑Module in einer Innovationspartnerschaft entwickeln lassen. Diese KI‑Module unterstützen komplexe verwaltungsrechtliche Planungs- und Genehmigungsverfahren als operative Assistenz. Die Entwicklung wurde aus dem Klima- und Transformationsfonds des Bundesministeriums für Wirtschaft und Energie finanziert. Die KI trägt dazu bei, Verwaltungsverfahren zu beschleunigen und Beschäftigte in der öffentlichen Verwaltung bei zeitaufwändigen Tätigkeiten wirksam zu entlasten. Die Lösung ist verfahrens- und rechtsgebietsagnostisch angelegt, sodass eine breite Nachnutzbarkeit in den Verfahren von Bund, Ländern und Kommunen möglich ist. Gleichzeitig können die KI‑Module auch für andere Aufgaben jenseits von Planungs- und Genehmigungsverfahren eingesetzt werden.
 
-      Planungs- und Genehmigungsverfahren gelten als ein zentraler Flaschenhals für den Erhalt und Ausbau von Infrastruktur in Deutschland. Die zugrunde liegenden Verwaltungsverfahren sind häufig komplex, ressourcenintensiv und dauern viele Monate oder sogar Jahre. SPARK unterstützt die Mitarbeitenden in den Behörden durch einen Workflow, der sich an ihrer gewohnten juristischen Arbeitsweise ausrichtet, sowie durch agentische KI, die ihnen initiale Prüf- und Bewertungsvorschläge unterbreitet. Die  Nutzenden treffen dabei stets die Entscheidungen im Prüfprozess. KI-Vorschläge können übernommen, ergänzt oder gänzlich verworfen werden.
+      Planungs- und Genehmigungsverfahren gelten als ein zentraler Flaschenhals für den Erhalt und Ausbau von Infrastruktur in Deutschland. Die zugrunde liegenden Verwaltungsverfahren sind regelmäßig komplex sowie ressourcen- und zeitintensiv. SPARK unterstützt die Mitarbeitenden in den Behörden durch einen Workflow, der sich an ihrer juristischen Arbeitsweise orientiert, sowie durch KI‑Module, die ihnen initiale Prüf- und Bewertungsvorschläge unterbreiten. Die Nutzenden treffen stets die Entscheidungen im Prüfprozess. KI‑Vorschläge können übernommen, ergänzt oder vollständig verworfen werden.
 
-      SPARK Workflow besteht aus mehreren Modulen und Services, die alle wichtigen Verfahrensschritte abbilden. Dazu gehören insbesondere die Inhaltsextraktion des Sachverhalts aus Antragsunterlagen, die formale und materielle Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung, die Behörden- und Öffentlichkeitsbeteiligung, die rechtliche Prüfung und Bewertung sowie die Beschlusserstellung. Ergänzt wird die KI-Lösung durch eine digitale Rechtsdogmatik mit Gesetzesdatenbanken, automatisierter Normendekonstruktion und juristischen Bewertungsmechanismen.
-
-      Die KI-Lösung SPARK Workflow ist im Rahmen einer Innovationspartnerschaft des Bundesministeriums für Digitales und Staatsmodernisierung entstanden.
+      Entstanden sind mehrere Module und Services, die wesentliche Verfahrensschritte abbilden. Dazu gehören insbesondere die Inhaltsextraktion des Sachverhalts aus Antragsunterlagen, die formale und materielle Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung, die Behörden- und Öffentlichkeitsbeteiligung, die rechtliche Prüfung und Bewertung sowie die Beschlusserstellung. Ergänzt wird die KI‑Lösung durch eine digitale Rechtsdogmatik mit Gesetzesdatenbanken, automatisierter Normendekonstruktion und juristischen Bewertungsmechanismen.
 
       ## Projektstand und Open-Source-Veröffentlichung
 
-      SPARK Workflow wird in drei aufeinanderfolgenden Releases als Open Source veröffentlicht. Die Lösung ist derzeit im Beta-Status.
+      SPARK wird in mehreren Releases als Open Source veröffentlicht. Die Lösung befindet sich derzeit im Beta‑Status.
 
-      Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend-Dienste. Weitere Funktionen werden in den nachfolgenden Open-Source-Veröffentlichungen ergänzt.
+      Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend‑Dienste. Weitere Funktionen werden in den nachfolgenden Open‑Source‑Veröffentlichungen ergänzt.
 
       Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads).
     documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
@@ -52,11 +50,24 @@ description:
     - images/image3.jpg
     - images/image4.jpg
   en:
-    genericName: Agentic AI assistance solution
-    shortDescription: SPARK Workflow supports and accelerates the end-to-end processing of approval procedures as an agentic AI assistance solution.
-    longDescription: "## Project objective and core functionalities\n\nSPARK Workflow is an agentic AI solution that supports complex administrative planning and approval procedures as an operational assistant. The solution was conceptually developed for planning approval procedures, but is fundamentally designed to be procedure- and legal domain-agnostic. This ensures broad reusability across procedures at federal, state, and municipal levels.\n\nPlanning and approval procedures are considered a central bottleneck for maintaining and expanding infrastructure in Germany. The underlying administrative procedures are often complex, resource-intensive, and take many months or even years. SPARK supports employees in public authorities through a workflow aligned with their familiar legal working methods and through agentic AI that provides them with initial review and assessment proposals. Users always make the decisions in the review process. AI-generated suggestions can be adopted, amended, or completely\
-      \ rejected.\n\nSPARK Workflow consists of several modules and services that cover all important procedural steps. These include, in particular, content extraction of the facts from application documents, formal and substantive completeness checks including plausibility checks, participation of authorities and the public, legal review and assessment, and the drafting of decisions. The AI solution is complemented by a digital legal dogmatics with legal databases, automated norm deconstruction, and legal evaluation mechanisms.\n\nThe AI-solution SPARK was developed as part of an innovation partnership of the Federal Ministry for Digital Transformation and Government Modernisation.\n\n## Project status and open source publication\n\nSPARK Workflow is being published as open source in three consecutive releases. The solution is currently in beta status. \n\nThe first release includes the modules for content extraction and formal completeness checks including plausibility checks, as well as supporting backend\
-      \ services. Additional functions will be added in subsequent releases.\n\nA detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads)."
+    genericName: SPARK Workflow
+    shortDescription: The AI modules from the SPARK project (Accelerating Planning and Approval Processes through AI) support complex planning and approval processes within public administration.
+    longDescription: |-
+      ## Project Objectives and Core Functionalities
+
+      Over the past nine months, the Federal Ministry for Digitalisation and State Modernisation has commissioned the development of AI modules as part of an innovation partnership within the SPARK project. These AI modules provide operational support for complex administrative planning and approval procedures. The development was funded by the Climate and Transformation Fund of the Federal Ministry for Economic Affairs and Energy. The AI helps to speed up administrative procedures and effectively relieve public sector staff of time-consuming tasks. The solution is designed to be agnostic in terms of procedures and areas of law, enabling broad reusability in the procedures of the federal, state and municipal authorities. At the same time, the AI modules can also be used for other tasks beyond planning and approval procedures.
+
+      Planning and approval procedures are considered a major bottleneck for the maintenance and expansion of infrastructure in Germany. The underlying administrative processes are often complex, resource-intensive and time-consuming. SPARK supports staff in public authorities through a workflow tailored to their legal working methods, as well as through AI modules that provide them with initial review and assessment suggestions. Users always make the decisions during the review process. AI suggestions can be adopted, supplemented or rejected entirely.
+
+      This has resulted in several modules and services that map out key procedural steps. These include, in particular, the extraction of factual content from application documents, formal and substantive completeness checks including plausibility checks, public and stakeholder engagement, legal review and assessment, and the drafting of decisions. The AI solution is complemented by a digital legal doctrine system featuring legal databases, automated analysis of legal provisions and legal assessment mechanisms.
+
+      ## Project Status and Open-Source Release
+
+      SPARK is being released as open source in several phases. The solution is currently in the beta stage.
+
+      The first release includes the content extraction and formal completeness checking modules, including plausibility checks, as well as supporting backend services. Further functions will be added in subsequent open-source releases.
+
+      A detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads)."
     documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
     features:
     - "AI-assisted content extraction from application documents"

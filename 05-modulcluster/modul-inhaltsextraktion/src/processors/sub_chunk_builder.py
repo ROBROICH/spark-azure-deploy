@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from bs4 import BeautifulSoup, Tag
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from src.processors.text_splitters import RecursiveCharacterTextSplitter
 from temporalio import activity
 
 from src.config import get_config

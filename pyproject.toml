@@ -1,7 +1,7 @@
 [project]
-name = "bmds-ki-monorepo"
+name = "spark-workflow"
 version = "0.1.0"
-description = "BMDS KI Monorepo"
+description = "SPARK Workflow"
 requires-python = ">=3.13, <3.14"
 
 [tool.uv]

@@ -16,8 +16,8 @@ ToC building lives in toc_builder.py.
 import re
 from typing import Any
 
-from langchain_core.documents import Document
-from langchain_text_splitters import (
+from src.processors.text_splitters import (
+    Document,
     MarkdownHeaderTextSplitter,
     RecursiveCharacterTextSplitter,
 )
