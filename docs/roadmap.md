@@ -4,11 +4,11 @@ This document describes the phased open-source publication of SPARK.
 
 ## Release overview
 
-|Release|Date|Functional focus|Operational scope|
-|-|-|-|-|
-|First Release|2026-03-31|Initial preprocessing and early procedural support|Covers document intake, extraction, and initial formal and plausibility checks|
-|Second Release|2026-05-15|Core substantive and legal review and assessment capabilities|AI-supported substantive checks and legal evaluation|
-|Third Release|2026-06-12|Participation, cross-cutting operational functions, and deployment assets|Completes the open-source publication|
+|Release|Functional focus|Operational scope|
+|-|-|-|
+|First Release|Initial preprocessing and early procedural support|Covers document intake, extraction, and initial formal and plausibility checks|
+|Second Release|Core substantive and legal review and assessment capabilities|AI-supported substantive checks and legal evaluation|
+|Third Release|Participation, cross-cutting operational functions, and deployment assets|Completes the open-source publication|
 
 ### First Release — 2026-03-31
 
