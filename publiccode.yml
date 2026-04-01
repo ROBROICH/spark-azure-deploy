@@ -8,8 +8,6 @@ platforms:
 - web
 categories:
 - workflow-management
-- case-management
-- decision-support
 roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/roadmap.md
 developmentStatus: beta
 softwareType: standalone/web
