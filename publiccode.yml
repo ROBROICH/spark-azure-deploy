@@ -10,7 +10,7 @@ categories:
 - workflow-management
 - case-management
 - decision-support
-roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/docs/roadmap.md
+roadmap: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/roadmap.md
 developmentStatus: beta
 softwareType: standalone/web
 intendedAudience:
@@ -22,7 +22,7 @@ intendedAudience:
 description:
   de:
     genericName: SPARK Workflow
-    shortDescription: Die KI-Module aus dem Projekt SPARK (Beschleunigung von Planungs- und Genehmigungsverfahren durch KI) unterstützen komplexe Planungs- und Genehmigungsverfahren in der öffentlichen Verwaltung.
+    shortDescription: Die KI-Module aus dem Projekt SPARK unterstützen komplexe Planungs- und Genehmigungsverfahren in der öffentlichen Verwaltung.
     longDescription: |-
       ## Projektzielsetzung und Kernfunktionalitäten
 
@@ -39,7 +39,7 @@ description:
       Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend‑Dienste. Weitere Funktionen werden in den nachfolgenden Open‑Source‑Veröffentlichungen ergänzt.
 
       Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads).
-    documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
+    documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/README.md
     features:
     - "KI-gestützte Inhaltsextraktion aus Antragsunterlagen"
     - "Formale Vollständigkeitsprüfung eingereichter Unterlagen"
@@ -51,7 +51,7 @@ description:
     - images/image4.jpg
   en:
     genericName: SPARK Workflow
-    shortDescription: The AI modules from the SPARK project (Accelerating Planning and Approval Processes through AI) support complex planning and approval processes within public administration.
+    shortDescription: The AI modules from the SPARK project support complex planning and approval processes within public administration.
     longDescription: |-
       ## Project Objectives and Core Functionalities
 
@@ -68,7 +68,7 @@ description:
       The first release includes the content extraction and formal completeness checking modules, including plausibility checks, as well as supporting backend services. Further functions will be added in subsequent open-source releases.
 
       A detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads)."
-    documentation: planungs-und-genehmigungsbeschleunigung/spark-workflow/README.md
+    documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/README.md
     features:
     - "AI-assisted content extraction from application documents"
     - "Formal completeness checks of submitted documents"
