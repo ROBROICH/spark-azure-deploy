@@ -36,7 +36,7 @@ description:
 
       Die erste Veröffentlichung umfasst die Module Inhaltsextraktion und formale Vollständigkeitsprüfung einschließlich der Plausibilitätsprüfung sowie unterstützende Backend‑Dienste. Weitere Funktionen werden in den nachfolgenden Open‑Source‑Veröffentlichungen ergänzt.
 
-      Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads).
+      Eine detaillierte Übersicht über Inhalte und Zeitpunkte der drei Releases befindet sich in der Datei [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/roadmap.md).
     documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/README.md
     features:
     - "KI-gestützte Inhaltsextraktion aus Antragsunterlagen"
@@ -65,7 +65,7 @@ description:
 
       The first release includes the content extraction and formal completeness checking modules, including plausibility checks, as well as supporting backend services. Further functions will be added in subsequent open-source releases.
 
-      A detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/roadmap.md?ref_type=heads)."
+      A detailed overview of the contents and timing of all three releases is provided in [`roadmap.md`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/roadmap.md)."
     documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/README.md
     features:
     - "AI-assisted content extraction from application documents"
