@@ -105,7 +105,6 @@ class DMSConfig(BaseModel):
 class EmbeddingConfig(BaseModel):
     """Embedding/vector storage settings."""
 
-    VECTOR_SIZE: int = 1024
     UPLOAD_BATCH_SIZE: int = 1000
     TIMEOUT_SECONDS: int = 180
     MAX_RETRIES: int = 3
