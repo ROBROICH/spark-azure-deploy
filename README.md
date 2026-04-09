@@ -82,7 +82,30 @@ Then restart all containers. If the `.env` already exists and you want to regene
 
 </details>
 
+<details>
+<summary>Temporal UI: "missing csrf token in request header"</summary>
+
+The Temporal UI sets its CSRF cookie with the `Secure` flag. Some browsers drop `Secure` cookies over plain HTTP, which prevents the CSRF token from being sent with API requests.
+
+To fix this, add `TEMPORAL_CSRF_COOKIE_INSECURE=true` to the `temporal-ui` service in `docker-compose.yaml`:
+
+```yaml
+temporal-ui:
+  environment:
+    - TEMPORAL_ADDRESS=temporal:7233
+    - TEMPORAL_CSRF_COOKIE_INSECURE=true
+```
+
+Then recreate the container:
+
+```bash
+docker compose up -d temporal-ui
+```
+
+</details>
+
 ## License
+
 This project is licensed under the EUPL-1.2.
 
 It also includes third-party components under other open source licenses.
