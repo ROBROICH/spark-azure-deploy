@@ -178,7 +178,7 @@ class PlausibilityQdrantClient(QdrantClient):
 
         self.create_collection(
             collection_name=collection_name,
-            vectors_config=models.VectorParams(size=Config.EMBEDDING.VECTOR_SIZE, distance=models.Distance.COSINE),
+            vectors_config=models.VectorParams(size=ENV.QDRANT.VECTOR_SIZE, distance=models.Distance.COSINE),
         )
 
         for keyword_field in Config.QDRANT.INDEX_KEYWORDS:

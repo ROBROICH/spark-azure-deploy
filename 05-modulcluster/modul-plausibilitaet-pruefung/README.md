@@ -166,7 +166,7 @@ Writes one JSON file per document and one aggregated file. Both share the same s
 
 ### Configuration
 
-1. **Environment Variables**: Create `.env` based on `.env.local`. Configure LiteLLM, Qdrant, DMS, Temporal, S3 payload storage (`TEMPORAL_S3_*`), and OpenTelemetry settings. `TEMPORAL_LLM_MAX_PER_SECOND` controls LLM dispatch rate.
+1. **Environment Variables**: Create `.env` based on `.env.local`. Configure LiteLLM, Qdrant, DMS, Temporal, S3 payload storage (`TEMPORAL_S3_*`), and OpenTelemetry settings. `TEMPORAL_LLM_MAX_PER_SECOND` controls LLM dispatch rate. `QDRANT_VECTOR_SIZE` must match the output dimensions of the configured embedding model (e.g. `BAAI/bge-m3` produces 1024-dimensional vectors).
 
 2. **Workflow Trigger Config** (for local test runs):
    ```bash
