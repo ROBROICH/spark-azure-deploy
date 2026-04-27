@@ -10,7 +10,7 @@ Maintainers are responsible for reviewing contributions, guiding the development
 
 | Name | Role | Contact |
 |-----|-----|-----|
-| Team (Planungsbeschleunigung) | Main Contact | planungsbeschleunigung@bmi.bund.de |
+| Team (Planungsbeschleunigung) | Main Contact | spark@bmds.bund.de |
 
 List of current maintainers will be updated shortly.
 
