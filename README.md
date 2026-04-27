@@ -109,4 +109,4 @@ docker compose up -d temporal-ui
 This project is licensed under the EUPL-1.2.
 
 It also includes third-party components under other open source licenses.
-See [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES.md) for details.
+See [THIRD_PARTY_LICENSES.md](./THIRD_PARTY_LICENSES/THIRD_PARTY_LICENSES.md) for details.
