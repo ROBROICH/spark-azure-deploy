@@ -38,7 +38,7 @@ Security vulnerabilities should be reported directly to the project maintainers.
 
 You can contact the maintainers via:
 
-- Email: planungsbeschleunigung@bmi.bund.de
+- Email: spark@bmds.bund.de
 - Direct contact with a maintainer listed in `MAINTAINERS.md`
 
 If email is used, please include the project name and a short description of the issue in the subject.
