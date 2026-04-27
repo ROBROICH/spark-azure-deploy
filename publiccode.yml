@@ -82,7 +82,7 @@ maintenance:
   type: internal
   contacts:
   - name: Bundesministerium für Digitales und Staatsmodernisierung
-    email: planungsbeschleunigung@bmi.bund.de
+    email: spark@bmds.bund.de
 localisation:
   localisationReady: true
   availableLanguages:
