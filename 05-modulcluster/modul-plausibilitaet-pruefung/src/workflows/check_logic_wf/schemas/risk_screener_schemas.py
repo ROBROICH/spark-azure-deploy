@@ -63,12 +63,18 @@ class RiskScreenerResponse(BaseModel):
     )
 
 
-class RiskScreenerIndexedResponse(BaseModel):
-    """Screener result keyed by prompt-local 1-based reference indices."""
+class RiskScreenerIndexedItem(RiskScreenerItem):
+    """Single screening result for one reference, identified by 1-based prompt index."""
 
-    screening_result_dict: dict[int, RiskScreenerItem] = Field(
+    reference_id: int = Field(description="1-based reference index from the prompt.")
+
+
+class RiskScreenerIndexedResponse(BaseModel):
+    """Screener result as a list of indexed items (compatible with OpenAI Structured Outputs)."""
+
+    screening_results: list[RiskScreenerIndexedItem] = Field(
         ...,
-        description="Dictionary mapping 1-based reference indices to screening results.",
+        description="List of screening results, one per reference claim.",
     )
 
 

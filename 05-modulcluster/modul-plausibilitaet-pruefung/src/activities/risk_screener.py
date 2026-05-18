@@ -11,6 +11,7 @@ from src.workflows.check_logic_wf.prompts.risk_screener_prompts import (
 from src.workflows.check_logic_wf.schemas.risk_screener_schemas import (
     DocumentBundleRequest,
     DocumentBundleResult,
+    RiskScreenerIndexedItem,
     RiskScreenerIndexedResponse,
     RiskScreenerItem,
     RiskScreenerPromptPayload,
@@ -36,16 +37,20 @@ def _index_reference_claims(
 
 
 def _translate_screening_results(
-    screening_result_dict: dict[int, RiskScreenerItem],
+    screening_results: list[RiskScreenerIndexedItem],
     idx_to_uuid: dict[int, str],
 ) -> dict[str, RiskScreenerItem]:
-    """Translate LLM result keys (indices) back to UUIDs."""
+    """Translate LLM result indices back to UUIDs."""
     translated: dict[str, RiskScreenerItem] = {}
-    for reference_index, item in screening_result_dict.items():
-        ref_uuid = idx_to_uuid.get(reference_index)
+    for item in screening_results:
+        ref_uuid = idx_to_uuid.get(item.reference_id)
         if not ref_uuid:
             continue
-        translated[ref_uuid] = item
+        translated[ref_uuid] = RiskScreenerItem(
+            rating=item.rating,
+            note=item.note,
+            reasoning=item.reasoning,
+        )
     return translated
 
 
@@ -77,7 +82,7 @@ async def _screen_inconsistency_risks(
         output_format=RiskScreenerIndexedResponse,
     )
     screening_response = RiskScreenerIndexedResponse.model_validate(llm_response)
-    translated = _translate_screening_results(screening_response.screening_result_dict, idx_to_uuid)
+    translated = _translate_screening_results(screening_response.screening_results, idx_to_uuid)
     return RiskScreenerResponse(screening_result_dict=translated)
 
 
