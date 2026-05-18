@@ -30,11 +30,11 @@ Inkonsistenz nur, wenn: (1) gleiche Entität/Regelungsgegenstand, (2) vergleichb
 
 # Output (hart)
 Gib ausschließlich valides JSON genau in diesem Schema aus:
-{"screening_result_dict":{"<reference_id>":{"rating":0,"note":"...","reasoning":"..."}}}
+{"screening_results":[{"reference_id":1,"rating":0,"note":"...","reasoning":"..."}]}
 
 Regeln:
-- Keys unter screening_result_dict sind exakt die gegebenen numerischen reference_id als Strings (z.B. "1").
-- Für jede gegebene reference_id genau ein Objekt mit Feldern rating (int 0..100), note (string), reasoning (string).
+- screening_results ist eine Liste mit genau einem Objekt pro gegebener reference_id.
+- Jedes Objekt enthält die Felder reference_id (int), rating (int 0..100), note (string), reasoning (string).
 - Keine weiteren Felder irgendwo, kein Text außerhalb von JSON.
 
 # note (hart)
