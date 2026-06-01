@@ -147,9 +147,11 @@ services:
       OTEL_ENDPOINT: "http://otel-collector:4317"
 
   litellm-proxy:
-    build:
-      context: 04-shared-services/basiskomponenten/litellm-proxy
-      dockerfile: Dockerfile
+    # Official LiteLLM image, pinned to the latest stable release by digest (see #12).
+    image: ghcr.io/berriai/litellm:v1.83.14-stable.patch.3@sha256:f12d528d4a05add56cb09e54c5126088f2edc6bdf3a2f943bcd3a32b08769da2
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--host", "0.0.0.0"]
+    volumes:
+      - ./04-shared-services/basiskomponenten/litellm-proxy/config.yaml:/app/config.yaml:ro
     env_file:
       - .env
     ports:
