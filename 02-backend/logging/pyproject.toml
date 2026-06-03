@@ -16,7 +16,7 @@ db = ["sqlalchemy>=2.0.0,<3"]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.1,<9",
+    "pytest>=8.4.1,<10",
     "fastapi>=0.120.1",
     "uvicorn>=0.41.0",
     "sqlalchemy>=2.0.0,<3",
