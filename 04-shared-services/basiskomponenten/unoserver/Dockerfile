@@ -1,7 +1,9 @@
 # https://github.com/unoconv/unoserver-docker/blob/c81c0729924750e346e237b89f8ff062d7597a35/Dockerfile
 # Modified to use the latest version of unoserver
 
-FROM alpine:3.21
+# Pinned Alpine edge: ships LibreOffice 25.8.7.3, which fixes CVE-2026-4430
+# (the >= 25.8.7 patch is only available on edge; 3.23 stable is still 25.8.1.1). See #11.
+FROM alpine:edge@sha256:9a341ff2287c54b86425cbee0141114d811ae69d88a36019087be6d896cef241
 
 # Explicit numeric UID/GID are required by Kubernetes runAsNonRoot enforcement
 ARG UID=100
@@ -23,10 +25,13 @@ RUN addgroup -S -g ${GID} ${USERNAME} && adduser -S -u ${UID} -G ${USERNAME} ${U
 
 RUN apk upgrade --no-cache
 
+# Trimmed LibreOffice: only the components needed for headless doc->PDF
+# conversion, instead of the full `libreoffice` meta-package (which also pulls
+# libreoffice-base, Java/hsqldb and all language packs). Cuts the CVE surface.
 RUN apk add --no-cache \
     bash curl \
     py3-pip \
-    libreoffice
+    libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-draw
 
 # fonts - https://wiki.alpinelinux.org/wiki/Fonts
 RUN apk add --no-cache \
