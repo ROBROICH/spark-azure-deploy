@@ -35,7 +35,7 @@ description:
       
       SPARK Workflow wurde in zwei Releases als Open Source veröffentlicht. Die Lösung wird mit einer ersten Bundesbehörde getestet und wird kontinuierlich weiter verbessert.
       
-      Eine detaillierte Übersicht über die Funktionen finden sich [`hier`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/feature-list-ger.md).
+      Eine detaillierte Übersicht über die Funktionen finden sich in der [`Featureliste`](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/docs/feature-list-ger.md).
     documentation: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/blob/main/README.md
     features:
     - "Inhaltsextraktion aus Unterlagen"
