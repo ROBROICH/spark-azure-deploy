@@ -1,0 +1,18 @@
+dependencies:
+- name: basisdienste
+  repository: file://../01-basisdienste
+  version: 0.1.0
+- name: frontend
+  repository: file://../02-frontend
+  version: 0.1.0
+- name: service-layer
+  repository: file://../03-service-layer
+  version: 0.1.0
+- name: orchestration-layer
+  repository: file://../04-orchestration-layer
+  version: 0.1.0
+- name: ai-module-layer
+  repository: file://../05-ai-module-layer
+  version: 0.1.0
+digest: sha256:0a16be7e8e404ba93eeabee05a17929f369c56f0527c1dd79a71d5c11c067908
+generated: "2026-06-11T14:07:45.765539744+02:00"

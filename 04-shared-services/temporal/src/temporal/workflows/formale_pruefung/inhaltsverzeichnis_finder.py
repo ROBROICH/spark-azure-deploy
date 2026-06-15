@@ -4,9 +4,8 @@ from temporal.utils import WorkflowName, execute_workflow, start_workflow
 from temporalio.client import WorkflowHandle
 from temporalio.workflow import ChildWorkflowHandle
 
-from .types import InhaltsverzeichnisFinderOutput, InhaltsverzeichnisFinderParams
+from .types import TASK_QUEUE, InhaltsverzeichnisFinderOutput, InhaltsverzeichnisFinderParams
 
-TASK_QUEUE = "formale-pruefung"
 INHALTSVERZEICHNIS_FINDER_WORKFLOW_ID = WorkflowName("InhaltsverzeichnisFinderWorkflow")
 
 

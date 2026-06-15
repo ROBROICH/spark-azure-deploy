@@ -1,9 +1,11 @@
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI
 from temporal import start_temporal_worker
+from temporal.s3_payload_storage import S3PayloadStorage
 
 from src.config.settings import settings
 from src.services.workflows import activities, workflows
@@ -12,6 +14,13 @@ from src.utils.app_state import app_state
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> Any:
+    storage = S3PayloadStorage(
+        bucket_name=settings.temporal.S3_BUCKET_NAME,
+        endpoint_url=settings.temporal.S3_ENDPOINT_URL,
+        access_key=settings.temporal.S3_ACCESS_KEY_ID,
+        secret_key=settings.temporal.S3_SECRET_ACCESS_KEY,
+        region=settings.temporal.S3_REGION,
+    )
     ready = asyncio.Event()
     temporal_worker_task = asyncio.create_task(
         start_temporal_worker(
@@ -19,8 +28,10 @@ async def lifespan(app: FastAPI) -> Any:
             workflows=workflows,
             activities=activities,
             task_queue=settings.temporal.task_queue,
+            storage=storage,
             namespace=settings.temporal.namespace,
             ready=ready,
+            activity_executor=ThreadPoolExecutor(max_workers=4),
         )
     )
 

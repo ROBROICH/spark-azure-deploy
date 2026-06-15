@@ -1,16 +1,10 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 
 def generate_timestamp() -> str:
     """Generate ISO 8601 timestamp in UTC with milliseconds."""
-    return (
-        datetime.now(tz=timezone.utc)
-        .isoformat(timespec="milliseconds")
-        .replace("+00:00", "Z")
-    )
-
-
+    return datetime.now(tz=UTC).isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
 
 _ECS_FIELD_MAPPING: dict[str, str] = {

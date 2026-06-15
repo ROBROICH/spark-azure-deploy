@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE items [
+ <!ELEMENT items (item)*>
+ <!ELEMENT item (gericht?,entsch-datum?,aktenzeichen?,link,modified)>
+ <!ELEMENT gericht (#PCDATA)>
+ <!ELEMENT entsch-datum (#PCDATA)>
+ <!ELEMENT aktenzeichen (#PCDATA)>
+ <!ELEMENT link (#PCDATA)>
+ <!ELEMENT modified (#PCDATA)>
+]>
+<!-- generator:jps10-V37_27_01_V37_27_010 18.02.2026 15:02:17, lastBuildDate:19.02.2026 00:13:14 -->
+<items>
+<item>
+ <gericht>BGH 9. Testsenat</gericht>
+ <entsch-datum>20260114</entsch-datum>
+ <aktenzeichen>IX ZB 1/26</aktenzeichen>
+ <link>http://rechtsprechung.test/docs/jb-TESTDOC0001.zip</link>
+ <modified>2026-02-19T00:13:14.000Z</modified>
+</item>
+</items>

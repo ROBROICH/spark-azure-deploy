@@ -4,47 +4,34 @@ Environment-specific settings live in env.py.
 """
 
 from datetime import timedelta
-from typing import Literal
 
 from pydantic import BaseModel, Field
 from temporalio.common import RetryPolicy
-
-from src.config.env import LiteLLMModel
-
-
-class LLMProfile(BaseModel):
-    """Defines configuration parameters for a specific LLM model."""
-
-    model_name: LiteLLMModel = Field(
-        description="LLM model name as registered in the LiteLLM proxy.",
-    )
-    temperature: float = Field(0.0, ge=0.0, le=1.0, description="Controls randomness (0.0 to 1.0)")
-    top_p: float = Field(1.0, ge=0.0, le=1.0, description="Nucleus sampling parameter")
-    max_tokens: int = Field(15000, gt=0, description="Maximum tokens to generate")
-    reasoning_effort: Literal["low", "medium", "high"] = Field(
-        default="medium", description="The level of reasoning effort for the model"
-    )
 
 
 class RiskScreeningParamsConfig(BaseModel):
     """Configuration parameters for the risk screening workflow."""
 
-    K_TOTAL_COMPARISON_CLAIMS: int = 10
-    RATING_THRESHOLD: int = 50
+    K_TOTAL_COMPARISON_CLAIMS: int = 7
+    RATING_THRESHOLD: int = 65
     K_LOCAL_COMPARISON_CLAIMS: int = 1
-    K_ERLAEUTERUNGSBERICHT_COMPARISON_CLAIMS: int = 4
-    QDRANT_QUERY_BATCH_SIZE: int = 50
+    K_ERLAEUTERUNGSBERICHT_COMPARISON_CLAIMS: int = 3
+    SCORE_LOWER_THRESHOLD: float = 0.5
+    SCORE_UPPER_THRESHOLD: float = 0.95
+    QDRANT_QUERY_BATCH_SIZE: int = 40
+    SCREENING_CLAIMS_PER_BATCH: int = 5
 
 
 class ContextCheckingParamsConfig(BaseModel):
     """Configuration parameters for the context checking workflow."""
 
     MAX_PREVIOUS_CHUNKS: int = 10
-    MAX_PREVIOUS_TEXT_CHARS: int = 5000
+    MAX_PREVIOUS_TEXT_CHARS: int = 7000
     MAX_FOLLOWUP_CHUNKS: int = 1
-    MAX_FOLLOWUP_TEXT_CHARS: int = 500
+    MAX_FOLLOWUP_TEXT_CHARS: int = 1000
     PREVIOUS_TEXT_TRUNCATE_RATIO: float = 0.2
     RATING_THRESHOLD: int = 50
+    CONTEXT_BATCH_SIZE: int = 200
     LLM_SUMMARY_BEGIN_MARKER: str = "<<<BEGIN_LLM_SUMMARY_NON_VERBATIM>>>"
     LLM_SUMMARY_END_MARKER: str = "<<<END_LLM_SUMMARY_NON_VERBATIM>>>"
 
@@ -68,31 +55,28 @@ class QdrantBuilderParamsConfig(BaseModel):
     ACTIVITY_TIMEOUT_SECONDS: int = 10000
     PROCESS_AND_UPLOAD_BATCH_SIZE: int = 50
     CHUNK_MIN_LENGTH: int = 50
-    TABLE_ROW_BATCH_SIZE: int = 5
+    TABLE_MAX_CHARS: int = 80_000
+    EXTRACTION_CHUNKS_PER_BATCH: int = 10
+    EXTRACTION_MAX_CHARS_PER_BATCH: int = 100_000
 
 
 class TemporalConfig(BaseModel):
     """Runtime tuning for worker/activity execution."""
 
     MAX_PENDING_ACTIVITIES: int = 900
-    LLM_MAX_CONCURRENT_ACTIVITIES: int = 390
+    MAX_CONCURRENT_CHILD_WORKFLOWS: int = 100
+    CHILD_WORKFLOW_BATCH_SIZE: int = 50
+    LLM_MAX_CONCURRENT_ACTIVITIES: int = 1500
     ACTIVITY_TIMEOUT_SECONDS: int = 600
     UPLOAD_ACTIVITY_TIMEOUT_SECONDS: int = 600
-    LLM_ACTIVITY_TIMEOUT_SECONDS: int = 600
+    LLM_ACTIVITY_TIMEOUT_SECONDS: int = 1800
     ACTIVITY_MAX_RETRIES: int = 20
     LLM_RETRY_POLICY: RetryPolicy = RetryPolicy(
-        maximum_attempts=30,
+        maximum_attempts=500,
         initial_interval=timedelta(seconds=10),
         backoff_coefficient=2,
         maximum_interval=timedelta(seconds=30),
     )
-
-
-class LiteLLMClientConfig(BaseModel):
-    """Internal client tuning for LiteLLM/OpenAI SDK calls."""
-
-    TIMEOUT_SECONDS: float = 600.0
-    MAX_RETRIES: int = 3
 
 
 class DMSConfig(BaseModel):
@@ -107,8 +91,6 @@ class EmbeddingConfig(BaseModel):
 
     UPLOAD_BATCH_SIZE: int = 1000
     TIMEOUT_SECONDS: int = 180
-    MAX_RETRIES: int = 3
-    RETRY_INTERVAL_SECONDS: float = 10.0
 
 
 class QdrantConfig(BaseModel):
@@ -135,10 +117,8 @@ class Config:
 
     # Orchestration/service settings
     TEMPORAL = TemporalConfig()
-    LITELLM_CLIENT = LiteLLMClientConfig()
     DMS = DMSConfig()
     QDRANT = QdrantConfig()
-    LLM_TASK_QUEUE_SUFFIX = "-llm"
 
 
 config = Config()

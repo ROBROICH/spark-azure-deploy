@@ -1,12 +1,12 @@
 import time
-from typing import Callable
+from collections.abc import Callable, Mapping
+from typing import ClassVar
 from uuid import uuid4
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.routing import Match
 from starlette.types import ASGIApp
-from collections.abc import Mapping
 
 from event_logging.context import project_id_var, trace_id_var
 from event_logging.enums import (
@@ -27,7 +27,7 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
     and network details in ECS-compatible JSON format.
     """
 
-    METHOD_ACTION_MAP = {
+    METHOD_ACTION_MAP: ClassVar[dict[str, EventAction]] = {
         "GET": EventAction.READ,
         "POST": EventAction.WRITE,
         "PUT": EventAction.CHANGE,
@@ -49,9 +49,7 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
         if isinstance(service_component, str):
             service_component = ServiceComponent(service_component)
 
-        self.logger = EventLogger(
-            service_name=service_name, service_component=service_component
-        )
+        self.logger = EventLogger(service_name=service_name, service_component=service_component)
         self.skip_paths = skip_paths or ["/healthz", "/metrics"]
 
     def _get_project_id(self, mapping: Mapping[str, str | None]) -> str | None:
@@ -83,7 +81,6 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
         except Exception:
             pass
         return None
-
 
     def _extract_trace_id(self, request: Request) -> str | None:
         """Extract trace ID from W3C traceparent header if valid, else return None."""

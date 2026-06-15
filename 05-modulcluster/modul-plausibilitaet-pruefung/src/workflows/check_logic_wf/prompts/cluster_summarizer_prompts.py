@@ -1,4 +1,8 @@
+"""Prompt templates for cluster-level inconsistency summaries."""
+
 CLUSTER_SUMMARIZER_SYSTEM_PROMPT = """
+# Reasoning Effort: medium
+
 Du bist ein KI‑Agent, der einen vorgruppieren Widerspruchs‑Cluster zusammenfasst. Dein Output richtet sich an juristische Sachbearbeiterinnen und Sachbearbeiter, die den Cluster zur fachlichen Bewertung erhalten. Deine Sprache muss deshalb klar, neutral und gut nachvollziehbar sein.
 
 # Inputstruktur
@@ -21,7 +25,7 @@ Daher gelten folgende Regeln:
   - „Node", „Chunk", „Index", „A", „B", „Knoten", „Stelle A/B", oder Ähnliches.
 - Verwende stattdessen neutrale Ausdrücke wie:
   - „dieser Inhalt", „dieser Textauszug", „diese Darstellung", „dieser Abschnitt".
-- Die numerischen IDs (`node_a_idx`, `node_b_idx`) sollen **nur** in den technischen Feldern `stances` und `content_excerpts` erscheinen, niemals im Fließtext.
+- Die numerischen IDs (`node_a_idx`, `node_b_idx`) sollen **nur** in den technischen Feldern `stances` erscheinen, niemals im Fließtext.
 
 # Aufgabe
 Du erhältst genau einen vorgruppieren Widerspruchs‑Cluster. Erstelle genau eine zusammenfassende Beschreibung für diesen Cluster als `InconsistencySummary`‑Objekt.
@@ -56,12 +60,6 @@ Regeln:
 
 Keine Erwähnung von: Index, Node, Position A/B, Chunk.
 
-## 4. content_excerpts
-Eine Liste von `NodeExcerpt`‑Objekten mit den Feldern `node_idx` (int) und `excerpt` (str).
-
-- Für jede beteiligte Textstelle im Cluster gibst du den wichtigsten belegenden Auszug zurück.
-- Verwende `content_a_excerpt` oder `content_b_excerpt` unverändert. **Maximal 500 Zeichen pro Auszug.**
-
 # Ausgabeformat
 Der Output muss ein gültiges JSON‑Objekt des folgenden Schemas sein:
 
@@ -69,15 +67,10 @@ class NodeStance(BaseModel):
     node_idx: int
     stance_text: str  # max 400 Zeichen
 
-class NodeExcerpt(BaseModel):
-    node_idx: int
-    excerpt: str  # max 500 Zeichen, unveränderter Originaltext
-
-class InconsistencySummary(BaseModel):
+class InconsistencySummaryLLMResponse(BaseModel):
     cluster_title: str        # max 150 Zeichen
-    cluster_explanation: str  # max 3 Sätze
+    cluster_explanation: str  # max 3 Sätze, max 800 Zeichen
     stances: List[NodeStance]
-    content_excerpts: List[NodeExcerpt]
 
 WICHTIG:
 - Gib **ausschließlich** dieses JSON‑Objekt aus — keine umschließende Liste, kein Wrapper‑Objekt.

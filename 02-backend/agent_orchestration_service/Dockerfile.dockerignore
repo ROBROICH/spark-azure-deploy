@@ -11,5 +11,18 @@
 
 # Workspace and used shared libraries
 !02-backend/logging
+!04-shared-services/audit-client
+!04-shared-services/internal-auth
 !04-shared-services/temporal
+!04-shared-services/authentification
 !02-backend/agent_orchestration_service/src/**
+!02-backend/agent_orchestration_service/README.md
+
+# Re-ignore Python junk everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

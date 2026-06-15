@@ -77,15 +77,17 @@ async def update_project_types(
     if len(incoming_ids) != len(set(incoming_ids)):
         raise RequestValidationError([])
 
-    async with db.begin():
-        result = await db.execute(
-            select(ProjectType).where(ProjectType.id.in_(incoming_ids))
-        )
-        records = {pt.id: pt for pt in result.scalars().all()}
+    try:
+        async with db.begin():
+            result = await db.execute(select(ProjectType).where(ProjectType.id.in_(incoming_ids)))
+            records = {pt.id: pt for pt in result.scalars().all()}
 
-        for item in items:
-            if item.id in records:
-                records[item.id].name = item.name
+            for item in items:
+                if item.id in records:
+                    records[item.id].name = item.name
+    except IntegrityError as e:
+        await db.rollback()
+        raise DuplicateProjectTypeError("") from e
 
     for pt in records.values():
         await db.refresh(pt)

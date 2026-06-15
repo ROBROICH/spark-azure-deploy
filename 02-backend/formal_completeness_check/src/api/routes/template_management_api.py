@@ -3,6 +3,8 @@
 from typing import Annotated
 from uuid import UUID
 
+from authentification.dependencies import require_role
+from authentification.enums import OidcRoles
 from fastapi import APIRouter, Body, Depends, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -22,6 +24,7 @@ from src.services.template_management_service import (
 router = APIRouter(
     prefix="/{project_type_id}/template-categories",
     tags=["Template Management"],
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE]))],
 )
 
 

@@ -27,7 +27,5 @@ def downgrade() -> None:
     """Re-add is_resolved column to document table."""
     op.add_column(
         "document",
-        sa.Column(
-            "is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()),
     )

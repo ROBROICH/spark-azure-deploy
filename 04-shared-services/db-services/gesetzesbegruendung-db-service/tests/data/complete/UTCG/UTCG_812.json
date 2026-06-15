@@ -1,0 +1,50 @@
+{
+  "aktualisiert": "2026-05-15T12:00:00+02:00",
+  "autoren_anzahl": 0,
+  "datum": "2026-05-20",
+  "dokumentart": "Drucksache",
+  "dokumentnummer": "812/26",
+  "drucksachetyp": "Gesetzentwurf",
+  "fundstelle": {
+    "datum": "2026-05-20",
+    "dokumentart": "Drucksache",
+    "dokumentnummer": "812/26",
+    "drucksachetyp": "Gesetzentwurf",
+    "herausgeber": "BR",
+    "id": "812",
+    "pdf_url": "file://synthetic/812.pdf",
+    "urheber": [
+      "Bundesregierung",
+      "Bundestag"
+    ]
+  },
+  "herausgeber": "BR",
+  "id": "812",
+  "pdf_hash": "0000000000000000000000000000032c",
+  "text": "## Denkschrift\n\n## I. Allgemeines\n\nDas Übereinkommen über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen verpflichtet die Vertragsparteien, vor der Inbetriebnahme eines automatisierten Spark-Workflows eine systematische Prüfung der Testabdeckung durchzuführen. Die Prüfung erstreckt sich auf sämtliche Verzweigungen, Schleifen und Ausnahmepfade der betroffenen Module sowie auf die Frage, ob die festgelegte Mindestabdeckung von neunzig Prozent der Anweisungen tatsächlich erreicht wird. Soweit ein Workflow geeignet ist, erhebliche Auswirkungen auf die Datenverarbeitung einer anderen Vertragspartei zu entfalten, sind die zuständigen Stellen der betroffenen Partei frühzeitig zu unterrichten und an der Bewertung der Prüfergebnisse zu beteiligen. Die Unterrichtung umfasst eine Beschreibung des Vorhabens, die vorgesehene Testarchitektur sowie eine erste Einschätzung der zu erwartenden Abdeckungslücken und ihrer möglichen Folgen. \n\nMit der Zweiten Änderung wird der Anwendungsbereich des Übereinkommens auf verteilte Ausführungsumgebungen erweitert, in denen einzelne Testfälle über die Grenzen mehrerer Vertragsparteien hinweg ausgeführt werden. Für diese Fälle wird ein vereinfachtes Konsultationsverfahren eingeführt, das es den beteiligten Stellen erlaubt, gemeinsame Prüfberichte zu erstellen und auf eine doppelte Begutachtung zu verzichten. Die Vertragsparteien verpflichten sich, ein zentrales Testfallregister zu führen, in dem für jeden registrierten Testfall die zuständige Teststelle, der Stabilitätsgrad und die zuletzt gemessene Abdeckung hinterlegt werden. Die im Register gespeicherten Angaben werden den übrigen Vertragsparteien auf Antrag im automatisierten Verfahren bereitgestellt, soweit dem keine überwiegenden schutzwürdigen Interessen entgegenstehen. \n\nDie Änderung trägt den Erfahrungen Rechnung, die seit dem Inkrafttreten des ursprünglichen Übereinkommens mit der Spark-Workflow-Architektur gesammelt worden sind. Insbesondere hat sich gezeigt, dass eine bloß stichprobenhafte Prüfung der Testabdeckung nicht ausreicht, um Regressionen in lang laufenden, ereignisgesteuerten Workflows zuverlässig auszuschließen. Künftig ist daher für jeden Workflow ein fortlaufend aktualisierter Abdeckungsbericht vorzuhalten, der bei wesentlichen Änderungen der Ausführungslogik unverzüglich fortzuschreiben ist. Die Vertragsparteien streben an, die Berichtspflichten schrittweise zu harmonisieren und langfristig ein einheitliches Format für die Übermittlung der Prüfergebnisse zu vereinbaren. Die nähere Ausgestaltung bleibt einer Durchführungsvereinbarung vorbehalten, die von dem mit dem Übereinkommen errichteten Ausschuss beschlossen wird. ",
+  "titel": "Entwurf eines Gesetzes zu der Zweiten Änderung des Übereinkommens vom 15. Mai 2026 über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)",
+  "typ": "Dokument",
+  "urheber": [
+    {
+      "bezeichnung": "BRg",
+      "einbringer": false,
+      "rolle": "undefiniert",
+      "titel": "Bundesregierung"
+    },
+    {
+      "bezeichnung": "BT",
+      "einbringer": false,
+      "rolle": "undefiniert",
+      "titel": "Bundestag"
+    }
+  ],
+  "vorgangsbezug": [
+    {
+      "id": "601",
+      "titel": "Zweite Änderung des Übereinkommens über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)",
+      "vorgangstyp": "Gesetzgebung"
+    }
+  ],
+  "vorgangsbezug_anzahl": 1,
+  "wahlperiode": 21
+}

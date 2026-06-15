@@ -1,13 +1,18 @@
 from pathlib import PurePosixPath
-from typing import TypeVar
+from typing import ClassVar, TypeVar
 
 from src.models.db.file_enum import FileTypeEnum
 from src.services.files.path_builder.path_builder_base import FileContext, PathBuilder
 from src.services.files.path_builder.path_builders import (
     ContentExtractionDataPathBuilder,
+    ErwiderungsExportPathBuilder,
+    ErwiderungsImportPathBuilder,
+    EwmsDocumentPathBuilder,
+    EwmsZipPathBuilder,
     LawDataPathBuilder,
     ProjectDocumentPathBuilder,
     ProjectZipFilePathBuilder,
+    RedactedDocumentPathBuilder,
     TemplatePathBuilder,
     TemporalCheckpointPathBuilder,
 )
@@ -20,7 +25,7 @@ class PathBuilderFactory:
     Factory for resolving `PathBuilder` instances based on file type.
     """
 
-    _registry: dict["FileTypeEnum", type[PathBuilder]] = {}
+    _registry: ClassVar[dict["FileTypeEnum", type[PathBuilder]]] = {}
 
     @classmethod
     def register(
@@ -67,8 +72,7 @@ class PathBuilderFactory:
             file_type = FileTypeEnum(file_type)
 
         builder = cls.get(file_type)
-        path = builder.build(filename=filename, context=context)
-        return path
+        return builder.build(filename=filename, context=context)
 
 
 PathBuilderFactory.register(
@@ -94,4 +98,24 @@ PathBuilderFactory.register(
 PathBuilderFactory.register(
     file_type=FileTypeEnum.CONTENT_EXTRACTION,
     path_builder_cls=ContentExtractionDataPathBuilder,
+)
+PathBuilderFactory.register(
+    file_type=FileTypeEnum.EWMS_ZIP,
+    path_builder_cls=EwmsZipPathBuilder,
+)
+PathBuilderFactory.register(
+    file_type=FileTypeEnum.EWMS_DOCUMENT,
+    path_builder_cls=EwmsDocumentPathBuilder,
+)
+PathBuilderFactory.register(
+    file_type=FileTypeEnum.REDACTED_DOCUMENT,
+    path_builder_cls=RedactedDocumentPathBuilder,
+)
+PathBuilderFactory.register(
+    file_type=FileTypeEnum.ERWIDERUNGS_IMPORT,
+    path_builder_cls=ErwiderungsImportPathBuilder,
+)
+PathBuilderFactory.register(
+    file_type=FileTypeEnum.ERWIDERUNGS_EXPORT,
+    path_builder_cls=ErwiderungsExportPathBuilder,
 )

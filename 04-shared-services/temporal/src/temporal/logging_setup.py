@@ -1,7 +1,6 @@
 import logging
-from collections.abc import Mapping
 from enum import Enum
-from typing import Any
+from typing import Any, Mapping
 
 from event_logging import EventLogger
 from event_logging.enums import EventCategory, EventOutcome

@@ -1,17 +1,17 @@
 from __future__ import annotations
 
+from types_aiobotocore_s3.client import S3Client
+from aiobotocore.session import ClientCreatorContext
 import asyncio
 import uuid
 from typing import Any
 
 import aioboto3
 from aiobotocore.config import AioConfig
-from aiobotocore.session import ClientCreatorContext
 from botocore.exceptions import ClientError
 from event_logging import EventLogger, LoggingSettings
 from event_logging.enums import EventAction, EventCategory, EventOutcome
 from event_logging.settings import Environment
-from types_aiobotocore_s3.client import S3Client
 
 PAYLOAD_PATH_PREFIX = "payloads"
 

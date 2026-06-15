@@ -10,9 +10,7 @@ from src.models.db_models import Base
 ModelType = TypeVar("ModelType", bound=Base)
 
 
-async def list_types[ModelType](
-    db: AsyncSession, model: ModelType
-) -> Sequence[ModelType]:
+async def list_types[ModelType](db: AsyncSession, model: ModelType) -> Sequence[ModelType]:
     """Generic function to retrieve all rows of a type table with id and name.
 
     Args:

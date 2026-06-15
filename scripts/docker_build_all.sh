@@ -1,21 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DOCKERFILES=(
-  # 02-backend
-  02-backend/agent_orchestration_service/Dockerfile
-  02-backend/comment_service/Dockerfile
-  02-backend/document_management_service/Dockerfile
-  02-backend/formal_completeness_check/Dockerfile
-  02-backend/plausibility_notes/Dockerfile
-  02-backend/project_logic_service/Dockerfile
-  02-backend/temporal_job_service/Dockerfile
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
 
-  # 05-modulcluster
-  05-modulcluster/modul-formale-pruefung/Dockerfile
-  05-modulcluster/modul-plausibilitaet-pruefung/Dockerfile
-  05-modulcluster/modul-inhaltsextraktion/Dockerfile
-)
+export GOOGLE_AUTH_TOKEN="${GOOGLE_AUTH_TOKEN:-$(gcloud auth print-access-token)}"
+
+DOCKERFILES=()
+
+if [ "$#" -gt 0 ]; then
+  DOCKERFILES=("$@")
+else
+  while IFS= read -r abs_path; do
+    rel_path="${abs_path#"$REPO_ROOT/"}"
+    if [[ "$rel_path" != "$abs_path" && "$rel_path" != "" && -f "$REPO_ROOT/$rel_path/Dockerfile" ]]; then
+      DOCKERFILES+=("$rel_path/Dockerfile")
+    fi
+  done < <(uv workspace list --paths)
+fi
 
 failed=()
 
@@ -27,6 +30,7 @@ for df in "${DOCKERFILES[@]}"; do
   echo "Tag:      $tag"
   echo "=========================================="
   if docker buildx build \
+    --secret id=google_auth_token,env=GOOGLE_AUTH_TOKEN \
     -t "$tag" \
     -f "$df" \
     .; then

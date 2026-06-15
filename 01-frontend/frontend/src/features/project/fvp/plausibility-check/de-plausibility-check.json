@@ -1,0 +1,88 @@
+{
+  "ComparisonTable": {
+    "document": "Dokument",
+    "leftOccurrence": "Linke Textstelle",
+    "location": "Fundstelle",
+    "rightOccurrence": "Rechte Textstelle",
+    "textPassageIndexed": "Textstelle {{index}}",
+    "wording": "Formulierung"
+  },
+  "ContradictionActions": {
+    "addComment": "Kommentar hinzufügen",
+    "addToRequestList": "In Nachforderungsliste ablegen",
+    "commentTitlePrefix": "Widerspruch:",
+    "editAs": "Hinweis bearbeiten als",
+    "ignoreHint": "Als irrelevant markieren",
+    "saveError": "Änderung konnte nicht gespeichert werden.",
+    "stopIgnoringHint": "Als relevant markieren"
+  },
+  "ContradictionCardExpanded": {
+    "affectedTextPassages": "Betroffene Textstellen ({{count}})"
+  },
+  "ContradictionsList": {
+    "emptyState": {
+      "noHints": "Keine Hinweise vorhanden",
+      "noHintsDescription": "Es wurden keine Widersprüche in den Unterlagen erkannt.",
+      "noResults": "Keine Hinweise gefunden",
+      "noResultsDescription": "Versuchen Sie, Ihre Suchkriterien anzupassen."
+    },
+    "info": "Was macht die KI?\n\nDie KI prüft die Unterlagen auf Widersprüche. Die Plausibilitätsprüfung wertet ausschließlich textbasierte Inhalte aus. Inhalte aus Abbildungen, Plänen oder Tabellen werden derzeit nicht systematisch analysiert.\n\nEs werden Widersprüche innerhalb einer einzelnen Unterlage geprüft. Zusätzlich erfolgt ein Abgleich jeweils zwischen einer einzelnen Unterlage und dem Erläuterungsbericht, wenn die KI eine Unterlage als Erläuterungsbericht erfasst hat. Widersprüche zwischen zwei Unterlagen, von denen keine als Erläuterungsbericht erfasst ist, werden nicht geprüft.\n\nDie fachliche Bewertung der angezeigten Hinweise sowie die Entscheidung über das weitere Vorgehen liegen stets bei den Nutzenden.",
+    "infoLabel": "Informationen zu den Hinweisen",
+    "title": "Hinweise"
+  },
+  "ContradictionsToolbar": {
+    "clearFilter": "Filter zurücksetzen",
+    "clearDocumentFilter": "Unterlagenfilter zurücksetzen",
+    "clearStatusFilter": "Statusfilter zurücksetzen",
+    "decreaseRating": "Sensibilität verringern",
+    "documents": "Unterlagen",
+    "increaseRating": "Sensibilität erhöhen",
+    "rating": "Sensibilitätsfilter",
+    "ratingInfo": "Mit dem Regler legen Sie fest, ab welcher Sensibilitätsschwelle Hinweise angezeigt werden. Es kann zwischen „geringer Sensibilität“ (links) und „hoher Sensibilität“ (rechts) gewählt werden.\n\nGeringe Sensibilität: Zeigt alle verfügbaren Widersprüche an. Es werden ggf. auch weniger widersprüchliche Hinweise angezeigt.\n\nHohe Sensibilität: Zeigt nur Hinweise auf widersprüchlichere Textstellen an. Dadurch können ggf. als relevant erachtete Widersprüche ausgeblendet werden.\n\nWichtig: Alle Hinweise bleiben erhalten und sind zu prüfen. Bereits abgearbeitete Hinweise sind entsprechend gekennzeichnet.",
+    "ratingInfoLabel": "Informationen zur Prüfsensibilität",
+    "ratingValue": "ab {{value}}",
+    "searchPlaceholder": "Nach Stichwort suchen ...",
+    "status": "Status"
+  },
+  "NoticeCards": {
+    "countOf": "{{count}} von {{total}}",
+    "ignoredHints": "Ignorierte Hinweise",
+    "onRequestListHints": "Hinweise auf Nachforderungsliste",
+    "openHints": "Offene Hinweise"
+  },
+  "redesign": {
+    "backToDocuments": "Zurück zur formalen Vollständigkeitsprüfung",
+    "formalCompletenessCheck": "Formale Vollständigkeitsprüfung",
+    "hintsTitle": "Hinweise ({{count}})",
+    "progress": "{{processed}} von {{total}} widersprüchlichen Angaben geprüft",
+    "referenceId": "WA-{{index}}",
+    "rowTitle": "Widersprüchliche Angabe",
+    "status": {
+      "ignored": "Irrelevant",
+      "open": "Offen",
+      "requested": "Nachgefordert",
+      "resolved": "Erledigt"
+    },
+    "stepTitle": "Plausibilitätsprüfung",
+    "summary": {
+      "irrelevant": "Irrelevante",
+      "open": "Offen",
+      "requested": "Nachgefordert"
+    }
+  },
+  "StepBar": {
+    "plausibilityCheck": "Plausibilitätsprüfung"
+  },
+  "common": {
+    "document": "Unterlage",
+    "documentNotFound": "Unterlage nicht gefunden",
+    "loading": "Lädt...",
+    "page": "Seite"
+  },
+  "status": {
+    "ignored": "Irrelevant",
+    "onRequestList": "Auf Nachforderungsliste",
+    "open": "Offen",
+    "resolved": "Erledigt"
+  }
+}

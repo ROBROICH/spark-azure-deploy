@@ -1,8 +1,11 @@
 """Service for processing completed formal completeness check jobs."""
 
+from http import HTTPStatus
+from typing import Any
 from uuid import UUID
 
 import httpx
+from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -13,14 +16,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, retry_if_exception_type, stop_after_attempt
 
 from src.config.settings import settings
+from src.exceptions.exceptions import NotFoundError
 from src.models.schemas.fcs_types import (
     FileDownloadResponse,
     FormalCompletenessCheckResults,
     JobDoneResponse,
 )
 from src.services.fcs_service import (
-    bulk_insert_results,
-    delete_all_for_project,
+    replace_results_for_files,
 )
 from src.utils.logger import logger
 
@@ -29,12 +32,51 @@ from src.utils.logger import logger
     stop=stop_after_attempt(3),
     retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.TimeoutException)),
 )
+async def _fetch_file_metadata(file_id: UUID, project_version: int | None = None) -> dict[str, Any]:
+    """Fetch file metadata from Document Management Service."""
+    base_url = settings.DOCUMENT_MANAGEMENT_SERVICE_URL.rstrip("/")
+    metadata_endpoint = f"{base_url}/v2/files/{file_id}"
+    params = {"project_version": project_version} if project_version is not None else None
+    async with httpx.AsyncClient(timeout=30.0, headers=internal_api_key_headers()) as client:
+        response = await client.get(metadata_endpoint, params=params)
+        response.raise_for_status()
+        return response.json()
+
+
+async def verify_file_project_binding(file_id: UUID, project_id: UUID, project_version: int | None = None) -> int:
+    """Verify that the file belongs to the project without leaking cross-project existence."""
+    try:
+        metadata = await _fetch_file_metadata(file_id, project_version)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == HTTPStatus.NOT_FOUND:
+            raise NotFoundError(f"File '{file_id}' not found.") from e
+        raise
+
+    file_project_id = metadata["projectId"]
+    if file_project_id is None or str(file_project_id) != str(project_id):
+        logger.warn(
+            EventAction.VALIDATE,
+            EventOutcome.FAILURE,
+            EventCategory.API,
+            default_event=LogEventDefault.VALIDATION_FAILURE,
+            message=f"File '{file_id}' does not belong to project '{project_id}'",
+        )
+        raise NotFoundError("File not found in project.")
+    return int(metadata["projectVersion"])
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    retry=retry_if_exception_type((httpx.HTTPStatusError, httpx.TimeoutException)),
+)
 async def _fetch_download_url(
     download_url_endpoint: str,
+    project_version: int | None = None,
 ) -> FileDownloadResponse:
     """Fetch presigned download URL for a file from Document Management Service."""
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        response = await client.get(download_url_endpoint)
+    params = {"project_version": project_version} if project_version is not None else None
+    async with httpx.AsyncClient(timeout=30.0, headers=internal_api_key_headers()) as client:
+        response = await client.get(download_url_endpoint, params=params)
         response.raise_for_status()
         return FileDownloadResponse.model_validate(response.json())
 
@@ -59,7 +101,7 @@ async def _fetch_json_content(
         return FormalCompletenessCheckResults.model_validate_json(response.content)
 
 
-async def fetch_results_file(file_id: UUID) -> FormalCompletenessCheckResults:
+async def fetch_results_file(file_id: UUID, project_version: int | None = None) -> FormalCompletenessCheckResults:
     """Fetch and parse the results JSON from Document Management Service."""
     base_url = settings.DOCUMENT_MANAGEMENT_SERVICE_URL.rstrip("/")
     download_url_endpoint = f"{base_url}/v2/files/{file_id}/generate-download-url"
@@ -72,7 +114,7 @@ async def fetch_results_file(file_id: UUID) -> FormalCompletenessCheckResults:
         message=f"Fetching download URL from {download_url_endpoint}",
     )
 
-    download_info = await _fetch_download_url(download_url_endpoint)
+    download_info = await _fetch_download_url(download_url_endpoint, project_version)
     logger.debug(
         EventAction.READ,
         EventOutcome.SUCCESS,
@@ -88,6 +130,7 @@ async def process_job_results(
     project_id: UUID,
     file_id: UUID,
     db: AsyncSession,
+    project_version: int | None = None,
 ) -> JobDoneResponse:
     """Process job results: fetch, delete old data, insert new data.
 
@@ -105,6 +148,8 @@ async def process_job_results(
         message=f"Processing job results for project_id={project_id}, file_id={file_id}",
     )
 
+    project_version = await verify_file_project_binding(file_id, project_id, project_version)
+
     logger.info(
         EventAction.READ,
         EventOutcome.UNKNOWN,
@@ -112,7 +157,7 @@ async def process_job_results(
         default_event=LogEventDefault.EXTERNAL_SERVICE_INTERACTION,
         message="Fetching results file from document management service",
     )
-    results = await fetch_results_file(file_id)
+    results = await fetch_results_file(file_id, project_version)
 
     if not results.matched_document_types and not results.unassigned_documents:
         logger.warn(
@@ -132,9 +177,7 @@ async def process_job_results(
     )
 
     matched_count = len(results.matched_document_types)
-    assigned_count = sum(
-        len(mt.assigned_documents) for mt in results.matched_document_types
-    )
+    assigned_count = sum(len(mt.assigned_documents) for mt in results.matched_document_types)
     unassigned_count = len(results.unassigned_documents)
 
     try:
@@ -143,18 +186,17 @@ async def process_job_results(
             EventOutcome.UNKNOWN,
             EventCategory.DATABASE,
             default_event=LogEventDefault.DB_WRITE,
-            message=f"Deleting existing FCS data for project_id={project_id}",
+            message=f"Replacing candidate FCS data for project_id={project_id}",
         )
-        deleted_count = await delete_all_for_project(project_id, db)
+        deleted_count = await replace_results_for_files(project_id, results, db, project_version=project_version)
 
         logger.info(
             EventAction.WRITE,
             EventOutcome.UNKNOWN,
             EventCategory.DATABASE,
             default_event=LogEventDefault.DB_WRITE,
-            message=f"Inserting new FCS data for project_id={project_id}",
+            message=f"Inserted candidate FCS data for project_id={project_id}",
         )
-        await bulk_insert_results(project_id, results, db)
 
         await db.commit()
         logger.info(
@@ -165,10 +207,7 @@ async def process_job_results(
             message=f"Successfully processed job results for project_id={project_id}",
         )
 
-        if not matched_count and not unassigned_count:
-            status = "no_results"
-        else:
-            status = "results_processed"
+        status = "no_results" if not matched_count and not unassigned_count else "results_processed"
 
         return JobDoneResponse(
             status=status,

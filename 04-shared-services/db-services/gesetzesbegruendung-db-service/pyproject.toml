@@ -1,0 +1,79 @@
+[project]
+name = "begruendungen-db"
+version = "0.1.0"
+description = "Datenbank für Gesetzesbegründungen (Paralaments-debatten und -protokolle)"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "db-services-shared[llm]",
+    "authentification",
+    "internal-auth",
+    "temporal",
+    "anyascii>=0.3.3,<0.4.0",
+    "typer>=0.16.1",
+]
+
+[project.scripts]
+begruendungen-db-cli = "begruendungen_db.cli:app"
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.4.5,<5",
+    "jupyterlab-vim>=4.1.4,<5",
+    "pandas>=2.3.1,<3",
+    "pytest>=9.0.3,<10",
+    "pytest-cov>=6.2.1,<7",
+    "pytest-xdist>=3.8.0",
+    "pytest-asyncio>=1.3.0",
+    "pytest-postgresql>=8.0.0,<9",
+    "asgi-lifespan>=2.1.0",
+    "respx>=0.22.0",
+    "interrogate>=1.7.0,<2",
+    "ruff>=0.14.6,<0.15",
+    "pyrefly>=0.49.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+db-services-shared = { workspace = true }
+authentification = { workspace = true }
+internal-auth = { workspace = true }
+temporal = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["integration: mark a test as an integration test (uses real external services)"]
+addopts = "-m 'not integration' -p no:warnings -v --ignore=./db-data"
+testpaths = ["tests"]
+norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
+postgresql_dbname = "begruendungen-db"
+postgresql_port = "15432"
+postgresql_password = "postgres"
+
+
+[tool.pyrefly]
+search_path = ["."]
+project-includes = ["."]
+disable-search-path-heuristics = true
+
+[tool.pyrefly.errors]
+implicit-any = "error"
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+implicit-abstract-class = "error"
+implicitly-defined-attribute = "error"
+missing-override-decorator = "error"
+not-required-key-access = "error"
+open-unpacking = "error"
+untyped-import = "error"
+missing-source = "error"
+missing-source-for-stubs = "error"
+deprecated = "error"
+redundant-cast = "error"
+unnecessary-comparison = "error"

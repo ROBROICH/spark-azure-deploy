@@ -29,9 +29,7 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.UniqueConstraint(
-            "project_id", name="uq_project_template_version_project_id"
-        ),
+        sa.UniqueConstraint("project_id", name="uq_project_template_version_project_id"),
     )
     op.create_index(
         op.f("ix_project_template_version_project_id"),
@@ -45,9 +43,7 @@ def upgrade() -> None:
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("project_id", sa.UUID(), nullable=False),
         sa.Column("content", sa.Text(), nullable=False),
-        sa.Column(
-            "is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
@@ -62,9 +58,7 @@ def upgrade() -> None:
     # New NOT NULL columns on existing tables — server_default ensures existing rows get a value
     op.add_column(
         "document",
-        sa.Column(
-            "is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()),
     )
     op.add_column(
         "document_type",
@@ -81,13 +75,9 @@ def upgrade() -> None:
 
     # Update unique constraints on template tables
     op.drop_constraint("uq_template_category_name", "template_category", type_="unique")
-    op.create_unique_constraint(
-        "uq_template_category_name_version", "template_category", ["name", "version"]
-    )
+    op.create_unique_constraint("uq_template_category_name_version", "template_category", ["name", "version"])
 
-    op.drop_constraint(
-        "uq_template_document_type_name", "template_document_type", type_="unique"
-    )
+    op.drop_constraint("uq_template_document_type_name", "template_document_type", type_="unique")
     op.create_unique_constraint(
         "uq_template_document_type_name_version",
         "template_document_type",
@@ -103,16 +93,10 @@ def downgrade() -> None:
         "template_document_type",
         type_="unique",
     )
-    op.create_unique_constraint(
-        "uq_template_document_type_name", "template_document_type", ["name"]
-    )
+    op.create_unique_constraint("uq_template_document_type_name", "template_document_type", ["name"])
 
-    op.drop_constraint(
-        "uq_template_category_name_version", "template_category", type_="unique"
-    )
-    op.create_unique_constraint(
-        "uq_template_category_name", "template_category", ["name"]
-    )
+    op.drop_constraint("uq_template_category_name_version", "template_category", type_="unique")
+    op.create_unique_constraint("uq_template_category_name", "template_category", ["name"])
 
     # Drop added columns
     op.drop_column("template_document_type", "version")

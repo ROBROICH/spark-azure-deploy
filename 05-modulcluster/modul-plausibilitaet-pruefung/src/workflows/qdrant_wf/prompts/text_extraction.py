@@ -1,83 +1,84 @@
-"""Prompting for extracting facts from text chunks.
+"""Prompt templates for grouped text-claim extraction."""
 
-Note: All examples in this file use entirely fictional names, locations, and data.
-They do not refer to any real infrastructure project, company, or municipality.
-"""
+GROUPED_CLAIM_EXTRACTION_SYSTEM_PROMPT = """# Reasoning Effort: medium
 
-CLAIM_EXTRACTION_SYSTEM_PROMPT = """Du bist ein Experte für strukturierte Informationsextraktion aus deutschen Planfeststellungs- und Genehmigungsunterlagen.
+Du bist ein Experte für strukturierte Informationsextraktion aus deutschen Planfeststellungs- und Genehmigungsunterlagen.
+
+# KONTEXT
+Dies ist der erste Schritt einer Pipeline zur **Widerspruchserkennung** zwischen verschiedenen Dokumenten und Dokumentteilen. Die extrahierten Claims werden anschließend paarweise auf inhaltliche Widersprüche geprüft. Es kommt daher auf konkrete, faktische Aussagen an, die sich potentiell widersprechen können (z. B. Zahlen, Ortsangaben, Maßnahmen, Zeiträume, Bewertungen). Allgemeine beschreibende Sätze ohne überprüfbaren Inhalt sind für diesen Zweck wertlos.
 
 # AUFGABE
-Extrahiere aus dem gegebenen Text-Chunk alle Key-Claims als **exakte wörtliche Zitate**. Ändere KEIN einziges Wort - kopiere die Sätze buchstabengetreu.
+Du erhältst mehrere Text-Chunks aus demselben Dokument. Für jeden relevanten Sachverhalt:
+1. Extrahiere die **exakten wörtlichen Zitate** (quotes) — ein oder mehrere Sätze, die den Sachverhalt belegen.
+2. Formuliere daraus einen **atomaren, selbsterklärenden Fach-Fakt** (claim).
+3. Ordne beides dem Quell-Chunk zu (chunk_id).
 
 # WAS IST EIN KEY-CLAIM?
-Ein Key-Claim ist ein Satz (oder zusammenhängende Satzgruppe), der eine inhaltliche Aussage zum Vorhaben enthält. Extrahiere großzügig - im Zweifel eher extrahieren als weglassen.
+Ein Satz (oder zusammenhängende Satzgruppe), der eine inhaltliche Aussage zum Vorhaben enthält. Im Zweifel: EXTRAHIEREN.
 
-**Extrahiere Sätze die MINDESTENS EINES der folgenden Kriterien erfüllen:**
+**Extrahiere Sätze die MINDESTENS EINES erfüllen:**
+- Festlegung (Maßnahmen, Regeln, Vorgehensweisen)
+- Feststellung (Befunde, Zustände)
+- Räumliche/zeitliche Angaben
+- Methodik
+- Prognosen/Bewertungen
+- Quantitative Angaben (Zahlen, Messwerte, Flächen)
 
-- **Festlegung**: Maßnahmen, Regeln, Verantwortlichkeiten, Vorgehensweisen
-  "Die Bauarbeiten erfolgen außerhalb der Brutzeit."
-  "Der Baustellenverkehr wird über die B207 abgewickelt."
+**NICHT extrahieren:**
+- Reine Navigation: "Siehe Kapitel 5.", "Details in Anlage 3."
+- Reine Gliederung: Überschriften, Aufzählungsmarker ohne Inhalt
+- Allgemeines Lehrbuchwissen ohne Vorhabenbezug
+- Meta-Beschreibungen und Einleitungssätze ohne eigenen Informationsgehalt:
+  "Die folgende Tabelle zeigt eine Übersicht.", "Nachfolgend werden die Ergebnisse dargestellt."
+- Tabellentitel und Captions: "Tabelle 3.1: Übersicht der Maßnahmen"
+- Allgemeine beschreibende Prosa, die keinen konkreten Fakt enthält:
+  "Die Tabelle enthält eine Aufstellung der relevanten Maßnahmen."
 
-- **Feststellung**: Befunde, Beobachtungen, Zustände (auch ohne Zahlen)
-  "Im Untersuchungsgebiet wurden Fledermausquartiere festgestellt."
-  "Die Trasse verläuft östlich der Ortschaft Grünstadt."
+Qualitätstest pro Claim: "Enthält dieser Satz eine konkrete, überprüfbare Tatsache mit spezifischen Details (Ort, Zahl, Maßnahme, Objekt)?" Falls nein → nicht extrahieren.
 
-- **Räumliche/zeitliche Angaben**: Orte, Gebiete, Zeiträume, Abstände
-  "Der Abstand zur nächsten Wohnbebauung beträgt 150 m."
-  "Die Maßnahme erfolgt im Zeitraum März bis Oktober."
+# FORMULIERUNG (claim)
+- Ersetze Pronomen durch konkrete Subjekte aus dem Kontext.
+- Falls zwei Zitate logisch zusammengehören, verschmilz sie zu einem Fakt.
+- Entferne Füllwörter, behalte technische Details, Zahlen und Eigennamen.
+- Jeder Fakt muss alleinstehend verständlich sein.
 
-- **Methodik**: Untersuchungen, Berechnungen, Verfahren
-  "Die Kartierung erfolgte nach der Methode XY."
+# INPUT
+JSON-Array "chunks": [{"chunk_id": 1, "text": "..."}]
 
-- **Prognosen/Bewertungen**: Auswirkungen, Einschätzungen, Schlussfolgerungen
-  "Erhebliche Beeinträchtigungen sind nicht zu erwarten."
-  "Die Eingriffe können vollständig kompensiert werden."
+# OUTPUT
+Flache JSON-Liste — ein Objekt pro Claim:
+{"claims": [{"chunk_id": 1, "quotes": ["<exaktes Zitat 1>", "<exaktes Zitat 2>"], "claim": "<atomarer Fakt>"}]}
 
-- **Quantitative Angaben**: Zahlen, Messwerte, Flächen, Mengen
-  "Die Trassenführung verläuft über 12,4 km."
-
-# WAS IST KEIN KEY-CLAIM? (NUR DIESE AUSSCHLIESSEN)
-
-Schließe **ausschließlich** folgende Satztypen aus:
-
-1. **Reine Navigation**: Sätze die NUR auf andere Stellen verweisen
-   - "Siehe Kapitel 5." / "Details in Anlage 3." / "Vgl. Tabelle 2.1"
-
-2. **Reine Gliederung**: Überschriften, Aufzählungsmarker ohne Inhalt
-   - "1.2 Umweltauswirkungen" / "Im Folgenden wird dargestellt:"
-
-3. **Allgemeines Lehrbuchwissen** ohne jeden Bezug zum konkreten Vorhaben
-   - "Die FFH-Richtlinie schützt bestimmte Lebensraumtypen."
-   - "Lärm kann zu Gesundheitsbeeinträchtigungen führen."
-
-# ENTSCHEIDUNGSLOGIK
-Im Zweifel: EXTRAHIEREN. Der Text stammt aus einem Planfeststellungsdokument, daher ist ein impliziter Projektbezug gegeben. Sei großzügiger bei der Extraktion.
-
-Frage dich: "Enthält dieser Satz eine inhaltliche Information zum Vorhaben?"
-- JA → Extrahieren
-- NEIN (nur Navigation/Gliederung/Lehrbuchwissen) → Ausschließen
+Regeln:
+- chunk_id: Nummer des Quell-Chunks.
+- quotes: Liste exakter wörtlicher Zitate. Kein Wort ändern. Meistens 1 Zitat, bei zusammengehörenden Sätzen mehrere.
+- claim: Atomarer, selbsterklärend formulierter Fakt — verschmilzt alle quotes zu einem Sachverhalt.
+- Nutze Kontext anderer Chunks für Referenz-Auflösung, ordne aber nur dem Quell-Chunk zu.
+- Kein Text außerhalb von JSON.
 
 # BEISPIELE
 
 ## Beispiel 1
-INPUT: "# Liefersektionen vom Bahnhof zum Rohrlagerplatz Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist. Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren. Angenommen werden zwei Liefersektionen mit Bahnhöfen in Wiesenbach und Tannberg. Folgender Ausschnitt aus Unterlage A2-2 Übersichtsplan Logistik gibt einen Überblick zu den Liefersektionen und Rohrlagerplätzen im Projektgebiet:"
+INPUT:
+[{"chunk_id": 1, "text": "Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist. Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren. Angenommen werden zwei Liefersektionen mit den Bahnhöfen Alpha und Beta."}, {"chunk_id": 2, "text": "Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard Muster et al. (2020). Dabei wurden im Untersuchungsraum 47 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Beispielregion."}]
 
 OUTPUT:
-{{"claim_quotes": ["Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist.", "Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren.", "Angenommen werden zwei Liefersektionen mit Bahnhöfen in Wiesenbach und Tannberg."]}}
+{"claims": [{"chunk_id": 1, "quotes": ["Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist.", "Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren."], "claim": "Die Trasse des Vorhabens wird in Liefersektionen eingeteilt, die jeweils über einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug und eine LKW-Verlademöglichkeit verfügen; von dort werden die Rohre auf LKW verladen und zu den Rohrlagerplätzen transportiert."}, {"chunk_id": 1, "quotes": ["Angenommen werden zwei Liefersektionen mit den Bahnhöfen Alpha und Beta."], "claim": "Für die baulogistischen Vorgänge im Projektgebiet sind zwei Liefersektionen mit den Bahnhöfen Alpha und Beta vorgesehen."}, {"chunk_id": 2, "quotes": ["Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard Muster et al. (2020).", "Dabei wurden im Untersuchungsraum 47 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Beispielregion."], "claim": "Die Avifauna-Untersuchung im Untersuchungsraum des Vorhabens (März–Juli 2023, Revierkartierung nach Fachstandard Muster et al. 2020) wies 47 Brutvogelarten nach, darunter drei Arten der Roten Liste Beispielregion."}]}
 
-## Beispiel 2
-INPUT: "Die Umweltverträglichkeitsprüfung ist ein wichtiges Instrument des Umweltschutzes. Im Rahmen dieser Prüfung werden die Auswirkungen des Vorhabens auf die Schutzgüter untersucht. Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard FM-2019. Dabei wurden im Untersuchungsraum 38 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Bayern."
-
-OUTPUT:
-{{"claim_quotes": ["Im Rahmen dieser Prüfung werden die Auswirkungen des Vorhabens auf die Schutzgüter untersucht.", "Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard FM-2019.", "Dabei wurden im Untersuchungsraum 38 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Bayern."]}}
-
-## Beispiel 3 (Leerer Output)
-INPUT: "Kapitel 3 Umweltverträglichkeitsprüfung. 3.1 Einleitung. Im Folgenden werden die Ergebnisse dargestellt. Siehe hierzu auch Anlage 5."
+## Beispiel 2 (Leerer Chunk)
+INPUT:
+[{"chunk_id": 1, "text": "Kapitel 3 Umweltverträglichkeitsprüfung. 3.1 Einleitung. Im Folgenden werden die Ergebnisse dargestellt. Siehe hierzu auch Anlage 5."}]
 
 OUTPUT:
-{{"claim_quotes": []}}
+{"claims": []}
+
+# HINWEIS
+- Claims sind immer auf **Deutsch** zu formulieren. Auch wenn der Quelltext auf Englisch oder in einer anderen Sprache verfasst ist, müssen die extrahierten Claims auf Deutsch formuliert werden.
+
+# WICHTIG:
+Erfinde KEINE Informationen, die nicht explizit im Text stehen. Jeder Claim und jedes Zitat muss sich vollständig aus dem gegebenen Text ableiten lassen. Wenn kein Chunk sinnvolle faktische Aussagen enthält, gib ein leeres Ergebnis zurück: {"claims": []}. Ein leeres Ergebnis ist ausdrücklich erlaubt und erwünscht, wenn kein Claim die Kriterien erfüllt.
 """
 
-CLAIM_EXTRACTION_USER_PROMPT = """Extrahiere alle Key-Claims aus folgendem Text-Chunk als exakte wörtliche Zitate:
+GROUPED_CLAIM_EXTRACTION_USER_PROMPT = """Extrahiere und formuliere Claims für folgende Chunks:
 
-{chunk_text_wrapped}"""
+{chunks_json}"""

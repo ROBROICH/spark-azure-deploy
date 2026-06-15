@@ -7,6 +7,6 @@ scrape_configs:
     metrics_path: /metrics
     scrape_interval: 10s
     static_configs:
-      - targets: ["litellm-proxy:4000"]
+      - targets: ["host.docker.internal:4000"]
         labels:
           service: "litellm-proxy"

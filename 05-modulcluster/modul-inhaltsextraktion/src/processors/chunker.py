@@ -16,19 +16,12 @@ ToC building lives in toc_builder.py.
 import re
 from typing import Any
 
-from src.processors.text_splitters import (
-    Document,
-    MarkdownHeaderTextSplitter,
-    RecursiveCharacterTextSplitter,
-)
+from semantic_text_splitter import MarkdownSplitter
 from temporalio import activity
+from transformers import AutoTokenizer
 
 from src.config import get_config
-from src.processors.page_tracker import (
-    PAGE_TAG_STRIP_RE,
-    assign_page_numbers,
-    build_page_map,
-)
+from src.processors.page_tracker import PAGE_TAG_STRIP_RE, assign_page_numbers, build_page_map
 from src.processors.sub_chunk_builder import (
     SubChunkSpec,
     find_special_elements,
@@ -38,13 +31,10 @@ from src.processors.sub_chunk_builder import (
     process_table_element,
     process_text_segment,
 )
-from src.processors.toc_builder import (
-    build_toc_from_content_list,
-    get_clean_header,
-    resolve_toc_path,
-)
+from src.processors.text_splitters import Document, MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+from src.processors.toc_builder import build_toc_from_content_list, get_clean_header, resolve_toc_path
 from src.providers.base import ContentItemDict
-from src.schemas import Chunk, SubChunk
+from src.schemas import Chunk, ChunkEWMS, SubChunk
 
 # ---------------------------------------------------------------------------
 # Parent chunk assembly
@@ -129,12 +119,17 @@ def _merge_header_only_parent_chunks(md_header_splits: list[Document]) -> list[D
     return result
 
 
-def _handle_oversized_chunks(md_header_splits: list[Document], special_elements: dict[str, str]) -> list[Document]:
+def _handle_oversized_chunks(
+    md_header_splits: list[Document],
+    special_elements: dict[str, str],
+    max_chunk_char: int | None = None,
+) -> list[Document]:
     """Rehydrate placeholders and force-split any parent chunks that are still oversized."""
     cfg = get_config()
+    chunk_size = max_chunk_char or cfg.PARENT_CHUNK_MAX_CHARACTERS
     processed_splits: list[Document] = []
     recursive_splitter = RecursiveCharacterTextSplitter(
-        chunk_size=cfg.PARENT_CHUNK_MAX_CHARACTERS,
+        chunk_size=chunk_size,
         chunk_overlap=cfg.CHUNK_OVERLAP,
         length_function=len,
         is_separator_regex=False,
@@ -145,9 +140,9 @@ def _handle_oversized_chunks(md_header_splits: list[Document], special_elements:
         for key, value in special_elements.items():
             temp_rehydrated_content = temp_rehydrated_content.replace(key, value)
 
-        if len(temp_rehydrated_content) > cfg.PARENT_CHUNK_MAX_CHARACTERS:
+        if len(temp_rehydrated_content) > chunk_size:
             activity.logger.warning(
-                f"A parent chunk exceeded the {cfg.PARENT_CHUNK_MAX_CHARACTERS} character limit and will be force-split. "
+                f"A parent chunk exceeded the {chunk_size} character limit and will be force-split. "
                 "This may indicate an issue with header detection."
             )
 
@@ -171,13 +166,13 @@ def _handle_oversized_chunks(md_header_splits: list[Document], special_elements:
     return processed_splits
 
 
-def _build_parent_chunks(markdown_content: str) -> list[Document]:
+def _build_parent_chunks(markdown_content: str, max_chunk_size: int | None = None) -> list[Document]:
     """Isolate elements, split by headers, merge sparse/header-only, handle oversized."""
     sanitized_content, special_elements = _isolate_special_elements(markdown_content)
     md_header_splits = _split_by_headers(sanitized_content)
     md_header_splits = _merge_sparse_chunks(md_header_splits)
     md_header_splits = _merge_header_only_parent_chunks(md_header_splits)
-    return _handle_oversized_chunks(md_header_splits, special_elements)
+    return _handle_oversized_chunks(md_header_splits, special_elements, max_chunk_size)
 
 
 # ---------------------------------------------------------------------------
@@ -295,6 +290,43 @@ def _process_parent_chunk(
 # Main entry point
 # ---------------------------------------------------------------------------
 
+_TOKENIZER = AutoTokenizer.from_pretrained(
+    get_config().EWMS_CHUNK_TOKENIZER_NAME, revision=get_config().EWMS_CHUNK_TOKENIZER_REVISION
+)  # nosec B615
+
+
+def chunk_markdown_ewms(markdown_content: str) -> list["ChunkEWMS"]:
+    """Splits markdown content into token-bounded segments and maps them to document pages.
+
+    This function leverages a token-aware MarkdownSplitter initialized with the
+    core backend tokenizer to chunk the text without exceeding a specified token
+    maximum. It then sequentially tracks and resolves page markers across chunks
+    to assign an accurate, sorted list of page numbers to each chunked segment.
+    """
+    cfg = get_config()
+
+    # Step 1: Initialize the MarkdownSplitter using the backend tokenizer
+    splitter = MarkdownSplitter.from_huggingface_tokenizer(
+        _TOKENIZER.backend_tokenizer,
+        cfg.EWMS_CHUNK_MAX_TOKENS,
+        overlap=0,
+    )
+    splits = splitter.chunks(markdown_content)
+
+    chunks_ewms = []
+    doc_wide_last_known_page = 1
+
+    # Step 2: Iterate through each textual split to compute its relative page map
+    for split in splits:
+        page_map, _, doc_wide_last_known_page = build_page_map(split, doc_wide_last_known_page)
+        all_pages_in_chunk = list(page_map.values())
+        page_numbers = sorted(set(all_pages_in_chunk))
+
+        # Step 3: Bundle the text segment along with its unique, sorted page sequence
+        chunks_ewms.append(ChunkEWMS(page_content=split, page_numbers=page_numbers))
+
+    return chunks_ewms
+
 
 def chunk_markdown(markdown_content: str, content_list: list[ContentItemDict]) -> list[Chunk]:
     """Chunk markdown by headers into hierarchical Chunk / SubChunk objects.
@@ -342,4 +374,5 @@ class MarkdownChunker:
     """Backward-compatible wrapper. Prefer importing chunk_markdown() directly."""
 
     chunk_markdown = staticmethod(chunk_markdown)
+    chunk_markdown_ewms = staticmethod(chunk_markdown_ewms)
     _merge_header_only_parent_chunks = staticmethod(_merge_header_only_parent_chunks)

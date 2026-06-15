@@ -1,0 +1,281 @@
+{
+  "DocumentsCard": {
+    "processing": {
+      "description": "The data is currently being provided. The documents table updates once processing has finished.",
+      "title": "The data is being provided"
+    },
+    "processingError": {
+      "description": "The data could not be fully provided. Please upload the files again or try again later.",
+      "title": "The data could not be provided"
+    },
+    "table": {
+      "folderStatus": "{{available}} of {{total}} assigned",
+      "missingDocument": "Document \"{{documentType}}\" is required.",
+      "topic": {
+        "ariaLabel": "Select topic",
+        "ariaLabelWithValue": "Topic: {{value}}",
+        "clear": "No topic",
+        "placeholder": "Select topic"
+      }
+    },
+    "title": "Application documents",
+    "toolbar": {
+      "documentType": "Document type",
+      "resetFilter": "Reset filter",
+      "searchPlaceholder": "Search documents …",
+      "status": "Status",
+      "statusFilter": {
+        "assigned": "Assigned",
+        "deleted": "Deleted",
+        "missingType": "Document type missing",
+        "onRequestList": "On request list",
+        "resolved": "Resolved",
+        "unassigned": "Unassigned"
+      }
+    }
+  },
+  "RequiredDocumentsCard": {
+    "info": "What does the AI do?\n\nThe AI compares the uploaded planning documents with the documents required for the approval design under the “Guidelines for the Planning Process and for the Uniform Design of Road Construction Design Documents”, version 2012 (RE 2012). The document title and document content are both considered for the comparison.\n\nThe AI assigns each submitted document to a document type according to RE 2012, such as “site plan”. Several documents can be assigned to the same document type, for example when several site plans are available.\n\nA document type counts as “available” as soon as at least one document is assigned to it. Additional documents of that document type may still be required.\n\nIf a project requires additional document types that are not listed in RE 2012, they can be added via the pencil icon. These are not considered by the AI.\n\nIf individual documents listed in RE 2012 are not required for the specific project, such as an EIA report for a project that does not require an environmental impact assessment, the hint for that document type can be hidden.",
+    "infoLabel": "Information about the required documents",
+    "missingDocuments": {
+      "description": "{{count}} required documents were not found by the AI. Before requesting them, please check whether these documents are available under a different name.",
+      "status": {
+        "missing": "Missing",
+        "requestList": "Request list",
+        "requested": "Requested",
+        "unsorted": "Unsorted"
+      },
+      "title": "Required documents ({{missingDocuments}})"
+    },
+    "title": "Completeness of application documents regarding required documents"
+  },
+  "TableOfContentsCard": {
+    "info": "What does the AI do?\n\nThe AI searches the planning documents for a table of contents.\n\nIf the AI detects a table of contents, the agent compares the submitted planning documents with the entries in the table of contents. The “hints” indicate when documents listed in the table of contents were not found among the uploaded files.\n\nIf a document is available, for example under a different name, the “hint” can be hidden. Missing documents can be requested.",
+    "infoLabel": "Information about table-of-contents matching",
+    "missingDocuments": {
+      "description": "{{count}} documents from the table of contents were not found by the AI. Before requesting them, please check whether these documents are available under a different name.",
+      "title": "Open issues ({{count}})"
+    },
+    "progress": {
+      "count": "{{presentDocuments}} of {{totalDocuments}}",
+      "description": "Items from the table of contents processed",
+      "title": "Issues from the table of contents"
+    },
+    "title": "Completeness of application documents regarding the table of contents"
+  },
+  "DocumentTypeDropdown": {
+    "ariaLabel": "Select document type",
+    "ariaLabelWithValue": "Document type: {{value}}",
+    "selectLabel": "Select document type",
+    "confirmAriaLabel": "Confirm “{{value}}”",
+    "customCategoryLabel": "Custom",
+    "manageLabel": "+ Create or manage document type",
+    "emptyCustomTypes": "No custom document types available",
+    "emptyTypes": "No document types available"
+  },
+  "EditRequiredDocumentsDialog": {
+    "title": "Edit required documents",
+    "description": "The documents required for federal trunk road plan approval procedures under the <strong>“Guidelines for the Planning Process and for the Uniform Design of Road Construction Design Documents”</strong>, version 2012 (RE 2012), for the approval design cannot be edited.<br/><br/>Hints for documents that are not required for this project can be <strong>hidden</strong> in the overview.<br/><br/>Additional document types required for this project can be added under <strong>“Custom”</strong>. Custom document types are not assigned by the AI; documents can be assigned to them manually.",
+    "customCategoryLabel": "Custom",
+    "editAriaLabel": "Edit “{{name}}”",
+    "editNameLabel": "Rename “{{name}}”",
+    "deleteAriaLabel": "Delete “{{name}}”",
+    "emptyCustomTypes": "No custom document types available",
+    "duplicateDocumentTypeError": "A document type with this name already exists.",
+    "newDocumentPlaceholder": "Enter document type name …",
+    "addDocument": "Add required document",
+    "cancel": "Cancel",
+    "save": "Save",
+    "confirmSaveTitle": "Do you want to save your changes?",
+    "confirmSaveDescription": "You changed the required document types. Please confirm whether these changes should be saved.",
+    "hintTitle": "Note:",
+    "hintDescription": "Saving the changes may require a new analysis of the related documents."
+  },
+  "common": {
+    "actions": {
+      "addComment": "Add comment",
+      "delete": "Delete",
+      "hideHint": "Hide hint",
+      "markResolved": "Mark as \"Resolved\"",
+      "request": "Request",
+      "showHint": "Show hint"
+    },
+    "badges": {
+      "hidden": "Hidden",
+      "onRequestList": "On request list",
+      "resolved": "Resolved"
+    },
+    "errors": {
+      "collection": {
+        "title": "Document data could not be fully loaded or saved",
+        "description": "Please check the connection and try the action again.",
+        "retry": "Try again"
+      },
+      "actionFailed": "The change could not be saved. Please try again."
+    },
+    "showAll": "Show all",
+    "showLess": "Show less"
+  },
+  "redesign": {
+    "pageTitle": "Formal Completeness Check",
+    "documentsSectionTitle": "Documents",
+    "common": {
+      "showMore": "Show more ({{count}})",
+      "showLess": "Show less",
+      "requestAll": "Request all"
+    },
+    "tableOfContentsCard": {
+      "title": "Table of contents matching",
+      "description": "The AI has checked whether all documents listed in the table of contents are present. The following documents are listed in the table of contents but were not found in the uploaded documents:",
+      "info": "The AI compares the uploaded table of contents with the submitted documents and reports missing entries.",
+      "infoLabel": "More information about table-of-contents matching",
+      "hintsHeading": "AI hints ({{count}})",
+      "status": {
+        "progress": "{{processed}} of {{total}} hints processed"
+      },
+      "statusBadge": {
+        "irrelevant": "Hidden",
+        "requested": "Requested"
+      },
+      "menu": {
+        "ariaLabel": "Actions for {{name}}",
+        "request": "Request",
+        "openRequests": "Open request list",
+        "addComment": "Add comment",
+        "hideHint": "Hide hint",
+        "showHint": "Show hint"
+      }
+    },
+    "requiredDocumentsCard": {
+      "title": "Required documents",
+      "description": "The AI has checked whether all documents required for this project type are present. The following required documents for the project type were not found by the AI:",
+      "info": "The AI compares the uploaded application documents with the documents required for the draft according to RE 2012 and reports missing document types.",
+      "infoLabel": "More information about the required documents",
+      "hintsHeading": "AI hints ({{count}})",
+      "editAriaLabel": "Edit required document types",
+      "status": {
+        "progress": "{{processed}} of {{total}} hints processed"
+      },
+      "statusBadge": {
+        "irrelevant": "Irrelevant",
+        "requested": "Requested"
+      },
+      "menu": {
+        "ariaLabel": "Actions for {{name}}",
+        "request": "Request",
+        "openRequests": "Open request list",
+        "markIrrelevant": "Mark as irrelevant",
+        "markRelevant": "Mark as relevant"
+      }
+    },
+    "plausibilityCard": {
+      "title": "Plausibility check",
+      "description": "The AI has scanned the documents for contradictions or inconsistencies. The following hints about possible contradictions were found by the AI in the documents:",
+      "info": "The AI scans the uploaded documents for contradictions and inconsistencies and reports potential conflicts for review.",
+      "infoLabel": "More information about the plausibility check",
+      "hintsHeading": "AI hints ({{count}})",
+      "status": {
+        "progress": "{{processed}} of {{total}} hints processed"
+      },
+      "counters": {
+        "open": "Open",
+        "requested": "Requested",
+        "irrelevant": "Irrelevant"
+      },
+      "viewContradictions": "View contradictions"
+    },
+    "documentsCard": {
+      "tableAriaLabel": "Documents",
+      "previewOpenedAnnouncement": "Document preview opened.",
+      "previewFallbackTitle": "Document preview",
+      "searchPlaceholder": "Search by title …",
+      "searchInputLabel": "Search documents",
+      "toolbar": {
+        "statusAriaLabelWithValue": "Status: {{value}}",
+        "documentTypeAriaLabelWithValue": "Document type: {{value}}",
+        "clearStatusFilter": "Clear status filter",
+        "clearDocumentTypeFilter": "Clear document type filter"
+      },
+      "headers": {
+        "tableOfContents": "Table of contents",
+        "status": "Status",
+        "documentType": "Document type",
+        "topic": "Topic"
+      },
+      "actions": {
+        "ariaLabel": "Actions for {{name}}"
+      },
+      "topic": {
+        "selectedCount": "{{count}} topics selected",
+        "empty": "No topics available"
+      }
+    },
+    "aiAnalysis": {
+      "title": "AI-assisted document check",
+      "description": "Analyzes all submitted documents and produces results for the following review areas:",
+      "startButton": "Start AI analysis",
+      "startDisabledNoDocumentsTooltip": "Upload at least one document before starting the AI analysis.",
+      "startDisabledFilesErrorTooltip": "The documents could not be loaded. Please refresh the page and try again.",
+      "startDisabledSystemLoadErrorTooltip": "The system load could not be determined. Please refresh the page and try again.",
+      "indicator": "AI analysis running …",
+      "announcer": {
+        "started": "AI analysis started.",
+        "completed": "AI analysis completed."
+      },
+      "cards": {
+        "tableOfContents": {
+          "title": "Table-of-contents matching",
+          "description": "Detects tables of contents and matches their entries against the uploaded documents to identify missing documents."
+        },
+        "requiredDocuments": {
+          "title": "Required-documents matching",
+          "description": "Analyzes the title and content of each document, classifies them by document type, and checks whether all required documents are present."
+        },
+        "plausibility": {
+          "title": "Plausibility check",
+          "description": "Reviews internal consistency of the documents, validates cross-references, and assesses the plausibility of the statements."
+        }
+      },
+      "progress": {
+        "remainingTime": {
+          "minutes": "Estimated time remaining: approx. {{count}} min",
+          "hours": "Estimated time remaining: approx. {{count}} hr"
+        },
+        "almostDone": "Analysis is taking longer than expected. The process is still running.",
+        "done": "Complete"
+      }
+    },
+    "startDialog": {
+      "title": "Start AI analysis of the documents",
+      "description": "Starting processing begins the AI-assisted formal completeness check of the available documents. This process can take several hours. While processing is running, no changes can be made to the project.\n\nNote: If another project is already being processed by the AI, please start this project only after the running processing has finished.",
+      "cancel": "Cancel",
+      "confirm": "Start AI analysis",
+      "error": "Could not start the workflow. Please try again."
+    },
+    "allProcessed": {
+      "descriptions": {
+        "tableOfContents": "The AI checked whether all documents listed in the table of contents are present.",
+        "requiredDocuments": "The AI checked whether all documents required for this project type are present.",
+        "plausibility": "The AI searched the documents for contradictions and inconsistencies."
+      }
+    }
+  },
+  "tabs": {
+    "formalCompletenessCheck": "1.1 Formal Completeness Check",
+    "navigationAriaLabel": "Formal completeness check and plausibility check",
+    "plausibilityCheck": "1.2 Plausibility Check"
+  },
+  "workflowStatus": {
+    "unknown": "Unknown",
+    "success": {
+      "title": "AI-assisted document review completed successfully",
+      "dismissAriaLabel": "Dismiss success message"
+    },
+    "failed": {
+      "title": "AI workflow has (partially) failed"
+    },
+    "running": {
+      "title": "AI workflow is currently running"
+    }
+  }
+}

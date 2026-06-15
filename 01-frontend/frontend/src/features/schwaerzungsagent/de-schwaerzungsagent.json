@@ -1,0 +1,53 @@
+{
+  "pageTitle": "Schwärzungsagent",
+  "start": {
+    "warning": {
+      "title": "Testumgebung: Nutzen Sie fiktive Daten!",
+      "body": "Diese Anwendung befindet sich in einer Test- und Entwicklungsumgebung und ist nicht für die Verarbeitung realer personenbezogener Daten freigegeben. Bitte laden Sie keine echten personenbezogenen oder sensiblen Informationen hoch, sondern generierte Testdaten fiktiver Personen."
+    },
+    "notes": {
+      "heading": "Hinweise zur Funktionsweise:",
+      "categories": "Der Schwärzungsagent identifiziert automatisiert ausgewählte Kategorien personenbezogener Daten: Namen natürlicher Personen, Postadressen, Telefon-/Faxnummern, E-Mail-Adressen, Geburtsdaten, personenbezogene Kennzeichen (z. B. Kunden-, Versicherungs-, Steuernummern), Zahlungsinformationen sowie namentlich identifizierbare Funktionsträger bei konkreten Unternehmen, Behörden oder Organisationen.",
+      "images": "Personenbezogene Daten in eingebetteten Bildern werden nicht geschwärzt.",
+      "verification": "Die Ergebnisse sind stets durch eine menschliche Prüfung zu verifizieren, bevor das geschwärzte Dokument weiterverarbeitet oder weitergegeben wird. Die KI kann Inhalte übersehen oder falsch klassifizieren."
+    }
+  },
+  "upload": {
+    "dropZoneTitle": "Dokument zur Schwärzung hochladen",
+    "dropZoneDescription": "Bitte wählen Sie eine Datei aus oder ziehen Sie diese in den vorgesehenen Bereich, um eine automatisierte Schwärzung sensibler Inhalte durchzuführen.",
+    "formatHint": "Unterstütztes Format: PDF bis 100 MB",
+    "chooseFile": "Datei auswählen",
+    "removeFile": "Datei entfernen",
+    "fileInputLabel": "PDF zur Schwärzung auswählen",
+    "pdfOnlyError": "Bitte laden Sie eine PDF-Datei hoch.",
+    "fileTooLargeError": "PDF-Dateien dürfen maximal 100 MB groß sein."
+  },
+  "processing": {
+    "heading": "Schwärzung läuft ...",
+    "description": "{{filename}} wird verarbeitet. Sensible Inhalte werden automatisch erkannt und geschwärzt.",
+    "progressLabel": "Schwärzungsfortschritt",
+    "remainingTime": "Verbleibende Zeit: ca. {{count}} Min.",
+    "almostDone": "Die Schwärzung dauert länger als erwartet. Der Vorgang läuft weiter.",
+    "error": "Die Schwärzung konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
+    "cancel": "Abbrechen",
+    "highLoadLabel": "Systemauslastung {{load}}",
+    "highLoadTooltip": "Bei hoher Systemauslastung kann die Verarbeitung länger dauern, weil mehrere KI-Workflows parallel laufen.",
+    "highLoadTooltipAriaLabel": "Hinweis zur Systemauslastung"
+  },
+  "success": {
+    "heading": "Datei erfolgreich geschwärzt",
+    "description": "{{filename}} kann heruntergeladen werden.",
+    "redactedFilenameSuffix": "_geschwärzt",
+    "download": "Datei herunterladen",
+    "newFile": "Neue Datei schwärzen",
+    "confirmDialog": {
+      "title": "Neue Datei schwärzen",
+      "body": "Wenn Sie fortfahren, wird Ihr aktuelles geschwärztes Dokument verworfen und kann anschließend nicht mehr heruntergeladen werden.\n\nBitte stellen Sie sicher, dass Sie die Datei zuvor heruntergeladen haben.",
+      "cancel": "Abbrechen",
+      "confirm": "Fortfahren"
+    },
+    "downloadError": "Die geschwärzte Datei konnte nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "downloadPreparing": "Download wird vorbereitet.",
+    "retryDownload": "Erneut versuchen"
+  }
+}

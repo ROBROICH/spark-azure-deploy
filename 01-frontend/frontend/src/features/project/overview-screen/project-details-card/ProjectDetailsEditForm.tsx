@@ -1,0 +1,257 @@
+import { type ProjectResponse } from '@/api-clients/pls-module';
+import { germanStates } from '@/features/project/data/project-details-form/federalStates';
+import { projectsCollection } from '@/features/project/data/collections/projects.collection';
+import { projectTypesCollection } from '@/features/project/data/project-types/projectTypes.collection';
+import { PROJECT_NAME_MAX_LENGTH } from '@/features/project/data/project-details-form/projectForm.schema';
+import {
+  editProjectSchema,
+  type EditProjectValues,
+} from '@/features/project/overview-screen/schemas';
+import { FieldError, FieldLabel } from '@/features/ui/form/field';
+import { Input } from '@/features/ui/input/Input';
+import { Button } from '@/features/ui/button/Button';
+import { toast } from '@/features/ui/toast/Toast';
+import { SelectMenu } from '@/features/ui/select-menu/SelectMenu';
+import { useLiveQuery } from '@tanstack/react-db';
+import { useForm } from '@tanstack/react-form';
+import { useTranslation } from 'react-i18next';
+
+export type ProjectDetailsEditFormProps = {
+  canMutateProject: boolean;
+  project: Pick<
+    ProjectResponse,
+    | 'id'
+    | 'name'
+    | 'projectTypeId'
+    | 'internalProjectNumber'
+    | 'entryDate'
+    | 'state'
+  >;
+  onCancel: () => void;
+  onSaved: () => void;
+};
+
+/** Inline edit form for project details. Persists changes via projectsCollection.update() for optimistic updates. */
+export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
+  const { canMutateProject, project, onCancel, onSaved } = props;
+  const { t } = useTranslation('Project');
+  const getProjectEditMessage = (key: string) =>
+    t(`ProjectDetails.edit.${key}`);
+
+  const { data: projectTypes } = useLiveQuery((q) =>
+    q.from({ projectTypes: projectTypesCollection }),
+  );
+  const projectTypeItems = projectTypes.map((type) => ({
+    value: type.id,
+    label: type.name,
+  }));
+  const { data: projects } = useLiveQuery((q) =>
+    q.from({ projects: projectsCollection }),
+  );
+  const existingInternalProjectNumbers = projects
+    .filter((candidate) => candidate.id !== project.id)
+    .map((candidate) => candidate.internalProjectNumber);
+  const federalStateItems = germanStates.map((state) => ({
+    value: state,
+    label: t(`ProjectDetails.federalStates.${state}`),
+  }));
+
+  const schema = editProjectSchema(
+    getProjectEditMessage,
+    existingInternalProjectNumbers,
+  );
+
+  const defaultValues: EditProjectValues = {
+    name: project.name || '',
+    projectTypeId: project.projectTypeId || '',
+    entryDate: project.entryDate || '',
+    internalProjectNumber: project.internalProjectNumber || '',
+  };
+
+  const form = useForm({
+    defaultValues,
+    validators: {
+      onSubmit: schema,
+    },
+    onSubmit: ({ value }) => {
+      if (!canMutateProject) {
+        onCancel();
+        return;
+      }
+
+      projectsCollection.update(project.id, (draft) => {
+        Object.assign(draft, {
+          name: value.name.trim(),
+          projectTypeId: value.projectTypeId.trim(),
+          entryDate: value.entryDate.trim() || null,
+          internalProjectNumber: value.internalProjectNumber.trim(),
+        });
+      });
+      toast.success(t('ProjectDetails.edit.saveSuccess'));
+      onSaved();
+    },
+  });
+
+  return (
+    <div className="overflow-clip rounded-lg border border-border-primary bg-neutral-white pt-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          form.handleSubmit();
+        }}
+        aria-label={t('ProjectDetails.editAriaLabel')}
+      >
+        <form.Field name="name">
+          {(field) => {
+            const isInvalid = field.state.meta.errors.length > 0;
+            const errorId = `${field.name}-error`;
+            return (
+              <div className="flex items-start border-b border-border-primary">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
+                >
+                  {t('ProjectDetails.projectName')}*
+                </FieldLabel>
+                <div className="flex flex-1 flex-col gap-1 px-3 py-2">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    maxLength={PROJECT_NAME_MAX_LENGTH}
+                    aria-required
+                    aria-invalid={isInvalid}
+                    aria-describedby={isInvalid ? errorId : undefined}
+                  />
+                  {isInvalid && (
+                    <FieldError id={errorId} errors={field.state.meta.errors} />
+                  )}
+                </div>
+              </div>
+            );
+          }}
+        </form.Field>
+        <form.Field name="projectTypeId">
+          {(field) => {
+            const isInvalid = field.state.meta.errors.length > 0;
+            return (
+              <div className="flex items-start border-b border-border-primary">
+                <FieldLabel
+                  htmlFor="edit-project-type"
+                  className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
+                >
+                  {t('ProjectDetails.art')}*
+                </FieldLabel>
+                <div className="flex flex-1 flex-col gap-1 px-3 py-2">
+                  <SelectMenu
+                    items={projectTypeItems}
+                    value={field.state.value}
+                    onChange={(value) => field.handleChange(value)}
+                    id="edit-project-type"
+                    invalid={isInvalid}
+                    required
+                    ariaDescribedby={
+                      isInvalid ? 'edit-project-type-error' : undefined
+                    }
+                    onBlur={field.handleBlur}
+                    placeholder={t('ProjectDetails.edit.selectType')}
+                    triggerClassName="w-full"
+                  />
+                  {isInvalid && (
+                    <FieldError
+                      id="edit-project-type-error"
+                      errors={field.state.meta.errors}
+                    />
+                  )}
+                </div>
+              </div>
+            );
+          }}
+        </form.Field>
+        <form.Field name="internalProjectNumber">
+          {(field) => {
+            const isInvalid = field.state.meta.errors.length > 0;
+            return (
+              <div className="flex items-start border-b border-border-primary">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
+                >
+                  {t('ProjectDetails.aktenzeichen')}*
+                </FieldLabel>
+                <div className="flex flex-1 flex-col gap-1 px-3 py-2">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-required
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </div>
+              </div>
+            );
+          }}
+        </form.Field>
+        <div className="flex items-start border-b border-border-primary">
+          <FieldLabel
+            htmlFor="edit-federal-state"
+            className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
+          >
+            {t('ProjectDetails.federalState')}*
+          </FieldLabel>
+          <div className="flex flex-1 flex-col gap-1 px-3 py-2">
+            <SelectMenu
+              items={federalStateItems}
+              value={project.state || ''}
+              onChange={() => undefined}
+              id="edit-federal-state"
+              disabled
+              placeholder={t('ProjectDetails.edit.selectState')}
+              triggerClassName="w-full"
+            />
+          </div>
+        </div>
+        <form.Field name="entryDate">
+          {(field) => {
+            const isInvalid = field.state.meta.errors.length > 0;
+            return (
+              <div className="flex items-start border-b border-border-primary">
+                <FieldLabel
+                  htmlFor={field.name}
+                  className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
+                >
+                  {t('ProjectDetails.entryDate')}*
+                </FieldLabel>
+                <div className="flex flex-1 flex-col gap-1 px-3 py-2">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type="date"
+                    max="9999-12-31"
+                    value={field.state.value}
+                    onBlur={field.handleBlur}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    aria-required
+                    aria-invalid={isInvalid}
+                  />
+                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                </div>
+              </div>
+            );
+          }}
+        </form.Field>
+        <div className="flex justify-end gap-2 px-3 py-3">
+          <Button type="button" variant="secondary" onClick={onCancel}>
+            {t('ProjectDetails.edit.cancel')}
+          </Button>
+          <Button type="submit">{t('ProjectDetails.edit.save')}</Button>
+        </div>
+      </form>
+    </div>
+  );
+}

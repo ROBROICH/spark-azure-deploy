@@ -1,0 +1,58 @@
+[project]
+name = "fpp-service"
+version = "0.1.0"
+description = "FPP Service - Fachplanungsportal Integration"
+readme = "README.md"
+requires-python = ">=3.13, <3.14"
+dependencies = [
+    "fastapi>=0.115.6",
+    "uvicorn[standard]>=0.34.0",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "asyncpg>=0.30.0",
+    "alembic>=1.14.0",
+    "psycopg2-binary (>=2.9.10,<3.0.0)",
+    "pydantic>=2.10.3",
+    "pydantic-settings>=2.6.1",
+    "httpx>=0.28.1",
+    "defusedxml>=0.7.1",
+    "prometheus-fastapi-instrumentator>=7.0.0",
+    "tenacity>=9.0.0",
+    "alembic-utils",
+    "authentification",
+    "event-logging",
+    "internal-auth",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.8.4",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+alembic-utils = { workspace = true }
+authentification = { workspace = true }
+event-logging = { workspace = true }
+internal-auth = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

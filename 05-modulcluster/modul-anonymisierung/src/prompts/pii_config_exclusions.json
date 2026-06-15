@@ -1,0 +1,110 @@
+{
+  "items": [
+    {
+      "category": "organisation",
+      "label": "Unternehmen, Behörden, Vereine und sonstige juristische Personen",
+      "description": "Unternehmensnamen, Behördennamen, Vereinsnamen und Namen sonstiger juristischer Personen dürfen nicht geschwärzt werden, sofern sie nicht zugleich eine vollständige Postadresse, Telefonnummer, E-Mail-Adresse oder den Namen einer natürlichen Person enthalten.",
+      "examples": [
+        "Rheintal KI Consulting GmbH",
+        "Deutschlandwerk AG",
+        "Alpenrand Käsemanufaktur",
+        "Münchner Bierfass Holding SE"
+      ]
+    },
+    {
+      "category": "generische_rolle",
+      "label": "Generische Rollenbezeichnung",
+      "description": "Generische Rollenbezeichnungen ohne identifizierende Zuordnung dürfen nicht geschwärzt werden.",
+      "examples": [
+        "die Antragstellerin",
+        "der Einwender",
+        "der Pächter",
+        "die Eigentümerin",
+        "der Vorhabenträger",
+        "die Planfeststellungsbehörde",
+        "der Dienstleister"
+      ]
+    },
+    {
+      "category": "label_oder_ueberschrift",
+      "label": "Allgemeine Bezeichnung, Label oder Überschrift",
+      "description": "Allgemeine Bezeichnungen ohne konkreten personenbezogenen oder kontaktbezogenen Wert dürfen nicht geschwärzt werden.",
+      "examples": [
+        "Name:",
+        "E-Mail:",
+        "Telefon:",
+        "Mobil:",
+        "Adresse Dienstleister",
+        "Ansprechpartner Vorhabenträgerin"
+      ]
+    },
+    {
+      "category": "pseudonymisierte_person",
+      "label": "Anonymisierte oder pseudonymisierte Einwenderbezeichnung",
+      "description": "Anonymisierte oder pseudonymisierte Einwender- oder Beteiligtenbezeichnungen dürfen nicht geschwärzt werden.",
+      "examples": [
+        "Einwender Nr. 5",
+        "Einwenderin Nr. 12",
+        "Beteiligter A"
+      ]
+    },
+    {
+      "category": "pseudonymisierte_adresse",
+      "label": "Bereits pseudonymisierte oder abgekürzte Straße",
+      "description": "Bereits pseudonymisierte oder abgekürzte Straßennamen dürfen nicht geschwärzt werden. Das sind Straßennamen, die erkennbar aus einem einzelnen Großbuchstaben und einem Straßentyp bestehen, zum Beispiel -Straße, -Weg, -Gasse, -Platz oder -Allee. Diese Adressen dürfen auch nicht in Kombination mit Rollenbezeichnungen geschwärzt werden.",
+      "examples": [
+        "F-Straße 70",
+        "E-Straße 23",
+        "W-Straße 84",
+        "S-Weg 23",
+        "J-Straße 33",
+        "H-Straße 2",
+        "Eigentümer der F-Straße 70"
+      ]
+    },
+    {
+      "category": "grundstueckskennung",
+      "label": "Flurstücksnummer oder grundstücksbezogene technische Kennung",
+      "description": "Flurstücksnummern und grundstücksbezogene technische Kennungen dürfen nicht geschwärzt werden.",
+      "examples": [
+        "18/1",
+        "234/5",
+        "Flurstück 123/4",
+        "Gemarkung Berlin"
+      ]
+    },
+    {
+      "category": "geografische_bezeichnung",
+      "label": "Geografische Bezeichnung ohne vollständige Adresse",
+      "description": "Ortsnamen, Gemeinden, Gemarkungen, Landkreise und geografische Bezeichnungen dürfen nicht geschwärzt werden, sofern sie nicht Teil einer zu schwärzenden vollständigen Adresse sind.",
+      "examples": [
+        "Leipzig",
+        "Gemarkung Leipzig",
+        "Landkreis Leipzig"
+      ]
+    },
+    {
+      "category": "nicht_geburtsdatum",
+      "label": "Datum ohne Geburtsdatenbezug",
+      "description": "Datumsangaben, die keine Geburtsdaten sind, dürfen nicht geschwärzt werden.",
+      "examples": [
+        "Beschlussdatum",
+        "Frist",
+        "Stand: 24.04.2023",
+        "Revisionsdatum",
+        "Auslegungszeitraum"
+      ]
+    },
+    {
+      "category": "sachinformation",
+      "label": "Sachliche, technische oder rechtliche Information",
+      "description": "Gesetzesverweise, Regelungen, technische Angaben, Projektnummern und rein sachliche Informationen dürfen nicht geschwärzt werden, sofern sie keine konfigurierten PII oder Kontaktdaten enthalten.",
+      "examples": [
+        "§ 73 VwVfG",
+        "IAW_2_6_LSW_PFB_SD_2.3_4",
+        "Projekt-Dokumenten-Nr.",
+        "Seite 10/90"
+      ]
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from authentification.dependencies import require_role
+from authentification.enums import OidcRoles
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,7 +19,11 @@ router = APIRouter(
 )
 
 
-@router.get("", response_model=list[ProjectTypeResponse])
+@router.get(
+    "",
+    response_model=list[ProjectTypeResponse],
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.USER, OidcRoles.SERVICE]))],
+)
 async def list_project_types(
     db: AsyncSession = Depends(get_db_session),
 ) -> list[ProjectTypeResponse]:
@@ -33,7 +39,12 @@ async def list_project_types(
     return [ProjectTypeResponse(id=pt.id, name=pt.name) for pt in types]
 
 
-@router.post("", response_model=list[ProjectTypeResponse], status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=list[ProjectTypeResponse],
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE]))],
+)
 async def create_project_types(
     payload: list[CreateProjectTypeRequest],
     db: AsyncSession = Depends(get_db_session),
@@ -51,7 +62,11 @@ async def create_project_types(
     return [ProjectTypeResponse(id=pt.id, name=pt.name) for pt in created]
 
 
-@router.patch("", response_model=list[ProjectTypeResponse])
+@router.patch(
+    "",
+    response_model=list[ProjectTypeResponse],
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE]))],
+)
 async def update_project_types(
     payload: list[UpdateProjectTypeRequest],
     db: AsyncSession = Depends(get_db_session),
@@ -69,7 +84,11 @@ async def update_project_types(
     return [ProjectTypeResponse(id=pt.id, name=pt.name) for pt in updated]
 
 
-@router.delete("", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE]))],
+)
 async def delete_project_types(
     ids: list[UUID] = Query(..., description="List of project type IDs to delete"),
     db: AsyncSession = Depends(get_db_session),

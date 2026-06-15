@@ -1,7 +1,11 @@
+"""Shared type definitions for workflow I/O."""
+
 from uuid import UUID
 
 from pydantic import BaseModel
 from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+
+from src.schemas import ProcessedDocument
 
 
 class SingleDocumentWorkflowOutput(BaseModel):
@@ -14,3 +18,4 @@ class SingleDocumentWorkflowOutput(BaseModel):
     base_metadata: BaseMetadata | None = None
     document_name: str = "unknown"
     document_path: str = ""
+    processed_document: ProcessedDocument | None = None

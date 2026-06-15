@@ -48,15 +48,15 @@ def convert_bbox_bottomleft_to_topleft(
     """
     # Extract coordinates
     left = bbox.get("l", 0)
-    top = bbox.get("t", 0)
+    t = bbox.get("t", 0)
     right = bbox.get("r", 0)
-    bottom = bbox.get("b", 0)
+    b = bbox.get("b", 0)
 
     # Convert from bottom-left to top-left origin
-    # In bottom-left: top is the higher y, bottom is the lower y
+    # In bottom-left: t is the top (higher y), b is bottom (lower y)
     # In top-left: y increases downward
-    y0 = page_height - top
-    y1 = page_height - bottom
+    y0 = page_height - t  # Top in bottom-left becomes top in top-left
+    y1 = page_height - b  # Bottom in bottom-left becomes bottom in top-left
 
     return [left, y0, right, y1]
 

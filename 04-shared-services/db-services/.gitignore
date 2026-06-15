@@ -1,0 +1,5 @@
+# DB-Services specific
+*/db-data/*
+*/cached/*
+
+**/*.chunks.pkl

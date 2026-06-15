@@ -1,89 +1,20 @@
-import asyncio
+"""Non-LLM Temporal activities for the risk-screening stage.
 
-from prompt_injection.prompt_defense import sanitize_and_wrap_external_data, wrap_system_prompt
+The LLM screening itself is performed in workflow code via
+``temporal.activities.llm.llm_invoke_structured``.
+"""
+
 from temporalio import activity
 
 from src.config.config import config
-from src.qdrant.schemas import ClaimPayload
-from src.workflows.check_logic_wf.prompts.risk_screener_prompts import (
-    RISK_SCREENER_SYSTEM_PROMPT,
-)
 from src.workflows.check_logic_wf.schemas.risk_screener_schemas import (
     DocumentBundleRequest,
     DocumentBundleResult,
-    RiskScreenerIndexedItem,
-    RiskScreenerIndexedResponse,
-    RiskScreenerItem,
-    RiskScreenerPromptPayload,
-    RiskScreenerReferencePromptItem,
-    RiskScreenerResponse,
-    ScreeningBundleResult,
+    FetchScreeningPayloadsBatchInput,
+    ResolvedClaimData,
     ScreeningCandidateBundle,
-    ScreeningHit,
 )
-from src.workflows.clients import llm_client, qdrant_client
-
-
-def _index_reference_claims(
-    reference_claims: dict[str, ClaimPayload],
-) -> tuple[dict[int, ClaimPayload], dict[int, str]]:
-    """Map claim UUIDs to 1-based indices for prompting and back-translation."""
-    reference_by_idx: dict[int, ClaimPayload] = {}
-    idx_to_uuid: dict[int, str] = {}
-    for reference_index, (ref_uuid, ref_payload) in enumerate(reference_claims.items(), start=1):
-        reference_by_idx[reference_index] = ref_payload
-        idx_to_uuid[reference_index] = ref_uuid
-    return reference_by_idx, idx_to_uuid
-
-
-def _translate_screening_results(
-    screening_results: list[RiskScreenerIndexedItem],
-    idx_to_uuid: dict[int, str],
-) -> dict[str, RiskScreenerItem]:
-    """Translate LLM result indices back to UUIDs."""
-    translated: dict[str, RiskScreenerItem] = {}
-    for item in screening_results:
-        ref_uuid = idx_to_uuid.get(item.reference_id)
-        if not ref_uuid:
-            continue
-        translated[ref_uuid] = RiskScreenerItem(
-            rating=item.rating,
-            note=item.note,
-            reasoning=item.reasoning,
-        )
-    return translated
-
-
-async def _screen_inconsistency_risks(
-    check_claim_payload: ClaimPayload,
-    reference_claim_payloads: list[ClaimPayload],
-) -> RiskScreenerResponse:
-    """Ask the screening LLM to assess which referenced claims are high-risk."""
-    reference_by_idx, idx_to_uuid = _index_reference_claims(
-        {payload.claim_id: payload for payload in reference_claim_payloads}
-    )
-    prompt_payload = RiskScreenerPromptPayload(
-        check_claim_text=check_claim_payload.claim_text,
-        reference_claims=[
-            RiskScreenerReferencePromptItem(
-                reference_id=ref_idx,
-                claim_text=ref_claim_payload.claim_text,
-            )
-            for ref_idx, ref_claim_payload in reference_by_idx.items()
-        ],
-    )
-
-    system_prompt = wrap_system_prompt(RISK_SCREENER_SYSTEM_PROMPT, lang="de")
-    user_prompt = sanitize_and_wrap_external_data(prompt_payload.model_dump_json(indent=2))
-
-    llm_response = await llm_client.ainvoke(
-        system_prompt=system_prompt,
-        user_prompt=user_prompt,
-        output_format=RiskScreenerIndexedResponse,
-    )
-    screening_response = RiskScreenerIndexedResponse.model_validate(llm_response)
-    translated = _translate_screening_results(screening_response.screening_results, idx_to_uuid)
-    return RiskScreenerResponse(screening_result_dict=translated)
+from src.workflows.clients import qdrant_client
 
 
 @activity.defn
@@ -96,13 +27,15 @@ async def build_screening_bundles_for_document(
     in configurable-size batches. Returns raw bundles (one per claim) without
     deduplication — symmetric-pair deduplication is the caller's responsibility.
     """
+    if not request.claim_ids:
+        return DocumentBundleResult(bundles=[])
+
     k_overfetch = (
         config.RISK_SCREENING.K_ERLAEUTERUNGSBERICHT_COMPARISON_CLAIMS + config.RISK_SCREENING.K_LOCAL_COMPARISON_CLAIMS
     )
 
     # Bulk-fetch all claim payloads with vectors.
-    claim_payloads = await asyncio.to_thread(
-        qdrant_client.get_claim_payloads,
+    claim_payloads = await qdrant_client.get_claim_payloads(
         project_id=request.project_id,
         claim_ids=request.claim_ids,
         with_vectors=True,
@@ -113,8 +46,7 @@ async def build_screening_bundles_for_document(
 
     # Bulk-fetch all chunk payloads needed for local-exclusion filters.
     unique_chunk_ids = list({p.chunk_id for p in ordered_claim_payloads if p.chunk_id})
-    chunk_payloads_list = await asyncio.to_thread(
-        qdrant_client.get_chunk_payloads,
+    chunk_payloads_list = await qdrant_client.get_chunk_payloads(
         project_id=request.project_id,
         chunk_ids=unique_chunk_ids,
     )
@@ -141,13 +73,14 @@ async def build_screening_bundles_for_document(
     ]
 
     # Issue all (claim × query) combinations in batches.
-    all_results = await asyncio.to_thread(
-        qdrant_client.get_claim_knn_ids_all_claims_batched,
+    all_results = await qdrant_client.get_claim_knn_ids_all_claims_batched(
         project_id=request.project_id,
         claim_payloads=ordered_claim_payloads,
         chunk_payloads_by_id=chunk_payloads_by_id,
         queries_per_claim=queries_per_claim,
         batch_size=config.RISK_SCREENING.QDRANT_QUERY_BATCH_SIZE,
+        score_lower_threshold=config.RISK_SCREENING.SCORE_LOWER_THRESHOLD,
+        score_upper_threshold=config.RISK_SCREENING.SCORE_UPPER_THRESHOLD,
     )
 
     bundles: list[ScreeningCandidateBundle] = []
@@ -174,6 +107,7 @@ async def build_screening_bundles_for_document(
             ScreeningCandidateBundle(
                 project_id=request.project_id,
                 document_id=request.document_id,
+                chunk_id=claim_payload.chunk_id,
                 claim_id=claim_payload.claim_id,
                 reference_claims=candidate_reference_claim_ids,
             )
@@ -183,48 +117,30 @@ async def build_screening_bundles_for_document(
 
 
 @activity.defn
-async def screen_claim_bundle(
-    screening_candidate_bundle: ScreeningCandidateBundle,
-) -> ScreeningBundleResult:
-    """Screen one claim against its candidate references via the screener LLM.
+async def fetch_screening_payloads_batch(
+    request: FetchScreeningPayloadsBatchInput,
+) -> dict[str, ResolvedClaimData]:
+    """Fetch all claim payloads needed for screening a batch of grouped bundles from Qdrant.
 
-    Args:
-        screening_candidate_bundle: Candidate references for one check claim.
-
-    Returns:
-        ScreeningBundleResult with claim pairs at or above the configured risk threshold.
+    Collects unique claim IDs across all bundles and performs a single bulk fetch.
+    Returns minimal claim data (text + chunk ID) — no LLM call involved.
     """
-    hits: list[ScreeningHit] = []
+    all_claim_ids: set[str] = set()
+    for bundle_group in request.bundles:
+        for bundle in bundle_group.bundles:
+            all_claim_ids.add(bundle.claim_id)
+            all_claim_ids.update(bundle.reference_claims)
 
-    primary_claim_payload = qdrant_client.get_claim_payload(
-        project_id=screening_candidate_bundle.project_id,
-        claim_id=screening_candidate_bundle.claim_id,
-        with_vector=False,
-    )
-
-    reference_claim_payloads = qdrant_client.get_claim_payloads(
-        project_id=screening_candidate_bundle.project_id,
-        claim_ids=screening_candidate_bundle.reference_claims,
+    payloads = await qdrant_client.get_claim_payloads(
+        project_id=request.project_id,
+        claim_ids=list(all_claim_ids),
         with_vectors=False,
     )
-
-    screening_response = await _screen_inconsistency_risks(
-        check_claim_payload=primary_claim_payload,
-        reference_claim_payloads=reference_claim_payloads,
-    )
-
-    for reference_claim_id, screening_item in screening_response.screening_result_dict.items():
-        if screening_item.rating < config.RISK_SCREENING.RATING_THRESHOLD:
-            continue
-
-        hits.append(
-            ScreeningHit(
-                claim_id=primary_claim_payload.claim_id,
-                reference_id=reference_claim_id,
-                rating=screening_item.rating,
-                note=screening_item.note,
-                reasoning=screening_item.reasoning,
-            )
+    return {
+        p.claim_id: ResolvedClaimData(
+            claim_id=p.claim_id,
+            chunk_id=p.chunk_id,
+            claim_text=p.claim_text,
         )
-
-    return ScreeningBundleResult(hits=hits)
+        for p in payloads
+    }

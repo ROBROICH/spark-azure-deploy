@@ -1,0 +1,41 @@
+{{- if .Values.operator.enabled }}
+# Minimal cluster-wide role: read-only access to CRDs so the operator can
+# verify the SpiceDBCluster CRD is installed. All namespace-scoped resources
+# are managed through the namespaced Role below, avoiding cluster-wide privilege.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "spicedb.operatorName" . }}-crd-reader
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "list", "watch"]
+---
+# Namespaced role scoped to the SpiceDB data-plane namespace.
+# The operator's --watch-namespaces flag restricts its watch to this namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "spicedb.operatorName" . }}
+  namespace: {{ .Values.cluster.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+rules:
+  - apiGroups: ["authzed.com"]
+    resources: ["spicedbclusters", "spicedbclusters/status"]
+    verbs: ["*"]
+  - apiGroups: [""]
+    resources: ["pods", "services", "endpoints", "configmaps", "secrets", "serviceaccounts", "events"]
+    verbs: ["*"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["*"]
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["*"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["*"]
+{{- end }}

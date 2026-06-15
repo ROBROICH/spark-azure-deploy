@@ -25,27 +25,20 @@ class BaseStorageProviderService(ABC):
         doc_store_path: str = settings.DOC_STORE_PATH,
         **_,
     ) -> None:
-        """Initialize the DocumentService using S3-style object storage settings.
+        """Initialize storage bucket and object path configuration.
 
         Args:
             bucket_name (str): Name or URI of the storage bucket/container.
             doc_store_path (str): Subdirectory within the bucket to store documents.
-            protocol (str, optional): Filesystem protocol ('s3', 'file', etc.).
-                If omitted, inferred from `bucket_name`.
         """
         self.bucket_name = bucket_name
-        self.doc_store_path = str(
-            PurePosixPath(doc_store_path or "").as_posix().strip("/")
-        )
+        self.doc_store_path = str(PurePosixPath(doc_store_path or "").as_posix().strip("/"))
 
         logger.debug(
             action=EventAction.NOTIFY,
             outcome=EventOutcome.SUCCESS,
             category=EventCategory.FILE,
-            message=(
-                f"Initializing Storage provider "
-                f"bucket='{self.bucket_name}', path='{self.doc_store_path}'"
-            ),
+            message=(f"Initializing storage bucket='{self.bucket_name}', path='{self.doc_store_path}'"),
         )
 
     @abstractmethod
@@ -113,7 +106,7 @@ class BaseStorageProviderService(ABC):
         """
         Copy a document to a new name/path within the same storage backend.
 
-        For cloud backends, this should be a fast server-side copy
+        For cloud backends this should be a fast server-side copy
         (metadata operation). For local filesystem, it's a normal file copy.
 
         Args:
@@ -168,7 +161,7 @@ class BaseStorageProviderService(ABC):
         ...
 
     @abstractmethod
-    async def download_document_stream(
+    def download_document_stream(
         self,
         document_name: str,
         chunk_size: int = 256 * 1024,
@@ -211,12 +204,14 @@ class BaseStorageProviderService(ABC):
         self,
         document_name: str,
         expiration_minutes: int = 15,
+        create_new_version: bool = False,
         mime_type: str | None = None,
     ) -> str:
         """
         Args:
             document_name (str): Document name.
             expiration_minutes (int): URL expiration in minutes.
+            create_new_version (bool): Whether to create a new version of the document.
             mime_type (str | None): Optional MIME type.
 
         Returns:

@@ -3,6 +3,7 @@
 from logging.config import fileConfig
 
 from alembic import context
+from alembic_utils.temporal import build_versioning_hooks
 from sqlalchemy import engine_from_config, pool
 from sqlalchemy.sql.expression import text
 
@@ -16,11 +17,12 @@ if config.config_file_name is not None:
 
 config.set_main_option(
     name="sqlalchemy.url",
-    value=settings.DATABASE_URL.replace("+asyncpg", ""),
+    value=settings.database_url.replace("+asyncpg", ""),
 )
 
 
 target_metadata = Base.metadata
+_temporal_hooks = build_versioning_hooks(version="v1")
 
 
 def run_migrations_offline() -> None:
@@ -41,6 +43,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_name=_temporal_hooks["include_name"],
+        process_revision_directives=_temporal_hooks["process_revision_directives"],
     )
 
     with context.begin_transaction():
@@ -60,13 +64,16 @@ def run_migrations_online() -> None:
     )
 
     with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+        context.configure(
+            connection=connection,
+            target_metadata=target_metadata,
+            include_name=_temporal_hooks["include_name"],
+            process_revision_directives=_temporal_hooks["process_revision_directives"],
+        )
 
         with context.begin_transaction():
             context.get_context()._ensure_version_table()
-            connection.execute(
-                text("LOCK TABLE alembic_version IN ACCESS EXCLUSIVE MODE")
-            )
+            connection.execute(text("LOCK TABLE alembic_version IN ACCESS EXCLUSIVE MODE"))
             context.run_migrations()
 
 

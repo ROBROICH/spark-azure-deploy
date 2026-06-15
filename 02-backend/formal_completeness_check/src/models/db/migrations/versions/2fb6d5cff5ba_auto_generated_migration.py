@@ -32,9 +32,7 @@ def upgrade() -> None:
         sa.UniqueConstraint("id", "project_id", name="uq_category_id_project_id"),
         sa.UniqueConstraint("project_id", "name", name="uq_category_project_name"),
     )
-    op.create_index(
-        op.f("ix_category_project_id"), "category", ["project_id"], unique=False
-    )
+    op.create_index(op.f("ix_category_project_id"), "category", ["project_id"], unique=False)
     op.create_table(
         "template_category",
         sa.Column("id", sa.UUID(), nullable=False),
@@ -53,9 +51,7 @@ def upgrade() -> None:
         sa.Column("expected_count", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["template_category_id"], ["template_category.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["template_category_id"], ["template_category.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("name", name="uq_template_document_type_name"),
     )

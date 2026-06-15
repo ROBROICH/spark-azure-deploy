@@ -19,76 +19,69 @@ def _detail_from_exception(exc: Exception, fallback: str) -> str:
     return message if message else fallback
 
 
-def _log_and_respond(
-    request: Request,
-    exc: Exception,
-    *,
-    log_level: str,
-    action: EventAction,
-    category: EventCategory,
-    default_event: LogEventDefault,
-    status_code: int,
-    fallback: str,
-) -> JSONResponse:
-    log_fn = logger.warn if log_level == "warn" else logger.error
-    log_fn(
-        action=action,
-        outcome=EventOutcome.FAILURE,
-        category=category,
-        default_event=default_event,
-        message=f"{type(exc).__name__} on {request.url.path}: {exc}",
-    )
-    return JSONResponse(
-        status_code=status_code,
-        content={"detail": _detail_from_exception(exc, fallback)},
-    )
-
-
 def register_exception_handlers(app: FastAPI) -> None:
     """
     Register global exception handlers so routes can stay lean.
     """
 
     @app.exception_handler(NotFoundError)
-    async def handle_not_found_error(request: Request, exc: NotFoundError):
-        return _log_and_respond(
-            request, exc,
-            log_level="warn", action=EventAction.READ, category=EventCategory.API,
+    async def handle_not_found_error(request: Request, exc: NotFoundError) -> JSONResponse:
+        logger.warn(
+            action=EventAction.READ,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.API,
             default_event=LogEventDefault.RESOURCE_NOT_FOUND,
-            status_code=status.HTTP_404_NOT_FOUND, fallback="Resource not found",
+            message=f"NotFoundError on {request.url.path}: {exc}",
+        )
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": _detail_from_exception(exc, "Resource not found")},
         )
 
     @app.exception_handler(FileNotFoundError)
-    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError):
-        return _log_and_respond(
-            request, exc,
-            log_level="warn", action=EventAction.READ, category=EventCategory.FILE,
+    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError) -> JSONResponse:
+        logger.warn(
+            action=EventAction.READ,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.FILE,
             default_event=LogEventDefault.RESOURCE_NOT_FOUND,
-            status_code=status.HTTP_404_NOT_FOUND, fallback="File not found",
+            message=f"FileNotFoundError on {request.url.path}: {exc}",
+        )
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content={"detail": _detail_from_exception(exc, "File not found")},
         )
 
     @app.exception_handler(ValueError)
-    async def handle_value_error(request: Request, exc: ValueError):
-        return _log_and_respond(
-            request, exc,
-            log_level="warn", action=EventAction.VALIDATE, category=EventCategory.API,
+    async def handle_value_error(request: Request, exc: ValueError) -> JSONResponse:
+        logger.warn(
+            action=EventAction.VALIDATE,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.API,
             default_event=LogEventDefault.VALIDATION_FAILURE,
-            status_code=status.HTTP_409_CONFLICT, fallback="Conflict during request",
+            message=f"ValueError on {request.url.path}: {exc}",
+        )
+        return JSONResponse(
+            status_code=status.HTTP_409_CONFLICT,
+            content={"detail": _detail_from_exception(exc, "Conflict during request")},
         )
 
     @app.exception_handler(OperationFailedError)
-    async def handle_operation_failed_error(
-        request: Request, exc: OperationFailedError
-    ):
-        return _log_and_respond(
-            request, exc,
-            log_level="error", action=EventAction.ACCESS, category=EventCategory.API,
+    async def handle_operation_failed_error(request: Request, exc: OperationFailedError) -> JSONResponse:
+        logger.error(
+            action=EventAction.ACCESS,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.API,
             default_event=LogEventDefault.GENERAL,
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, fallback="Operation failed unexpectedly",
+            message=f"OperationFailedError on {request.url.path}: {exc}",
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": _detail_from_exception(exc, "Operation failed unexpectedly")},
         )
 
     @app.exception_handler(Exception)
-    async def handle_generic_exception(request: Request, exc: Exception):
+    async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
         logger.error(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,

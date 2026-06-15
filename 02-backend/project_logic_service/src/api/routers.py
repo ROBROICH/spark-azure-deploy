@@ -1,9 +1,17 @@
 from fastapi import APIRouter
 
-from src.api.routes import deadlines, generic_type, process_steps, project_type, projects
+from src.api.routes import (
+    deadlines,
+    generic_type,
+    process_steps,
+    project_type,
+    projects,
+    topics,
+)
 
 api_router = APIRouter()
 
+api_router.include_router(topics.router)
 api_router.include_router(deadlines.router)
 api_router.include_router(generic_type.router)
 api_router.include_router(process_steps.router)

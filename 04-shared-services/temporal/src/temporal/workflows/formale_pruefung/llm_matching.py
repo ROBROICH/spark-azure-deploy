@@ -4,9 +4,8 @@ from temporal.utils import WorkflowName, execute_workflow, start_workflow
 from temporalio.client import WorkflowHandle
 from temporalio.workflow import ChildWorkflowHandle
 
-from .types import DMSFileResponse, LLMMatchingParams
+from .types import TASK_QUEUE, DMSFileResponse, LLMMatchingParams
 
-TASK_QUEUE = "formale-pruefung"
 LLM_MATCHING_WORKFLOW_ID = WorkflowName("LLMMatchingWorkflow")
 
 

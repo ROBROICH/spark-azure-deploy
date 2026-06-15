@@ -1,0 +1,179 @@
+# =============================================================================
+# spicedb — values.yaml
+# =============================================================================
+#
+# Self-contained chart — no external chart dependencies.
+# All Kubernetes resources are declared directly in this chart's templates.
+#
+# Two configuration domains:
+#
+#   operator  — The SpiceDB Operator controller running in spicedb-operator
+#               namespace. Manages the lifecycle of SpiceDBCluster instances.
+#               Source: repo/03-infrastructure-resources/tooling/spicedb-operator/
+#
+#   cluster   — The SpiceDB data-plane cluster (SpiceDBCluster CR) and all
+#               supporting resources (CNPG database, ESO secrets, Istio policy)
+#               running in the spicedb namespace.
+#               Source: repo/03-infrastructure-resources/tooling/spicedb/
+#
+# Bootstrap:
+#   helm dep update charts/03-infrastructure/spicedb   (no-op — no deps)
+#   helm upgrade --install spicedb charts/03-infrastructure/spicedb \
+#     -f values.yaml -n spicedb-operator --create-namespace
+#
+# Note: the operator resources carry explicit `namespace: spicedb-operator`
+# and cluster resources carry `namespace: spicedb`, so the release namespace
+# (-n flag) only affects resources that don't override it — in practice none.
+# =============================================================================
+
+# =============================================================================
+# operator — SpiceDB Operator controller
+# =============================================================================
+# ---------------------------------------------------------------------------
+# Stage name appended to wrapper-level resource names as a suffix (e.g. "-dev").
+# Propagated automatically via global.stage.name when deployed inside an umbrella chart.
+stage:
+  name: ""
+
+# Namespace override. Empty → uses the release namespace (-n flag).
+# Resources within the upstream subchart use their own namespace configuration.
+namespaceOverride: ""
+
+# Service classification labels applied to wrapper-level resources.
+# Extra labels applied to resources managed by this chart.
+# Use this map for any additional key-value labels.
+labels: {}
+
+# ---------------------------------------------------------------------------
+operator:
+  enabled: true
+
+  # Static name for all operator resources (ServiceAccount, Deployment, ClusterRole, …).
+  # Operators are cluster-wide singletons — this name does NOT include the release name
+  # or stage suffix. Only one operator instance should exist per cluster.
+  name: "spicedb-operator"
+
+  # Namespace the operator controller runs in.
+  # All operator resources (ServiceAccount, Deployment, ConfigMap) are pinned
+  # to this namespace via explicit metadata.namespace fields.
+  namespace: "spicedb-operator"
+
+  image:
+    repository: "<container-registry>/spicedb-operator"
+    # Use the exact digest/tag from your registry.
+    tag: "<image-tag>"
+    pullPolicy: IfNotPresent
+
+  # imagePullSecrets:          # Uncomment and set your registry pull secret name.
+  #   - name: <registry-pull-secret>
+  imagePullSecrets: []
+
+  # Resource requests/limits from kustomize base:
+  # repo/03-infrastructure-resources/tooling/spicedb-operator/k8s/base/deployment.yaml
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+
+  # update-graph ConfigMap — tells the operator which image repository to pull
+  # SpiceDB from when performing channel-based auto-upgrades.
+  updateGraph:
+    spicedbImageName: "<container-registry>/infra/spicedb"
+
+# =============================================================================
+# cluster — SpiceDB data-plane cluster
+# =============================================================================
+cluster:
+  enabled: true
+
+  # Namespace for all cluster-side resources. Defaults to the release namespace
+  # when left empty. Must exist before installation.
+  # This value also controls the operator's --watch-namespaces flag and the
+  # namespace scope of the operator's Role/RoleBinding, restricting it to a
+  # single namespace instead of cluster-wide access.
+  namespace: ""
+
+  # SpiceDBCluster resource name — auto-derived from the release name and stage
+  # via the spicedb.fullname helper (e.g. "spark-spicedb-prod").
+  # This value is no longer used; kept only as a comment reference.
+  # name: <auto-derived>
+
+  # Operator update channel.
+  #   "stable" — operator auto-upgrades SpiceDB via the stable channel graph.
+  #   ""        — operator uses the explicit config.image and does not
+  #               auto-upgrade (production and testing patterns in kustomize).
+  channel: ""
+
+  # Name of the Secret the SpiceDB pods consume at runtime.
+  # Must contain: preshared_key  and  datastore_uri
+  # This Secret must be created externally (e.g. via ESO, Vault agent,
+  # or manual kubectl) before the SpiceDBCluster is reconciled.
+  secretName: "spicedb-config"
+
+  config:
+    datastoreEngine: postgres
+    logLevel: info
+    # Number of SpiceDB replicas the operator should maintain.
+    # Production: 3  |  Testing: 1
+    replicas: 1
+    # Pin to a specific image digest/tag; leave empty to let the operator
+    # select the image via the channel update graph.
+    image: "<container-registry>/spicedb:<image-tag>"
+    # Plain string list (not objects) — matches the operator API:
+    #   imagePullSecrets: [<registry-pull-secret>]
+    # imagePullSecrets:          # Uncomment and set your registry pull secret name.
+    #   - <registry-pull-secret>
+    imagePullSecrets: []
+    # Any additional SpiceDB config keys forwarded verbatim to the operator.
+    extraConfig: {}
+
+  # ── ServiceAccounts ─────────────────────────────────────────────────────────
+  # ServiceAccounts in the spicedb namespace need the registry pull secret so
+  # that init containers and SpiceDB pods can pull from the private registry.
+  serviceAccounts:
+    # imagePullSecrets:          # Uncomment and set your registry pull secret name.
+    #   - name: <registry-pull-secret>
+    imagePullSecrets: []
+
+  # ── CNPG PostgreSQL Cluster ───────────────────────────────────────────────
+  # CloudNativePG-managed PostgreSQL backend for SpiceDB.
+  # Requires the CNPG operator (cnpg-postgres chart) to be installed.
+  database:
+    enabled: true
+    # Production: 3  |  Testing: 1
+    instances: 1
+
+    # Project image catalog (CNPG ClusterImageCatalog) — comment out to use
+    # the default CNPG image pull instead.
+    imageCatalogRef:
+      apiGroup: postgresql.cnpg.io
+      kind: ClusterImageCatalog
+      name: postgresql
+      major: 17
+
+    # imagePullSecrets:          # Uncomment and set your registry pull secret name.
+    #   - name: <registry-pull-secret>
+    imagePullSecrets: []
+
+    # Extra pod/object annotations forwarded to CNPG-managed resources.
+    inheritedMetadata: {}
+
+    storage:
+      size: "10Gi"
+      # Adjust for the target cluster:
+      #   testing/staging:  "standard-rwo"   (default)
+      storageClass: ""
+
+    postgresql:
+      # Testing defaults (production uses higher values):
+      #   Production: max_connections=300, shared_buffers=1GB,
+      #               effective_cache_size=4GB, work_mem=64MB
+      max_connections: "100"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      work_mem: "16MB"
+
+    monitoring:
+      enablePodMonitor: true

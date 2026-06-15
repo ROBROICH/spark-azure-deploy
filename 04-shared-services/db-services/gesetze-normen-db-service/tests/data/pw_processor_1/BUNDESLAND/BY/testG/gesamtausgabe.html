@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="de">
+<head><meta charset="utf-8"><title>Testgesetz</title></head>
+<body>
+<div id="bsby" class="navpage navpage-document">
+
+<!--
+  Unified juris/jportal Gesamtausgabe test fixture.
+  Combines the formatting variants observed across the different jportal
+  portals into a single document, so the generic JurisProcessor can be
+  smoke-tested against the widest set of HTML quirks at once. The §1/§2
+  norm content matches the canonical reference so the shared parser
+  assertions hold; the surrounding markup deliberately mixes styles.
+-->
+
+<!-- Dokumentkopf: two-column "header docheader__header" layout with aria-busy.
+     Header rows mix several edge cases:
+       - <strong> label wrapped in a white-space:nowrap span
+       - extra fields the parser ignores (Gültig ab, Dokumenttyp, Gliederungs-Nr)
+       - a label wrapped in hlIgnoreOn/Off highlight-suppression comments
+     Some portals instead label the abbreviation row "juris-Abkürzung:";
+     the parser accepts either that or "Amtliche Abkürzung:". -->
+<div aria-busy="false" aria-label="Dokumentkopf" class="header docheader__header" role="region">
+  <div class="documentHeader">
+    <div class="documentHeaderCol">
+      <table style="width:100%;border-spacing:5px;">
+        <tbody>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;"><strong><span style="white-space:nowrap;">Amtliche&nbsp;Abkürzung:</span></strong></th>
+            <td class="TD70">LTestG</td>
+          </tr>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;"><strong>Ausfertigungsdatum:</strong></th>
+            <td class="TD70">01.01.2000</td>
+          </tr>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;"><strong>Gültig&nbsp;ab:</strong></th>
+            <td class="TD70">01.01.2000</td>
+          </tr>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;"><strong>Dokumenttyp:</strong></th>
+            <td class="TD70">Gesetz</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="documentHeaderCol">
+      <table style="width:100%;border-spacing:5px;">
+        <tbody>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;">
+              <!--hlIgnoreOn--><strong>Quelle:</strong><!--hlIgnoreOff-->
+            </th>
+            <td class="TD70">Land Bayern</td>
+          </tr>
+          <tr style="vertical-align:top;">
+            <th class="TD30" scope="row" style="text-align:left;">
+              <!--hlIgnoreOn--><strong>Fundstelle:</strong><!--hlIgnoreOff-->
+            </th>
+            <td class="TD70">GVBl. 2000, 1</td>
+          </tr>
+          <tr style="vertical-align:middle;">
+            <th class="TD30" scope="row" style="text-align:left;"><strong title="Gliederungsnummer">Gliederungs-Nr:</strong></th>
+            <td class="TD70">790</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<article class="docbody docview__docbody">
+  <a name="DocInhalt"><!--emptyTag--></a>
+
+  <!-- Title: h3 wrapped in docLayoutTitel > div.doc > span.h3_titel, broken
+       across lines with <br>. The parser flattens this to a single string. -->
+  <div class="docLayoutTitel">
+    <div style="margin-left: -20px; margin-top: 0.5ex;" class="doc">
+      <h3><span class="h3_titel">Gesetz zum testen von Gesetzen<br>
+        (Testgesetz - LTestG)<br>
+        vom 1. Januar 2000</span></h3>
+    </div>
+  </div>
+
+  <div class="docLayoutText doktyp-juris-lr dokutyp-by">
+
+    <!-- validity note -->
+    <div class="docLayoutMarginTopMore"><em>Zum 06.05.2026 aktuellste verfügbare Fassung der Gesamtausgabe</em></div>
+
+    <div class="docLayoutMarginTop">
+
+      <!-- Standangaben: table.standangaben with width="100%" + colgroup.
+           Two rows exercise both the plain <td> key cell and the
+           td.StandangabeStand variant, yielding two stand entries. -->
+      <div class="docLayoutMarginTop">
+        <a name="jlr-testGBYrahmen"><!--emptyTag--></a>
+        <div class="docLayoutMarginTop">
+          <div class="jnhtml">
+            <table class="standangaben" width="100%">
+              <colgroup><col width="10%"><col width="90%"></colgroup>
+              <tbody>
+                <tr>
+                  <td>Neuf:</td>
+                  <td>Neugefasst durch Bekanntmachung vom 1. Januar 2000</td>
+                </tr>
+                <tr>
+                  <td class="StandangabeStand">Stand: </td>
+                  <td>zuletzt geändert durch Art. 1 G v. 12.8.2025 (GVBl. S. 189)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section heading: h4 with inline style, ALL CAPS first line. Updates
+           the running section breadcrumb but is not parsed as a norm. -->
+      <div class="docLayoutMarginTop">
+        <a name="jlr-testGBYpG1"><!--emptyTag--></a>
+        <div class="docLayoutMarginTop">
+          <h4 style="text-align: center; font-weight: bold;font-size: 100%; font-family: Arial, Helvetica, Sans-Serif;">ERSTER TEIL<br> Allgemeine Vorschriften</h4>
+        </div>
+      </div>
+
+      <!-- § 1: heading uses h5 with inline style; plain grammatical paragraphs
+           covering sentence-splitting edge cases (abbreviations, roman
+           numerals inside abbreviations, decimals). -->
+      <div class="docLayoutMarginTop">
+        <a name="jlr-testGBYpP1"><!--emptyTag--></a>
+        <div class="docLayoutMarginTop">
+          <h5 style="text-align: center; font-weight: bold;font-size: 100%; font-family: Arial, Helvetica, Sans-Serif;">§&nbsp;1<br> Grammatikalische Sätze</h5>
+          <p>(1) Ein einfacher Satz mit Interpunktion. Ein zweiter Satz ohne Markierungen. § 1 Absatz 1 enthält 3 Sätze.</p>
+          <p>(2) Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).</p>
+          <p>(3) Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche "Die" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.</p>
+        </div>
+      </div>
+
+      <!-- § 2: heading uses h4 (some portals render the paragraph heading as
+           h4 instead of h5). Demonstrates list-marker handling. -->
+      <div class="docLayoutMarginTop">
+        <a name="jlr-testGBYpP2"><!--emptyTag--></a>
+        <div class="docLayoutMarginTop">
+          <h4 style="text-align: center; font-weight: bold;font-size: 100%; font-family: Arial, Helvetica, Sans-Serif;">§&nbsp;2<br> Sätze mit Markierungen</h4>
+
+          <!-- (1) numbered list with inline dt/dd styles -->
+          <p>(1) Dieser Satz</p>
+          <dl>
+            <dt style="float: left; min-width: 1em;">1.</dt>
+            <dd style="margin-left: 2.5em; margin-bottom: 3ex;"><p>ist verschachtelt und</p></dd>
+            <dt style="float: left; min-width: 1em;">2.</dt>
+            <dd style="margin-left: 2.5em; margin-bottom: 3ex;"><p>bietet eindeutige Markierungen.</p></dd>
+          </dl>
+
+          <!-- (2) ambiguous list with plain (unstyled) dt/dd and en-dash "–"
+               markers; identical markers get disambiguated to "1. –", "2. –". -->
+          <p>(2) Dieser Satz</p>
+          <dl>
+            <dt>–</dt>
+            <dd><p>ist verschachtelt, aber</p></dd>
+            <dt>–</dt>
+            <dd><p>bietet keine eindeutigen Markierungen.</p></dd>
+          </dl>
+
+          <!-- (3) numbered outer list with a nested lettered sub-list inside the
+               same dd, plus shared intro and suffix text (inline dt/dd styles). -->
+          <p>(3) Dieser Satz wird aufgeteilt in:</p>
+          <dl>
+            <dt style="float: left; min-width: 1em;">1.</dt>
+            <dd style="margin-left: 2.5em; margin-bottom: 3ex;"><p>eine einzelne verschachtelte Ebene,</p></dd>
+            <dt style="float: left; min-width: 1em;">2.</dt>
+            <dd style="margin-left: 2.5em; margin-bottom: 3ex;">
+              <p>eine tiefer verschachtelte mit,</p>
+              <dl>
+                <dt style="float: left; min-width: 1em;">a)</dt>
+                <dd style="margin-left: 2.5em; margin-bottom: 3ex;"><p>Teil a,</p></dd>
+                <dt style="float: left; min-width: 1em;">b)</dt>
+                <dd style="margin-left: 2.5em; margin-bottom: 3ex;"><p>Teil b,</p></dd>
+              </dl>
+              <p>(und gemeinsamer Endtext);</p>
+            </dd>
+          </dl>
+          <!-- standalone sentence after the list, no marker -->
+          <p>Dieser Satz ist nicht enthalten.</p>
+
+          <!-- (4) list with shared endtext followed by a new sentence in the
+               same paragraph; plain (unstyled) dt/dd. -->
+          <p>(4) Dieser Satz enthält eine Aufzählung:</p>
+          <dl>
+            <dt>1.</dt>
+            <dd><p>teil 1,</p></dd>
+            <dt>2.</dt>
+            <dd><p>teil 2.</p></dd>
+          </dl>
+          <p>und endtext. Satz 2 kommt nach dem endtext.</p>
+
+        </div>
+      </div>
+
+      <!-- Anlage: h4 without text-align:center (distinguishes it from section
+           headings). Routed to anlagen, never parsed as a norm. -->
+      <div class="docLayoutMarginTop">
+        <a name="jlr-testGBYAnlage"><!--emptyTag--></a>
+        <div class="docLayoutMarginTop">
+          <h4 style="font-weight: bold;font-size: 100%; font-family: Arial, Helvetica, Sans-Serif;">Anlage</h4>
+          <p> zu §&nbsp;2 Abs.&nbsp;1</p>
+          <p>Inhalt der Testanlage.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</article>
+
+</div>
+</body>
+</html>

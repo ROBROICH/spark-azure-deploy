@@ -15,7 +15,7 @@ probe_router = APIRouter(tags=["probes"])
     response_model=CheckResponse,
     response_model_exclude_unset=True,
 )
-def health_check():
+def health_check() -> CheckResponse:
     """Simple health check endpoint."""
     return CheckResponse(status="ok")
 
@@ -25,7 +25,7 @@ def health_check():
     response_model=CheckResponse,
     response_model_exclude_unset=True,
 )
-async def readiness_check():
+async def readiness_check() -> CheckResponse | JSONResponse:
     """
     Readiness probe: verifies database connectivity.
     """
@@ -38,7 +38,7 @@ async def readiness_check():
             ).model_dump(),
         )
 
-    return CheckResponse(status="ok")  # type: ignore
+    return CheckResponse(status="ok")
 
 
 @probe_router.get(
@@ -46,7 +46,7 @@ async def readiness_check():
     response_model=CheckResponse,
     response_model_exclude_unset=True,
 )
-async def startup_check():
+async def startup_check() -> CheckResponse | JSONResponse:
     """Startup probe: signals when application initialization is complete.
 
     Kubernetes will delay liveness/readiness probes until this succeeds.

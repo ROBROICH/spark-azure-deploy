@@ -1,0 +1,33 @@
+dependencies:
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+- name: temporal-worker
+  repository: file://../sources/internal/05-modulcluster/temporal-worker
+  version: 0.1.0
+digest: sha256:f36b3d813d008932ec2238c11472062792de39d1f48f41e6bcf46760446fb9a1
+generated: "2026-06-11T14:07:40.443076909+02:00"

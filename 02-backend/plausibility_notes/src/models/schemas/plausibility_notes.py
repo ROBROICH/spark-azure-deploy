@@ -24,7 +24,9 @@ class ContradictionOccurrence(BaseModel):
 
 class Contradiction(BaseModel):
     id: UUID
+    title: str | None = None
     description: str
+    rating: int | None = Field(default=None, ge=0, le=100)
     status: PlausibilityNoteStatus
     occurrences: list[ContradictionOccurrence]
 
@@ -38,9 +40,7 @@ class PlausibilityCheckResult(BaseModel):
 
 
 class JobDoneRequest(BaseModel):
-    file_id: UUID = Field(
-        ..., description="File ID pointing to the data.json with results"
-    )
+    file_id: UUID = Field(..., description="File ID pointing to the data.json with results")
 
     model_config = ConfigDict(alias_generator=to_camel, populate_by_name=True)
 
@@ -54,9 +54,7 @@ class FileDownloadResponse(BaseModel):
 
 
 class SuccessResponse(BaseModel):
-    success: bool = Field(
-        True, description="Indicates whether the operation was successful"
-    )
+    success: bool = Field(True, description="Indicates whether the operation was successful")
 
 
 class JobDoneResponse(BaseModel):

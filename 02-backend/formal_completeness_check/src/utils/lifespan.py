@@ -1,3 +1,4 @@
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from event_logging.enums import (
@@ -14,7 +15,7 @@ from src.utils.logger import logger
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Application startup actions"""
     try:
         run_alembic_upgrade()
@@ -23,11 +24,11 @@ async def lifespan(app: FastAPI):
             action=EventAction.HEALTH,
             outcome=EventOutcome.FAILURE,
             category=EventCategory.API,
-            default_event=LogEventSystem.CONTAINER_LIFECYCLE,
+            system_event=LogEventSystem.CONTAINER_LIFECYCLE,
             message="Alembic migration failed",
-            exc_info=True,
+            error_message=str(e),
         )
-        raise Exception from e
+        raise
 
     app_state.startup_complete = True
 

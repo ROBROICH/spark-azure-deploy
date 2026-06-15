@@ -8,6 +8,8 @@ from typing import TypedDict
 
 
 class Topic(TypedDict):
+    """TypedDict defining a topic with id, name, and description."""
+
     name: str
     description: str
     id: int

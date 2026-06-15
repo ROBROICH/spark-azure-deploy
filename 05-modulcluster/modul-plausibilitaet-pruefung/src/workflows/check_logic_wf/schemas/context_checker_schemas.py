@@ -1,6 +1,15 @@
+from __future__ import annotations
+
 from pydantic import BaseModel, Field
 
 from src.dms.schemas import BaseMetadata, ProjectBaseMetadataStatus
+
+
+class BuildChunkContextsInput(BaseModel):
+    """Input for the ``build_chunk_contexts_batch`` activity."""
+
+    project_id: str
+    chunk_ids: list[str]
 
 
 class ContextCheckerInput(BaseModel):
@@ -16,6 +25,9 @@ class ContextCheckerInput(BaseModel):
 class ChunkWithContext(BaseModel):
     """Chunk text plus bounded neighboring context used by the LLM."""
 
+    document_id: str = Field(
+        description="Identifier of the raw source document containing the base chunk (Qdrant `source_file_id`)."
+    )
     chunk_text: str = Field(description="Main chunk content containing the claim.")
     preceding_text: str = Field(description="Concatenated preceding context in document reading order.")
     following_text: str = Field(description="Concatenated following context.")
@@ -49,47 +61,37 @@ class ContextCheckVerdict(BaseModel):
         description="Contradiction severity between the two claims (0 = none, 100 = strong).",
     )
     title: str = Field(
-        description="Short title describing the identified contradiction.",
-        min_length=5,
-        max_length=200,
+        description="Short title (max 200 chars) describing the identified contradiction.",
     )
     explanation: str = Field(
-        description="Detailed reasoning from the LLM about the identified contradiction.",
-        min_length=20,
-        max_length=5000,
+        description="Detailed reasoning from the LLM about the identified contradiction. Min 20 Chars",
     )
     chunk_a_excerpt: str = Field(
-        description="Short excerpt from chunk_a that contains the relevant information for the contradiction.",
-        min_length=5,
-        max_length=500,
+        description="Short excerpt from chunk_a that contains the relevant information for the contradiction. Min 20 Chars",
     )
     chunk_b_excerpt: str = Field(
-        description="Short excerpt from chunk_b that contains the relevant information for the contradiction.",
-        min_length=5,
-        max_length=500,
+        description="Short excerpt from chunk_b that contains the relevant information for the contradiction. Min 20 Chars",
     )
 
 
-class VerificationInput(BaseModel):
-    """Prompt payload for the verifier LLM that audits the initial verdict."""
+class ConflictCheckerLLMOutput(BaseModel):
+    """LLM output for the combined conflict checker with integrated self-audit."""
 
-    project_md: BaseMetadata = Field(description="Project metadata constraints used during verification.")
-    project_md_status: ProjectBaseMetadataStatus = Field(
-        description="Whether project metadata is complete or an explicit unknown fallback."
+    rating: int = Field(ge=0, le=100, description="Final audited conflict severity (0 = none, 100 = strong).")
+    title: str = Field(
+        description="Short title (max 200 chars) describing the identified conflict.",
     )
-    chunk_a: ChunkWithContext = Field(description="Context window for the first claim.")
-    chunk_b: ChunkWithContext = Field(description="Context window for the second claim.")
-    original_verdict: ContextCheckVerdict = Field(description="Initial checker verdict to be audited/adjusted.")
-
-
-class VerificationOutput(BaseModel):
-    """Verifier output containing corrected verdict and explanation."""
-
-    updated_verdict: ContextCheckVerdict = Field(description="Verified or adjusted contradiction verdict.")
     explanation: str = Field(
-        min_length=20,
-        max_length=5000,
-        description="Audit-Ergebnis: Welche Regeln verletzt wurden (falls), welche Aussagen nicht belegt sind, und warum das Rating angepasst wurde.",
+        description="Audited reasoning for the conflict assessment. Min. 20 chars.",
+    )
+    chunk_a_excerpt: str = Field(
+        description="Short wörtliches Zitat from chunk_a supporting the verdict. Min 20 Chars",
+    )
+    chunk_b_excerpt: str = Field(
+        description="Short wörtliches Zitat from chunk_b supporting the verdict. Min 20 Chars",
+    )
+    audit_explanation: str = Field(
+        description="Selbst-Audit: Welche Prüfungen durchgeführt wurden, ob Excerpts/Explanation korrigiert wurden, und warum das finale Rating so ausfällt. Min 20 chars.",
     )
 
 
@@ -104,21 +106,14 @@ class ContextCheckerOutput(BaseModel):
     chunk_a_context: ChunkWithContext = Field(description="Full context payload for chunk A (traceability/auditing).")
     chunk_b_context: ChunkWithContext = Field(description="Full context payload for chunk B (traceability/auditing).")
 
-    original_verdict: ContextCheckVerdict = Field(description="Raw first-pass checker verdict before verifier review.")
-    updated_verdict: ContextCheckVerdict | None = Field(
-        default=None,
-        description=(
-            "Verifier-adjusted verdict. `None` when the original rating stayed below the verification threshold."
-        ),
+    verdict: ContextCheckVerdict = Field(description="Audited conflict verdict from the combined checker.")
+
+    is_inconsistency: bool = Field(
+        description="Whether the verdict rating meets the configured threshold for a reportable inconsistency."
     )
 
-    is_verified_inconsistency: bool = Field(
-        description="Indicates whether the context checker identified an inconsistency between the two text passages based on the defined threshold."
-    )
-
-    verification_explanation: str | None = Field(
-        default=None,
-        description="Explanation from the verifier LLM about why the original verdict was confirmed or adjusted. Only provided if a verification was performed.",
+    audit_explanation: str = Field(
+        description="Self-audit trace: which checks were applied and whether the verdict was adjusted.",
     )
 
     screening_note: str = Field(

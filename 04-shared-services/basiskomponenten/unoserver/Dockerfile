@@ -29,24 +29,24 @@ RUN apk upgrade --no-cache
 # conversion, instead of the full `libreoffice` meta-package (which also pulls
 # libreoffice-base, Java/hsqldb and all language packs). Cuts the CVE surface.
 RUN apk add --no-cache \
-    bash curl \
-    py3-pip \
-    libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-draw
+  bash curl \
+  py3-pip \
+  libreoffice-writer libreoffice-calc libreoffice-impress libreoffice-draw
 
 # fonts - https://wiki.alpinelinux.org/wiki/Fonts
 RUN apk add --no-cache \
-    font-noto font-noto-cjk font-noto-extra \
-    terminus-font \
-    ttf-font-awesome \
-    ttf-dejavu \
-    ttf-freefont \
-    ttf-hack \
-    ttf-inconsolata \
-    ttf-liberation \
-    ttf-mononoki  \
-    ttf-opensans   \
-    fontconfig && \
-    fc-cache -f
+  font-noto font-noto-cjk font-noto-extra \
+  terminus-font \
+  ttf-font-awesome \
+  ttf-dejavu \
+  ttf-freefont \
+  ttf-hack \
+  ttf-inconsolata \
+  ttf-liberation \
+  ttf-mononoki  \
+  ttf-opensans   \
+  fontconfig && \
+  fc-cache -f
 
 RUN rm -rf /var/cache/apk/* /tmp/*
 
@@ -54,7 +54,7 @@ RUN rm -rf /var/cache/apk/* /tmp/*
 RUN pip install --break-system-packages -U unoserver==${VERSION_UNOSERVER}
 
 RUN chown -R ${UID}:0 /run && \
-    chmod -R g=u /run
+  chmod -R g=u /run
 
 USER ${UID}
 WORKDIR /home/worker

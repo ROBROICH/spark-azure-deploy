@@ -1,0 +1,471 @@
+{
+  "buch": {
+    "_source": "structure from cached/json_processor_1/NW/LImSchG/LImSchG.json buch",
+    "id": "test-buch-nw-testG",
+    "abkuerzung": "LTestG",
+    "kurztitel": "Testgesetz",
+    "titel": "Gesetz zum testen von Gesetzen",
+    "content": "Ausfertigungsdatum 01.01.2000\n\nFundstelle: GV. NRW. 2000 S. 1\n\nNeuf: Neugefasst durch Bek. v. 17.5.2013 I 1274; 2021, 123;\n\nStand: zuletzt geändert durch Art. 1 G v. 12.8.2025 I Nr. 189\n\nVom 1. Januar 2000",
+    "source_url": "https://testportal.example/testG",
+    "land": "NW",
+    "update_time": "2026-01-01T00:00:00.000000+00:00"
+  },
+  "abschnitte": [
+    {
+      "_source": "structure from cached/json_processor_1/NW/VwVfG NRW/VwVfG NRW.json abschnitte[0]",
+      "id": "abschnitt-allgemein",
+      "bezeichnung": "Erster Abschnitt",
+      "titel": "Allgemeine Vorschriften",
+      "level": 4,
+      "order_index": 0,
+      "land": "NW",
+      "parent_id": null,
+      "buch_id": "test-buch-nw-testG",
+      "content_json": null
+    }
+  ],
+  "normen": [
+    {
+      "_source": "§ 1 structure based on BauO NRW § 3 Abs. 1 (3-Satz Absatz pattern) and BauO NRW § 1 Abs. 1 (2-Satz Absatz pattern)",
+      "id": "norm-p1",
+      "bezeichnung": "§ 1",
+      "titel": "Grammatikalische Sätze",
+      "content": "(1) Ein einfacher Satz mit Interpunktion. Ein zweiter Satz ohne Markierungen. § 1 Absatz 1 enthält 3 Sätze.\n\n(2) Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).\n\n(3) Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche \"Die\" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.",
+      "content_json": [
+        {
+          "_source": "BauO NRW § 3 Abs. 1 — 3 Satz children within one Absatz node",
+          "id": "p1a1",
+          "type": "Abschnitt",
+          "abschnittNr": "(1)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p1a1s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 3,
+              "children": [
+                {
+                  "id": "p1a1s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Ein einfacher Satz mit Interpunktion."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "p1a1s2",
+              "type": "Satz",
+              "satzNr": 2,
+              "satzCount": 3,
+              "children": [
+                {
+                  "id": "p1a1s2t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Ein zweiter Satz ohne Markierungen."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "p1a1s3",
+              "type": "Satz",
+              "satzNr": 3,
+              "satzCount": 3,
+              "children": [
+                {
+                  "id": "p1a1s3t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "§ 1 Absatz 1 enthält 3 Sätze."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_source": "Synthetic — no edge-case abbreviation example found in NW cache",
+          "id": "p1a2",
+          "type": "Abschnitt",
+          "abschnittNr": "(2)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p1a2s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 1,
+              "children": [
+                {
+                  "id": "p1a2s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0)."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_source": "BauO NRW § 1 Abs. 1 — 2 Satz children within one Absatz node",
+          "id": "p1a3",
+          "type": "Abschnitt",
+          "abschnittNr": "(3)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p1a3s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p1a3s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "p1a3s2",
+              "type": "Satz",
+              "satzNr": 2,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p1a3s2t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Das deutsche \"Die\" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen."}],
+                  "groupId": 0,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "translations": null,
+      "order_index": 1,
+      "buch_id": "test-buch-nw-testG",
+      "buch_abkuerzung": "LTestG",
+      "buch_kurztitel": "Testgesetz",
+      "buch_titel": "Gesetz zum testen von Gesetzen",
+      "abschnitt_id": "abschnitt-allgemein",
+      "land": "NW"
+    },
+    {
+      "_source": "§ 2 structure based on VwVfG NRW § 2 Abs. 2 (Nummer list), NI/DSchG § 7 Abs. 2 (nested Buchstabe-inside-Nummer), BauO NRW § 8 Abs. 1 (Nummer list with shared suffix Text)",
+      "id": "norm-p2",
+      "bezeichnung": "§ 2",
+      "titel": "Sätze mit Markierungen",
+      "content": "(1) Dieser Satz\n\n1. ist verschachtelt und\n\n2. bietet eindeutige Markierungen.\n\n(2) Dieser Satz\n\n– ist verschachtelt, aber\n\n– bietet keine eindeutigen Markierungen.\n\n(3) Dieser Satz wird aufgeteilt in:\n\n1. eine einzelne verschachtelte Ebene,\n\n2. eine tiefer verschachtelte mit,\n\na) Teil a,\n\nb) Teil b,\n\n(und gemeinsamer Endtext).\n\nDieser Satz ist nicht enthalten.\n\n(4) Dieser Absatz enthält\n\n1. einen ersten Listenpunkt\n\n2. einen zweiten Listenpunkt\n\nund endtext.\n\nDieser letzte Satz beendet den Absatz.",
+      "content_json": [
+        {
+          "_source": "VwVfG NRW § 2 Abs. 2 — Satz with inline Text intro followed by Nummer children",
+          "id": "p2a1",
+          "type": "Abschnitt",
+          "abschnittNr": "(1)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p2a1s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 1,
+              "children": [
+                {
+                  "id": "p2a1s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser Satz"}],
+                  "groupId": 1,
+                  "children": []
+                },
+                {
+                  "id": "p2a1s1n1",
+                  "type": "Abschnitt",
+                  "abschnittNr": "1.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a1s1n1t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "ist verschachtelt und"}],
+                      "groupId": 2,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "p2a1s1n2",
+                  "type": "Abschnitt",
+                  "abschnittNr": "2.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a1s1n2t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "bietet eindeutige Markierungen."}],
+                      "groupId": 3,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_source": "Synthetic — no dash/bullet abschnittNr found in any json_processor_1 cache across all Bundesländer; using abschnittType 'Unknown' to represent ambiguous dash markers",
+          "id": "p2a2",
+          "type": "Abschnitt",
+          "abschnittNr": "(2)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p2a2s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 1,
+              "children": [
+                {
+                  "id": "p2a2s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser Satz"}],
+                  "groupId": 1,
+                  "children": []
+                },
+                {
+                  "id": "p2a2s1n1",
+                  "type": "Abschnitt",
+                  "abschnittNr": "–",
+                  "abschnittType": "Unknown",
+                  "children": [
+                    {
+                      "id": "p2a2s1n1t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "ist verschachtelt, aber"}],
+                      "groupId": 2,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "p2a2s1n2",
+                  "type": "Abschnitt",
+                  "abschnittNr": "–",
+                  "abschnittType": "Unknown",
+                  "children": [
+                    {
+                      "id": "p2a2s1n2t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "bietet keine eindeutigen Markierungen."}],
+                      "groupId": 3,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_source": "NI/DSchG § 7 Abs. 2 — nested Buchstabe inside Nummer, with intro Text before sub-items and suffix Text after sub-items within the parent Nummer node",
+          "id": "p2a3",
+          "type": "Abschnitt",
+          "abschnittNr": "(3)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p2a3s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p2a3s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser Satz wird aufgeteilt in:"}],
+                  "groupId": 1,
+                  "children": []
+                },
+                {
+                  "id": "p2a3s1n1",
+                  "type": "Abschnitt",
+                  "abschnittNr": "1.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a3s1n1t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "eine einzelne verschachtelte Ebene,"}],
+                      "groupId": 2,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "p2a3s1n2",
+                  "type": "Abschnitt",
+                  "abschnittNr": "2.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a3s1n2t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "eine tiefer verschachtelte mit,"}],
+                      "groupId": 3,
+                      "children": []
+                    },
+                    {
+                      "id": "p2a3s1n2b1",
+                      "type": "Abschnitt",
+                      "abschnittNr": "a)",
+                      "abschnittType": "Buchstabe",
+                      "children": [
+                        {
+                          "id": "p2a3s1n2b1t1",
+                          "type": "Text",
+                          "parts": [{"type": "Text", "content": "Teil a,"}],
+                          "groupId": 4,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "id": "p2a3s1n2b2",
+                      "type": "Abschnitt",
+                      "abschnittNr": "b)",
+                      "abschnittType": "Buchstabe",
+                      "children": [
+                        {
+                          "id": "p2a3s1n2b2t1",
+                          "type": "Text",
+                          "parts": [{"type": "Text", "content": "Teil b,"}],
+                          "groupId": 5,
+                          "children": []
+                        }
+                      ]
+                    },
+                    {
+                      "id": "p2a3s1n2tf",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "(und gemeinsamer Endtext)."}],
+                      "groupId": 6,
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "_source": "continuation Satz after list block — pattern from BauO NRW § 8 Abs. 1 (multiple Satz nodes in one Absatz)",
+              "id": "p2a3s2",
+              "type": "Satz",
+              "satzNr": 2,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p2a3s2t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser Satz ist nicht enthalten."}],
+                  "groupId": 7,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "_source": "BauO NRW § 8 Abs. 1 — Nummer list with trailing shared Text suffix inside Satz, followed by second Satz as continuation",
+          "id": "p2a4",
+          "type": "Abschnitt",
+          "abschnittNr": "(4)",
+          "abschnittType": "Absatz",
+          "children": [
+            {
+              "id": "p2a4s1",
+              "type": "Satz",
+              "satzNr": 1,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p2a4s1t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser Absatz enthält"}],
+                  "groupId": 1,
+                  "children": []
+                },
+                {
+                  "id": "p2a4s1n1",
+                  "type": "Abschnitt",
+                  "abschnittNr": "1.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a4s1n1t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "einen ersten Listenpunkt"}],
+                      "groupId": 2,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "p2a4s1n2",
+                  "type": "Abschnitt",
+                  "abschnittNr": "2.",
+                  "abschnittType": "Nummer",
+                  "children": [
+                    {
+                      "id": "p2a4s1n2t1",
+                      "type": "Text",
+                      "parts": [{"type": "Text", "content": "einen zweiten Listenpunkt"}],
+                      "groupId": 3,
+                      "children": []
+                    }
+                  ]
+                },
+                {
+                  "id": "p2a4s1tf",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "und endtext."}],
+                  "groupId": 4,
+                  "children": []
+                }
+              ]
+            },
+            {
+              "id": "p2a4s2",
+              "type": "Satz",
+              "satzNr": 2,
+              "satzCount": 2,
+              "children": [
+                {
+                  "id": "p2a4s2t1",
+                  "type": "Text",
+                  "parts": [{"type": "Text", "content": "Dieser letzte Satz beendet den Absatz."}],
+                  "groupId": 5,
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "translations": null,
+      "order_index": 2,
+      "buch_id": "test-buch-nw-testG",
+      "buch_abkuerzung": "LTestG",
+      "buch_kurztitel": "Testgesetz",
+      "buch_titel": "Gesetz zum testen von Gesetzen",
+      "abschnitt_id": "abschnitt-allgemein",
+      "land": "NW"
+    }
+  ]
+}

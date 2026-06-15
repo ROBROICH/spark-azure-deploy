@@ -1,0 +1,19 @@
+apiVersion: v2
+name: temporal
+description: >
+  Thin project wrapper around the official temporalio/temporal Helm chart.
+  Deploys the Temporal workflow engine (server, web UI, admin tools) against
+  an external PostgreSQL cluster. Bundles a post-install Job that registers
+  project-specific search attributes (ProjectId, ProjectVersion).
+
+  Upstream chart: https://go.temporal.io/helm-charts  version 0.73.2 (appVersion 1.30.2)
+  Kustomize source: repo/04-shared-services/basiskomponenten/temporal/
+
+type: application
+version: 0.1.0
+appVersion: "1.30.2"
+
+dependencies:
+  - name: temporal
+    version: "0.73.2"
+    repository: "https://go.temporal.io/helm-charts"

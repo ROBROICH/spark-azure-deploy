@@ -18,18 +18,30 @@ _async_engine: AsyncEngine | None = None
 _AsyncSessionLocal: async_sessionmaker[AsyncSession] | None = None
 
 
+def _get_database_url() -> str:
+    """Get database URL from settings.
+
+    Raises:
+        ValueError: If DATABASE_URL is not configured. For testing, override
+            settings.DATABASE_URL in your test fixtures.
+    """
+    if not settings.DATABASE_URL:
+        raise ValueError("DATABASE_URL must be set. For testing, override settings.DATABASE_URL in your test fixtures.")
+    return settings.DATABASE_URL
+
+
 def _init_engine() -> None:
     """Initialize the async engine and session maker."""
     global _async_engine, _AsyncSessionLocal
     if _async_engine is None:
-        database_url = settings.DATABASE_URL
+        database_url = _get_database_url()
 
         engine_kwargs: dict[str, Any] = {"echo": False}
         if "postgresql" in database_url or "postgres" in database_url:
             engine_kwargs.update(
                 {
-                    "pool_size": 20,
-                    "max_overflow": 30,
+                    "pool_size": 5,
+                    "max_overflow": 10,
                     "pool_timeout": 30,
                     "pool_recycle": 1800,
                     "pool_pre_ping": True,
@@ -44,12 +56,6 @@ def _init_engine() -> None:
             class_=AsyncSession,
             expire_on_commit=False,
         )
-
-
-def get_async_engine() -> AsyncEngine:
-    """Get or create the async database engine (public API)."""
-    _init_engine()
-    return _async_engine  # type: ignore[return-value]
 
 
 # Initialize on first access

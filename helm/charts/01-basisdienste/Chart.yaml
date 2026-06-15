@@ -1,0 +1,36 @@
+apiVersion: v2
+name: basisdienste
+description: >
+  Umbrella for shared infrastructure and platform services used across the
+  SPARK Workflow: authorization (SpiceDB), vector search (Qdrant), document
+  conversion (unoserver), antivirus scanning (ClamAV), and document
+  processing (Docling). Redis is embedded inside the docling-rq chart only.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: spicedb
+    version: "0.1.0"
+    repository: "file://../sources/external/spicedb"
+    condition: spicedb.enabled
+
+  - name: qdrant
+    version: "0.1.0"
+    repository: "file://../sources/external/qdrant"
+    condition: qdrant.enabled
+
+  - name: unoserver
+    version: "0.1.0"
+    repository: "file://../sources/external/unoserver"
+    condition: unoserver.enabled
+
+  - name: clamav
+    version: "0.1.0"
+    repository: "file://../sources/external/clamav"
+    condition: clamav.enabled
+
+  - name: docling-rq
+    version: "0.1.0"
+    repository: "file://../sources/external/docling-rq"
+    condition: docling-rq.enabled

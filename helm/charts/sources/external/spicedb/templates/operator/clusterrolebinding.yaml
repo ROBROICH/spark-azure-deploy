@@ -1,0 +1,36 @@
+{{- if .Values.operator.enabled }}
+# Cluster-wide binding for the minimal CRD reader role (CRDs are cluster-scoped).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "spicedb.operatorName" . }}-crd-reader
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "spicedb.operatorName" . }}-crd-reader
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "spicedb.operatorName" . }}
+    namespace: {{ .Values.operator.namespace }}
+---
+# Namespaced binding in the SpiceDB data-plane namespace.
+# Grants the operator ServiceAccount (in spicedb-operator namespace) the
+# namespaced Role above, restricting its access to this single namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "spicedb.operatorName" . }}
+  namespace: {{ .Values.cluster.namespace | default .Release.Namespace }}
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "spicedb.operatorName" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "spicedb.operatorName" . }}
+    namespace: {{ .Values.operator.namespace }}
+{{- end }}

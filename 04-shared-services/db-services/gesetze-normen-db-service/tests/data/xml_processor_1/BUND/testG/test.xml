@@ -1,0 +1,308 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dokumente>
+<dokumente builddate="20260501121530" doknr="BJNRTEST">
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <amtabk>BTestG</amtabk>
+            <ausfertigung-datum manuell="ja">2000-01-01</ausfertigung-datum>
+            <fundstelle typ="amtlich">
+                <periodikum>TGBl I</periodikum>
+                <zitstelle>2026, 1 (1)</zitstelle>
+            </fundstelle>
+            <kurzue>Testgesetz</kurzue>
+            <langue>Gesetz zum testen von Gesetzen</langue>
+            <standangabe checked="ja">
+                <standtyp>Neuf</standtyp>
+                <standkommentar>Neugefasst durch Bek. v. 1.1.2026 I 1; 2026, 1;</standkommentar>
+            </standangabe>
+            <standangabe checked="ja">
+                <standtyp>Stand</standtyp>
+                <standkommentar>zuletzt geändert durch Art. 1 G v. 1.5.2026 I Nr. 2</standkommentar>
+            </standangabe>
+        </metadaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>TestG</jurabk>
+            <enbez>Eingangsformel</enbez>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>Eine Eingangsformel für das Testgesetz:</P>
+                </Content>
+            </text>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <gliederungseinheit>
+                <gliederungskennzahl>010</gliederungskennzahl>
+                <gliederungsbez>Abschnitt</gliederungsbez>
+                <gliederungstitel>Kapitel</gliederungstitel>
+            </gliederungseinheit>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P/>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 1</enbez>
+            <titel format="XML">Grammatikalische Sätze</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Ein einfacher Satz mit Interpunktion. Ein zweiter Satz ohne Markierungen. § 1 Absatz 1 enthält 3 Sätze.</P>
+                    <P>(2) Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. TestV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).</P>
+                    <P>(3) Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche "Die" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 2</enbez>
+            <titel format="XML">Sätze mit Markierungen</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <!-- nested arabic list with unambiguous numeric markers -->
+                    <P>(1) Dieser Satz
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">ist verschachtelt und</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">bietet eindeutige Markierungen.</LA>
+                            </DD>
+                        </DL>
+                    </P>
+                    <!-- dash list with ambiguous markers -->
+                    <P>(2) Dieser Satz
+                        <DL Font="normal" Type="Dash">
+                            <DT>–</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">ist verschachtelt, aber</LA>
+                            </DD>
+                            <DT>–</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">bietet keine eindeutigen Markierungen.</LA>
+                            </DD>
+                        </DL>
+                    </P>
+                    <!-- nested list (arabic + alpha) with a shared endtext -->
+                    <P>(3) Dieser Satz wird aufgeteilt in:
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">eine einzelne verschachtelte Ebene,</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">eine tiefer verschachtelte mit,
+                                    <DL Font="normal" Type="alpha">
+                                        <DT>a)</DT>
+                                        <DD Font="normal">
+                                            <LA Size="normal">Teil a,</LA>
+                                        </DD>
+                                        <DT>b)</DT>
+                                        <DD Font="normal">
+                                            <LA Size="normal">Teil b,</LA>
+                                        </DD>
+                                    </DL> (und gemeinsamer Endtext);
+                                </LA>
+                            </DD>
+                        </DL>Dieser Satz ist nicht enthalten.
+                    </P>
+                    <!-- list with a shared endtext followed by a new sentence in the same paragraph -->
+                    <P>(4) Dieser Satz enthält eine Aufzählung:
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">teil 1,</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">teil 2.</LA>
+                            </DD>
+                        </DL>und endtext. Satz 2 kommt nach dem endtext.
+                    </P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 3</enbez>
+            <titel format="XML">Begriffsbestimmungen</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Im Sinne dieses Gesetzes sind Testbegriffe solche Begriffe, die ausschließlich der Veranschaulichung dienen.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 7</enbez>
+            <titel format="XML">Absätze mit Sätzen</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Erster Absatz, erster Satz. Erster Absatz, zweiter Satz.</P>
+                    <P>(2) Zweiter Absatz mit nur einem Satz.</P>
+                    <P>(3) Dritter Absatz, erster Satz. Dritter Absatz, zweiter Satz. Dritter Absatz, dritter Satz.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 10</enbez>
+            <titel format="XML">Sortierte Absätze</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Absatz eins.</P>
+                    <P>(1a) Absatz eins a.</P>
+                    <P>(2) Absatz zwei.</P>
+                    <P>(3) Absatz drei.</P>
+                    <P>(3a) Absatz drei a.</P>
+                    <P>(4) Absatz vier.</P>
+                    <P>(5) Absatz fünf.</P>
+                    <P>(6) Absatz sechs.</P>
+                    <P>(6a) Absatz sechs a.</P>
+                    <P>(7) Absatz sieben.</P>
+                    <P>(8) Absatz acht.</P>
+                    <P>(8a) Absatz acht a.</P>
+                    <P>(9) Absatz neun.</P>
+                    <P>(10) Absatz zehn.</P>
+                    <P>(11) Absatz elf.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 14</enbez>
+            <titel format="XML">Vierzehnter Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 14.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 14a</enbez>
+            <titel format="XML">Vierzehnter Paragraph a</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 14a.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 15</enbez>
+            <titel format="XML">Fünfzehnter Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 15.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <jurabk>BTestG</jurabk>
+            <enbez>§ 16</enbez>
+            <titel format="XML">Sechzehnter Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 16.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST">
+        <metadaten>
+            <!-- attachment (Anlage) with a Fundstelle and a list -->
+            <jurabk>BTestG</jurabk>
+            <enbez>Anlage</enbez>
+            <titel format="XML">(zu § 3 Absatz 6)
+                <BR/>
+Kriterien zur Bestimmung des Standes der Technik
+            </titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>
+                        <noindex>
+                            <kommentar typ="Fundstelle">(Fundstelle: TGBl. I 2026, 1)</kommentar>
+                        </noindex>
+                    </P>
+                    <BR/>
+                    <BR/>
+                    <P>Anhänge werden als Markdown-Zeichenfolgen in die Datenbank importiert. Sie können verschiedene Arten von Inhalten enthalten, z.B.:
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">Listen oder</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">Tabellen.</LA>
+                            </DD>
+                        </DL> werden aber nicht anderweitig speziell verarbeitet.
+                    </P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+</dokumente>

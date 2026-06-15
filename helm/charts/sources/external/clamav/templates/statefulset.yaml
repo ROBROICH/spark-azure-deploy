@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "clamav.fullname" . }}
+  namespace: {{ include "clamav.namespace" . }}
+  labels:
+    {{- include "clamav.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "clamav.fullname" . }}
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "clamav.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "clamav.selectorLabels" . | nindent 8 }}
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: clamav-api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            - name: GIN_MODE
+              value: "release"
+            - name: CLAMAV_DEBUG
+              value: {{ .Values.config.debug | quote }}
+            - name: CLAMAV_SOCKET
+              value: {{ .Values.config.socket | quote }}
+            - name: CLAMAV_MAX_SIZE
+              value: {{ .Values.config.maxSize | quote }}
+            - name: CLAMAV_HOST
+              value: "0.0.0.0"
+            - name: CLAMAV_PORT
+              value: {{ .Values.config.port | quote }}
+            - name: CLAMAV_SCAN_TIMEOUT
+              value: {{ .Values.config.scanTimeout | quote }}
+            - name: CLAMAV_ENABLE_GRPC
+              value: {{ .Values.config.enableGrpc | quote }}
+            - name: CLAMAV_GRPC_PORT
+              value: {{ .Values.config.grpcPort | quote }}
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.config.port | int }}
+              protocol: TCP
+          # freshclam needs ~60 s to download initial signatures on first startup.
+          # startupProbe gives up to 10 min before handing off to liveness.
+          startupProbe:
+            httpGet:
+              path: /api/health-check
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 10
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /api/health-check
+              port: http
+            periodSeconds: 30
+            timeoutSeconds: 15
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /api/health-check
+              port: http
+            periodSeconds: 15
+            timeoutSeconds: 15
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/clamav
+            - name: socket
+              mountPath: /var/run/clamav
+            - name: tmp
+              mountPath: /tmp
+            # Mount the custom clamd.conf. This is the file the daemon reads
+            # at startup; the original Kustomize setup created this ConfigMap
+            # but never mounted it — this chart fixes that.
+            - name: clamd-config
+              mountPath: /etc/clamav/clamd.conf
+              subPath: clamd.conf
+              readOnly: true
+      volumes:
+        - name: socket
+          emptyDir: {}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+        - name: clamd-config
+          configMap:
+            name: {{ include "clamav.fullname" . }}-clamd-config
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+        labels:
+          {{- include "clamav.labels" . | nindent 10 }}
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}

@@ -4,6 +4,8 @@ import tempfile
 from typing import Any
 
 import httpx
+from internal_auth import internal_api_key_headers
+from temporal.project_context import current_project_context
 from temporal.workflows.formale_pruefung import DMSFileResponse
 
 from src.config.config import config
@@ -15,6 +17,16 @@ from src.schemas.dms_schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _with_project_version_params(params: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    context = current_project_context()
+    if context is None:
+        return params
+
+    updated_params = dict(params or {})
+    updated_params.setdefault("project_version", context.project_version)
+    return updated_params
 
 
 class DMSClient:
@@ -33,11 +45,11 @@ class DMSClient:
         Initializes the DMS client.
 
         Args:
-            timeout (int): Request timeout in seconds. Defaults to 60.
+            timeout (int): Request timeout in seconds. Defaults to 120.
         """
         self.base_url = ENV.DMS_BASE_URL.rstrip("/")
         self.timeout = timeout
-        self.headers = {"Content-Type": "application/json"}
+        self.headers = {"Content-Type": "application/json", **internal_api_key_headers()}
 
     async def _request(self, method: str, path: str, **kwargs) -> Any:
         """
@@ -78,10 +90,11 @@ class DMSClient:
             params = {
                 "projectId": project_id,
                 "page_size": config.DMS.PAGE_SIZE,
+                "include_deleted": False,
                 "file_type": file_type,
                 "page": page,
             }
-            data = await self._request("GET", "/v2/files", params=params)
+            data = await self._request("GET", "/v2/files", params=_with_project_version_params(params))
             if not data:
                 break
             all_files.extend([DMSFileResponse(**item) for item in data])
@@ -131,7 +144,11 @@ class DMSClient:
         Returns:
             str: The signed URL used to download the file.
         """
-        data = await self._request("GET", f"/v2/files/{file_id}/generate-download-url")
+        data = await self._request(
+            "GET",
+            f"/v2/files/{file_id}/generate-download-url",
+            params=_with_project_version_params(),
+        )
         return data["downloadUrl"]
 
     async def download_json(self, file_id: str) -> Any:
@@ -225,7 +242,12 @@ class DMSClient:
             "createNewVersion": True,
             **(extra_params or {}),
         }
-        meta = await self._request("POST", "/v2/files/generate-upload-url", json=params)
+        meta = await self._request(
+            "POST",
+            "/v2/internal/files/generate-upload-url",
+            params=_with_project_version_params(),
+            json=params,
+        )
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             resp = await client.put(
                 meta["uploadUrl"],
@@ -233,7 +255,12 @@ class DMSClient:
                 headers={"Content-Type": meta.get("mimeType", "application/json")},
             )
             resp.raise_for_status()
-        data = await self._request("POST", "/v2/files/confirm-upload", json=params)
+        data = await self._request(
+            "POST",
+            "/v2/internal/files/confirm-upload",
+            params=_with_project_version_params(),
+            json=params,
+        )
         return DMSFileResponse(**data)
 
     async def upload_temporal_checkpoint(

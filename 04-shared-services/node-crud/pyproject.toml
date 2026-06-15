@@ -1,0 +1,72 @@
+[project]
+name = "node-crud"
+version = "0.1.0"
+description = "Generic CRUD route generation for graph-structured SQLAlchemy models."
+requires-python = ">=3.13, <3.14"
+dependencies = [
+    "fastapi>=0.120.1",
+    "sqlalchemy>=2.0.41,<3.0.0",
+    "pydantic>=2.0.0,<3",
+    "asyncpg>=0.30.0,<0.31.0",
+    "httpx>=0.28.1,<0.29",
+    "authentification",
+    "audit-client",
+    "event-logging",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.1.0,<2",
+    "pytest-cov>=6.2.1,<7",
+    "syrupy>=4.9.1",
+    "ruff>=0.14.6,<0.15",
+    "pyrefly>=0.49.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+authentification = { workspace = true }
+audit-client = { workspace = true }
+event-logging = { workspace = true }
+
+[tool.hatch.build.targets.sdist]
+include = ["src/node_crud"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src/node_crud"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/node_crud" = "node_crud"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+
+[tool.pyrefly]
+search_path = [".", "src"]
+project-includes = ["src"]
+disable-search-path-heuristics = true
+
+[tool.pyrefly.errors]
+implicit-any = "error"
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+implicit-abstract-class = "error"
+implicitly-defined-attribute = "error"
+missing-override-decorator = "error"
+not-required-key-access = "error"
+open-unpacking = "error"
+untyped-import = "error"
+missing-source = "error"
+missing-source-for-stubs = "error"
+deprecated = "error"
+redundant-cast = "error"
+unnecessary-comparison = "error"

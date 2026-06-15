@@ -1,0 +1,137 @@
+[project]
+name = "gesetze-normend-db"
+version = "0.2.0"
+description = "Gesetze- und Normen-Datenbank"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "db-services-shared",
+    "authentification",
+    "httpx>=0.28.1",
+    "typer>=0.16.0,<0.17.0",
+    "google-cloud-storage>=3.2.0,<4.0.0",
+    "markdownify>=1.1.0,<2.0.0",
+    "beautifulsoup4>=4.13.4,<5.0.0",
+    "anyascii>=0.3.3,<0.4.0",
+    "defusedxml>=0.7.1,<0.8.0",
+    "playwright>=1.58.0",
+    "types-defusedxml>=0.7.0.20260504",
+]
+
+[project.scripts]
+db-cli = "db_pipelines.cli:app"
+
+[dependency-groups]
+dev = [
+    "jupyterlab>=4.4.5,<5",
+    "pandas>=2.3.1,<3",
+    "jupyterlab-vim>=4.1.4,<5",
+    "pytest>=9.0.3,<10",
+    "pytest-cov>=6.2.1,<7",
+    "pytest-xdist>=3.8.0,<4",
+    "pytest-asyncio>=1.3.0",
+    "pytest-postgresql>=8.0.0,<9",
+    "respx>=0.22.0",
+    "interrogate>=1.7.0,<2",
+    "ruff>=0.14.6,<0.15",
+    "pyrefly>=0.49.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+db-services-shared = { workspace = true }
+authentification = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["db_pipelines"]
+
+
+### Tools config
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = ["integration: mark a test as an integration test (uses real external services)"]
+addopts = "-m 'not integration' -cov=db_pipelines -p no:warnings -v --ignore=./db-data"
+testpaths = ["tests"]
+norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
+postgresql_dbname = "gesetze-normen"
+postgresql_port = "15432"
+postgresql_password = "postgres"
+
+[tool.coverage.report]
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain if tests don't hit defensive assertion code:
+    "raise AssertionError",
+    "raise NotImplementedError",
+
+    # Don't complain if non-runnable code isn't run:
+    "if 0:",
+    "if __name__ == .__main__.:",
+
+    # Don't complain about abstract methods, they aren't run:
+    "@(abc\\.)?abstractmethod",
+    ]
+
+[tool.coverage.run]
+source = ["db_pipelines"]
+omit = [
+    # omit this single file
+    "tests/*",
+    "alembic/*",
+    "db_pipelines/state_laws/bawue/*",
+    "db_pipelines/state_laws/bayern/*",
+    "db_pipelines/state_laws/berlin/*",
+    "db_pipelines/state_laws/brandenburg/*",
+    "db_pipelines/state_laws/bremen/*",
+    "db_pipelines/state_laws/hamburg/*",
+    "db_pipelines/state_laws/hessen/*",
+    "db_pipelines/state_laws/meckpomm/*",
+    "db_pipelines/state_laws/niedersachsen/*",
+    "db_pipelines/state_laws/rlp/*",
+    "db_pipelines/state_laws/saarland/*",
+    "db_pipelines/state_laws/sachsen/*",
+    "db_pipelines/state_laws/sachsenanhalt/*",
+    "db_pipelines/state_laws/schleswig/*",
+    "db_pipelines/state_laws/thueringen/*",
+    ]
+
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-module = true
+ignore-nested-functions = true
+exclude = [
+    # Exclude docstrings for tests and notebooks
+    "tests",
+    "notebooks",
+]
+verbose = 1
+
+[tool.pyrefly]
+search_path = ["."]
+project-includes = ["."]
+disable-search-path-heuristics = true
+
+[tool.pyrefly.errors]
+implicit-any = "error"
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+implicit-abstract-class = "error"
+implicitly-defined-attribute = "error"
+missing-override-decorator = "error"
+not-required-key-access = "error"
+open-unpacking = "error"
+untyped-import = "error"
+missing-source = "error"
+missing-source-for-stubs = "error"
+deprecated = "error"
+redundant-cast = "error"
+unnecessary-comparison = "error"

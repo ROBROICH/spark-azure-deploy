@@ -1,0 +1,263 @@
+{
+  "analysisPage": {
+    "heading": "File processing in progress",
+    "description": "The participation submissions are currently being uploaded, split into individual arguments, and assigned to topics."
+  },
+  "importPage": {
+    "pageTitle": "Public and authority participation",
+    "pageDescription": "In this review step, participation submissions (objections from private individuals, statements from public interest bodies (PIBs), and recognised nature conservation associations) can be processed in a structured way. The AI analyses the participation submissions, extracts the individual arguments from them, and assigns them to topics. This supports the handling and review of participation submissions. The processing results can be exported in consolidated form as a CSV file, for example to provide them to the project sponsor for their responses.",
+    "importButton": "Import participation submissions",
+    "step1Title": "Import participation submissions",
+    "step1Description": "Upload all participation submissions (each in PDF format) in one ZIP file.",
+    "step2Title": "AI analyses automatically",
+    "step2Description": "The AI extracts arguments from the participation submissions and assigns them to topics.",
+    "step3Title": "Review, assess and export",
+    "step3Description": "Review and validate the extracted arguments and topic assignments. Create a CSV file for further processing if needed.",
+    "title": "Import objections and statements",
+    "dragAndDrop": "Choose files or drag and drop them here",
+    "chooseData": "Choose files",
+    "formatHint": "Supported format: PDF in ZIP",
+    "dropZoneLabel": "Import area",
+    "fileInputLabel": "Choose import files"
+  },
+  "loadingPage": {
+    "heading": "AI analysis is running ...",
+    "description": "The contents of your files are being read, split into arguments, and prepared by topic. This can take several hours.",
+    "progressLabel": "AI analysis",
+    "progress": {
+      "remainingTime": {
+        "minutes": "Estimated time remaining: approx. {{count}} min",
+        "hours": "Estimated time remaining: approx. {{count}} hr"
+      },
+      "almostDone": "Analysis is taking longer than expected. The process is still running."
+    },
+    "statusCheckLabel": "Checking EWMS analysis status"
+  },
+  "importDialog": {
+    "title": "Upload participation entries",
+    "description": "Upload a ZIP file containing PDF files. The AI analysis starts automatically after successful processing.",
+    "dropZoneTitle": "Upload ZIP file",
+    "dropZoneDescription": "Choose a file or drag and drop it here",
+    "chooseFile": "Choose file",
+    "formatHint": "Supported format: ZIP file containing up to 1000 individual PDF files. Multiple uploads possible.",
+    "fileInputLabel": "Choose ZIP file for participation entries",
+    "removeFile": "Remove file",
+    "cancel": "Cancel",
+    "next": "Upload and start AI analysis",
+    "statusError": "The import status could not be updated.",
+    "statusLoadingTitle": "Checking import status",
+    "uploading": "Uploading ...",
+    "uploadingTitle": "Files are being uploaded",
+    "uploadingDescription": "The files are being checked. The AI analysis starts automatically afterwards.",
+    "invalidFileType": "Please choose a ZIP file.",
+    "missingFile": "Please choose a ZIP file first.",
+    "analysisStartHint": "After upload, the AI extracts the content contained in the participation entries and categorizes the individual arguments by topic.",
+    "uploadError": "The ZIP file could not be uploaded. Please try again."
+  },
+  "responseImportDialog": {
+    "title": "Import responses",
+    "description": "Choose a file with responses and start the import.",
+    "dropZoneTitle": "Import responses",
+    "dropZoneDescription": "Choose a file or drag and drop it here",
+    "chooseFile": "Choose file",
+    "formatHint": "Supported format: CSV",
+    "fileInputLabel": "Choose response import file",
+    "removeFile": "Remove file",
+    "cancel": "Cancel",
+    "next": "Next",
+    "close": "Close",
+    "importingTitle": "Responses are being imported ...",
+    "importingDescription": "The selected file is being uploaded and processed.",
+    "successTitle": "Responses imported",
+    "successDescription": "{{updatedLabel}} imported, {{skippedLabel}}.",
+    "updatedCount_one": "{{count}} response",
+    "updatedCount_other": "{{count}} responses",
+    "skippedCount_one": "{{count}} skipped",
+    "skippedCount_other": "{{count}} skipped",
+    "errorTitle": "Import failed",
+    "errorDescription": "The responses could not be imported. Please try again.",
+    "invalidFileType": "Please choose a CSV file.",
+    "missingFile": "Please choose a file first."
+  },
+  "fileReviewPage": {
+    "heading": "Uploaded files",
+    "description": "Review which files had their AI analysis started.",
+    "empty": "No file results were returned.",
+    "fileCount_one": "{{count}} file",
+    "fileCount_other": "{{count}} files",
+    "failedSection": "AI analysis could not be started for the following files",
+    "failureReasons": {
+      "duplicate": "Duplicate",
+      "fileNotFound": "File not found",
+      "invalidFilename": "Invalid filename",
+      "renameFailed": "Rename failed",
+      "unsupportedFiletype": "Unsupported file type",
+      "uploadFailed": "Upload failed",
+      "validationFailed": "File validation failed",
+      "virusDetected": "Virus detected",
+      "zipInvalid": "Invalid ZIP file",
+      "zipNotFound": "ZIP file not found",
+      "unknown": "Failed"
+    },
+    "failureReasonTooltips": {
+      "invalidFilename": "Filenames must begin with the letter E/S/N and a four-digit number. Example: E0001 or S0567."
+    },
+    "successfulSection": "AI analysis was started for the following files",
+    "cancel": "Cancel",
+    "close": "Continue to analysis",
+    "badgeSuccess_one": "{{count}} file uploaded successfully",
+    "badgeSuccess_other": "{{count}} files uploaded successfully",
+    "badgeWarning_one": "{{count}} file with warning",
+    "badgeWarning_other": "{{count}} files with warnings",
+    "badgeError_one": "{{count}} file with error",
+    "badgeError_other": "{{count}} files with errors"
+  },
+  "toolbar": {
+    "tabs": {
+      "sender": "Sender",
+      "topics": "Topics"
+    },
+    "processingAdditionalObjections": "Additional objections are currently being processed.",
+    "progressBadge_one": "{{checkedCount}} of {{totalCount}} argument checked",
+    "progressBadge_other": "{{checkedCount}} of {{totalCount}} arguments checked",
+    "importResponses": "Import responses",
+    "exportStarted": "The export has started.",
+    "exportError": "The export could not be started. Please try again.",
+    "submitAdditionally": "Import participation entries",
+    "export": "Export"
+  },
+  "objections": {
+    "title": "Participation entries",
+    "searchLabel": "Search",
+    "filterLabel": "Filter objections",
+    "filters": {
+      "all": "All",
+      "private": "Private",
+      "ppa": "PPA"
+    },
+    "approvedBadge_one": "{{approvedCount}} of {{totalCount}} argument checked",
+    "approvedBadge_other": "{{approvedCount}} of {{totalCount}} arguments checked",
+    "argumentsBadge_one": "{{count}} argument",
+    "argumentsBadge_other": "{{count}} arguments",
+    "loadingMore": "Loading more participation entries ...",
+    "matching": "Waiting for analysis result",
+    "failed": "Failed",
+    "promptInjection": "Prompt injection detected",
+    "unprocessed": "Not analyzed",
+    "sort": {
+      "label": "Sorting",
+      "options": {
+        "createdAtAsc": "Oldest first",
+        "createdAtDesc": "Newest first",
+        "nameAsc": "Name (A → Z)",
+        "nameDesc": "Name (Z → A)"
+      }
+    },
+    "typeFilter": {
+      "label": "By type",
+      "options": {
+        "all": "All ({{count}})",
+        "einwendung": "Objections ({{count}})",
+        "naturschutz": "Nature conservation association statements ({{count}})",
+        "stellungnahme": "PPA statements ({{count}})"
+      }
+    },
+    "selectLabel": "Select objection from {{name}} ({{referenceId}})"
+  },
+  "documentViewer": {
+    "tabs": {
+      "extractedText": "Extracted Text",
+      "originalFile": "Original File"
+    },
+    "navigation": "Document viewer",
+    "empty": "Select an objection to view the document.",
+    "emptyExtractedText": "No extracted text available.",
+    "loadingExtractedText": "Loading extracted text",
+    "promptInjectionBlocked": "The extracted text is hidden because prompt injection was detected."
+  },
+  "topics": {
+    "title": "Topics",
+    "searchLabel": "Search topics",
+    "approvedBadge_one": "{{approvedCount}} of {{totalCount}} argument checked",
+    "approvedBadge_other": "{{approvedCount}} of {{totalCount}} arguments checked",
+    "argumentsBadge_one": "{{count}} argument",
+    "argumentsBadge_other": "{{count}} arguments",
+    "collapseLabel": "Collapse topic {{name}}",
+    "empty": "Select a topic to view its arguments.",
+    "expandLabel": "Expand topic {{name}}",
+    "selectSubtopicLabel": "Select subtopic {{name}}",
+    "selectLabel": "Select topic {{name}}",
+    "duplicates": "{{count}} duplicates",
+    "unassignedSubtopic": "No subtopic"
+  },
+  "taxonomy": {
+    "Artenschutz": "Species protection",
+    "Artenvorkommen und Schutzmaßnahmen": "Species occurrence and protective measures",
+    "Baubedingte Immissionen": "Construction-related impacts",
+    "Biotope und Ausgleich": "Biotopes and compensation",
+    "Eigentum": "Property",
+    "Feinstaubbelastung": "Particulate matter pollution",
+    "Flurstücke und Nutzung": "Parcels and land use",
+    "Geruchsimmissionen": "Odour impacts",
+    "Immissionen": "Impacts",
+    "Landschaftsbild": "Landscape character",
+    "Lärmschutz": "Noise protection",
+    "Lichtimmissionen": "Light impacts",
+    "Naturschutz": "Nature conservation",
+    "Schallpegel und Grenzwerte": "Noise levels and limit values",
+    "Stickoxidbelastung": "Nitrogen oxide pollution",
+    "Verkehr": "Traffic",
+    "Verkehrsführung": "Traffic routing",
+    "Verkehrslärm": "Traffic noise"
+  },
+  "arguments": {
+    "title": "Arguments",
+    "addArgument": "New Argument",
+    "progressBadge_one": "{{approvedCount}} of {{totalCount}} argument checked",
+    "progressBadge_other": "{{approvedCount}} of {{totalCount}} arguments checked",
+    "checkAll": "Check all",
+    "checked": "Checked",
+    "classificationFailed": "The arguments could not be classified.",
+    "deleteArgumentLabel": "Delete argument {{referenceId}}",
+    "deleteDialog": {
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "description": "Do you really want to delete argument {{referenceId}}?",
+      "title": "Delete argument?"
+    },
+    "toggleLabel": "Check all arguments",
+    "approve": "Check",
+    "acceptClassificationLabel": "Accept topic suggestion for argument {{referenceId}}",
+    "approved": "Checked",
+    "topicGroupLabel": "Select category for argument {{referenceId}}",
+    "topicLabel": "Select subcategory for argument {{referenceId}}",
+    "subtopicLabel": "Select subtopic for argument {{referenceId}}",
+    "unassignedTopic": "No topic",
+    "unassignedSubtopic": "No subtopic",
+    "approveArgumentLabel": "Check argument {{referenceId}}",
+    "approvedArgumentLabel": "Uncheck argument {{referenceId}}",
+    "empty": "Select an objection to view its arguments.",
+    "rejectClassificationLabel": "Reject topic suggestion for argument {{referenceId}}",
+    "unknownSender": "Unknown sender",
+    "entryReference": "Objection {{referenceId}}",
+    "inResolutionBadge": "In resolution",
+    "invalidBadge": "Invalid argument",
+    "validBadge": "Valid argument",
+    "loading": "Loading arguments"
+  },
+  "topicClassification": {
+    "argument": "Argument",
+    "back": "Back",
+    "reset": "Reset",
+    "save": "Save",
+    "topicGroupLabel": "Topic group",
+    "topicNameLabel": "Topic",
+    "subtopicNameLabel": "Subtopic",
+    "einwendungen": "Objections",
+    "erwiderung": "Response",
+    "einordnung": "Classification",
+    "einordnungPlaceholder": "Enter classification and proposed resolution ...",
+    "missingTopic": "Topic unavailable",
+    "contextLabel": "Context"
+  }
+}

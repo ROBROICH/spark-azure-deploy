@@ -1,0 +1,279 @@
+{
+  "Common": {
+    "expand": "Aufklappen",
+    "collapse": "Zuklappen",
+    "moreActions": "Mehr Aktionen",
+    "back": "Zurück",
+    "aiSuggestion": "KI VORSCHLAG"
+  },
+  "Sidebar": {
+    "requestList": "Nachforderungsliste",
+    "comments": "Kommentare",
+    "commentsDescription": "Kommentar-Funktion ist in Arbeit.",
+    "aiTools": "KI-Tools",
+    "aiToolsDescription": "KI-Tools sind in Arbeit.",
+    "runningWorkflows": "Workflows",
+    "protokollierung": "Protokollierung",
+    "legalReferences": "Rechtsmethodik",
+    "legalReferencesDescription": "Rechtsmethodik ist in Arbeit.",
+    "expandSidebar": "Seitenleiste ausklappen",
+    "collapseSidebar": "Seitenleiste einklappen",
+    "actionSidebarAriaLabel": "Aktionsleiste",
+    "close": "Schließen"
+  },
+  "Summary": {
+    "completenessTitle": "Fortschritt",
+    "completedLawsTitle": "Abgeschlossen",
+    "completedLawsDescription": "{{completed}} von {{total}} Gesetzen geprüft",
+    "hintsTitle": "Gefundene Hinweise",
+    "categorizeHints": "Hinweise einordnen ({{count}})",
+    "hintsDescription": "{{count}} Hinweise noch offen für die Vollständigkeit des Verfahrens.",
+    "unprocessedTitle": "Unbearbeitete Gesetze ({{count}})",
+    "unprocessedDescription": "{{count}} Gesetze wurden ausgewählt, sind aber nicht vollständig geprüft.",
+    "tbmNotFulfilledTitle": "{{count}} TBMs nicht erfüllt",
+    "tbmAlertTitle": "{{count}} TBM mit „Verbot“",
+    "tbmAlertDescription": "Es bestehen {{count}} Tatbestandsmerkmale mit Verbot.",
+    "showAll": "Alle anzeigen",
+    "showLess": "weniger anzeigen"
+  },
+  "FilterOptions": {
+    "assignedToMe": "Mir zugewiesen",
+    "done": "Erledigt",
+    "newDocument": "Neue Unterlage",
+    "lawChange": "Rechtsänderung",
+    "multipleChanges": "Mehrere Änderungen"
+  },
+  "Alerts": {
+    "lawChange": "Rechtsänderung",
+    "newDocument": "Neue Unterlage",
+    "multipleChanges": "Mehrere Änderungen"
+  },
+  "Actions": {
+    "assignToMe": "Mich zuweisen",
+    "releaseAssignment": "Zuweisung entfernen",
+    "comment": "Kommentar",
+    "request": "Nachfordern",
+    "hide": "Ausblenden",
+    "cancel": "Abbrechen",
+    "add": "Hinzufügen"
+  },
+  "Dialog": {
+    "title": "Rechtsgrundlage anpassen",
+    "save": "Speichern",
+    "hideTitle": "Gesetz ausblenden",
+    "hideDescription": "Möchten Sie dieses Gesetz wirklich aus der Übersicht entfernen?",
+    "showText": "Normtexte nachladen",
+    "textLoading": "Text wird geladen",
+    "textEmpty": "Kein Text verfügbar",
+    "showMore": "...mehr",
+    "showLess": "weniger"
+  },
+  "Status": {
+    "complete": "Geprüft",
+    "inProgress": "In Bearbeitung",
+    "open": "Offen"
+  },
+  "LawScreen": {
+    "assignmentToggleLabel": "Bearbeitung aktiv",
+    "irrelevantToggleLabel": "Nicht einschlägig",
+    "checkButton": "Prüfen",
+    "searchPlaceholder": "Nach Stichwort suchen",
+    "badge": {
+      "adjustments": "Normenanpassungen"
+    },
+    "progress": "{{checked}} von {{total}} TBM geprüft",
+    "progressOpen": "{{total}} TBM offen",
+    "empty": {
+      "title": "Keine Normen vorhanden",
+      "description": "Für dieses Gesetz wurden keine Normen ausgewählt."
+    },
+    "emptyFiltered": {
+      "title": "Keine Treffer",
+      "description": "Für die aktuellen Filter wurden keine Normen gefunden."
+    },
+    "list": {
+      "loading": "Normen werden geladen",
+      "error": "Normen konnten nicht geladen werden"
+    },
+    "details": {
+      "loading": "Normentext wird geladen",
+      "error": "Normentext konnte nicht geladen werden",
+      "empty": "Kein Normentext verfügbar"
+    },
+    "nav": {
+      "prev": "Vorherige Norm",
+      "next": "Nächste Norm",
+      "ofTotal": "von {{total}}"
+    }
+  },
+  "NormView": {
+    "backToOverview": "Zurück zur Übersicht",
+    "assignedToMe": "In Bearbeitung durch mich",
+    "check": "Prüfen",
+    "assignAndCheck": "Mir zuweisen und prüfen",
+    "notApplicable": "Nicht einschlägig",
+    "lockedTooltip": "In Bearbeitung durch andere Person",
+    "selectNormPrompt": "Wählen Sie eine Norm aus der Liste",
+    "noNorms": "Keine Normen vorhanden",
+    "noNormsDescription": "Dieses Gesetz enthält keine ausgewählten Normen.",
+    "notApplicableDialogTitle": "Norm als nicht einschlägig markieren?",
+    "notApplicableDialogDescription": "Diese Norm wird aus der Prüfliste entfernt.",
+    "confirmNotApplicable": "Bestätigen"
+  },
+  "NormCheck": {
+    "tabs": {
+      "fundstellen": "Fundstellen",
+      "beschluss": "Beschluss"
+    },
+    "header": {
+      "actions": "Aktionen",
+      "normChecked": "Gesamte Norm geprüft",
+      "assignment": "Bearbeitung aktiv"
+    },
+    "normActions": {
+      "normsChecked": "Gesamte Norm geprüft",
+      "notRelevant": "Norm nicht einschlägig",
+      "comment": "Kommentar",
+      "request": "Nachfordern"
+    },
+    "pdf": {
+      "error": "Unterlage konnte nicht geladen werden",
+      "empty": "Bitte eine Unterlage auswählen."
+    }
+  },
+  "TopicWorkflow": {
+    "topics": "Themen",
+    "documents": "Unterlagen",
+    "coverage": {
+      "title": "Normabdeckung",
+      "progressLabel": "{{covered}}/{{total}}"
+    },
+    "overview": {
+      "title": "Themenübersicht",
+      "reviewedTopics": "Geprüfte Themen",
+      "reviewedTopicsProgress": "{{completed}} von {{total}} Themen geprüft",
+      "completedTopicsProgress": "{{completed}} von {{total}} Themen abgeschlossen"
+    },
+    "loading": "Daten werden geladen",
+    "noTopics": "Keine Themen konfiguriert",
+    "noDocuments": "Keine Unterlagen für dieses Thema zugewiesen.",
+    "selectedDocument": "Ausgewählte Unterlage",
+    "expected": "Erwartet",
+    "covered": "Abgedeckt",
+    "missing": "Fehlend",
+    "missingNorms": "Fehlende Normen",
+    "markCovered": "Als abgedeckt markieren",
+    "allCovered": "Alle erwarteten Normen sind abgedeckt.",
+    "noExpectedNorms": "Für dieses Thema ist keine Normzuordnung konfiguriert.",
+    "documentCount": "{{count}} Fundstellen",
+    "selectTopic": "Thema auswählen",
+    "selectDocumentForSources": "Unterlage auswählen, um Fundstellen zu prüfen.",
+    "confirmRemoveNormFromBasis": "Möchten Sie diese Norm wirklich aus der Rechtsgrundlage entfernen?",
+    "resetView": "Ansicht zurücksetzen",
+    "collapseSourcesLane": "Fundstellen einklappen",
+    "manualCreated": "Manuell erstellt",
+    "legalBasisRef": "Rechtsgrundlage {{normId}}",
+    "noPreview": "Keine Vorschau verfügbar.",
+    "errors": {
+      "authRequired": "Aktion nicht möglich, weil kein Benutzerkontext verfügbar ist.",
+      "saveFailed": "Änderung konnte nicht gespeichert werden."
+    },
+    "overviewFilters": {
+      "searchPlaceholder": "Nach Thema suchen …",
+      "searchHint": "Die Ergebnisliste wird während der Eingabe aktualisiert.",
+      "searchResultsCount": "{{count}} Ergebnis",
+      "searchResultsCount_other": "{{count}} Ergebnisse",
+      "edit": "Bearbeiten",
+      "person": "Person",
+      "personEmpty": "Keine Personen verfügbar.",
+      "personSelectedCount": "{{count}} Personen",
+      "personSelectedFilterCount": "{{count}} Filter",
+      "unassigned": "Nicht zugewiesen",
+      "status": {
+        "label": "Status",
+        "options": {
+          "open": "Offen",
+          "inProgress": "In Prüfung",
+          "complete": "Geprüft"
+        }
+      },
+      "sort": {
+        "fallback": "Name A-Z",
+        "options": {
+          "titleAsc": "Name A-Z",
+          "titleDesc": "Name Z-A"
+        }
+      }
+    },
+    "fundstellen": {
+      "markMisassigned": "Falsch zugeordnet",
+      "restoreAssignment": "Zuordnung wiederherstellen"
+    },
+    "requiredNorms": {
+      "title": "Erwartete Normen",
+      "searchPlaceholder": "Norm suchen",
+      "searchLabel": "Norm suchen",
+      "empty": "Keine Normen gefunden."
+    },
+    "legalTerms": {
+      "absatz": "Absatz {{count}}",
+      "satz": "Satz {{count}}",
+      "absatzAndSatz": "Absatz {{absatz}}, Satz {{satz}}",
+      "tbm": "TBM {{count}}"
+    },
+    "overviewCard": {
+      "actions": "Aktionen",
+      "assignToMe": "Mir zuweisen",
+      "releaseAssignment": "Freigeben",
+      "restartAiAnalysis": "KI-Analyse neu starten",
+      "assignment": {
+        "assignedToYou": "Dir zugewiesen",
+        "assignedToAnotherUser": "Einer anderen Person zugewiesen",
+        "edit": "Zugewiesene Personen bearbeiten",
+        "placeholder": "Personen auswählen",
+        "empty": "Keine Personen verfügbar.",
+        "selectedCount": "{{count}} ausgewählt",
+        "peopleUnavailable": "Personen nicht verfügbar",
+        "pinPersonDetails": "Details zu {{name}}, {{email}} fixieren",
+        "unpinPersonDetails": "Fixierung der Details zu {{name}}, {{email}} aufheben",
+        "moreEditors": "{{count}} weitere Bearbeiter"
+      },
+      "aiSupport": {
+        "label": "KI-Unterstützung",
+        "description": "Dieses Thema verfügt über KI-Unterstützung."
+      },
+      "aiAnalysis": {
+        "label": "KI-Analyse starten",
+        "loadingLabel": "KI-Analyse läuft",
+        "loadingDescription": "KI-Analyse kann bis zu 2 Stunden dauern.",
+        "elapsedTime": "Verstrichene Zeit: {{time}}"
+      },
+      "statusLabel": "Status",
+      "alerts": {
+        "rechtsaenderung": "Rechtsänderung",
+        "neues_dokument": "Neue Unterlage",
+        "mehrere_aenderungen": "Mehrere Änderungen"
+      },
+      "totals": "{{documents}} Unterlagen, {{norms}} erwartete Normen.",
+      "progress": {
+        "documents_one": "{{total}} Unterlage",
+        "documents_other": "{{total}} Unterlagen",
+        "norms": "{{checked}} von {{total}} Normen geprüft",
+        "requests_one": "{{count}} Nachforderung offen",
+        "requests_other": "{{count}} Nachforderungen offen"
+      },
+      "status": {
+        "complete": "Abgeschlossen",
+        "inProgress": "In Prüfung",
+        "open": "Offen"
+      }
+    },
+    "documentStatus": {
+      "open": "Offen",
+      "inReview": "In Sichtung",
+      "reviewed": "Geprüft",
+      "markReviewed": "Als geprüft markieren",
+      "unmark": "Markierung aufheben"
+    }
+  }
+}

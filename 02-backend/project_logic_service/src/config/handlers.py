@@ -2,24 +2,31 @@ from event_logging.enums import (  # type: ignore[import-not-found]
     EventAction,
     EventCategory,
     EventOutcome,
-    LogEventAuth,
-    LogEventDefault,
 )
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from node_crud import register_node_crud_handlers
+from temporalio.client import WorkflowFailureError
 
 from src.exceptions import (
     DeadlineNotFoundError,
+    DuplicateProjectError,
     DuplicateProjectTypeError,
     FastAPIError,
     ForeignKeyViolationError,
     InvalidStatusError,
+    InvalidStatusTransitionError,
+    InvalidTopicForProjectTypeError,
     PostgresError,
     ProcessStepNotFoundError,
     ProjectNotFoundError,
     ProjectTypeNotFoundError,
     RequestValidationError,
     SQLAlchemyError,
+    TopicAlreadyAssignedError,
+    TopicAlreadyExistsError,
+    TopicNotAssignedError,
+    TopicNotFoundError,
 )
 from src.utils.logger import logger
 
@@ -29,71 +36,18 @@ async def handle_exception(
     exc: Exception,
     status_code: int,
     message: str,
-):
-    """
-    Generic exception handler that logs the exception and returns a JSON response.
-
-    Args:
-        request: FastAPI Request object.
-        exc: The exception instance.
-        status_code: HTTP status code to return.
-        message: Custom message
-    """
-    # Classify the exception for logging
-    action = EventAction.ACCESS
-    category = EventCategory.API
-    default_event = LogEventDefault.GENERAL
-    auth_event: LogEventAuth | None = None
-    log_method = logger.error
-
-    if isinstance(
-        exc,
-        (
-            DeadlineNotFoundError,
-            ProjectNotFoundError,
-            ProjectTypeNotFoundError,
-            ProcessStepNotFoundError,
-            FileNotFoundError,
-        ),
-    ):
-        action = EventAction.READ
-        category = (
-            EventCategory.FILE
-            if isinstance(exc, FileNotFoundError)
-            else EventCategory.API
-        )
-        default_event = LogEventDefault.RESOURCE_NOT_FOUND
-        log_method = logger.warn
-    elif isinstance(exc, (DuplicateProjectTypeError, InvalidStatusError, RequestValidationError, FastAPIError)):
-        action = EventAction.VALIDATE
-        category = EventCategory.API
-        default_event = LogEventDefault.VALIDATION_FAILURE
-        log_method = logger.warn
-    elif isinstance(
-        exc,
-        (
-            ForeignKeyViolationError,
-            PostgresError,
-            SQLAlchemyError,
-        ),
-    ):
-        action = EventAction.WRITE
-        category = EventCategory.DATABASE
-        default_event = LogEventDefault.DB_ERROR
-        log_method = logger.error
-
-    log_method(
-        action=action,
+) -> JSONResponse:
+    """Log the exception and return a structured JSON response."""
+    logger.error(
+        action=EventAction.NOTIFY,
         outcome=EventOutcome.FAILURE,
-        category=category,
-        default_event=default_event,
-        auth_event=auth_event,
-        message=f"{exc.__class__.__name__} on {request.url.path}: {message}",
+        category=EventCategory.API,
+        message=f"Unhandled Exception: {exc}",
+        exc_info=True,
     )
-
     return JSONResponse(
         status_code=status_code,
-        content={"detail": message},
+        content={"detail": str(exc).strip() or message},
     )
 
 
@@ -103,6 +57,26 @@ EXCEPTION_MAP = {
     DeadlineNotFoundError: (
         status.HTTP_404_NOT_FOUND,
         "Deadline not found",
+    ),
+    TopicNotFoundError: (
+        status.HTTP_404_NOT_FOUND,
+        "Topic not found",
+    ),
+    TopicAlreadyExistsError: (
+        status.HTTP_409_CONFLICT,
+        "Topic already exists",
+    ),
+    TopicAlreadyAssignedError: (
+        status.HTTP_409_CONFLICT,
+        "Topic already exists for the project",
+    ),
+    InvalidTopicForProjectTypeError: (
+        status.HTTP_400_BAD_REQUEST,
+        "Invalid topic for project type",
+    ),
+    TopicNotAssignedError: (
+        status.HTTP_400_BAD_REQUEST,
+        "Topic not assigned to the project",
     ),
     ProjectNotFoundError: (
         status.HTTP_404_NOT_FOUND,
@@ -120,9 +94,17 @@ EXCEPTION_MAP = {
         status.HTTP_409_CONFLICT,
         "ProjectType with this name already exists",
     ),
+    DuplicateProjectError: (
+        status.HTTP_409_CONFLICT,
+        "Project with same internal project number already exists",
+    ),
     InvalidStatusError: (
         status.HTTP_400_BAD_REQUEST,
         "Invalid project status",
+    ),
+    InvalidStatusTransitionError: (
+        status.HTTP_422_UNPROCESSABLE_CONTENT,
+        "Invalid status transition",
     ),
     # Postgres
     ForeignKeyViolationError: (
@@ -155,6 +137,11 @@ EXCEPTION_MAP = {
     Exception: (
         status.HTTP_500_INTERNAL_SERVER_ERROR,
         "Internal Server Error",
+    ),
+    # Temporal
+    WorkflowFailureError: (
+        status.HTTP_500_INTERNAL_SERVER_ERROR,
+        "Workflow execution failed",
     ),
 }
 
@@ -201,5 +188,6 @@ def register_exception_handlers(app: FastAPI):
         >>> app = FastAPI()
         >>> register_exception_handlers(app)
     """
+    register_node_crud_handlers(app, logger)
     for exc_class, (status_code, message) in EXCEPTION_MAP.items():
         app.add_exception_handler(exc_class, make_handler(status_code, message))

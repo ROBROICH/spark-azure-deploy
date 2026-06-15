@@ -3,7 +3,7 @@
 DMS (Document Management Service) storage utilities.
 
 This module provides storage operations through the central DMS service,
-which abstracts the underlying storage (GCS) and provides file management
+which abstracts the underlying storage and provides file management
 via UUIDs.
 
 Key differences from gcs_utils/s3_utils:
@@ -21,13 +21,20 @@ from typing import Any
 from uuid import UUID
 
 import httpx
+from internal_auth import internal_api_key_headers
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from temporal import Base64Bytes
+from temporal.project_context import current_project_context
 from temporalio import activity
 
 from src.config import get_config
 from src.env import ENV
+
+
+class DmsConflictError(RuntimeError):
+    """Raised when DMS returns 409 Conflict (file already exists at that path)."""
+
 
 # --- Pydantic Models ---
 
@@ -51,6 +58,7 @@ class FileObject(BaseModel, CamelConfig):
     workflow_id: str | None = Field(None, description="Temporal workflow id")
     run_id: str | None = Field(None, description="Temporal run id")
     vector_searchable: bool | None = Field(None, description="If file is vectorized")
+    project_version: int | None = Field(None, description="Project version scope")
 
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
@@ -93,6 +101,16 @@ def _get_client() -> httpx.AsyncClient:
     return _client
 
 
+def _with_project_version_params(params: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    context = current_project_context()
+    if context is None:
+        return params
+
+    updated_params = dict(params or {})
+    updated_params.setdefault("project_version", context.project_version)
+    return updated_params
+
+
 async def _close_client() -> None:
     """Close the HTTP client (call on shutdown)."""
     global _client
@@ -121,7 +139,7 @@ async def get_file_metadata(file_id: UUID) -> FileObject:
     client = _get_client()
     url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}"
 
-    response = await client.get(url)
+    response = await client.get(url, params=_with_project_version_params(), headers=internal_api_key_headers())
 
     if response.status_code == 404:
         raise FileNotFoundError(f"DMS file not found: {file_id}")
@@ -148,7 +166,7 @@ async def download_file(file_id: str | UUID) -> bytes:
 
     # Step 1: Generate download URL
     url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}/generate-download-url"
-    response = await client.get(url)
+    response = await client.get(url, params=_with_project_version_params(), headers=internal_api_key_headers())
 
     if response.status_code == 404:
         raise FileNotFoundError(f"DMS file not found: {file_id}")
@@ -179,6 +197,8 @@ async def download_file_as_stream(file_id: str) -> BytesIO:
 
 
 class ListFilesInput(BaseModel):
+    """Input for the list_files DMS operation."""
+
     project_id: UUID
     file_type: str = "document"
     page: int = 1
@@ -186,6 +206,7 @@ class ListFilesInput(BaseModel):
 
 
 async def list_files(input: ListFilesInput) -> list[FileObject]:
+    """List files in DMS filtered by project and type."""
     project_id = input.project_id
     file_type = input.file_type
     page = input.page
@@ -195,17 +216,20 @@ async def list_files(input: ListFilesInput) -> list[FileObject]:
     params = {
         "projectId": str(project_id),
         "file_type": file_type,
+        "include_deleted": False,
         "page": page,
         "page_size": page_size,
     }
 
-    response = await client.get(url, params=params)
+    response = await client.get(url, params=_with_project_version_params(params), headers=internal_api_key_headers())
     response.raise_for_status()
 
     return [FileObject(**file_data) for file_data in response.json()]
 
 
 class DmsUploadInput(BaseModel):
+    """Input for DMS file upload via signed URL."""
+
     data: Base64Bytes
     filename: str
     project_id: UUID
@@ -217,6 +241,7 @@ class DmsUploadInput(BaseModel):
 async def upload_file(
     input: DmsUploadInput,
 ) -> FileObject:
+    """Upload a file to DMS using the generate-upload-url / confirm-upload flow."""
     client = _get_client()
 
     filename = input.filename
@@ -237,12 +262,12 @@ async def upload_file(
     data_size_mb = len(data) / (1024 * 1024)
 
     try:
-        url = f"{ENV.DMS_BASE_URL}/v2/files/generate-upload-url"
-        activity.logger.info(f"DMS upload request: POST {url} with payload={payload}")
+        url = f"{ENV.DMS_BASE_URL}/v2/internal/files/generate-upload-url"
         response = await client.post(
             url,
+            params=_with_project_version_params(),
             content=_json_serialize(payload),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", **internal_api_key_headers()},
         )
         if response.status_code >= 400:
             activity.logger.error(f"DMS upload error: {response.status_code} - {response.text}")
@@ -258,11 +283,12 @@ async def upload_file(
         upload_response.raise_for_status()
 
         # Step 3: Confirm upload
-        confirm_url = f"{ENV.DMS_BASE_URL}/v2/files/confirm-upload"
+        confirm_url = f"{ENV.DMS_BASE_URL}/v2/internal/files/confirm-upload"
         confirm_response = await client.post(
             confirm_url,
+            params=_with_project_version_params(),
             content=_json_serialize(payload),
-            headers={"Content-Type": "application/json"},
+            headers={"Content-Type": "application/json", **internal_api_key_headers()},
         )
         if confirm_response.status_code >= 400:
             activity.logger.error(f"DMS confirm-upload error: {confirm_response.status_code} - {confirm_response.text}")
@@ -271,6 +297,8 @@ async def upload_file(
         # Re-raise as clean RuntimeError to prevent Temporal
         # "Failure exceeds size limit" — httpx exceptions capture the full
         # request body (which can be hundreds of MB for large documents).
+        if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code == 409:
+            raise DmsConflictError(f"File already exists in DMS: '{filename}'") from None
         raise RuntimeError(
             f"DMS upload failed for '{filename}' ({data_size_mb:.1f} MB): {type(exc).__name__}: {exc}"
         ) from None
@@ -291,8 +319,28 @@ async def delete_file(file_id: UUID) -> None:
     client = _get_client()
     url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}"
 
-    response = await client.delete(url)
+    response = await client.delete(url, params=_with_project_version_params(), headers=internal_api_key_headers())
 
     # Don't raise on 404 - delete should be idempotent
     if response.status_code != 404:
         response.raise_for_status()
+
+
+async def upload_file_overwrite(input: DmsUploadInput) -> FileObject:
+    """Upload a file, replacing any existing file at the same path.
+
+    On 409 Conflict, finds the existing file by listing project files, deletes it,
+    then retries. Safe to call on Temporal activity retries.
+    """
+    try:
+        return await upload_file(input)
+    except DmsConflictError:
+        files = await list_files(
+            ListFilesInput(project_id=input.project_id, file_type=input.file_type, page_size=500)
+        )
+        for f in files:
+            if f.filename == input.filename:
+                activity.logger.info(f"Replacing existing DMS file '{input.filename}' (id={f.id})")
+                await delete_file(f.id)
+                break
+        return await upload_file(input)

@@ -8,6 +8,7 @@ T = TypeVar("T")
 NormTyp = Literal["materiell-rechtlich", "verfahrensrechtlich"]
 
 SatzKategorie = Literal["wenn-dann", "abwägungsdirektive", "begriffserklärung", "sonstiges"]
+WENN_DANN: SatzKategorie = "wenn-dann"
 
 Sollensanordnungen = Literal["verbot", "gebot", "erlaubnis", "freistellung"]
 
@@ -15,8 +16,10 @@ RechtsfolgenAdressat = Literal[
     "handlungsermächtigung",
     "keine handlungsermächtigung",
 ]
+HANDLUNGSERMAECHTIGUNG: RechtsfolgenAdressat = "handlungsermächtigung"
 
 Ermessensspielraum = Literal["ermessensentscheidung", "gebundene entscheidung"]
+ERMESSENSENTSCHEIDUNG: Ermessensspielraum = "ermessensentscheidung"
 
 
 ErmessensArt = Literal[
@@ -114,12 +117,13 @@ class Rechtsfolge(BaseModel):
     verweise: Verweise | None = None
 
 
-class NormDekonstruktionInput(BaseModel):
+class RechtsmethodikWorkflowInput(BaseModel):
     jurabk: str
     paragraph_nr: str
 
 
-class NormDekonstruktionSatzOutput(BaseModel):
+class RechtsmethodikWorkflowSatzOutput(BaseModel):
+    id: UUID = Field(default_factory=uuid4)
     satz_nr: str
     markers: list[str]
     satz_text: str
@@ -127,34 +131,33 @@ class NormDekonstruktionSatzOutput(BaseModel):
     norm_typ_lvl_2: SatzKategorie | None = None
     tatbestandsmerkmale: list[str] | None = None
     rechtsfolge: Rechtsfolge | None = None
-    wenn_dann_satz: str | None = None
     atomare_tatbestandsmerkmale: list[AtomaresTBM] | None = None
     formel: str | None = None
 
 
-class NormDekonstruktionOutput(BaseModel):
+class RechtsmethodikWorkflowOutput(BaseModel):
     gesetz: str
     jurabk: str
     standangaben: list[dict]
     paragraph_nr: str
     paragraph_titel: str
     paragraph_text: str
-    absaetze: list[Absatz[NormDekonstruktionSatzOutput]]
-    regelungsgegenstand: str | None
+    absaetze: list[Absatz[RechtsmethodikWorkflowSatzOutput]]
+    regelungsgegenstand: str | None = None
 
 
 class LMAtomareTBMsWorkflowInput(BaseModel):
-    gesetz: str = Field(..., description="The law")
-    jurabk: str = Field(..., description="Abbreviation of the law")
-    paragraph_nr: str = Field(..., description="Paragraph number")
-    paragraph_text: str = Field(..., description="Text of the paragraph")
-    absatz_nr: str = Field(..., description="Number of the section (Absatz)")
-    satz_nr: str = Field(..., description="Sentence number within the section")
-    markers: list[str] = Field(..., description="List of markers for subdivision of a sentence")
-    satz_text: str = Field(..., description="Text of the sentence")
-    ex_atomare_tatbestandsmerkmale: list[str] = Field(..., description="Existing atomare TBMs")
-    new_atomare_tatbestandsmerkmale: list[str] = Field(..., description="Added or edited atomare TBMs")
-    rechtsfolge: str = Field(..., description="Legal consequence")
+    gesetz: str
+    jurabk: str
+    paragraph_nr: str
+    paragraph_text: str
+    absatz_nr: str
+    satz_nr: str
+    markers: list[str]
+    satz_text: str
+    ex_atomare_tatbestandsmerkmale: list[str]
+    new_atomare_tatbestandsmerkmale: list[str]
+    rechtsfolge: str
 
 
 class LMAtomareTBMsWorkflowOutput(BaseModel):
@@ -163,20 +166,19 @@ class LMAtomareTBMsWorkflowOutput(BaseModel):
 
 
 class LMJuristischerSatzWorkflowInput(BaseModel):
-    gesetz: str = Field(..., description="The law")
-    jurabk: str = Field(..., description="Abbreviation of the law")
-    paragraph_nr: str = Field(..., description="Paragraph number")
-    paragraph_text: str = Field(..., description="Text of the paragraph")
-    absatz_nr: str = Field(..., description="Number of the section (Absatz)")
-    satz_nr: str = Field(..., description="Sentence number within the section")
-    markers: list[str] = Field(..., description="List of markers for subdivision of a sentence")
-    satz_text: str = Field(..., description="Text of the sentence")
+    gesetz: str
+    jurabk: str
+    paragraph_nr: str
+    paragraph_text: str
+    absatz_nr: str
+    satz_nr: str
+    markers: list[str]
+    satz_text: str
 
 
 class LMJuristischerSatzWorkflowOutput(BaseModel):
     norm_typ_lvl_1: NormTyp
     norm_typ_lvl_2: SatzKategorie | None = None
-    wenn_dann_satz: str | None = None
     tatbestandsmerkmale: list[str] | None = None
     atomare_tatbestandsmerkmale: list[AtomaresTBM] | None = None
     rechtsfolge: Rechtsfolge | None = None
@@ -184,8 +186,7 @@ class LMJuristischerSatzWorkflowOutput(BaseModel):
 
 
 class LMMateriellRechtlichWorkflowOutput(BaseModel):
-    norm_typ_lvl_2: SatzKategorie = Field(..., description="Subcategory of the sentence (e.g., 'wenn-dann')")
-    wenn_dann_satz: str | None = None
+    norm_typ_lvl_2: SatzKategorie
     tatbestandsmerkmale: list[str] | None = None
     atomare_tatbestandsmerkmale: list[AtomaresTBM] | None = None
     rechtsfolge: Rechtsfolge | None = None
@@ -193,17 +194,15 @@ class LMMateriellRechtlichWorkflowOutput(BaseModel):
 
 
 class LMRfWorkflowInput(BaseModel):
-    gesetz: str = Field(..., description="The law")
-    paragraph_nr: str = Field(..., description="Paragraph number")
-    absatz_nr: str = Field(..., description="Number of the section (Absatz)")
-    satz_nr: str = Field(..., description="Sentence number within the section")
-    rechtsfolge: str = Field(
-        description="The legal consequence to be analyzed in the Lernmechanismus",
-    )
+    gesetz: str
+    paragraph_nr: str
+    absatz_nr: str
+    satz_nr: str
+    satz_text: str
+    rechtsfolge: str
 
 
 class LMWennDannWorkflowOutput(BaseModel):
-    wenn_dann_satz: str | None = None
     tatbestandsmerkmale: list[str] | None = None
     atomare_tatbestandsmerkmale: list[AtomaresTBM] | None = None
     rechtsfolge: Rechtsfolge | None = None
@@ -211,4 +210,4 @@ class LMWennDannWorkflowOutput(BaseModel):
 
 
 class LMHandlungsermaechtigungWorkflowInput(BaseModel):
-    rechtsfolge: str = Field(..., description="The legal consequence to be analyzed in the Lernmechanismus")
+    rechtsfolge: str

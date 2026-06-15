@@ -1,9 +1,5 @@
 # src/workflows/metadata_extraction/base/base_metadata_prompt.py
-"""Prompts for the base metadata extraction workflow.
-
-Note: All examples in this file use entirely fictional names, locations, and data.
-They do not refer to any real infrastructure project, company, or municipality.
-"""
+"""Prompts for the base metadata extraction workflow."""
 
 GATHER_EVIDENCE_SYSTEM_PROMPT = """Based on the document text below, extract the following metadata. For each field, provide both the 'value' and the exact 'source' text snippet that justifies the value.
 
@@ -16,12 +12,12 @@ CRITICAL FORMAT RULES:
 CORRECT FORMAT EXAMPLE:
 {{
   "project_applicant": {{
-    "value": "Nordwind Infrastruktur GmbH",
-    "source": "Die Nordwind Infrastruktur GmbH als Vorhabenträger beantragt..."
+    "value": "Energie GmbH",
+    "source": "Die Energie GmbH als Vorhabenträger beantragt..."
   }},
   "affected_municipalities": {{
-    "value": ["Lindenberg", "Weidenbach", "Hochfeld"],
-    "source": "Die Strecke verläuft durch die Städte Lindenberg, Weidenbach und Hochfeld."
+    "value": ["München", "Augsburg", "Ulm"],
+    "source": "Die Strecke verläuft durch die Städte München, Augsburg und Ulm."
   }},
   "pipeline_length": {{
     "value": "45 km",
@@ -32,7 +28,7 @@ CORRECT FORMAT EXAMPLE:
 WRONG FORMAT (DO NOT USE):
 {{
   "affected_municipalities": {{
-    "value": [{{"value": "Lindenberg"}}, {{"value": "Weidenbach"}}],
+    "value": [{{"value": "München"}}, {{"value": "Augsburg"}}],
     "source": ["Quote 1", "Quote 2"]
   }}
 }}
@@ -62,7 +58,7 @@ Follow these field-specific instructions carefully:
 
 3.  **All other single-value fields (e.g., `planning_company`, `project_applicant`):**
     - Examine all extracted `value` options and their corresponding `source` texts.
-    - Choose the single value that is the most complete, specific, and official-sounding. For example, "Beispiel Planungs GmbH & Co. KG" is better than "Beispiel Planungs GmbH".
+    - Choose the single value that is the most complete, specific, and official-sounding. For example, "Müller GmbH & Co. KG" is better than "Müller GmbH".
     - If you find conflicting but equally valid information, prioritize the value that appeared earliest in the document (i.e., from the first objects in the list).
 
 Your final output must be a single, clean JSON object containing only the final, consolidated values."""

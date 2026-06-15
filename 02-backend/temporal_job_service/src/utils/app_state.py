@@ -2,7 +2,7 @@
 
 
 class AppState:
-    def __init__(self):
+    def __init__(self) -> None:
         self.startup_complete = False
 
 

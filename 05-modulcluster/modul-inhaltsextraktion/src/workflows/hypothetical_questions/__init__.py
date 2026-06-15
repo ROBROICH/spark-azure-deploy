@@ -13,7 +13,7 @@ from src.workflows.hypothetical_questions.prompt import (
 )
 
 __all__ = [
-    "HypotheticalQuestionsResult",
     "HQ_SYSTEM_PROMPT",
     "HQ_USER_TEMPLATE",
+    "HypotheticalQuestionsResult",
 ]

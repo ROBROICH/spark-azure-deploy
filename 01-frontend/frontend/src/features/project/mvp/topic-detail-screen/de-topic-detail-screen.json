@@ -1,0 +1,213 @@
+{
+  "MvpPage": {
+    "sectionAriaLabel": "MVP Prüfansicht",
+    "documentsGroupAriaLabel": "Unterlagen und Fundstellen",
+    "primaryGroupAriaLabel": "Unterlagen und Rechtsgrundlage"
+  },
+  "BackButtonBar": {
+    "backAriaLabel": "Zurück zur Übersicht",
+    "progress": "{{done}} von {{total}} Normen geprüft",
+    "toggleLaneOrderAriaLabel": "Reihenfolge von Unterlagen und Rechtsgrundlage wechseln",
+    "toggleLaneOrderFallback": "Ansicht",
+    "documentsFirst": "Unterlagen zuerst",
+    "rechtsgrundlageFirst": "Rechtsgrundlage zuerst"
+  },
+  "DocumentsPanel": {
+    "tabs": {
+      "dokumente": "Unterlagen",
+      "fundstellen": "Fundstellen"
+    },
+    "panelAriaLabel": "Linkes Panel"
+  },
+  "DocumentsTabContent": {
+    "documentsRootLabel": "Unterlagen",
+    "documentsGesichtet": "{{done}} von {{total}} Unterlagen gesichtet",
+    "documentsGesichtetTooltip": "Haken Sie bereits gesichtete Unterlagen in der Liste ab. Dieser Fortschritt wird nur für Sie sichtbar gespeichert."
+  },
+  "DocumentItem": {
+    "aiSupportLabel": "KI-Unterstützung",
+    "aiSupportDescription": "Diese Unterlage enthält KI-Fundstellen.",
+    "aiSupportDescriptionForNorm": "Zur ausgewählten Norm {{norm}} gibt es in dieser Unterlage KI-Fundstellen.",
+    "sichten": "Sichten",
+    "gesichtet": "Gesichtet"
+  },
+  "FundstellenTabContent": {
+    "keinDokument": "Keine Unterlage",
+    "referencesTitle": "KI-Fundstellen",
+    "infoAriaLabel": "Informationen zu KI-Fundstellen",
+    "emptyStateCta": "Wählen Sie eine Unterlage, eine Norm oder beides aus, um passende KI-Fundstellen anzuzeigen.",
+    "noResults": "Für diese Auswahl wurden keine KI-Fundstellen gefunden.",
+    "missingTitlePlaceholder": "Deckblatt / Tabelle / Bild",
+    "removeSelectionAriaLabel": "Auswahl entfernen: {{label}}",
+    "externalDocumentAriaLabel": "Unterlage außerhalb des Themas",
+    "externalDocumentTooltip": "Diese Unterlage ist nicht Teil des aktuellen Themas, enthält aber KI-Fundstellen zur ausgewählten Norm.",
+    "externalNormAriaLabel": "Norm außerhalb der Rechtsgrundlage",
+    "externalNormTooltip": "Diese Norm ist nicht Teil der aktuellen Rechtsgrundlage, enthält aber KI-Fundstellen in der ausgewählten Unterlage.",
+    "empty": {
+      "line1": "Hier werden KI-generierte Fundstellen angezeigt, wenn eine Unterlage oder eine Norm ausgewählt ist.",
+      "line2": "Die KI durchsucht die Unterlagen nach inhaltlich relevanten Textpassagen zu den jeweiligen Normen der Rechtsgrundlage und stellt diese als Fundstellen dar.",
+      "line3": "Wählen Sie eine Unterlage, eine Norm oder beides aus, um passende KI-Fundstellen anzuzeigen."
+    },
+    "selectedDocument": {
+      "line1End": " ist ausgewählt.",
+      "line2": "Es werden KI-Fundstellen zu allen Normen dieses Themas angezeigt.",
+      "line3": "Wählen Sie zusätzlich eine Norm aus, um die angezeigten Fundstellen auf diese Norm einzugrenzen."
+    },
+    "selectedNorm": {
+      "line1End": " ist ausgewählt.",
+      "line2": "Es werden KI-Fundstellen aus allen zugehörigen Unterlagen angezeigt.",
+      "line3": "Wählen Sie zusätzlich eine Unterlage aus, um nur Fundstellen aus dieser Unterlage anzuzeigen."
+    },
+    "selectedDocumentAndNorm": {
+      "line1Between": " und ",
+      "line1End": " sind ausgewählt.",
+      "line2Start": "Es werden KI-Fundstellen angezeigt, die sich auf ",
+      "line2Middle": " beziehen und in ",
+      "line2End": " enthalten sind."
+    }
+  },
+  "FundstellenNormGroupCard": {
+    "externalTooltip": "Diese Norm ist nicht Teil der aktuellen Rechtsgrundlage, enthält aber KI-Fundstellen in der ausgewählten Unterlage.",
+    "refresh": "Aktualisieren",
+    "outdated": "Veraltet",
+    "outdatedTooltipTitle": "KI-Ergebnis veraltet",
+    "outdatedTooltipDescription": "Der Dokumentenstand hat sich geändert. Aktualisieren Sie das KI-Ergebnis, um den neuen Stand zu berücksichtigen.",
+    "outdatedTooltipInstruction": "Klicken Sie auf Aktualisieren, um die KI-Ergebnisse zu aktualisieren.",
+    "outdatedTooltipClose": "Hinweis schließen",
+    "showVersions": "Versionen anzeigen",
+    "fundstelleAriaLabel": "{{title}}, Seite {{page}}",
+    "pageNumber": "S. {{page}}",
+    "showMore": "{{count}} mehr anzeigen",
+    "showLess": "Weniger anzeigen"
+  },
+  "FundstellenDocumentGroupCard": {
+    "externalTooltip": "Diese Unterlage ist nicht Teil des aktuellen Themas, enthält aber KI-Fundstellen zur ausgewählten Norm.",
+    "outdated": "Veraltet",
+    "outdatedTooltipTitle": "KI-Ergebnis veraltet",
+    "outdatedTooltipDescription": "Der Dokumentenstand hat sich geändert. Aktualisieren Sie das KI-Ergebnis, um den neuen Stand zu berücksichtigen.",
+    "outdatedTooltipClose": "Hinweis schließen",
+    "showVersions": "Versionen anzeigen",
+    "fundstelleAriaLabel": "{{title}}, Seite {{page}}",
+    "pageNumber": "S. {{page}}",
+    "showMore": "{{count}} mehr anzeigen",
+    "showLess": "Weniger anzeigen"
+  },
+  "FundstellenSelectedReferenceCard": {
+    "pageNumber": "S. {{page}}"
+  },
+  "FundstellenOutdatedTrigger": {
+    "title": "KI-Fundstellen veraltet",
+    "body": "Der Dokumentenstand hat sich geändert. Aktualisieren Sie die KI-Fundstellen, um den neuen Stand zu berücksichtigen.",
+    "refresh": "Aktualisieren",
+    "refreshLoading": "Aktualisierung läuft",
+    "showVersions": "Versionen anzeigen"
+  },
+  "NormCardItem": {
+    "moreActions": "Weitere Aktionen",
+    "nachfordern": "Nachfordern",
+    "addComment": "Kommentar hinzufügen",
+    "normTextAnzeigen": "Normtext anzeigen",
+    "normEntfernen": "Norm entfernen",
+    "normTextAriaLabel": "Normtext anzeigen: {{paragraphRef}} {{title}}",
+    "normSelectionAriaLabel": "Norm auswählen: {{paragraphRef}} {{title}}",
+    "aiSupportLabel": "KI-Unterstützung",
+    "aiSupportDescription": "Diese Norm wird von KI-Fundstellen referenziert.",
+    "aiSupportDescriptionForDocument": "Die ausgewählte Unterlage {{document}} enthält KI-Fundstellen zu dieser Norm.",
+    "manualNormTooltip": "Diese Norm wurde manuell hinzugefügt.",
+    "loadingTooltip": "Diese Norm wird aktuell von der KI geladen.",
+    "startAiAnalysis": "KI starten",
+    "startAiAnalysisLoading": "KI läuft",
+    "updateAiAnalysis": "Aktualisieren",
+    "startAiAnalysisMissingTbmTooltip": "Diese Norm verfügt über keine Tatbestandsmerkmale.",
+    "startAiAnalysisError": "Die KI-Analyse konnte nicht gestartet werden.",
+    "pruefen": "Prüfen",
+    "erneutPruefen": "Erneut prüfen",
+    "geprueft": "Geprüft"
+  },
+  "NormTextView": {
+    "backAriaLabel": "Zurück zur Rechtsgrundlagenliste",
+    "normTextRegionAriaLabel": "Normtext",
+    "pruefen": "Prüfen",
+    "geprueft": "Geprüft"
+  },
+  "AiRefresh": {
+    "startAiAnalysisError": "Die KI-Aktualisierung konnte nicht gestartet werden."
+  },
+  "RechtsgrundlagePanel": {
+    "title": "Rechtsgrundlage",
+    "normenGeprueft": "{{done}} von {{total}} Normen geprüft"
+  },
+  "FundstellenFeedbackDialog": {
+    "title": "Feedback",
+    "ratingQuestion": "Sind Sie zufrieden oder unzufrieden mit dem KI-Ergebnis?",
+    "bewertung": "Bewertung",
+    "zufrieden": "Zufrieden",
+    "unzufrieden": "Unzufrieden",
+    "qualityQuestion": "Wie bewerten Sie das KI-Ergebnis?",
+    "quality": {
+      "ergebnisKorrekt": "Ergebnis ist korrekt",
+      "ergebnisTeilweiseKorrekt": "Ergebnis ist teilweise korrekt",
+      "sinnvollerAnhaltspunkt": "Bietet einen sinnvollen Anhaltspunkt",
+      "beschleunigtWeiterarbeit": "Beschleunigt die Weiterarbeit",
+      "inhaltHilfreich": "Inhalt ist hilfreich"
+    },
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Feedbackinhalt",
+    "feedbackVisibilityNote": "Andere können das Feedback sehen.",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "thumbsUpAriaLabel": "Positives Feedback geben",
+    "thumbsDownAriaLabel": "Negatives Feedback geben"
+  },
+  "FeedbackDialog": {
+    "title": "Feedback",
+    "ratingQuestion": "Sind Sie zufrieden oder unzufrieden mit dem KI-Ergebnis?",
+    "zufrieden": "Zufrieden",
+    "unzufrieden": "Unzufrieden",
+    "qualityQuestion": "Wie bewerten Sie das KI-Ergebnis?",
+    "reason": {
+      "RESULT_CORRECT": "Ergebnis ist korrekt",
+      "RESULT_PARTIAL": "Ergebnis ist teilweise korrekt",
+      "USEFUL_HINT": "Bietet einen sinnvollen Anhaltspunkt",
+      "ACCELERATES_WORK": "Beschleunigt die Weiterarbeit",
+      "CONTENT_HELPFUL": "Inhalt ist hilfreich",
+      "RESULT_NOT_CORRECT": "Ergebnis ist inkorrekt",
+      "WRONG_CONTEXT": "Bezieht sich auf einen anderen Kontext",
+      "QUESTION_MISMATCH": "Passt nicht zur Fragestellung",
+      "TOO_GENERAL": "Inhalt ist zu allgemein",
+      "TOO_SPECIFIC": "Inhalt ist zu spezifisch"
+    },
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Feedbackinhalt",
+    "feedbackVisibilityNote": "Andere können das Feedback sehen.",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "reasonRequired": "Bitte wählen Sie eine Grund- oder Qualitätsoption aus.",
+    "textMaxLength": "Feedback darf höchstens {{max}} Zeichen enthalten.",
+    "loadingDescription": "Feedback-Dialog wird geladen.",
+    "delete": "Feedback löschen",
+    "confirmDelete": "Bestätigen?",
+    "errors": {
+      "saveFailed": "Feedback konnte nicht gespeichert werden.",
+      "deleteFailed": "Feedback konnte nicht gelöscht werden."
+    }
+  },
+  "RechtsgrundlageDialog": {
+    "title": "Rechtsgrundlage bearbeiten",
+    "description": "Die Rechtsgrundlagen enthalten „Startnormen“ entsprechend der behördenspezifischen Konfiguration, die im vorliegenden Thema einschlägig sein könnten. Prüfen Sie diese in Bezug auf das gegenständliche Verfahren und editieren oder ergänzen Sie weitere Normen bei Bedarf.",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "selectedCount": "{{count}} ausgewählt",
+    "groupCheckboxSelectAriaLabel": "Alle Normen in {{lawGroup}} auswählen",
+    "groupCheckboxDeselectAriaLabel": "Auswahl aller Normen in {{lawGroup}} aufheben",
+    "groupCheckboxSelectHint": "Aktivierung wählt auch {{count}} zugehörige Normen aus.",
+    "groupCheckboxDeselectHint": "Deaktivierung hebt die Auswahl von {{count}} zugehörigen Normen auf.",
+    "normCheckboxSelectAriaLabel": "{{norm}} auswählen",
+    "normCheckboxDeselectAriaLabel": "Auswahl von {{norm}} aufheben",
+    "openAriaLabel": "Rechtsgrundlage bearbeiten",
+    "errors": {
+      "missingLawReference": "Mindestens eine ausgewählte Norm kann ohne zugeordnetes Gesetz nicht gespeichert werden.",
+      "saveFailed": "Änderungen konnten nicht gespeichert werden."
+    }
+  }
+}

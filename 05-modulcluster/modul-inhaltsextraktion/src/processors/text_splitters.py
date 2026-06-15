@@ -8,9 +8,9 @@ langchain_text_splitters.RecursiveCharacterTextSplitter.
 from __future__ import annotations
 
 import re
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from typing import Any, Callable, Sequence
-
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Document
@@ -48,9 +48,7 @@ class MarkdownHeaderTextSplitter:
         strip_headers: bool = True,
     ) -> None:
         # Sort longest marker first so "##" is tested before "#".
-        self.headers_to_split_on = sorted(
-            headers_to_split_on, key=lambda pair: len(pair[0]), reverse=True
-        )
+        self.headers_to_split_on = sorted(headers_to_split_on, key=lambda pair: len(pair[0]), reverse=True)
         self.strip_headers = strip_headers
 
     # ------------------------------------------------------------------
@@ -76,9 +74,7 @@ class MarkdownHeaderTextSplitter:
                 stripped = line.lstrip()
                 header_text = stripped[len(marker) :].strip()
                 # Update hierarchy: clear lower-level headers
-                current_metadata = self._update_metadata(
-                    current_metadata, key, header_text
-                )
+                current_metadata = self._update_metadata(current_metadata, key, header_text)
                 if not self.strip_headers:
                     current_lines.append(line)
             else:
@@ -93,9 +89,7 @@ class MarkdownHeaderTextSplitter:
         for metadata, section_lines in sections:
             content = "\n".join(section_lines).strip()
             if content:
-                documents.append(
-                    Document(page_content=content, metadata=dict(metadata))
-                )
+                documents.append(Document(page_content=content, metadata=dict(metadata)))
         return documents
 
     # ------------------------------------------------------------------
@@ -107,9 +101,7 @@ class MarkdownHeaderTextSplitter:
         stripped = line.lstrip()
         for marker, key in self.headers_to_split_on:
             # The line must start with the marker followed by a space.
-            if stripped.startswith(marker + " ") and not stripped.startswith(
-                marker + "#"
-            ):
+            if stripped.startswith(marker + " ") and not stripped.startswith(marker + "#"):
                 return marker, key
         return None
 
@@ -124,9 +116,7 @@ class MarkdownHeaderTextSplitter:
         Uses marker length to determine hierarchy: shorter markers (e.g. "#")
         are higher-level than longer markers (e.g. "##").
         """
-        marker_len_for_key: dict[str, int] = {
-            k: len(m) for m, k in self.headers_to_split_on
-        }
+        marker_len_for_key: dict[str, int] = {k: len(m) for m, k in self.headers_to_split_on}
         current_marker_len = marker_len_for_key.get(key, 0)
         new: dict[str, str] = {}
         for k, v in current.items():
@@ -193,9 +183,7 @@ class RecursiveCharacterTextSplitter:
         result: list[Document] = []
         for doc in documents:
             for chunk in self.split_text(doc.page_content):
-                result.append(
-                    Document(page_content=chunk, metadata=dict(doc.metadata))
-                )
+                result.append(Document(page_content=chunk, metadata=dict(doc.metadata)))
         return result
 
     # ------------------------------------------------------------------
@@ -268,8 +256,7 @@ class RecursiveCharacterTextSplitter:
             if i < len(parts) and parts[i]:
                 result.append(parts[i])
             return [s for s in result if s]
-        else:
-            return [s for s in re.split(pattern, text) if s]
+        return [s for s in re.split(pattern, text) if s]
 
     def _merge_splits(self, splits: list[str], separator: str) -> list[str]:
         """Merge small splits into chunks up to *chunk_size*, with overlap."""

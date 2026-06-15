@@ -49,6 +49,7 @@ async def _run_extract_describe(
     semaphore = asyncio.Semaphore(batch_size)
 
     async def run_one(vlm_input: VLMWorkflowInput) -> VLMExtractDescribeOutput:
+        """Process a single visual element through VLM extract and describe."""
         async with semaphore:
             return await workflow.execute_child_workflow(
                 VLMWorkflow.run,
@@ -78,7 +79,7 @@ async def _run_extract_describe(
         raise RuntimeError(
             f"VLM extract+describe failed for {failed_count}/{total} elements (tolerance: {max_tolerated})"
         )
-    elif failed_count > 0:
+    if failed_count > 0:
         workflow.logger.warning(
             f"VLM: {failed_count}/{total} extract+describe elements failed "
             f"(within tolerance of {max_tolerated}), proceeding with partial results"
@@ -170,6 +171,7 @@ async def _summarize_and_assemble(
     semaphore = asyncio.Semaphore(batch_size)
 
     async def _summarize_one(inter: VLMExtractDescribeOutput) -> VlmAnalysis:
+        """Summarize and assemble a single VLM result."""
         async with semaphore:
             return await summarize_visual_element(
                 SummarizeVisualElementInput(
@@ -201,7 +203,7 @@ async def _summarize_and_assemble(
     max_tolerated = max(1, int(total * cfg.VLM_FAILURE_TOLERANCE))
     if failed_count > max_tolerated:
         raise RuntimeError(f"VLM summary failed for {failed_count}/{total} elements (tolerance: {max_tolerated})")
-    elif failed_count > 0:
+    if failed_count > 0:
         workflow.logger.warning(
             f"VLM: {failed_count}/{total} summary elements failed "
             f"(within tolerance of {max_tolerated}), proceeding with partial results"

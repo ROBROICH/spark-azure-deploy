@@ -1,0 +1,6 @@
+apiVersion: v2
+name: formal-completeness-check
+description: A Helm chart for Kubernetes deployment of formal completeness check service
+type: application
+version: 0.1.0
+appVersion: "1.16.0"

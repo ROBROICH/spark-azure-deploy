@@ -14,6 +14,14 @@ class FileInvalidFileExtensionError(FileValidationError):
     """Raised when an invalid file extension is encountered."""
 
 
+class FileVirusDetectedError(FileValidationError):
+    """Raised when a virus is detected in an uploaded file."""
+
+
+class VirusScanUnavailableError(DocumentServiceBaseError):
+    """Raised when the virus scanner is not reachable."""
+
+
 class WorkflowRequiresApprovalError(DocumentServiceBaseError):
     """Raised when a workflow is started and another one requires approval."""
 

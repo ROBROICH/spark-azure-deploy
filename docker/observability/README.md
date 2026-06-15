@@ -9,7 +9,7 @@ Configuration files for the local observability stack (traces, logs, metrics, da
 | **OTel Collector** | `otel/opentelemetry-collector-contrib` | `4317` (gRPC), `4318` (HTTP) | Receives OTLP traces and logs, enriches Temporal spans, forwards to Tempo and Loki |
 | **Tempo** | `grafana/tempo` | `3200` | Distributed tracing backend |
 | **Loki** | `grafana/loki` | `3100` | Log aggregation backend |
-| **Prometheus** | `prom/prometheus` | `9090` | Metrics collection (scrapes LiteLLM proxy) |
+| **Prometheus** | `prom/prometheus` | `9090` | Metrics collection (scrapes LiteLLM-Proxy) |
 | **Grafana** | `grafana/grafana-oss` | `3000` | Dashboards and data exploration UI |
 
 ## Configuration Files
@@ -44,11 +44,11 @@ Traces are exported to Tempo, logs to Loki via OTLP.
 Grafana starts with anonymous admin access enabled (local dev only) and auto-provisions:
 
 - **Datasources**: Tempo (default, with trace-to-log correlation), Loki, Prometheus
-- **Dashboards**: LiteLLM proxy metrics
+- **Dashboards**: LiteLLM-Proxy metrics
 
 ### Prometheus
 
-Scrapes the LiteLLM proxy at `litellm-proxy:4000/metrics` every 10 seconds.
+Scrapes the LiteLLM-Proxy at `litellm-proxy:4000/metrics` every 10 seconds.
 
 ## Accessing the UIs
 

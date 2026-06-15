@@ -1,0 +1,15 @@
+{
+  "projectVersionConflictDialog": {
+    "notLatest": {
+      "title": "Outdated project version",
+      "description": "You are viewing or editing an outdated project version. Switch to the latest version to continue.",
+      "action": "Switch to the latest version"
+    },
+    "versionLocked": {
+      "title": "New project version is being created",
+      "description_one": "A new project version is being created. This view will refresh automatically in {{count}} second.",
+      "description_other": "A new project version is being created. This view will refresh automatically in {{count}} seconds.",
+      "action": "Refresh now"
+    }
+  }
+}

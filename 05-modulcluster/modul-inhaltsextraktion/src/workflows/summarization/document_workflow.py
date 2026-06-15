@@ -11,11 +11,10 @@ from datetime import timedelta
 
 from pydantic import BaseModel
 from temporalio import workflow
-from temporalio.common import RetryPolicy
 
-from src.activities.postprocessing import split_markdown_by_pages
+from src.activities.postprocessing.assembly import split_markdown_by_pages
 from src.activities.summarization import CombineSummariesInput, _combine_summaries
-from src.config import get_config, snapshot_config
+from src.config import snapshot_config
 from src.workflows.summarization.output_format import SummaryOutput
 from src.workflows.summarization.workflow import (
     SummarizationWorkflow,
@@ -24,6 +23,8 @@ from src.workflows.summarization.workflow import (
 
 
 class DocumentSummarizationWorkflowInput(BaseModel):
+    """Input for the document-level summarization workflow."""
+
     markdown: str
     workflow_batch_size: int = 25  # pages per SummarizationWorkflow child
 
@@ -33,8 +34,11 @@ document_summarization_workflow_id = "document-summarization"
 
 @workflow.defn(name=document_summarization_workflow_id)
 class DocumentSummarizationWorkflow:
+    """Document-level summarization orchestrator workflow."""
+
     @workflow.run
     async def run(self, input: DocumentSummarizationWorkflowInput) -> SummaryOutput:
+        """Orchestrate chunk-level summarization and combine results."""
         snapshot_config()
         # Split markdown by pages (activity to avoid blocking workflow thread)
         pages = await split_markdown_by_pages(input.markdown, pages_per_chunk=1)
@@ -70,13 +74,8 @@ class DocumentSummarizationWorkflow:
         if len(summaries) == 1:
             return SummaryOutput(summary=summaries[0])
 
-        # Final combination via activity
-        final_summary = await workflow.execute_activity(
-            _combine_summaries,
+        # Final combination via direct call
+        final_summary = await _combine_summaries(
             CombineSummariesInput(summaries=summaries, char_limit=3000),
-            start_to_close_timeout=timedelta(minutes=10),
-            retry_policy=RetryPolicy(
-                maximum_attempts=get_config().TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS,
-            ),
         )
         return SummaryOutput(summary=final_summary)

@@ -11,11 +11,11 @@ from dataclasses import dataclass
 from typing import Any, Literal
 
 from bs4 import BeautifulSoup, Tag
-from src.processors.text_splitters import RecursiveCharacterTextSplitter
 from temporalio import activity
 
 from src.config import get_config
 from src.processors.page_tracker import PAGE_TAG_STRIP_RE
+from src.processors.text_splitters import RecursiveCharacterTextSplitter
 from src.schemas import Chunk, SubChunk
 
 # Type alias for sub-chunk specifications returned by element processors.
@@ -125,7 +125,7 @@ def is_table_fragment(content: str) -> bool:
     td_count = normalized_content.count("<td")
     th_count = normalized_content.count("<th")
 
-    if (tr_count + td_count + th_count) >= 2:
+    if tr_count + td_count + th_count >= 2:
         return True
 
     return False

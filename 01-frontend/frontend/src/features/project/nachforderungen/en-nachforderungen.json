@@ -1,0 +1,82 @@
+{
+  "RequestListPanel": {
+    "addDocument": "Add request",
+    "checkboxAriaLabel": "Include {{title}} in the supplementary request letter",
+    "close": "Close",
+    "emptyState": "No supplementary requests.",
+    "itemCountBadge_one": "{{count}} supplementary request",
+    "itemCountBadge_other": "{{count}} supplementary requests",
+    "title": "Supplementary requests list",
+    "priority": {
+      "must": "Must",
+      "should": "Should"
+    },
+    "actions": {
+      "editAria": "Edit supplementary request",
+      "removeAria": "Remove supplementary request"
+    },
+    "form": {
+      "createTitle": "Add supplementary request",
+      "priorityLabel": "Priority*",
+      "titleLabel": "Supplementary request*",
+      "titlePlaceholder": "Supplementary request title",
+      "reasonLabel": "Reason*",
+      "reasonPlaceholder": "Reason for the supplementary request",
+      "save": "Save",
+      "cancel": "Cancel",
+      "validation": {
+        "titleRequired": "Supplementary request name is required.",
+        "titleMaxLength": "The supplementary request must not exceed {{max}} characters.",
+        "reasonRequired": "Reason is required.",
+        "reasonMaxLength": "The reason must not exceed {{max}} characters."
+      },
+      "saveError": "The request could not be saved.",
+      "duplicateSourceError": "A supplementary request already exists for this item. Please edit the existing supplementary request or create a new one using \"Add request\"."
+    },
+    "deleteDialog": {
+      "title": "Delete supplementary request",
+      "description": "Do you really want to delete this supplementary request from the supplementary requests list?",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "The request could not be deleted."
+    },
+    "exportShort": "Export",
+    "loadingAria": "Loading requests",
+    "loadError": "The request list could not be loaded.",
+    "retry": "Try again"
+  },
+  "SupplementaryRequestLetter": {
+    "downloadPdf": "Export as PDF",
+    "downloadWord": "Export as Word",
+    "emptyState": "Select supplementary requests from the list to create the letter.",
+    "export": {
+      "filename": "Supplementary-Request-Letter",
+      "pdfTitle": "Supplementary Request Letter"
+    },
+    "letter": {
+      "reasonLabel": "Reason:"
+    },
+    "title": "Supplementary Request Letter",
+    "toolbar": {
+      "bold": "Bold",
+      "bulletList": "Bullet list",
+      "heading1": "Heading 1",
+      "heading2": "Heading 2",
+      "heading3": "Heading 3",
+      "italic": "Italic",
+      "orderedList": "Ordered list",
+      "paragraph": "Paragraph",
+      "underline": "Underline"
+    }
+  },
+  "page": {
+    "lanes": {
+      "list": "Supplementary requests",
+      "letter": "Request letter"
+    }
+  },
+  "toolbar": {
+    "back": "Back",
+    "title": "Supplementary Request Letter"
+  }
+}

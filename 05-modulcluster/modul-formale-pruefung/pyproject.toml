@@ -6,26 +6,37 @@ authors = []
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
-    "openai>=1.66.3,<2.0.0",
-    "pydantic-settings>=2.12.0,<3.0.0",
-    "temporal",
-    "jinja2>=3.1.6",
-    "pydantic>=2.10.6",
-    "prompt-injection",
+  "openai>=1.66.3,<2.0.0",
+  "pyyaml==6.0.2",
+  "requests>=2.32.4",
+  "python-dotenv>=1.2.2",
+  "pydantic-settings>=2.12.0,<3.0.0",
+  "scikit-learn>=1.7.2,<2.0.0",
+  "temporal",
+  "urllib3>=2.7.0,<3",
+  "jaraco.context==6.1.0",
+  "jinja2>=3.1.6",
+  "cryptography>=46.0.5",
+  "pyasn1>=0.6.3",
+  "wheel>=0.46.2",
+  "protobuf>=6.33.5",
+  "pydantic>=2.10.6",
+  "internal-auth",
+  "prompt-injection",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.1,<10",
-    "pytest-asyncio>=1.3.0,<2.0.0",
-    "coverage>=7.11.3,<8.0.0",
-    "interrogate>=1.7.0,<2.0.0",
-    "ipykernel>=6.29.5,<7.0.0",
-    "pytest-cov>=6.3.0",
-    "poethepoet>=0.37.0",
-    "ruff>=0.14.6,<0.15",
-    "pyrefly>=0.49.0",
-    "pytest-timeout>=2.4.0",
+  "pytest>=9.0.3,<10",
+  "pytest-asyncio>=1.3.0,<2.0.0",
+  "coverage>=7.11.3,<8.0.0",
+  "interrogate>=1.7.0,<2.0.0",
+  "ipykernel>=6.29.5,<7.0.0",
+  "pytest-cov>=6.3.0",
+  "poethepoet>=0.37.0",
+  "ruff>=0.14.6,<0.15",
+  "pyrefly>=0.49.0",
+  "pytest-timeout>=2.4.0",
 ]
 
 [tool.uv]
@@ -33,17 +44,17 @@ package = false
 
 [tool.uv.sources]
 temporal = { workspace = true }
+internal-auth = { workspace = true }
 prompt-injection = { workspace = true }
 
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
 
 [tool.pyrefly]
 search_path = [".", "src"]
 project-includes = ["."]
 disable-search-path-heuristics = true
-
 [tool.pyrefly.errors]
 # Core strict typing - catch implicit Any and missing annotations
 implicit-any = "error"
@@ -67,8 +78,23 @@ redundant-cast = "error"
 unnecessary-comparison = "error"
 
 [tool.pytest.ini_options]
-timeout=20
+timeout = 20
 testpaths = ["tests"]
+addopts = ["--import-mode=importlib", "-v"]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["**/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "if __name__ == .__main__.:",
+  "raise NotImplementedError",
+]
 
 [tool.poe.tasks]
 test = "pytest tests/"

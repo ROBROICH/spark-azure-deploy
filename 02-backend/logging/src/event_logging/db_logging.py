@@ -30,15 +30,13 @@ def setup_db_logging(engine: Any, service_name: str) -> None:
     try:
         from sqlalchemy import event
         from sqlalchemy.orm import Session
-    except ImportError:
+    except ImportError as err:
         raise ImportError(
-            "sqlalchemy is required for setup_db_logging. "
-            "Install with: pip install event-logging[db]"
-        )
+            "sqlalchemy is required for setup_db_logging. Install with: pip install event-logging[db]"
+        ) from err
 
     logger = EventLogger(service_name=service_name)
 
-    # Unwrap AsyncEngine to get the SyncEngine if necessary
     sync_engine = engine.sync_engine if hasattr(engine, "sync_engine") else engine
 
     @event.listens_for(sync_engine, "before_cursor_execute")
@@ -61,13 +59,9 @@ def setup_db_logging(engine: Any, service_name: str) -> None:
         context: Any,
         executemany: bool,
     ) -> None:
-        # 1. Duration
         start_time = getattr(context, "_query_start_time", None)
-        duration_ns = (
-            int((time.perf_counter() - start_time) * 1_000_000_000) if start_time else 0
-        )
+        duration_ns = int((time.perf_counter() - start_time) * 1_000_000_000) if start_time else 0
 
-        # 2. Operation & Action
         statement_upper = statement.strip().upper()
         operation = None
         action = EventAction.READ
@@ -90,17 +84,9 @@ def setup_db_logging(engine: Any, service_name: str) -> None:
             action = EventAction.WRITE
             event_type = EventType.CHANGE
 
-        # 3. Rows Affected
         rows_affected = context.rowcount if hasattr(context, "rowcount") else 0
 
-        # Map to specific DB event
-        db_event = LogEventDefault.DB_READ
-        if action == EventAction.WRITE:
-            db_event = LogEventDefault.DB_WRITE
-        elif action == EventAction.CHANGE:
-            db_event = LogEventDefault.DB_WRITE
-        elif action == EventAction.DELETE:
-            db_event = LogEventDefault.DB_WRITE
+        db_event = LogEventDefault.DB_READ if action == EventAction.READ else LogEventDefault.DB_WRITE
 
         logger.info(
             action=action,
@@ -118,14 +104,8 @@ def setup_db_logging(engine: Any, service_name: str) -> None:
     @event.listens_for(sync_engine, "handle_error")
     def log_db_error(exception_context: Any) -> None:
         execution_context = getattr(exception_context, "execution_context", None)
-        start_time = (
-            getattr(execution_context, "_query_start_time", None)
-            if execution_context is not None
-            else None
-        )
-        duration_ns = (
-            int((time.perf_counter() - start_time) * 1_000_000_000) if start_time else 0
-        )
+        start_time = getattr(execution_context, "_query_start_time", None) if execution_context is not None else None
+        duration_ns = int((time.perf_counter() - start_time) * 1_000_000_000) if start_time else 0
 
         sqlstate = _extract_sqlstate(exception_context.original_exception)
 
@@ -140,7 +120,7 @@ def setup_db_logging(engine: Any, service_name: str) -> None:
             database_query=exception_context.statement,
             event_duration=duration_ns,
         )
-    
+
     @event.listens_for(Session, "after_commit")
     def log_commit(_: Session) -> None:
         logger.info(

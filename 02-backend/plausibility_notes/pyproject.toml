@@ -20,17 +20,21 @@ dependencies = [
     "h11>=0.16.0",
     "jaraco.context>=6.1.0",
     "event-logging",
+    "alembic-utils",
+    "node-crud",
+    "audit-client",
+    "authentification",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.1,<10",
+    "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.1.0,<2",
     "httpx>=0.28.1,<0.29",
     "pytest-cov>=6.2.1,<7",
     "interrogate>=1.7.0,<2",
     "pytest-env>=1.1.5,<2",
-    "pytest-httpx>=0.35.0,<0.37",
+    "pytest-httpx>=0.36.2,<0.37",
     "pre-commit>=4.3.0,<5",
     "aiosqlite>=0.20.0,<0.22",
     "mypy>=1.19.1,<2",
@@ -43,7 +47,10 @@ package = false
 
 [tool.uv.sources]
 event-logging = { workspace = true }
-
+alembic-utils = { workspace = true }
+node-crud = { workspace = true }
+audit-client = { workspace = true }
+authentification = { workspace = true }
 
 [build-system]
 requires = ["uv_build>=0.10.8,<0.11.0"]
@@ -90,3 +97,6 @@ missing-source-for-stubs = "error"
 deprecated = "error"
 redundant-cast = "error"
 unnecessary-comparison = "error"
+
+[tool.swagger]
+name = "Plausibility Notes"

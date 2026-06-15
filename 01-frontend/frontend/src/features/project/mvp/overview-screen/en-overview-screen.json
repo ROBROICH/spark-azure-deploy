@@ -1,0 +1,279 @@
+{
+  "Common": {
+    "expand": "Expand",
+    "collapse": "Collapse",
+    "moreActions": "More actions",
+    "back": "Back",
+    "aiSuggestion": "AI SUGGESTION"
+  },
+  "Sidebar": {
+    "requestList": "Request list",
+    "comments": "Comments",
+    "commentsDescription": "Comment feature is in progress.",
+    "aiTools": "AI Tools",
+    "aiToolsDescription": "AI tools are in progress.",
+    "runningWorkflows": "Workflows",
+    "protokollierung": "Logging",
+    "legalReferences": "Legal methodology",
+    "legalReferencesDescription": "Legal methodology feature in progress.",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "actionSidebarAriaLabel": "Action sidebar",
+    "close": "Close"
+  },
+  "Summary": {
+    "completenessTitle": "Progress",
+    "completedLawsTitle": "Completed",
+    "completedLawsDescription": "{{completed}} of {{total}} laws reviewed",
+    "hintsTitle": "Found Hints",
+    "categorizeHints": "Categorize hints ({{count}})",
+    "hintsDescription": "{{count}} hints still open for project completeness.",
+    "unprocessedTitle": "Unprocessed laws ({{count}})",
+    "unprocessedDescription": "{{count}} laws were selected but are not fully reviewed.",
+    "tbmNotFulfilledTitle": "{{count}} TBMs not fulfilled",
+    "tbmAlertTitle": "{{count}} TBM with \"Prohibition\"",
+    "tbmAlertDescription": "{{count}} legal criteria with prohibition.",
+    "showAll": "Show all",
+    "showLess": "Show less"
+  },
+  "FilterOptions": {
+    "assignedToMe": "Assigned to me",
+    "done": "Done",
+    "newDocument": "New document",
+    "lawChange": "Law Amendment",
+    "multipleChanges": "Multiple changes"
+  },
+  "Alerts": {
+    "lawChange": "Law Amendment",
+    "newDocument": "New document",
+    "multipleChanges": "Multiple changes"
+  },
+  "Actions": {
+    "assignToMe": "Assign to me",
+    "releaseAssignment": "Release assignment",
+    "comment": "Comment",
+    "request": "Request",
+    "hide": "Hide",
+    "cancel": "Cancel",
+    "add": "Add"
+  },
+  "Dialog": {
+    "title": "Adjust legal basis",
+    "save": "Save",
+    "hideTitle": "Hide law",
+    "hideDescription": "Do you really want to remove this law from the overview?",
+    "showText": "Load norm text",
+    "textLoading": "Loading text",
+    "textEmpty": "No text available",
+    "showMore": "...more",
+    "showLess": "less"
+  },
+  "Status": {
+    "complete": "Checked",
+    "inProgress": "In progress",
+    "open": "Open"
+  },
+  "LawScreen": {
+    "assignmentToggleLabel": "Editing active",
+    "irrelevantToggleLabel": "Not relevant",
+    "checkButton": "Check",
+    "searchPlaceholder": "Search by keyword",
+    "badge": {
+      "adjustments": "Norm adjustments"
+    },
+    "progress": "{{checked}} of {{total}} TBM checked",
+    "progressOpen": "{{total}} TBM open",
+    "empty": {
+      "title": "No norms available",
+      "description": "No norms were selected for this law."
+    },
+    "emptyFiltered": {
+      "title": "No results",
+      "description": "No norms match the current filters."
+    },
+    "list": {
+      "loading": "Loading norms",
+      "error": "Norms could not be loaded"
+    },
+    "details": {
+      "loading": "Loading norm text",
+      "error": "Norm text could not be loaded",
+      "empty": "No norm text available"
+    },
+    "nav": {
+      "prev": "Previous norm",
+      "next": "Next norm",
+      "ofTotal": "of {{total}}"
+    }
+  },
+  "NormView": {
+    "backToOverview": "Back to overview",
+    "assignedToMe": "In progress by me",
+    "check": "Review",
+    "assignAndCheck": "Assign to me and review",
+    "notApplicable": "Not applicable",
+    "lockedTooltip": "In progress by another person",
+    "selectNormPrompt": "Select a norm from the list",
+    "noNorms": "No norms available",
+    "noNormsDescription": "This law does not contain any selected norms.",
+    "notApplicableDialogTitle": "Mark norm as not applicable?",
+    "notApplicableDialogDescription": "This norm will be removed from the review list.",
+    "confirmNotApplicable": "Confirm"
+  },
+  "NormCheck": {
+    "tabs": {
+      "fundstellen": "Sources",
+      "beschluss": "Decision"
+    },
+    "header": {
+      "actions": "Actions",
+      "normChecked": "Entire norm checked",
+      "assignment": "Editing active"
+    },
+    "normActions": {
+      "normsChecked": "Entire norm checked",
+      "notRelevant": "Norm not relevant",
+      "comment": "Comment",
+      "request": "Request follow-up"
+    },
+    "pdf": {
+      "error": "Document could not be loaded",
+      "empty": "Please select a document"
+    }
+  },
+  "TopicWorkflow": {
+    "topics": "Topics",
+    "documents": "Documents",
+    "coverage": {
+      "title": "Norm coverage",
+      "progressLabel": "{{covered}}/{{total}}"
+    },
+    "overview": {
+      "title": "Topic overview",
+      "reviewedTopics": "Reviewed topics",
+      "reviewedTopicsProgress": "{{completed}} of {{total}} topics reviewed",
+      "completedTopicsProgress": "{{completed}} of {{total}} topics completed"
+    },
+    "loading": "Loading data",
+    "noTopics": "No topics configured",
+    "noDocuments": "No documents assigned to this topic",
+    "selectedDocument": "Selected document",
+    "expected": "Expected",
+    "covered": "Covered",
+    "missing": "Missing",
+    "missingNorms": "Missing norms",
+    "markCovered": "Mark as covered",
+    "allCovered": "All expected norms are covered.",
+    "noExpectedNorms": "No norm mapping configured for this topic.",
+    "documentCount": "{{count}} passages",
+    "selectTopic": "Select topic",
+    "selectDocumentForSources": "Select a document to review passages.",
+    "confirmRemoveNormFromBasis": "Do you really want to remove this norm from the legal basis?",
+    "resetView": "Reset view",
+    "collapseSourcesLane": "Collapse sources",
+    "manualCreated": "Created manually",
+    "legalBasisRef": "Legal basis {{normId}}",
+    "noPreview": "No preview available.",
+    "errors": {
+      "authRequired": "This action is unavailable because no user context is available.",
+      "saveFailed": "The change could not be saved."
+    },
+    "overviewFilters": {
+      "searchPlaceholder": "Search topic …",
+      "searchHint": "The results list updates as you type.",
+      "searchResultsCount": "{{count}} result",
+      "searchResultsCount_other": "{{count}} results",
+      "edit": "Edit",
+      "person": "Person",
+      "personEmpty": "No people available.",
+      "personSelectedCount": "{{count}} people",
+      "personSelectedFilterCount": "{{count}} filters",
+      "unassigned": "Unassigned",
+      "status": {
+        "label": "Status",
+        "options": {
+          "open": "Open",
+          "inProgress": "In review",
+          "complete": "Reviewed"
+        }
+      },
+      "sort": {
+        "fallback": "Name A-Z",
+        "options": {
+          "titleAsc": "Name A-Z",
+          "titleDesc": "Name Z-A"
+        }
+      }
+    },
+    "fundstellen": {
+      "markMisassigned": "Mark as misassigned",
+      "restoreAssignment": "Restore assignment"
+    },
+    "requiredNorms": {
+      "title": "Expected norms",
+      "searchPlaceholder": "Search norm",
+      "searchLabel": "Search norm",
+      "empty": "No norms found."
+    },
+    "legalTerms": {
+      "absatz": "Paragraph {{count}}",
+      "satz": "Sentence {{count}}",
+      "absatzAndSatz": "Paragraph {{absatz}}, sentence {{satz}}",
+      "tbm": "Criterion {{count}}"
+    },
+    "overviewCard": {
+      "actions": "Actions",
+      "assignToMe": "Assign to me",
+      "releaseAssignment": "Release assignment",
+      "restartAiAnalysis": "Restart AI analysis",
+      "assignment": {
+        "assignedToYou": "Assigned to you",
+        "assignedToAnotherUser": "Assigned to another person",
+        "edit": "Edit assigned people",
+        "placeholder": "Select people",
+        "empty": "No people available.",
+        "selectedCount": "{{count}} selected",
+        "peopleUnavailable": "People unavailable",
+        "pinPersonDetails": "Pin details for {{name}}, {{email}}",
+        "unpinPersonDetails": "Unpin details for {{name}}, {{email}}",
+        "moreEditors": "{{count}} more editors"
+      },
+      "aiSupport": {
+        "label": "AI support",
+        "description": "This topic has AI support."
+      },
+      "aiAnalysis": {
+        "label": "Start AI analysis",
+        "loadingLabel": "AI analysis running",
+        "loadingDescription": "AI analysis can take up to 2 hours.",
+        "elapsedTime": "Elapsed time: {{time}}"
+      },
+      "statusLabel": "Status",
+      "alerts": {
+        "rechtsaenderung": "Law Amendment",
+        "neues_dokument": "New document",
+        "mehrere_aenderungen": "Multiple changes"
+      },
+      "totals": "{{documents}} documents, {{norms}} expected norms.",
+      "progress": {
+        "documents_one": "{{total}} document",
+        "documents_other": "{{total}} documents",
+        "norms": "{{checked}} of {{total}} norms reviewed",
+        "requests_one": "{{count}} follow-up request open",
+        "requests_other": "{{count}} follow-up requests open"
+      },
+      "status": {
+        "complete": "Completed",
+        "inProgress": "In review",
+        "open": "Open"
+      }
+    },
+    "documentStatus": {
+      "open": "Open",
+      "inReview": "In review",
+      "reviewed": "Reviewed",
+      "markReviewed": "Mark as reviewed",
+      "unmark": "Remove marking"
+    }
+  }
+}

@@ -10,6 +10,7 @@ setup_observability(
     )
 )
 
+from audit_client import AuditContextMiddleware
 from fastapi import FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
@@ -26,11 +27,6 @@ register_exception_handlers(app)
 add_cors(app)
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AuditContextMiddleware)
 app.include_router(workflows_router)
 app.include_router(probe_router)
-
-
-@app.get("/health")
-async def health():
-    """Health check endpoint."""
-    return {"status": "healthy"}

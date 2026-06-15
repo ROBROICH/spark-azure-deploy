@@ -1,0 +1,281 @@
+{
+  "DocumentsCard": {
+    "processing": {
+      "description": "Die Daten werden aktuell bereitgestellt. Die Unterlagentabelle wird aktualisiert, sobald die Verarbeitung abgeschlossen ist.",
+      "title": "Die Daten werden bereitgestellt"
+    },
+    "processingError": {
+      "description": "Die Daten konnten nicht vollständig bereitgestellt werden. Bitte laden Sie die Dateien erneut hoch oder versuchen Sie es später noch einmal.",
+      "title": "Die Daten konnten nicht bereitgestellt werden"
+    },
+    "table": {
+      "folderStatus": "{{available}} von {{total}} zugeordnet",
+      "missingDocument": "Unterlage „{{documentType}}“ wird benötigt.",
+      "topic": {
+        "ariaLabel": "Thema auswählen",
+        "ariaLabelWithValue": "Thema: {{value}}",
+        "clear": "Kein Thema",
+        "placeholder": "Thema auswählen"
+      }
+    },
+    "title": "Antragsunterlagen",
+    "toolbar": {
+      "documentType": "Unterlagentyp",
+      "resetFilter": "Filter zurücksetzen",
+      "searchPlaceholder": "Nach Unterlage suchen …",
+      "status": "Status",
+      "statusFilter": {
+        "assigned": "Zugeordnet",
+        "deleted": "Gelöscht",
+        "missingType": "Unterlagentyp fehlt",
+        "onRequestList": "Auf Nachforderungsliste",
+        "resolved": "Gelöst",
+        "unassigned": "Nicht zugeordnet"
+      }
+    }
+  },
+  "RequiredDocumentsCard": {
+    "info": "Was macht die KI?\n\nDie KI gleicht die hochgeladenen Planunterlagen mit den gemäß den „Richtlinien zum Planungsprozess und für die einheitliche Gestaltung von Entwurfsunterlagen im Straßenbau“, Stand 2012 (RE 2012) für den Feststellungsentwurf „benötigten Unterlagen“ ab. Dabei werden der Unterlagentitel und der Inhalt der Unterlagen für den Abgleich berücksichtigt.\n\nDen eingereichten Unterlagen weist die KI jeweils einen Unterlagentyp gemäß RE 2012 zu, z. B. „Lageplan“. Mehrere Unterlagen können demselben Unterlagentyp zugeordnet werden, etwa wenn mehrere Lagepläne vorliegen.\n\nEin Unterlagentyp gilt als „vorhanden“, sobald ihm mindestens eine Unterlage zugeordnet ist. Es können dennoch weitere Unterlagen dieses Unterlagentyps erforderlich sein.\n\nSofern für ein Verfahren zusätzliche, in der RE 2012 nicht genannte Unterlagentypen benötigt werden, können diese über das Stift-Icon ergänzt werden. Diese werden von der KI nicht berücksichtigt.\n\nWerden einzelne in der RE 2012 aufgeführte Unterlagen für das konkrete Verfahren nicht benötigt (z. B. ein UVP-Bericht bei nicht UVP-pflichtigem Vorhaben), kann der Hinweis auf diesen Unterlagentyp ausgeblendet werden.",
+    "infoLabel": "Informationen zu den benötigten Unterlagen",
+    "missingDocuments": {
+      "description": "{{count}} benötigte Unterlagen wurden von der KI nicht gefunden. Prüfen Sie vor Nachforderung, ob diese Unterlagen unter anderem Namen vorliegen.",
+      "status": {
+        "missing": "Fehlt",
+        "requestList": "Nachforderungsliste",
+        "requested": "Nachgefordert",
+        "unsorted": "Ungeordnet"
+      },
+      "title": "Benötigte Unterlagen ({{missingDocuments}})"
+    },
+    "title": "Vollständigkeit der Antragsunterlagen in Bezug auf benötigte Unterlagen"
+  },
+  "TableOfContentsCard": {
+    "info": "Was macht die KI?\n\nDie KI durchsucht die Planunterlagen nach einem Inhaltsverzeichnis.\n\nWird ein Inhaltsverzeichnis von der KI erkannt, gleicht der Agent die eingereichten Planunterlagen mit den Einträgen des Inhaltsverzeichnisses ab. Die „Hinweise“ geben an, wenn Unterlagen, die im Inhaltsverzeichnis aufgeführt sind, nicht unter den hochgeladenen Dateien gefunden wurden.\n\nLiegt eine Unterlage vor, beispielsweise unter einem abweichenden Namen, kann der „Hinweis“ ausgeblendet werden. Fehlende Unterlagen können nachgefordert werden.",
+    "infoLabel": "Informationen zum Inhaltsverzeichnisabgleich",
+    "missingDocuments": {
+      "description": "{{count}} Unterlagen aus dem Inhaltsverzeichnis wurden von der KI nicht gefunden. Prüfen Sie vor Nachforderung, ob diese Unterlagen unter anderem Namen vorliegen.",
+      "title": "Offene Hinweise ({{count}})"
+    },
+    "progress": {
+      "count": "{{presentDocuments}} von {{totalDocuments}}",
+      "description": "Hinweise aus dem Inhaltsverzeichnis abgearbeitet",
+      "title": "Hinweise aus dem Inhaltsverzeichnis"
+    },
+    "title": "Vollständigkeit der Antragsunterlagen in Bezug auf das Inhaltsverzeichnis"
+  },
+  "DocumentTypeDropdown": {
+    "ariaLabel": "Unterlagentyp auswählen",
+    "ariaLabelWithValue": "Unterlagentyp: {{value}}",
+    "selectLabel": "Unterlagentyp auswählen",
+    "confirmAriaLabel": "„{{value}}“ bestätigen",
+    "customCategoryLabel": "Benutzerdefiniert",
+    "manageLabel": "+ Unterlagentyp anlegen oder verwalten",
+    "emptyCustomTypes": "Keine benutzerdefinierten Unterlagentypen vorhanden",
+    "emptyTypes": "Keine Typen verfügbar"
+  },
+  "EditRequiredDocumentsDialog": {
+    "title": "Benötigte Unterlagen bearbeiten",
+    "description": "Die für fernstraßenrechtliche Planfeststellungsverfahren gemäß den <strong>„Richtlinien zum Planungsprozess und für die einheitliche Gestaltung von Entwurfsunterlagen im Straßenbau“</strong>, Stand 2012 (RE 2012) für den Feststellungsentwurf „benötigten Unterlagen“ können nicht editiert werden.<br/><br/>Hinweise auf für dieses Verfahren nicht benötigte Unterlagen können in der Übersicht <strong>ausgeblendet</strong> werden.<br/><br/>Unter <strong>„Benutzerdefiniert“</strong> können weitere für dieses Verfahren benötigte Unterlagentypen ergänzt werden. Benutzerdefinierte Unterlagentypen werden nicht durch die KI zugeordnet; sie können Unterlagen manuell zugeordnet werden.",
+    "customCategoryLabel": "Benutzerdefiniert",
+    "editAriaLabel": "„{{name}}“ bearbeiten",
+    "editNameLabel": "„{{name}}“ umbenennen",
+    "deleteAriaLabel": "„{{name}}“ löschen",
+    "emptyCustomTypes": "Keine benutzerdefinierten Unterlagentypen vorhanden",
+    "duplicateDocumentTypeError": "Ein Unterlagentyp mit diesem Namen existiert bereits.",
+    "newDocumentPlaceholder": "Name des Unterlagentyps eingeben …",
+    "addDocument": "Benötigte Unterlage hinzufügen",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "confirmSaveTitle": "Möchten Sie die vorgenommenen Änderungen speichern?",
+    "confirmSaveDescription": "Sie haben Änderungen an den benötigten Unterlagentypen vorgenommen. Bitte bestätigen Sie, ob diese gespeichert werden sollen.",
+    "hintTitle": "Hinweis:",
+    "hintDescription": "Das Speichern der Änderungen kann eine erneute Analyse der zugehörigen Unterlagen erforderlich machen."
+  },
+  "common": {
+    "actions": {
+      "addComment": "Kommentar hinzufügen",
+      "delete": "Löschen",
+      "hideHint": "Hinweis ausblenden",
+      "markResolved": "Als „gelöst“ markieren",
+      "request": "Nachfordern",
+      "showHint": "Hinweis einblenden"
+    },
+    "badges": {
+      "hidden": "Ausgeblendet",
+      "onRequestList": "Auf Nachforderungsliste",
+      "resolved": "Gelöst"
+    },
+    "errors": {
+      "collection": {
+        "title": "Unterlagendaten konnten nicht vollständig geladen oder gespeichert werden",
+        "description": "Bitte prüfen Sie die Verbindung und versuchen Sie die Aktion erneut.",
+        "retry": "Erneut versuchen"
+      },
+      "actionFailed": "Die Änderung konnte nicht gespeichert werden. Bitte erneut versuchen."
+    },
+    "showAll": "Alle anzeigen",
+    "showLess": "Weniger anzeigen"
+  },
+  "redesign": {
+    "pageTitle": "Formale Vollständigkeitsprüfung",
+    "documentsSectionTitle": "Unterlagen",
+    "common": {
+      "showMore": "Mehr anzeigen ({{count}})",
+      "showLess": "Weniger anzeigen",
+      "requestAll": "Alle nachfordern"
+    },
+    "tableOfContentsCard": {
+      "title": "Inhaltsverzeichnis-Abgleich",
+      "description": "Die KI hat geprüft, ob alle im Inhaltsverzeichnis genannten Unterlagen vorliegen. Diese Unterlagen werden im Inhaltsverzeichnis genannt, aber in den Unterlagen nicht gefunden:",
+      "info": "Die KI vergleicht das hochgeladene Inhaltsverzeichnis mit den eingereichten Unterlagen und meldet fehlende Einträge.",
+      "infoLabel": "Weitere Informationen zum Inhaltsverzeichnis-Abgleich",
+      "hintsHeading": "KI-Hinweise ({{count}})",
+      "status": {
+        "progress": "{{processed}} von {{total}} Hinweisen bearbeitet"
+      },
+      "statusBadge": {
+        "irrelevant": "Ausgeblendet",
+        "requested": "Nachgefordert"
+      },
+      "menu": {
+        "ariaLabel": "Aktionen für {{name}}",
+        "request": "Nachfordern",
+        "openRequests": "Zur Nachforderungsliste",
+        "addComment": "Kommentar hinzufügen",
+        "hideHint": "Hinweis ausblenden",
+        "showHint": "Hinweis einblenden"
+      }
+    },
+    "requiredDocumentsCard": {
+      "title": "Benötigte Unterlagen",
+      "description": "Die KI hat geprüft, ob alle für diesen Verfahrenstyp benötigten Unterlagen vorliegen. Diese benötigten Unterlagen für den Verfahrenstyp wurden von der KI nicht gefunden:",
+      "info": "Die KI gleicht die hochgeladenen Planunterlagen mit den gemäß RE 2012 für den Feststellungsentwurf benötigten Unterlagen ab und meldet fehlende Unterlagentypen.",
+      "infoLabel": "Weitere Informationen zu den benötigten Unterlagen",
+      "hintsHeading": "KI-Hinweise ({{count}})",
+      "editAriaLabel": "Benötigte Unterlagentypen bearbeiten",
+      "status": {
+        "progress": "{{processed}} von {{total}} Hinweisen bearbeitet"
+      },
+      "statusBadge": {
+        "irrelevant": "Irrelevant",
+        "requested": "Nachgefordert"
+      },
+      "menu": {
+        "ariaLabel": "Aktionen für {{name}}",
+        "request": "Nachfordern",
+        "openRequests": "Zur Nachforderungsliste",
+        "markIrrelevant": "Als irrelevant markieren",
+        "markRelevant": "Als relevant markieren"
+      }
+    },
+    "plausibilityCard": {
+      "title": "Plausibilitätsprüfung",
+      "description": "Die KI hat die Unterlagen auf Widersprüche oder Inkonsistenzen durchsucht. Diese Hinweise auf mögliche Widersprüche wurden von der KI in den Unterlagen gefunden:",
+      "info": "Die KI durchsucht die hochgeladenen Unterlagen nach Widersprüchen und Inkonsistenzen und meldet potenzielle Konflikte zur Prüfung.",
+      "infoLabel": "Weitere Informationen zur Plausibilitätsprüfung",
+      "hintsHeading": "KI-Hinweise ({{count}})",
+      "status": {
+        "progress": "{{processed}} von {{total}} Hinweisen bearbeitet"
+      },
+      "counters": {
+        "open": "Offen",
+        "requested": "Nachgefordert",
+        "irrelevant": "Irrelevante"
+      },
+      "viewContradictions": "Widersprüche einsehen"
+    },
+    "documentsCard": {
+      "tableAriaLabel": "Unterlagen",
+      "previewOpenedAnnouncement": "Dokumentvorschau geöffnet.",
+      "previewFallbackTitle": "Dokumentvorschau",
+      "searchPlaceholder": "Nach Titel suchen …",
+      "searchInputLabel": "Unterlagen durchsuchen",
+      "toolbar": {
+        "statusAriaLabelWithValue": "Status: {{value}}",
+        "documentTypeAriaLabelWithValue": "Unterlagentyp: {{value}}",
+        "clearStatusFilter": "Statusfilter zurücksetzen",
+        "clearDocumentTypeFilter": "Unterlagentypfilter zurücksetzen"
+      },
+      "headers": {
+        "tableOfContents": "Inhaltsverzeichnis",
+        "status": "Status",
+        "documentType": "Unterlagentyp",
+        "topic": "Thema"
+      },
+      "actions": {
+        "ariaLabel": "Aktionen für {{name}}"
+      },
+      "topic": {
+        "selectedCount": "{{count}} Themen ausgewählt",
+        "empty": "Keine Themen verfügbar"
+      }
+    },
+    "aiAnalysis": {
+      "title": "KI-gestützte Unterlagenprüfung",
+      "description": "Analysiert alle eingereichten Unterlagen und liefert Ergebnisse für die nachfolgenden Prüfbereiche:",
+      "startButton": "KI-Analyse starten",
+      "startDisabledNoDocumentsTooltip": "Laden Sie zunächst mindestens eine Unterlage hoch, um die KI-Analyse starten zu können.",
+      "startDisabledFilesErrorTooltip": "Die Unterlagen konnten nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.",
+      "startDisabledSystemLoadErrorTooltip": "Die Systemlast konnte nicht ermittelt werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.",
+      "indicator": "KI-Analyse läuft …",
+      "announcer": {
+        "started": "Die KI-Analyse wurde gestartet.",
+        "completed": "Die KI-Analyse ist abgeschlossen."
+      },
+      "cards": {
+        "tableOfContents": {
+          "title": "Inhaltsverzeichnis-Abgleich",
+          "description": "Erkennt Inhaltsverzeichnisse und gleicht deren Einträge mit den hochgeladenen Unterlagen ab, um fehlende Unterlagen zu identifizieren."
+        },
+        "requiredDocuments": {
+          "title": "Abgleich mit benötigten Unterlagen",
+          "description": "Analysiert Titel und Inhalte der Unterlagen, ordnet sie den Dokumenttypen zu und prüft die Vollständigkeit der erforderlichen Unterlagen."
+        },
+        "plausibility": {
+          "title": "Plausibilitätsprüfung",
+          "description": "Prüft inhaltliche Konsistenz der Unterlagen, validiert Querverweise und bewertet die Plausibilität der Aussagen."
+        }
+      },
+      "progress": {
+        "remainingTime": {
+          "minutes": "Verbleibende Zeit: ca. {{count}} Min.",
+          "hours": "Verbleibende Zeit: ca. {{count}} Std."
+        },
+        "almostDone": "Die Analyse dauert länger als erwartet. Der Vorgang läuft weiter.",
+        "done": "Abgeschlossen"
+      }
+    },
+    "startDialog": {
+      "title": "KI-Analyse der Unterlagen starten",
+      "description": "Mit dem Start der Verarbeitung beginnt die KI-gestützte formale Vollständigkeitsprüfung der vorliegenden Unterlagen. Dieser Vorgang kann mehrere Stunden in Anspruch nehmen. Während der Verarbeitung sind keine Änderungen am Verfahren möglich.\n\nHinweis: Wird aktuell bereits ein Verfahren durch die KI verarbeitet, starten Sie dieses Verfahren bitte erst nach Abschluss der laufenden Verarbeitung.",
+      "cancel": "Abbrechen",
+      "confirm": "KI-Analyse starten",
+      "error": "Der Workflow konnte nicht gestartet werden. Bitte erneut versuchen."
+    },
+    "allProcessed": {
+      "descriptions": {
+        "tableOfContents": "Die KI hat geprüft, ob alle im Inhaltsverzeichnis genannten Unterlagen vorliegen.",
+        "requiredDocuments": "Die KI hat geprüft, ob alle für diesen Verfahrenstyp benötigten Unterlagen vorliegen.",
+        "plausibility": "Die KI hat die Unterlagen auf Widersprüche oder Inkonsistenzen durchsucht."
+      }
+    }
+  },
+  "tabs": {
+    "formalCompletenessCheck": "1.1 Formale Vollständigkeitsprüfung",
+    "navigationAriaLabel": "Formale Vollständigkeitsprüfung und Plausibilitätsprüfung",
+    "plausibilityCheck": "1.2 Plausibilitätsprüfung"
+  },
+  "workflowStatus": {
+    "unknown": "Unbekannt",
+    "success": {
+      "title": "KI-gestützte Unterlagenprüfung erfolgreich abgeschlossen",
+      "dismissAriaLabel": "Erfolgsmeldung schließen"
+    },
+    "failed": {
+      "title": "Der KI-Workflow ist (teilweise) fehlgeschlagen"
+    },
+    "running": {
+      "title": "Der KI-Workflow läuft aktuell"
+    }
+  }
+}

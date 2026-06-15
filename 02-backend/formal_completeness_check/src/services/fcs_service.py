@@ -1,14 +1,20 @@
 """Service layer for document CRUD operations."""
 
+from http import HTTPStatus
+from typing import Any, Literal, TypedDict
 from uuid import UUID
 
 import httpx
+from audit_client import ChangeType, record_audit_entry
+from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
     EventOutcome,
     LogEventDefault,
 )
+from node_crud.exceptions import ProjectVersionLockedError
+from pydantic import TypeAdapter
 from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,6 +46,50 @@ from src.models.schemas.fcs_types import (
 )
 from src.utils.logger import logger
 
+Origin = Literal["system", "custom"]
+ORIGIN_ADAPTER = TypeAdapter(Origin)
+
+
+class DocumentAssignmentPatch(TypedDict, total=False):
+    human_required_document_type_id: UUID | None
+
+
+class RequiredDocumentTypePatch(TypedDict, total=False):
+    document_name: str
+    is_resolved: bool
+
+
+def _latest_version_from_response(body: dict[str, Any]) -> int:
+    latest_version = body.get("latest_version", body.get("latestVersion"))
+    if latest_version is None:
+        raise KeyError("latest_version")
+    return int(latest_version)
+
+
+async def _get_latest_project_version(project_id: UUID) -> int:
+    url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/latest-version"
+    async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        response = await client.get(url)
+        if response.status_code == HTTPStatus.NOT_FOUND:
+            raise NotFoundError(f"Project {project_id} not found in PLS")
+        response.raise_for_status()
+    return _latest_version_from_response(response.json())
+
+
+async def _validate_project_write_version(project_id: UUID, project_version: int) -> int:
+    url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/version-lock/validate-write"
+    async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        response = await client.post(url, json={"project_version": project_version})
+        if response.status_code == HTTPStatus.CONFLICT:
+            detail = response.json().get("detail", response.text)
+            raise ProjectVersionLockedError(str(project_id), detail)
+        response.raise_for_status()
+    return _latest_version_from_response(response.json())
+
+
+async def _get_latest_fcs_project_version(project_id: UUID, db: AsyncSession) -> int | None:
+    return await _get_latest_project_version(project_id)
+
 
 @retry(
     stop=stop_after_attempt(3),
@@ -57,10 +107,10 @@ async def _fetch_project_type_id(project_id: UUID) -> UUID:
     if not pls_url:
         raise NotFoundError("PROJECT_LOGIC_SERVICE_URL is not configured")
 
-    async with httpx.AsyncClient(timeout=5.0) as client:
+    async with httpx.AsyncClient(timeout=5.0, headers=internal_api_key_headers()) as client:
         response = await client.get(f"{pls_url}/projects/{project_id}")
 
-    if response.status_code == 404:
+    if response.status_code == HTTPStatus.NOT_FOUND:
         raise NotFoundError(f"Project {project_id} not found in PLS")
 
     response.raise_for_status()
@@ -76,6 +126,8 @@ async def _register_project(
     project_id: UUID,
     project_type_id: UUID,
     db: AsyncSession,
+    *,
+    project_version: int,
 ) -> UUID:
     """Register project to project_type mapping for template lookup.
 
@@ -97,6 +149,7 @@ async def _register_project(
 
     project_template_version = ProjectTemplateVersion(
         project_id=project_id,
+        project_version=project_version,
         project_type_id=project_type_id,
     )
     db.add(project_template_version)
@@ -105,7 +158,8 @@ async def _register_project(
     except IntegrityError:
         await db.rollback()
         existing_stmt = select(ProjectTemplateVersion.project_type_id).where(
-            ProjectTemplateVersion.project_id == project_id
+            ProjectTemplateVersion.project_id == project_id,
+            ProjectTemplateVersion.project_version == project_version,
         )
         existing_project_type_id = (await db.execute(existing_stmt)).scalar_one_or_none()
         if existing_project_type_id is None:
@@ -118,6 +172,8 @@ async def _register_project(
 async def get_template_document_types(
     project_id: UUID,
     db: AsyncSession,
+    *,
+    project_version: int,
 ) -> list[TemplateDocumentTypeResponse]:
     """Return template document types for a project.
 
@@ -125,13 +181,19 @@ async def get_template_document_types(
     registers it automatically (lazy registration).
     """
     project_template_version_stmt = select(ProjectTemplateVersion.project_type_id).where(
-        ProjectTemplateVersion.project_id == project_id
+        ProjectTemplateVersion.project_id == project_id,
+        ProjectTemplateVersion.project_version == project_version,
     )
     project_type_id = (await db.execute(project_template_version_stmt)).scalar_one_or_none()
 
     if project_type_id is None:
         project_type_id = await _fetch_project_type_id(project_id)
-        project_type_id = await _register_project(project_id, project_type_id, db)
+        project_type_id = await _register_project(
+            project_id,
+            project_type_id,
+            db,
+            project_version=project_version,
+        )
 
     # Query template document types for the assigned project type
     stmt = (
@@ -158,7 +220,7 @@ async def get_template_document_types(
     ]
 
 
-async def delete_all_for_project(project_id: UUID, db: AsyncSession) -> int:
+async def delete_all_for_project(project_id: UUID, db: AsyncSession, *, project_version: int = 1) -> int:
     """Delete all document types and documents for a project.
 
     Documents are deleted via cascade when document types are deleted.
@@ -178,17 +240,23 @@ async def delete_all_for_project(project_id: UUID, db: AsyncSession) -> int:
     )
 
     async with db.begin_nested():
-        unassigned_result = await db.execute(
+        connection = await db.connection()
+        unassigned_result = await connection.execute(
             delete(Document).where(
                 Document.project_id == project_id,
+                Document.project_version == project_version,
                 Document.ai_suggested_required_document_type_id.is_(None),
             )
         )
-        unassigned_deleted = unassigned_result.rowcount
+        doc_types_result = await connection.execute(
+            delete(DocumentType).where(
+                DocumentType.project_id == project_id,
+                DocumentType.project_version == project_version,
+            )
+        )
 
-        doc_types_result = await db.execute(delete(DocumentType).where(DocumentType.project_id == project_id))
-        doc_types_deleted = doc_types_result.rowcount
-
+    unassigned_deleted = unassigned_result.rowcount
+    doc_types_deleted = doc_types_result.rowcount
     total_deleted = unassigned_deleted + doc_types_deleted
     logger.info(
         EventAction.DELETE,
@@ -204,6 +272,8 @@ async def bulk_insert_results(
     project_id: UUID,
     results: FormalCompletenessCheckResults,
     db: AsyncSession,
+    *,
+    project_version: int = 1,
 ) -> None:
     """Insert document types, assigned documents, and unassigned documents from job results."""
     logger.info(
@@ -219,11 +289,15 @@ async def bulk_insert_results(
     for matched in results.matched_document_types:
         cat_name = matched.required_document_type.category
         if cat_name and cat_name not in category_cache:
-            cat_stmt = select(Category).where(Category.project_id == project_id, Category.name == cat_name)
+            cat_stmt = select(Category).where(
+                Category.project_id == project_id,
+                Category.project_version == project_version,
+                Category.name == cat_name,
+            )
             cat_result = await db.execute(cat_stmt)
             category = cat_result.scalar_one_or_none()
             if category is None:
-                category = Category(project_id=project_id, name=cat_name)
+                category = Category(project_id=project_id, project_version=project_version, name=cat_name)
                 db.add(category)
                 await db.flush()
             category_cache[cat_name] = category
@@ -231,11 +305,15 @@ async def bulk_insert_results(
     # Ensure the hardcoded "Benutzerdefiniert" category exists (no document types)
     custom_cat_name = "Benutzerdefiniert"
     if custom_cat_name not in category_cache:
-        cat_stmt = select(Category).where(Category.project_id == project_id, Category.name == custom_cat_name)
+        cat_stmt = select(Category).where(
+            Category.project_id == project_id,
+            Category.project_version == project_version,
+            Category.name == custom_cat_name,
+        )
         cat_result = await db.execute(cat_stmt)
         category = cat_result.scalar_one_or_none()
         if category is None:
-            category = Category(project_id=project_id, name=custom_cat_name)
+            category = Category(project_id=project_id, project_version=project_version, name=custom_cat_name)
             db.add(category)
             await db.flush()
         category_cache[custom_cat_name] = category
@@ -245,6 +323,7 @@ async def bulk_insert_results(
         category_id = category_cache[cat_name].id if cat_name and cat_name in category_cache else None
         doc_type = DocumentType(
             project_id=project_id,
+            project_version=project_version,
             category_id=category_id,
             name=matched.required_document_type.document_type_name,
             description=matched.required_document_type.document_type_description,
@@ -257,6 +336,7 @@ async def bulk_insert_results(
         for assigned in matched.assigned_documents:
             document = Document(
                 project_id=project_id,
+                project_version=project_version,
                 file_id=assigned.document_id,
                 ai_suggested_required_document_type_id=doc_type.id,
                 document_name=assigned.document_name,
@@ -269,6 +349,7 @@ async def bulk_insert_results(
     for unassigned in results.unassigned_documents:
         unassigned_doc = Document(
             project_id=project_id,
+            project_version=project_version,
             file_id=unassigned.document_id,
             ai_suggested_required_document_type_id=None,
             document_name=unassigned.document_name,
@@ -288,9 +369,149 @@ async def bulk_insert_results(
     )
 
 
+async def _get_or_create_category(
+    project_id: UUID,
+    project_version: int,
+    name: str,
+    db: AsyncSession,
+    cache: dict[str, Category],
+) -> Category:
+    if name in cache:
+        return cache[name]
+
+    stmt = select(Category).where(
+        Category.project_id == project_id,
+        Category.project_version == project_version,
+        Category.name == name,
+        Category.is_deleted.is_(False),
+    )
+    result = await db.execute(stmt)
+    category = result.scalar_one_or_none()
+    if category is None:
+        category = Category(project_id=project_id, project_version=project_version, name=name)
+        db.add(category)
+        await db.flush()
+    cache[name] = category
+    return category
+
+
+async def _upsert_document_type(
+    project_id: UUID,
+    project_version: int,
+    matched: MatchedDocumentTypeOutput,
+    db: AsyncSession,
+    category_cache: dict[str, Category],
+) -> DocumentType:
+    category_id = None
+    category_name = matched.required_document_type.category
+    if category_name:
+        category = await _get_or_create_category(project_id, project_version, category_name, db, category_cache)
+        category_id = category.id
+
+    stmt = select(DocumentType).where(
+        DocumentType.project_id == project_id,
+        DocumentType.project_version == project_version,
+        DocumentType.name == matched.required_document_type.document_type_name,
+        DocumentType.is_deleted.is_(False),
+    )
+    result = await db.execute(stmt)
+    doc_type = result.scalar_one_or_none()
+    if doc_type is None:
+        doc_type = DocumentType(
+            project_id=project_id,
+            project_version=project_version,
+            category_id=category_id,
+            name=matched.required_document_type.document_type_name,
+            description=matched.required_document_type.document_type_description,
+            confidence=matched.confidence,
+            origin="system",
+        )
+        db.add(doc_type)
+        await db.flush()
+        return doc_type
+
+    doc_type.category_id = category_id
+    doc_type.description = matched.required_document_type.document_type_description
+    doc_type.confidence = matched.confidence
+    doc_type.origin = "system"
+    await db.flush()
+    return doc_type
+
+
+def _result_file_ids(results: FormalCompletenessCheckResults) -> set[UUID]:
+    file_ids = {doc.document_id for doc in results.unassigned_documents}
+    for matched in results.matched_document_types:
+        file_ids.update(doc.document_id for doc in matched.assigned_documents)
+    return file_ids
+
+
+async def replace_results_for_files(
+    project_id: UUID,
+    results: FormalCompletenessCheckResults,
+    db: AsyncSession,
+    *,
+    project_version: int = 1,
+) -> int:
+    """Replace FCS rows only for files present in the result payload."""
+    file_ids = _result_file_ids(results)
+    if not file_ids:
+        return 0
+
+    delete_result = await db.execute(
+        delete(Document).where(
+            Document.project_id == project_id,
+            Document.project_version == project_version,
+            Document.file_id.in_(file_ids),
+        )
+    )
+    deleted_count = delete_result.rowcount
+
+    category_cache: dict[str, Category] = {}
+    await _get_or_create_category(project_id, project_version, "Benutzerdefiniert", db, category_cache)
+
+    for matched in results.matched_document_types:
+        if not matched.assigned_documents:
+            continue
+        doc_type = await _upsert_document_type(project_id, project_version, matched, db, category_cache)
+        for assigned in matched.assigned_documents:
+            if assigned.document_id not in file_ids:
+                continue
+            db.add(
+                Document(
+                    project_id=project_id,
+                    project_version=project_version,
+                    file_id=assigned.document_id,
+                    ai_suggested_required_document_type_id=doc_type.id,
+                    document_name=assigned.document_name,
+                    reasoning=assigned.reasoning,
+                    confidence=assigned.confidence,
+                    content_extraction_id=assigned.content_extraction_id,
+                )
+            )
+
+    for unassigned in results.unassigned_documents:
+        db.add(
+            Document(
+                project_id=project_id,
+                project_version=project_version,
+                file_id=unassigned.document_id,
+                ai_suggested_required_document_type_id=None,
+                document_name=unassigned.document_name,
+                reasoning=unassigned.reasoning,
+                confidence=unassigned.confidence,
+                content_extraction_id=unassigned.content_extraction_id,
+            )
+        )
+
+    await db.flush()
+    return deleted_count
+
+
 async def get_results_for_project(
     project_id: UUID,
     db: AsyncSession,
+    *,
+    project_version: int | None = None,
 ) -> FormalCompletenessCheckResults:
     """Reconstruct `FormalCompletenessCheckResults` from stored data."""
     logger.debug(
@@ -301,11 +522,17 @@ async def get_results_for_project(
         message=f"Fetching FCS results for project_id={project_id}",
     )
 
+    if project_version is None:
+        project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        return FormalCompletenessCheckResults(matched_document_types=[], unassigned_documents=[])
+
     type_stmt = (
         select(DocumentType)
         .where(
             DocumentType.project_id == project_id,
-            DocumentType.deleted.is_(False),
+            DocumentType.project_version == project_version,
+            DocumentType.is_deleted.is_(False),
         )
         .options(
             selectinload(DocumentType.assigned_documents),
@@ -327,6 +554,8 @@ async def get_results_for_project(
 
         assigned_documents: list[AssignedDocument] = []
         for document in doc_type.assigned_documents:
+            if document.file_id is None:
+                continue
             assigned_documents.append(
                 AssignedDocument(
                     document_id=document.file_id,
@@ -349,6 +578,7 @@ async def get_results_for_project(
 
     unassigned_stmt = select(Document).where(
         Document.project_id == project_id,
+        Document.project_version == project_version,
         Document.ai_suggested_required_document_type_id.is_(None),
     )
     unassigned_result = await db.execute(unassigned_stmt)
@@ -365,6 +595,7 @@ async def get_results_for_project(
             content_extraction_id=doc.content_extraction_id,
         )
         for doc in unassigned_docs
+        if doc.file_id is not None
     ]
 
     logger.debug(
@@ -383,12 +614,23 @@ async def get_results_for_project(
 async def get_required_document_types_by_category(
     project_id: UUID,
     db: AsyncSession,
+    *,
+    project_version: int | None = None,
 ) -> RequiredDocumentTypesResponse:
     """Return categories with their document types for a project."""
+    if project_version is None:
+        project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        return RequiredDocumentTypesResponse(categories=[])
+
     stmt = (
         select(Category)
-        .where(Category.project_id == project_id)
-        .options(selectinload(Category.document_types.and_(DocumentType.deleted.is_(False))))
+        .where(
+            Category.project_id == project_id,
+            Category.project_version == project_version,
+            Category.is_deleted.is_(False),
+        )
+        .options(selectinload(Category.document_types.and_(DocumentType.is_deleted.is_(False))))
         .order_by(Category.name.asc())
     )
     result = await db.execute(stmt)
@@ -403,11 +645,11 @@ async def get_required_document_types_by_category(
                     RequiredDocumentResponse(
                         document_type_id=dt.id,
                         document_name=dt.name,
-                        origin=dt.origin,
+                        origin=ORIGIN_ADAPTER.validate_python(dt.origin),
                         is_resolved=dt.is_resolved,
                     )
                     for dt in cat.document_types
-                    if not dt.deleted
+                    if not dt.is_deleted
                 ],
             )
             for cat in categories
@@ -418,12 +660,102 @@ async def get_required_document_types_by_category(
 CUSTOM_CATEGORY_NAME = "Benutzerdefiniert"
 
 
+async def initialize_required_document_types_from_templates(
+    project_id: UUID,
+    project_type_id: UUID,
+    db: AsyncSession,
+    *,
+    project_version: int,
+) -> None:
+    """Persist baseline required document types for a project version."""
+    template_stmt = (
+        select(TemplateCategory)
+        .where(
+            TemplateCategory.project_type_id == project_type_id,
+            TemplateCategory.deleted.is_(False),
+        )
+        .options(selectinload(TemplateCategory.template_document_types.and_(TemplateDocumentType.deleted.is_(False))))
+    )
+    template_categories = (await db.execute(template_stmt)).scalars().unique().all()
+    if not template_categories:
+        raise NotFoundError(f"No template categories found for project_type_id={project_type_id}")
+
+    project_template_version = (
+        await db.execute(
+            select(ProjectTemplateVersion).where(
+                ProjectTemplateVersion.project_id == project_id,
+                ProjectTemplateVersion.project_version == project_version,
+                ProjectTemplateVersion.is_deleted.is_(False),
+            )
+        )
+    ).scalar_one_or_none()
+    if project_template_version is None:
+        db.add(
+            ProjectTemplateVersion(
+                project_id=project_id,
+                project_version=project_version,
+                project_type_id=project_type_id,
+            )
+        )
+    elif project_template_version.project_type_id is None:
+        project_template_version.project_type_id = project_type_id
+
+    category_cache: dict[str, Category] = {}
+    await _get_or_create_category(project_id, project_version, CUSTOM_CATEGORY_NAME, db, category_cache)
+
+    document_type_rows = (
+        await db.execute(
+            select(DocumentType).where(
+                DocumentType.project_id == project_id,
+                DocumentType.project_version == project_version,
+                DocumentType.is_deleted.is_(False),
+            )
+        )
+    ).scalars()
+    document_types_by_name = {document_type.name: document_type for document_type in document_type_rows}
+
+    for template_category in template_categories:
+        category = await _get_or_create_category(
+            project_id, project_version, template_category.name, db, category_cache
+        )
+        for template_document_type in template_category.template_document_types:
+            document_type = document_types_by_name.get(template_document_type.name)
+            if document_type is None:
+                document_type = DocumentType(
+                    project_id=project_id,
+                    project_version=project_version,
+                    category_id=category.id,
+                    name=template_document_type.name,
+                    description=template_document_type.description,
+                    origin="system",
+                )
+                db.add(document_type)
+                document_types_by_name[document_type.name] = document_type
+                continue
+            if document_type.origin == "system":
+                document_type.category_id = category.id
+                document_type.description = template_document_type.description
+
+    await db.commit()
+
+
 async def get_document_assignments(
     project_id: UUID,
     db: AsyncSession,
+    *,
+    project_version: int | None = None,
 ) -> DocumentAssignmentsResponse:
     """Return AI-suggested vs human document type assignments for all documents in a project."""
-    stmt = select(Document).where(Document.project_id == project_id)
+    if project_version is None:
+        project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        return DocumentAssignmentsResponse(items=[])
+
+    stmt = select(Document).where(
+        Document.project_id == project_id,
+        Document.project_version == project_version,
+        Document.is_deleted.is_(False),
+    )
     result = await db.execute(stmt)
     documents = result.scalars().all()
 
@@ -443,8 +775,9 @@ async def get_document_assignments(
 async def patch_document_by_file_id(
     project_id: UUID,
     file_id: UUID,
-    patch: dict,
+    patch: DocumentAssignmentPatch,
     db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> DocumentAssignmentItem:
     """Update the human document type assignment for a document identified by file_id.
 
@@ -453,9 +786,16 @@ async def patch_document_by_file_id(
     Raises:
         NotFoundError: If the document is not found or the target document type does not exist.
     """
+    project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        raise NotFoundError(f"Document not found for project_id={project_id}, file_id={file_id}")
+    await _validate_project_write_version(project_id, project_version)
+
     stmt = select(Document).where(
         Document.file_id == file_id,
         Document.project_id == project_id,
+        Document.project_version == project_version,
+        Document.is_deleted.is_(False),
     )
     result = await db.execute(stmt)
     document = result.scalar_one_or_none()
@@ -467,8 +807,9 @@ async def patch_document_by_file_id(
             await db.execute(
                 select(DocumentType.id).where(
                     DocumentType.project_id == project_id,
+                    DocumentType.project_version == project_version,
                     DocumentType.id == patch["human_required_document_type_id"],
-                    DocumentType.deleted.is_(False),
+                    DocumentType.is_deleted.is_(False),
                 )
             )
         ).scalar_one_or_none()
@@ -479,7 +820,18 @@ async def patch_document_by_file_id(
 
     if "human_required_document_type_id" in patch:
         document.human_required_document_type_id = patch["human_required_document_type_id"]
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="document",
+            entity_id=document.id,
+            change_type=ChangeType.UPDATE,
+            **audit_context,
+        )
     await db.commit()
+    if document.file_id is None:
+        raise NotFoundError(f"Document has no file_id for project_id={project_id}, file_id={file_id}")
     return DocumentAssignmentItem(
         file_id=document.file_id,
         ai_suggested_required_document_type_id=document.ai_suggested_required_document_type_id,
@@ -487,13 +839,18 @@ async def patch_document_by_file_id(
     )
 
 
-async def _get_custom_category(project_id: UUID, db: AsyncSession) -> Category:
+async def _get_custom_category(project_id: UUID, project_version: int, db: AsyncSession) -> Category:
     """Return the 'Benutzerdefiniert' category for a project.
 
     Raises:
         NotFoundError: If the category does not exist (project not initialized).
     """
-    stmt = select(Category).where(Category.project_id == project_id, Category.name == CUSTOM_CATEGORY_NAME)
+    stmt = select(Category).where(
+        Category.project_id == project_id,
+        Category.project_version == project_version,
+        Category.name == CUSTOM_CATEGORY_NAME,
+        Category.is_deleted.is_(False),
+    )
     result = await db.execute(stmt)
     category = result.scalar_one_or_none()
     if category is None:
@@ -502,12 +859,21 @@ async def _get_custom_category(project_id: UUID, db: AsyncSession) -> Category:
 
 
 async def create_custom_document_type(
-    project_id: UUID, document_name: str, db: AsyncSession
+    project_id: UUID,
+    document_name: str,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> RequiredDocumentResponse:
     """Create a new document type in the 'Benutzerdefiniert' category."""
-    category = await _get_custom_category(project_id, db)
+    project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        raise NotFoundError(f"Category '{CUSTOM_CATEGORY_NAME}' not found for project_id={project_id}")
+    await _validate_project_write_version(project_id, project_version)
+
+    category = await _get_custom_category(project_id, project_version, db)
     doc_type = DocumentType(
         project_id=project_id,
+        project_version=project_version,
         category_id=category.id,
         name=document_name,
         description="",
@@ -515,17 +881,30 @@ async def create_custom_document_type(
     )
     db.add(doc_type)
     await db.flush()
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="document_type",
+            entity_id=doc_type.id,
+            change_type=ChangeType.CREATE,
+            **audit_context,
+        )
     await db.commit()
     return RequiredDocumentResponse(
         document_type_id=doc_type.id,
         document_name=doc_type.name,
-        origin=doc_type.origin,
+        origin=ORIGIN_ADAPTER.validate_python(doc_type.origin),
         is_resolved=doc_type.is_resolved,
     )
 
 
 async def patch_required_document_type(
-    project_id: UUID, document_type_id: UUID, patch: dict, db: AsyncSession
+    project_id: UUID,
+    document_type_id: UUID,
+    patch: RequiredDocumentTypePatch,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> RequiredDocumentResponse:
     """Partially update a required document type.
 
@@ -536,10 +915,16 @@ async def patch_required_document_type(
         NotFoundError: If the document type is not found.
         ForbiddenError: If `document_name` is patched on a system document type.
     """
+    project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        raise NotFoundError(f"Document type not found for project_id={project_id}, document_type_id={document_type_id}")
+    await _validate_project_write_version(project_id, project_version)
+
     stmt = select(DocumentType).where(
         DocumentType.id == document_type_id,
         DocumentType.project_id == project_id,
-        DocumentType.deleted.is_(False),
+        DocumentType.project_version == project_version,
+        DocumentType.is_deleted.is_(False),
     )
     result = await db.execute(stmt)
     doc_type = result.scalar_one_or_none()
@@ -556,16 +941,30 @@ async def patch_required_document_type(
     if "is_resolved" in patch:
         doc_type.is_resolved = patch["is_resolved"]
 
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="document_type",
+            entity_id=doc_type.id,
+            change_type=ChangeType.UPDATE,
+            **audit_context,
+        )
     await db.commit()
     return RequiredDocumentResponse(
         document_type_id=doc_type.id,
         document_name=doc_type.name,
-        origin=doc_type.origin,
+        origin=ORIGIN_ADAPTER.validate_python(doc_type.origin),
         is_resolved=doc_type.is_resolved,
     )
 
 
-async def delete_custom_document_type(project_id: UUID, document_type_id: UUID, db: AsyncSession) -> None:
+async def delete_custom_document_type(
+    project_id: UUID,
+    document_type_id: UUID,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
+) -> None:
     """Soft delete a required document type.
 
     Only allowed for custom (origin=custom) types. Sets the document type as deleted
@@ -575,12 +974,18 @@ async def delete_custom_document_type(project_id: UUID, document_type_id: UUID, 
         NotFoundError: If the document type is not found.
         ForbiddenError: If the document type is a system type.
     """
+    project_version = await _get_latest_fcs_project_version(project_id, db)
+    if project_version is None:
+        raise NotFoundError(f"Document type not found for project_id={project_id}, document_type_id={document_type_id}")
+    await _validate_project_write_version(project_id, project_version)
+
     stmt = (
         select(DocumentType)
         .where(
             DocumentType.id == document_type_id,
             DocumentType.project_id == project_id,
-            DocumentType.deleted.is_(False),
+            DocumentType.project_version == project_version,
+            DocumentType.is_deleted.is_(False),
         )
         .options(selectinload(DocumentType.assigned_documents))
     )
@@ -594,7 +999,7 @@ async def delete_custom_document_type(project_id: UUID, document_type_id: UUID, 
         raise ForbiddenError(f"Cannot delete a system document type (document_type_id={document_type_id})")
 
     # Soft delete the document type
-    doc_type.deleted = True
+    doc_type.is_deleted = True
 
     # Clear AI assignment for documents linked via ai_suggested_required_document_type_id
     for document in doc_type.assigned_documents:
@@ -603,10 +1008,20 @@ async def delete_custom_document_type(project_id: UUID, document_type_id: UUID, 
     # Clear human assignment for any document that manually points to this type
     human_assigned_stmt = select(Document).where(
         Document.project_id == project_id,
+        Document.project_version == project_version,
         Document.human_required_document_type_id == document_type_id,
     )
     human_assigned_result = await db.execute(human_assigned_stmt)
     for document in human_assigned_result.scalars().all():
         document.human_required_document_type_id = None
 
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="document_type",
+            entity_id=doc_type.id,
+            change_type=ChangeType.DELETE,
+            **audit_context,
+        )
     await db.commit()

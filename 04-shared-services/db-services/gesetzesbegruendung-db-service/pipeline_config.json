@@ -1,0 +1,11 @@
+[
+    {
+        "source": "dip_druck",
+        "hierarchy": "bund",
+        "bundesland": null,
+        "overwrite": false,
+        "extra": {
+            "api_key": ""
+        }
+    }
+]

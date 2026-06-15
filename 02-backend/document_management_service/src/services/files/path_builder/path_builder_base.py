@@ -68,11 +68,11 @@ class PathBuilder(ABC):
 
         sanitized_parts = []
         for part in parts:
-            part = re.sub(r'[<>:"\\|?*\x00-\x1F ]', "_", part)
-            part = re.sub(r"\.+", ".", part)
-            part = part.strip(" .")
-            if part:
-                sanitized_parts.append(part)
+            sanitized = re.sub(r'[<>:"\\|?*\x00-\x1F ]', "_", part)
+            sanitized = re.sub(r"\.+", ".", sanitized)
+            sanitized = sanitized.strip(" .")
+            if sanitized:
+                sanitized_parts.append(sanitized)
 
         sanitized_name = PurePosixPath("/".join(part for part in sanitized_parts))
 

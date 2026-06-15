@@ -17,7 +17,7 @@ class Occurrence(BaseModel):
 
     document_id: str = Field(
         alias="documentId",
-        description="Identifier of the document containing the claim.",
+        description="Identifier of the raw source document containing the claim (Qdrant `source_file_id`).",
     )
     document_name: str | None = Field(
         alias="documentName",
@@ -27,9 +27,7 @@ class Occurrence(BaseModel):
         alias="contentExcerpt",
         description="Text excerpt illustrating the contradiction.",
     )
-    contradiction: str = Field(
-        description="Description of the contradiction identified in this occurrence."
-    )
+    contradiction: str = Field(description="Description of the contradiction identified in this occurrence.")
     page_number: int | None = Field(
         default=None,
         alias="pageNumber",
@@ -47,12 +45,14 @@ class Contradiction(BaseModel):
             "understandable even without reading the full explanation."
         )
     )
-    description: str = Field(
-        description="Detailed contradiction explanation from the cluster summarizer."
+    description: str = Field(description="Detailed contradiction explanation from the cluster summarizer.")
+    rating: int | None = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Strongest verified contradiction rating contributing to this contradiction.",
     )
-    status: ContradictionStatus = Field(
-        description="Current lifecycle state of this contradiction."
-    )
+    status: ContradictionStatus = Field(description="Current lifecycle state of this contradiction.")
     occurrences: list[Occurrence] = Field(
         default_factory=list,
         description="Concrete document occurrences supporting this contradiction.",
@@ -62,6 +62,4 @@ class Contradiction(BaseModel):
 class DocumentOutput(BaseModel):
     """Document-level output payload uploaded as the temporal checkpoint."""
 
-    contradictions: list[Contradiction] = Field(
-        description="Contradictions identified for the processed document."
-    )
+    contradictions: list[Contradiction] = Field(description="Contradictions identified for the processed document.")

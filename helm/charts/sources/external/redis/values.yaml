@@ -1,0 +1,50 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  registry: <container-registry>
+  repository: "redis"
+  tag: "<image-tag>"
+  pullPolicy: IfNotPresent
+
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+imagePullSecrets: []
+
+# Authentication. When enabled, requirepass is passed as a command-line
+# argument so the password never appears in the ConfigMap.
+auth:
+  enabled: false
+  # Supply a plaintext password (chart creates a Secret) OR reference an
+  # existing Secret. Using an existing Secret is preferred for production.
+  password: ""
+  existingSecret: ""
+  existingSecretPasswordKey: "redis-password"
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+persistence:
+  enabled: true
+  storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 1Gi
+
+service:
+  type: ClusterIP
+  port: 6379
+
+# Extra redis.conf directives appended verbatim after the generated config.
+# Example:
+#   extraConfig: |
+#     appendonly yes
+#     maxmemory 256mb
+#     maxmemory-policy allkeys-lru
+extraConfig: ""
+
+labels: {}

@@ -17,10 +17,10 @@ from src.workflows.species_scale.prompt import (
 )
 
 __all__ = [
-    "BatchedSpeciesAndScaleResponse",
-    "SpeciesAndScaleResult",
     "BATCHED_SPECIES_SCALE_SYSTEM_PROMPT",
     "BATCHED_SPECIES_SCALE_USER_TEMPLATE",
     "SPECIES_SCALE_SYSTEM_PROMPT",
     "SPECIES_SCALE_USER_TEMPLATE",
+    "BatchedSpeciesAndScaleResponse",
+    "SpeciesAndScaleResult",
 ]

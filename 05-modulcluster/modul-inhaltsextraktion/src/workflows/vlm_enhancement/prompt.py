@@ -71,7 +71,7 @@ Erkenne die Tabellenstruktur sorgfältig und gib sie als valides HTML zurück (<
 - Eine typische Tabelle sollte unter 5000 Zeichen bleiben
 
 **Technische Zeichnungen, Pläne, Karten, Luftbilder:**
-Diese Dokumente stammen aus Genehmigungsverfahren für Leitungen und Infrastrukturprojekte. Sie enthalten oft Lagepläne, Trassenverläufe, Flurstückskarten oder Umweltkarten.
+Diese Dokumente stammen aus Genehmigungsverfahren für Gasleitungen und Infrastrukturprojekte. Sie enthalten oft Lagepläne, Trassenverläufe, Flurstückskarten oder Umweltkarten.
 - Extrahiere alle sichtbaren Textbeschriftungen (Ortsnamen, Straßennamen, Flurstücksnummern, Legendeneinträge, Maßstabsangaben, Koordinaten)
 - Ordne den Text in logischer Lesereihenfolge (oben nach unten, links nach rechts)
 - Trenne räumlich getrennte Beschriftungen durch Zeilenumbrüche

@@ -1,5 +1,6 @@
+from audit_client import AuditContextMiddleware, audit_actor_dependency
 from event_logging.middleware import EventLoggingMiddleware
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from src.api.middlewares.cors import add_cors
@@ -13,6 +14,7 @@ from src.utils.lifespan import lifespan
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(AuditContextMiddleware)
 app.add_middleware(
     EventLoggingMiddleware,
     service_name=settings.SERVICE_NAME,
@@ -24,5 +26,5 @@ Instrumentator().instrument(app).expose(app)
 
 register_exception_handlers(app)
 
-app.include_router(comment_router)
+app.include_router(comment_router, dependencies=[Depends(audit_actor_dependency)])
 app.include_router(probe_router)

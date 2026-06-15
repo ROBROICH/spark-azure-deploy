@@ -37,5 +37,4 @@ class HTTPMethodRestrictionsMiddleware(BaseHTTPMiddleware):
                 detail=f"HTTP method '{request.method}' is not allowed",
             )
 
-        response = await call_next(request)
-        return response
+        return await call_next(request)

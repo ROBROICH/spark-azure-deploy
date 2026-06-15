@@ -4,7 +4,6 @@ This module performs the **plausibility check** ("Plausibilitätsprüfung") of l
 It extracts structured factual claims from preprocessed document chunks, compares semantically related
 statements and identifies likely contradictions across a project.
 
-
 ## Core Features
 
 - **Three-Phase Pipeline**: Claim extraction → plausibility check → result aggregation
@@ -13,22 +12,22 @@ statements and identifies likely contradictions across a project.
 - **Multi-Stage Contradiction Detection**: Risk screening (0–100 score, configurable threshold) → context-aware verification → clustering and summarization. Symmetric pairs are deduplicated before screening
 - **DMS Checkpoint Outputs**: Uploads per-document and aggregated project-level result JSON files to the DMS
 
-
-## System Architecture
+## Architecture
 
 ### Overview
 
-Executed asynchronously in Temporal. Depends on preprocessed data from *Modul Inhaltsextraktion* (chunked documents and summaries in Qdrant / DMS). Builds a claim index, runs plausibility checks and uploads contradiction results back to the DMS.
+Executed asynchronously in Temporal. Depends on preprocessed data from **Modul Inhaltsextraktion** (chunked documents and summaries in Qdrant / DMS). Builds a claim index, runs plausibility checks and uploads contradiction results back to the DMS.
 
-### Workflow
+### Workflow Overview
+
 ```mermaid
 sequenceDiagram
     autonumber
-    participant DMS as Document Management Service
+    participant DMS as Dienst Dokumentenmanagementsystem
     participant Temporal as Temporal Service
     participant PPAgent as Modul Plausibilitätsprüfung
-    participant Qdrant as Qdrant
-    participant LiteLLM as LiteLLM Proxy
+    participant Qdrant as Vektordatenbank
+    participant LiteLLM as LLM-Proxy
 
     Note over DMS,LiteLLM: Phase 1: Claim Extraction and Indexing
     Temporal-->>PPAgent: Start PlausibilityMainOrchestratorWorkflow
@@ -65,14 +64,13 @@ sequenceDiagram
 
 ### Dependencies
 
-| Service | Link | Purpose |
-|---------|------|---------|
-| Modul Inhaltsextraktion | [module-inhaltsextraktion](../modul-inhaltsextraktion/README.md) | Chunked document content, summaries, and Qdrant data collections |
-| Modul Formale Vollständigkeitsprüfung | [module-formale-pruefung](../modul-formale-pruefung/README.md) | Optional classification output to identify Erläuterungsbericht documents |
-| Document Management Service | [document_management_service](../../02-backend/document_management_service/README.md) | Source documents, extraction outputs, and checkpoint storage |
-| Temporal | [temporal](../../04-shared-services/temporal/README.md) | Asynchronous workflow orchestration |
-| LiteLLM Proxy | [litellm-proxy](../../04-shared-services/basiskomponenten/litellm-proxy/README.md) | OpenAI-compatible gateway for all LLM/embedding calls |
-
+| Service                                   | Purpose                                                                  |
+| ----------------------------------------- | ------------------------------------------------------------------------ |
+| **Modul Inhaltsextraktion**               | Chunked document content, summaries, and Qdrant data collections         |
+| **Modul formale Vollständigkeitsprüfung** | Optional classification output to identify Erläuterungsbericht documents |
+| **Dienst Dokumentenmanagementsystem**     | Source documents, extraction outputs, and checkpoint storage             |
+| **Temporal**                              | Asynchronous workflow orchestration                                      |
+| **LLM-Proxy**                             | OpenAI-compatible gateway for all LLM/embedding calls                    |
 
 ## Output Schema
 
@@ -82,23 +80,23 @@ Writes one JSON file per document and one aggregated file. Both share the same s
 
 ### Contradiction Object
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | string (UUID) | Unique identifier |
-| `title` | string | Short summary |
-| `description` | string | Detailed explanation from cluster summarizer |
-| `status` | `"OPEN"` \| `"CLOSED"` | Always `"OPEN"` when produced; `"CLOSED"` reserved for downstream |
-| `occurrences` | array of Occurrence | Document locations evidencing the contradiction |
+| Field         | Type                   | Description                                                       |
+| ------------- | ---------------------- | ----------------------------------------------------------------- |
+| `id`          | string (UUID)          | Unique identifier                                                 |
+| `title`       | string                 | Short summary                                                     |
+| `description` | string                 | Detailed explanation from cluster summarizer                      |
+| `status`      | `"OPEN"` \| `"CLOSED"` | Always `"OPEN"` when produced; `"CLOSED"` reserved for downstream |
+| `occurrences` | array of Occurrence    | Document locations evidencing the contradiction                   |
 
 ### Occurrence Object
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `documentId` | string (UUID) | Source document ID in the DMS |
-| `documentName` | string \| null | Human-readable document title |
-| `contentExcerpt` | string | Text excerpt illustrating the contradiction |
-| `contradiction` | string | Description of the contradiction at this location |
-| `pageNumber` | integer \| null | Page number, if available |
+| Field            | Type            | Description                                       |
+| ---------------- | --------------- | ------------------------------------------------- |
+| `documentId`     | string (UUID)   | Source document ID in the DMS                     |
+| `documentName`   | string \| null  | Human-readable document title                     |
+| `contentExcerpt` | string          | Text excerpt illustrating the contradiction       |
+| `contradiction`  | string          | Description of the contradiction at this location |
+| `pageNumber`     | integer \| null | Page number, if available                         |
 
 <details>
 <summary> Domain-specific example (based on German planning applications (Planfeststellungsverfahren))</summary>
@@ -145,40 +143,52 @@ Writes one JSON file per document and one aggregated file. Both share the same s
 
 ```
 ├── main.py                     # Temporal worker entry point
-├── run_workflow.py              # CLI to trigger workflows locally
-├── run_workflow_config.yaml.example  # Example workflow trigger config
 ├── scripts/                    # Utility scripts (e.g. port forwarding)
 └── src/
-    ├── activities/             # Temporal activities (I/O and LLM operations)
+    ├── activities/             # Temporal activities (I/O operations; LLM calls are routed to the shared llm-client)
     ├── config/                 # Configuration and environment variables
     ├── dms/                    # DMS client and schemas
-    ├── models/                 # LLM and embedding client factories
     ├── qdrant/                 # Qdrant client and schemas
-    └── workflows/              # Temporal workflows (orchestration logic)
+    └── workflows/              # Temporal workflows (orchestration logic, incl. LLM/embedding invocations)
 ```
 
 ## Getting Started
 
 ### Prerequisites
 
-- [uv](https://docs.astral.sh/uv/)
+- `uv` package manager
 - Shared platform services from the [root README](../../README.md#dependencies) when running locally
 
-### Configuration
+### Environment Variables
 
-1. **Environment Variables**: Create `.env` based on `.env.local`. Configure LiteLLM, Qdrant, DMS, Temporal, S3 payload storage (`TEMPORAL_S3_*`), and OpenTelemetry settings. `TEMPORAL_LLM_MAX_PER_SECOND` controls LLM dispatch rate. `QDRANT_VECTOR_SIZE` must match the output dimensions of the configured embedding model (e.g. `BAAI/bge-m3` produces 1024-dimensional vectors).
+Create `.env` based on `.env.example`. Configure LiteLLM model names (`LITELLM_MODEL`, `LITELLM_EMBEDDING_MODEL`), Qdrant, DMS, Temporal, S3 payload storage (`TEMPORAL_S3_*`), and OpenTelemetry settings. The LiteLLM proxy connection (base URL, master key) and LLM rate limiting are handled by the shared llm-client workers.
 
-2. **Workflow Trigger Config** (for local test runs):
-   ```bash
-   cp run_workflow_config.yaml.example run_workflow_config.yaml
-   ```
-   Then edit `run_workflow_config.yaml` with your `project_id`, `document_ids`, and optional `classification_file_id`.
+Loaded from environment / `.env` by `src/config/env.py`. The `LITELLM_`, `QDRANT_`, and `TEMPORAL_` groups use pydantic-settings nested delimiter `_`. See `.env.example` for a template.
 
-### Running the Application
+| Variable                        | Description                                             | Default                        | Required |
+| ------------------------------- | ------------------------------------------------------- | ------------------------------ | -------- |
+| `LITELLM_MODEL`                 | Chat model name (routed via the shared llm-client)      | `self-hosted/gpt-oss-120b`     | yes      |
+| `LITELLM_EMBEDDING_MODEL`       | Embedding model name (routed via the shared llm-client) | `self-hosted/BAAI/bge-m3`      | yes      |
+| `QDRANT_CLUSTER_ENDPOINT`       | Qdrant cluster HTTP endpoint                            | `http://localhost:6333`        | yes      |
+| `QDRANT_VECTOR_SIZE`            | Dense vector dimension                                  | `1024`                         | no       |
+| `DMS_BASE_URL`                  | Document Management Service URL                         | `http://localhost:8000`        | yes      |
+| `TEMPORAL_HOST`                 | Temporal frontend address                               | `localhost:7233`               | yes      |
+| `TEMPORAL_S3_BUCKET_NAME`       | S3 bucket for large Temporal payloads                   | `temporal-payloads`            | yes      |
+| `TEMPORAL_S3_ENDPOINT_URL`      | S3/MinIO endpoint                                       | `http://localhost:9000`        | yes      |
+| `TEMPORAL_S3_ACCESS_KEY_ID`     | S3 access key                                           | `minioadmin` _(local default)_ | yes      |
+| `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key                                           | `minioadmin` _(local default)_ | yes      |
+| `TEMPORAL_S3_REGION`            | S3 region                                               | `eu-west-1`                    | yes      |
+| `OTEL_SERVICE_NAME`             | OpenTelemetry service name                              | `plausibilitaet_pruefung`      | yes      |
+| `OTEL_ENDPOINT`                 | OpenTelemetry collector gRPC endpoint                   | `http://localhost:4317`        | yes      |
+
+The worker task queue is fixed by the shared Temporal workflow contract.
+
+### Running the Module
 
 #### In Development
 
 1. **Setup Python Environment** (run from the repository root):
+
    ```bash
    uv venv --python 3.13
    uv sync --package plausibilitaets-pruefung
@@ -188,35 +198,27 @@ Writes one JSON file per document and one aggregated file. Both share the same s
 
    ```bash
    docker compose up -d
-   # Optionally also DMS and LiteLLM:
-   docker compose -f docker-compose.services.yaml up -d
    ```
 
    Alternatively, point environment variables to an existing deployment.
 
-3. **Start the Temporal Workers**:
+3. **Start the Temporal Worker**:
+
    ```bash
    uv run main.py
    ```
-   This starts two workers:
-   - the main worker on `plausibilitaets-pruefung`
-   - the LLM worker on `plausibilitaets-pruefung-llm`
 
-4. **Trigger a Local Test Workflow**:
-   ```bash
-   uv run run_workflow.py
-   ```
+   This starts a single worker on the `plausibilitaet-pruefung` task queue. LLM and embedding invocations are dispatched as shared `llm_invoke`/`embedding_invoke` activities and handled by the central llm-client workers (auto-routed via task queue derived from the configured model name).
 
 #### Manual Workflow Trigger via Temporal UI
 
 Task Queue: `plausibilitaet-pruefung`  
 Workflow Type: `PlausibilityMainOrchestratorWorkflow`
+
 ```json
 {
   "project_id": "00000000-0000-0000-0000-000000000000",
-  "document_ids": [
-    "00000000-0000-0000-0000-000000000001"
-  ],
+  "document_ids": ["00000000-0000-0000-0000-000000000001"],
   "classification_file_id": "00000000-0000-0000-0000-000000000002"
 }
 ```
@@ -227,14 +229,12 @@ Workflow Type: `PlausibilityMainOrchestratorWorkflow`
 
 Start Temporal workers and ensure DMS, Qdrant, LiteLLM, and the upstream extraction pipeline are available. Trigger workflows via backend orchestration or Temporal UI.
 
-
 ## Monitoring
 
 - **Temporal Web UI**: Workflow execution, activity retries, child workflow progress
 - **DMS Outputs**: Per-document files (`plausibility_{document_id}_{run_id}.json`) and aggregated file (`aggregated_plausibility_results_{run_id}.json`)
 - **Qdrant**: Verify `plausibility` collection is populated and upstream `data` collection has chunk payloads
 - **OpenTelemetry / Logs**: LLM failures, upload errors, missing upstream metadata
-
 
 ## Troubleshooting
 
@@ -248,7 +248,7 @@ Verify that the upstream Qdrant `data` collection contains extracted chunks for 
 <details>
 <summary>No Erläuterungsbericht Documents Detected</summary>
 
-Check whether `classification_file_id` points to a valid classification JSON in the DMS. The workflow still runs without it, but retrieval is less specialized.
+Check whether `classification_file_id` points to a valid classification JSON in the DMS. The workflow still runs without it but retrieval is less specialized.
 
 </details>
 
@@ -262,7 +262,7 @@ Confirm that `QDRANT_CLUSTER_ENDPOINT` is correct and that the upstream extracti
 <details>
 <summary>LLM Rate Limits or Slow Runs</summary>
 
-Review model quotas, LiteLLM routing, and `TEMPORAL_LLM_MAX_PER_SECOND`.
+Review model quotas and LiteLLM routing. Rate limiting and concurrency are now governed by the shared llm-client workers, not by this module.
 
 </details>
 

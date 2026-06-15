@@ -25,4 +25,3 @@ class LoggingSettings(BaseSettings):
     def pretty_print(self) -> bool:
         """Enable pretty print for development environments."""
         return self.env in (Environment.DEVELOPMENT, "development", "dev")
-

@@ -2,6 +2,9 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field
+from temporal.workflows.inhaltsextraktion.types import DocumentTopic
+
+from src.models.schemas.temporal.diplan import DiPlanFolderInformation
 
 
 class FVPWorkflowRequest(BaseModel):
@@ -21,17 +24,13 @@ class DocumentTypeDefinition(BaseModel):
 class FullFVPWorkflowInput(BaseModel):
     project_id: str
     file_ids: list[str]
-    document_types: list[DocumentTypeDefinition]
-
-
-class SendFVPResultsActivityArgs(BaseModel):
-    project_id: str
-    file_id: str
-
-
-class SendPlausibilityResultsActivityArgs(BaseModel):
-    project_id: str
-    file_id: str
+    candidate_file_ids: list[str] = Field(default_factory=list)
+    dokument_id_by_file_id: dict[str, str] = Field(default_factory=dict)
+    has_toc_document: bool = False
+    incremental: bool = False
+    topics: list[DocumentTopic]
+    document_types: list[DocumentTypeDefinition] | list[DiPlanFolderInformation]
+    diplan_preprocessing: bool = False
 
 
 class FVPExtractionWorkflowResultItem(BaseModel):

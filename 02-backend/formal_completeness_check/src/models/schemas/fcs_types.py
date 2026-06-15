@@ -8,9 +8,7 @@ from pydantic.config import ConfigDict
 class SuccessResponse(BaseModel):
     """Generic success response for simple operations."""
 
-    success: bool = Field(
-        True, description="Indicates whether the operation was successful"
-    )
+    success: bool = Field(True, description="Indicates whether the operation was successful")
 
 
 class DocumentTypeDefinition(BaseModel):
@@ -124,9 +122,7 @@ class FormalCompletenessCheckResults(BaseModel):
 class JobDoneRequest(BaseModel):
     """Request payload for the job-done endpoint."""
 
-    file_id: UUID = Field(
-        ..., description="File ID pointing to the data.json with results"
-    )
+    file_id: UUID = Field(..., description="File ID pointing to the data.json with results")
 
 
 class JobDoneResponse(BaseModel):
@@ -178,6 +174,12 @@ class CreateRequiredDocumentTypeRequest(BaseModel):
     document_name: str
 
 
+class InitializeRequiredDocumentTypesRequest(BaseModel):
+    """Request payload for seeding required document types from templates."""
+
+    project_type_id: UUID
+
+
 class PatchRequiredDocumentTypeRequest(BaseModel):
     """Request payload for partially updating a required document type."""
 
@@ -208,8 +210,6 @@ class PatchDocumentByFileIdRequest(BaseModel):
 class FileDownloadResponse(BaseModel):
     """Presigned URL for downloading a file."""
 
-    download_url: str = Field(
-        ..., description="Presigned download URL", alias="downloadUrl"
-    )
+    download_url: str = Field(..., description="Presigned download URL", alias="downloadUrl")
 
     model_config = ConfigDict(populate_by_name=True)

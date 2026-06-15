@@ -1,0 +1,76 @@
+[project]
+name = "bewertung"
+version = "0.1.0"
+description = "Modul Bewertung - 4-stufige Pipeline (MicroBuilder → Applicability → Planner → Writer+QualityReviewer) als Temporal Workflows"
+requires-python = ">=3.11, <3.14"
+readme = "README.md"
+dependencies = [
+    "json-repair>=0.39.0",
+    "prompt-injection",
+    "pydantic>=2.11.0,<3.0.0",
+    "pydantic-settings>=2.10.1,<3.0.0",
+    "temporalio>=1.27.0,<2.0.0",
+    "temporal",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.1.0,<2.0.0",
+    "pytest-cov>=6.2.1,<7",
+    "ruff>=0.14.6,<0.15",
+    "pyrefly>=0.49.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+omit = [
+    "src/activities/__init__.py",
+    "src/config.py",
+    "src/env.py",
+    "src/prompts/*",
+]
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+prompt-injection = { workspace = true }
+temporal = { workspace = true }
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.pyrefly]
+search_path = ["."]
+project-includes = ["src", "tests"]
+disable-search-path-heuristics = true
+[tool.pyrefly.errors] 
+# Core strict typing - catch implicit Any and missing annotations
+implicit-any = "error"
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+# Class strictness
+implicit-abstract-class = "error"
+implicitly-defined-attribute = "error"
+missing-override-decorator = "error"
+# TypedDict strictness
+not-required-key-access = "error"
+open-unpacking = "error"
+# Import strictness
+untyped-import = "error"
+missing-source = "error"
+missing-source-for-stubs = "error"
+# Keep warnings as errors for maximum strictness
+deprecated = "error"
+redundant-cast = "error"
+unnecessary-comparison = "error"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004", "PLC0415"]

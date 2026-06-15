@@ -70,10 +70,8 @@ def assign_page_numbers(
             else:
                 break
 
-        sub_page_numbers = extract_page_numbers(sub_chunk.page_content)
-
-        all_pages = sorted(set([current_page] + sub_page_numbers))
-        sub_chunk.metadata["page_numbers"] = all_pages
+        sub_chunk.metadata["page_numbers"] = [current_page]
+        sub_chunk.page_content = PAGE_TAG_STRIP_RE.sub("", sub_chunk.page_content).strip()
 
         final_sub_chunks.append(sub_chunk)
 

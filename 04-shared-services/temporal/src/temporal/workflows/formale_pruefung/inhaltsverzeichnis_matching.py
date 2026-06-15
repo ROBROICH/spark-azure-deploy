@@ -4,9 +4,8 @@ from temporal.utils import WorkflowName, execute_workflow, start_workflow
 from temporalio.client import WorkflowHandle
 from temporalio.workflow import ChildWorkflowHandle
 
-from .types import DMSFileResponse, InhaltsverzeichnisMatchingParams
+from .types import TASK_QUEUE, DMSFileResponse, InhaltsverzeichnisMatchingParams
 
-TASK_QUEUE = "formale-pruefung"
 INHALTSVERZEICHNIS_MATCHING_WORKFLOW_ID = WorkflowName("InhaltsverzeichnisMatchingWorkflow")
 
 

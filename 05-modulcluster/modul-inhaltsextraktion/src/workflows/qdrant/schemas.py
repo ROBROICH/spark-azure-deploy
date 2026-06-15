@@ -99,3 +99,5 @@ class QdrantDocumentContext(BaseModel):
         description="DMS file_id of the original source document (e.g. the uploaded PDF).",
     )
     title: str | None = Field(None, description="Optional document or section title.")
+    version: int = Field(default=1, description="Monotonically increasing version number for this document in Qdrant.")
+    is_deleted: bool = Field(default=False, description="Whether this document version is soft-deleted.")

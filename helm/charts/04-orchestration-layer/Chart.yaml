@@ -1,0 +1,16 @@
+apiVersion: v2
+name: orchestration-layer
+description: >
+  Orchestration layer umbrella. Deploys the Temporal workflow engine
+  (server, web UI, admin tools) against an external PostgreSQL backend.
+  Wraps the official temporalio/helm-charts via a thin project overlay
+  that registers SPARK-specific search attributes on first install.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: temporal
+    version: "0.1.0"
+    repository: "file://../sources/external/temporal"
+    condition: temporal.enabled

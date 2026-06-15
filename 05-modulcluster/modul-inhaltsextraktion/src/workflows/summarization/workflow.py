@@ -1,13 +1,9 @@
-from datetime import timedelta
-from typing import Any
-from uuid import uuid4
+"""Chunk-level summarization workflow."""
 
 from pydantic import BaseModel
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
-from temporalio.common import RetryPolicy
 
-from src.activities.postprocessing import split_markdown_by_pages
+from src.activities.postprocessing.assembly import split_markdown_by_pages
 from src.activities.summarization import (
     CombineSummariesInput,
     _combine_summaries,
@@ -18,6 +14,8 @@ from src.workflows.summarization.output_format import SummaryOutput
 
 
 class SummarizationWorkflowInput(BaseModel):
+    """Input for the chunk-level summarization workflow."""
+
     markdown: str
 
     # Summarization parameters
@@ -30,32 +28,13 @@ class SummarizationWorkflowInput(BaseModel):
 summarization_workflow_id = "summarization-workflow"
 
 
-async def start_summarization(client: Client, input: SummarizationWorkflowInput) -> WorkflowHandle[Any, Any]:
-    from src.env import ENV
-
-    return await client.start_workflow(
-        summarization_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
-async def execute_summarization(client: Client, input: SummarizationWorkflowInput) -> SummaryOutput:
-    from src.env import ENV
-
-    return await client.execute_workflow(
-        summarization_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
 @workflow.defn(name=summarization_workflow_id)
 class SummarizationWorkflow:
+    """Chunk-level summarization workflow."""
+
     @workflow.run
     async def run(self, input: SummarizationWorkflowInput) -> SummaryOutput:
+        """Summarize a batch of document chunks."""
         cfg = snapshot_config()
         workflow.logger.info("Starting SUMMARIZATION workflow")
 
@@ -76,17 +55,7 @@ class SummarizationWorkflow:
             batch = chunks[i : i + batch_size]
             workflow.logger.info(f"📦 Summarizing batch {i}/{total_batches}: chunks {i}-{i + batch_size - 1}")
 
-            batch_summaries = await workflow.execute_activity(
-                _summarize_chunks_batch,
-                batch,
-                start_to_close_timeout=timedelta(minutes=10),
-                retry_policy=RetryPolicy(
-                    maximum_attempts=cfg.TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS,
-                    initial_interval=timedelta(seconds=5),
-                    backoff_coefficient=2,
-                    maximum_interval=timedelta(minutes=1),
-                ),
-            )
+            batch_summaries = await _summarize_chunks_batch(batch)
             summaries.extend(batch_summaries)
 
         workflow.logger.info(f"Finished summarizing {total_chunks} chunks in {total_batches} batches")
@@ -104,13 +73,8 @@ class SummarizationWorkflow:
             for i in range(0, total_summaries, input.combine_size):
                 block = summaries[i : i + input.combine_size]
 
-                combined = await workflow.execute_activity(
-                    _combine_summaries,
+                combined = await _combine_summaries(
                     CombineSummariesInput(summaries=block, char_limit=999999),
-                    start_to_close_timeout=timedelta(minutes=10),
-                    retry_policy=RetryPolicy(
-                        maximum_attempts=cfg.TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS,
-                    ),
                 )
                 new_summaries.append(combined)
 
@@ -118,13 +82,8 @@ class SummarizationWorkflow:
             workflow.logger.info(f"Reduction complete. New summary count: {len(summaries)}")
 
         # 5. Final combination and optional condensation
-        final_summary = await workflow.execute_activity(
-            _combine_summaries,
+        final_summary = await _combine_summaries(
             CombineSummariesInput(summaries=summaries, char_limit=input.char_limit),
-            start_to_close_timeout=timedelta(minutes=10),
-            retry_policy=RetryPolicy(
-                maximum_attempts=cfg.TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS,
-            ),
         )
 
         workflow.logger.info(f"✅ Summarization workflow (DMS) completed ({len(final_summary)} chars)")

@@ -38,7 +38,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_column("project_template_version", "project_type_id")
-    op.drop_index(
-        "ix_template_category_project_type_id", table_name="template_category"
-    )
+    op.drop_index("ix_template_category_project_type_id", table_name="template_category")
     op.drop_column("template_category", "project_type_id")

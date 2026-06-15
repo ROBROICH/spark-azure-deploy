@@ -7,11 +7,8 @@ as a concurrent wave of activities once the image-dependent VLM work is done.
 """
 
 import asyncio
-from typing import Any
-from uuid import uuid4
 
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
 from temporalio.exceptions import ApplicationError
 
 from src.activities.vlm_invoke import (
@@ -29,28 +26,6 @@ from src.workflows.vlm_enhancement.output_format import (
 )
 
 vlm_workflow_id = "vlm-enhancement"
-
-
-async def start_vlm_enhancement(client: Client, input: VLMWorkflowInput) -> WorkflowHandle[Any, Any]:
-    from src.env import ENV
-
-    return await client.start_workflow(
-        vlm_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
-async def execute_vlm_enhancement(client: Client, input: VLMWorkflowInput) -> VLMExtractDescribeOutput:
-    from src.env import ENV
-
-    return await client.execute_workflow(
-        vlm_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
 
 
 @workflow.defn(name=vlm_workflow_id)

@@ -1,27 +1,19 @@
-from prompt_injection.prompt_defense import (
-    sanitize_and_wrap_external_data,
-    wrap_system_prompt,
-)
+"""Non-LLM Temporal activities for context-checking data preparation.
+
+The conflict-check LLM call itself lives in workflow code (see
+``screening_context_batch_workflow``); this module only contains the Qdrant
+data-gathering activities used to assemble the prompt input.
+"""
+
 from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 from src.config.config import config
-from src.dms.schemas import BaseMetadata, ProjectBaseMetadataStatus
-from src.qdrant.schemas import ChunkPayload, ClaimPayload
-from src.workflows.check_logic_wf.prompts.context_checker_prompts import (
-    CONFLICT_CHECKER_SYSTEM_PROMPT,
-    CONFLICT_VERIFIER_SYSTEM_PROMPT,
-)
+from src.qdrant.schemas import ChunkPayload
 from src.workflows.check_logic_wf.schemas.context_checker_schemas import (
+    BuildChunkContextsInput,
     ChunkWithContext,
-    ContextCheckerInput,
-    ContextCheckerLLMInput,
-    ContextCheckerOutput,
-    ContextCheckVerdict,
-    VerificationInput,
-    VerificationOutput,
 )
-from src.workflows.clients import dms_client, llm_client, qdrant_client
+from src.workflows.clients import qdrant_client
 
 
 def _chunk_to_text(chunk: ChunkPayload) -> str:
@@ -43,190 +35,134 @@ def _chunk_to_text(chunk: ChunkPayload) -> str:
     return f"{config.CONTEXT_CHECKING.LLM_SUMMARY_BEGIN_MARKER}\n{summary}\n{config.CONTEXT_CHECKING.LLM_SUMMARY_END_MARKER}"
 
 
-def _build_chunk_context(
-    chunk_id: str,
-    project_id: str,
-) -> ChunkWithContext:
-    """Build a section-aware context window around one chunk for LLM evaluation."""
-    base_chunk_record, previous_chunk_records, following_chunk_records = qdrant_client.get_chunk_payload_with_neighbors(
-        project_id=project_id,
-        chunk_id=chunk_id,
-        prev=config.CONTEXT_CHECKING.MAX_PREVIOUS_CHUNKS,
-        n_next=config.CONTEXT_CHECKING.MAX_FOLLOWUP_CHUNKS,
-    )
-
-    base_chunk_payload = ChunkPayload.model_validate(base_chunk_record)
-    preceding_chunk_payloads = (
-        [ChunkPayload.model_validate(chunk) for chunk in previous_chunk_records] if previous_chunk_records else None
-    )
-    following_chunk_payloads = (
-        [ChunkPayload.model_validate(chunk) for chunk in following_chunk_records] if following_chunk_records else None
-    )
-
-    # Keep only neighbors from the same TOC section as the base chunk.
-    if preceding_chunk_payloads is not None:
-        preceding_chunk_payloads = [
-            chunk_payload
-            for chunk_payload in preceding_chunk_payloads
-            if chunk_payload.toc_path == base_chunk_payload.toc_path
-        ]
-    if following_chunk_payloads is not None:
-        following_chunk_payloads = [
-            chunk_payload
-            for chunk_payload in following_chunk_payloads
-            if chunk_payload.toc_path == base_chunk_payload.toc_path
-        ]
-
-    # Previous chunks arrive nearest-first; reverse to restore reading order.
-    if preceding_chunk_payloads is not None:
-        preceding_chunk_payloads = preceding_chunk_payloads[::-1]
-
-    # Build context text; when preceding context is too long we keep a prefix and
-    # suffix because chapter openings and immediate local context can both matter.
-    preceding_text = (
-        "\n".join([_chunk_to_text(chunk) for chunk in preceding_chunk_payloads])
-        if preceding_chunk_payloads is not None
-        else ""
-    )
-    following_text = (
-        "\n".join([_chunk_to_text(chunk) for chunk in following_chunk_payloads])
-        if following_chunk_payloads is not None
-        else ""
-    )
-
-    if len(preceding_text) > config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS:
-        # Keep a prefix and suffix of long chapter intros for better context.
-        prefix_chars = int(
-            config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS * config.CONTEXT_CHECKING.PREVIOUS_TEXT_TRUNCATE_RATIO
-        )
-        suffix_chars = config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS - prefix_chars
-        preceding_text = (
-            preceding_text[:prefix_chars]
-            + "\n...[TRUNCATED]...\n"
-            + preceding_text[int(len(preceding_text) - suffix_chars) :]
-        )
-
-    if len(following_text) > config.CONTEXT_CHECKING.MAX_FOLLOWUP_TEXT_CHARS:
-        following_text = following_text[: config.CONTEXT_CHECKING.MAX_FOLLOWUP_TEXT_CHARS]
-
-    return ChunkWithContext(
-        chunk_text=_chunk_to_text(base_chunk_payload),
-        preceding_text=preceding_text,
-        following_text=following_text,
-        page_numbers=base_chunk_payload.page_numbers,
-        document_name=base_chunk_payload.title,
-        toc_path=base_chunk_payload.toc_path,
-    )
-
-
-def _fetch_claim_pair_payloads(
-    project_id: str, claim_id: str, reference_claim_id: str
-) -> tuple[ClaimPayload, ClaimPayload]:
-    """Fetch and return the two claim payloads involved in one context check."""
-    claim_pair_payloads = qdrant_client.get_claim_payloads(
-        project_id=project_id,
-        claim_ids=[claim_id, reference_claim_id],
-        with_vectors=False,
-    )
-    payload_by_id = {p.claim_id: p for p in claim_pair_payloads}
-    if claim_id not in payload_by_id or reference_claim_id not in payload_by_id:
-        raise ApplicationError(
-            f"Could not retrieve both claim payloads: expected {claim_id!r} and {reference_claim_id!r}, "
-            f"got {list(payload_by_id.keys())}",
-            non_retryable=True,
-        )
-    return payload_by_id[claim_id], payload_by_id[reference_claim_id]
-
-
-async def _verify_verdict_if_needed(
-    original_verdict: ContextCheckVerdict,
-    project_meta: BaseMetadata,
-    project_meta_status: ProjectBaseMetadataStatus,
-    chunk_a_context: ChunkWithContext,
-    chunk_b_context: ChunkWithContext,
-) -> VerificationOutput | None:
-    """Run verifier LLM only when the checker rating reaches the configured threshold."""
-    if original_verdict.rating < config.CONTEXT_CHECKING.RATING_THRESHOLD:
-        return None
-
-    verification_input = VerificationInput(
-        project_md=project_meta,
-        project_md_status=project_meta_status,
-        chunk_a=chunk_a_context,
-        chunk_b=chunk_b_context,
-        original_verdict=original_verdict,
-    )
-
-    system_prompt = wrap_system_prompt(CONFLICT_VERIFIER_SYSTEM_PROMPT, lang="de")
-    user_prompt = sanitize_and_wrap_external_data(verification_input.model_dump_json(indent=2))
-
-    llm_response = await llm_client.ainvoke(
-        system_prompt=system_prompt,
-        output_format=VerificationOutput,
-        user_prompt=user_prompt,
-    )
-    return VerificationOutput.model_validate(llm_response)
-
-
 @activity.defn
-async def check_conflict(request: ContextCheckerInput) -> ContextCheckerOutput:
-    """Evaluate one screened claim pair and optionally verify the first verdict."""
-    primary_claim_payload, reference_claim_payload = _fetch_claim_pair_payloads(
-        project_id=request.project_id,
-        claim_id=request.claim_id,
-        reference_claim_id=request.reference_claim_id,
-    )
+async def build_chunk_contexts_batch(  # noqa: C901 -- phased pipeline (prev/next/build), splitting would add coupling
+    inp: BuildChunkContextsInput,
+) -> dict[str, ChunkWithContext]:
+    """Build chunk contexts for all given chunk IDs using batched Qdrant fetches.
 
-    project_meta, project_meta_status = await dms_client.get_project_base_metadata(project_id=request.project_id)
+    Instead of fetching neighbors one-by-one per chunk (up to 12 sequential calls
+    each), resolves the entire neighbor chain level-by-level in batch calls.
+    This reduces O(N × depth) Qdrant calls to O(depth) batch calls.
+    """
+    project_id = inp.project_id
+    if not inp.chunk_ids:
+        return {}
 
-    chunk_a_context = _build_chunk_context(
-        chunk_id=primary_claim_payload.chunk_id,
-        project_id=request.project_id,
-    )
-    chunk_b_context = _build_chunk_context(
-        chunk_id=reference_claim_payload.chunk_id,
-        project_id=request.project_id,
-    )
+    unique_chunk_ids = list(set(inp.chunk_ids))
 
-    context_checker_input = ContextCheckerLLMInput(
-        project_base_md=project_meta,
-        project_base_md_status=project_meta_status,
-        chunk_a=chunk_a_context,
-        chunk_b=chunk_b_context,
-        screening_note=request.screening_note,
+    # 1. Bulk-fetch all base chunks in one call.
+    base_chunks = await qdrant_client.get_chunk_payloads(
+        project_id=project_id,
+        chunk_ids=unique_chunk_ids,
     )
+    chunk_cache: dict[str, ChunkPayload] = {c.chunk_id: c for c in base_chunks}
 
-    system_prompt = wrap_system_prompt(CONFLICT_CHECKER_SYSTEM_PROMPT, lang="de")
-    user_prompt = sanitize_and_wrap_external_data(context_checker_input.model_dump_json(indent=2))
+    # 2. Resolve previous-chunk chains level by level (up to MAX_PREVIOUS_CHUNKS).
+    prev_chains: dict[str, list[str]] = {cid: [] for cid in unique_chunk_ids}
+    frontier: dict[str, str] = {}
+    for cid in unique_chunk_ids:
+        if cid in chunk_cache:
+            previous_chunk_id = chunk_cache[cid].previous_chunk_id
+            if previous_chunk_id:
+                frontier[cid] = previous_chunk_id
 
-    llm_response = await llm_client.ainvoke(
-        system_prompt=system_prompt,
-        output_format=ContextCheckVerdict,
-        user_prompt=user_prompt,
-    )
+    for _level in range(config.CONTEXT_CHECKING.MAX_PREVIOUS_CHUNKS):
+        if not frontier:
+            break
+        needed_ids = list({pid for pid in frontier.values() if pid not in chunk_cache})
+        if needed_ids:
+            new_chunks = await qdrant_client.get_chunk_payloads(project_id=project_id, chunk_ids=needed_ids)
+            for c in new_chunks:
+                chunk_cache[c.chunk_id] = c
 
-    original_verdict = ContextCheckVerdict.model_validate(llm_response)
-    verification_response = await _verify_verdict_if_needed(
-        original_verdict=original_verdict,
-        project_meta=project_meta,
-        project_meta_status=project_meta_status,
-        chunk_a_context=chunk_a_context,
-        chunk_b_context=chunk_b_context,
-    )
-    verified_verdict = verification_response.updated_verdict if verification_response else None
+        new_frontier: dict[str, str] = {}
+        for base_id, prev_id in frontier.items():
+            if prev_id in chunk_cache:
+                prev_chains[base_id].append(prev_id)
+                prev_chunk = chunk_cache[prev_id]
+                if prev_chunk.previous_chunk_id:
+                    new_frontier[base_id] = prev_chunk.previous_chunk_id
+        frontier = new_frontier
 
-    return ContextCheckerOutput(
-        chunk_a_id=primary_claim_payload.chunk_id,
-        chunk_b_id=reference_claim_payload.chunk_id,
-        claim_a_id=request.claim_id,
-        claim_b_id=request.reference_claim_id,
-        chunk_a_context=chunk_a_context,
-        chunk_b_context=chunk_b_context,
-        original_verdict=original_verdict,
-        updated_verdict=verification_response.updated_verdict if verification_response else None,
-        verification_explanation=verification_response.explanation if verification_response else None,
-        is_verified_inconsistency=(
-            verified_verdict.rating >= config.CONTEXT_CHECKING.RATING_THRESHOLD if verified_verdict else False
-        ),
-        screening_note=request.screening_note,
-    )
+    # 3. Resolve next-chunk chains level by level (up to MAX_FOLLOWUP_CHUNKS).
+    next_chains: dict[str, list[str]] = {cid: [] for cid in unique_chunk_ids}
+    frontier = {}
+    for cid in unique_chunk_ids:
+        if cid in chunk_cache:
+            next_chunk_id = chunk_cache[cid].next_chunk_id
+            if next_chunk_id:
+                frontier[cid] = next_chunk_id
+
+    for _level in range(config.CONTEXT_CHECKING.MAX_FOLLOWUP_CHUNKS):
+        if not frontier:
+            break
+        needed_ids = list({nid for nid in frontier.values() if nid not in chunk_cache})
+        if needed_ids:
+            new_chunks = await qdrant_client.get_chunk_payloads(project_id=project_id, chunk_ids=needed_ids)
+            for c in new_chunks:
+                chunk_cache[c.chunk_id] = c
+
+        new_frontier: dict[str, str] = {}
+        for base_id, next_id in frontier.items():
+            if next_id in chunk_cache:
+                next_chains[base_id].append(next_id)
+                next_chunk = chunk_cache[next_id]
+                if next_chunk.next_chunk_id:
+                    new_frontier[base_id] = next_chunk.next_chunk_id
+        frontier = new_frontier
+
+    # 4. Build contexts from cached data (no further Qdrant calls).
+    contexts: dict[str, ChunkWithContext] = {}
+    for chunk_id in unique_chunk_ids:
+        if chunk_id not in chunk_cache:
+            continue
+        base = chunk_cache[chunk_id]
+
+        # Previous payloads arrive nearest-first; filter by same TOC section.
+        preceding_payloads = [chunk_cache[pid] for pid in prev_chains[chunk_id] if pid in chunk_cache]
+        following_payloads = [chunk_cache[nid] for nid in next_chains[chunk_id] if nid in chunk_cache]
+
+        # Keep only neighbors from the same top-level chapter (toc_path[0]) as the base
+        # chunk. This is intentionally broader than an exact full-path match: it allows
+        # context to flow across sub-sections within the same chapter, giving the LLM
+        # more surrounding material to work with. Chunks with no TOC path (empty list)
+        # are treated as section-less and included regardless of the base chunk's path.
+        preceding_payloads = [
+            p for p in preceding_payloads if not p.toc_path or not base.toc_path or p.toc_path[0] == base.toc_path[0]
+        ]
+        following_payloads = [
+            f for f in following_payloads if not f.toc_path or not base.toc_path or f.toc_path[0] == base.toc_path[0]
+        ]
+
+        # Reverse to restore reading order.
+        preceding_payloads = preceding_payloads[::-1]
+
+        preceding_text = "\n".join([_chunk_to_text(c) for c in preceding_payloads]) if preceding_payloads else ""
+        following_text = "\n".join([_chunk_to_text(c) for c in following_payloads]) if following_payloads else ""
+
+        if len(preceding_text) > config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS:
+            prefix_chars = int(
+                config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS * config.CONTEXT_CHECKING.PREVIOUS_TEXT_TRUNCATE_RATIO
+            )
+            suffix_chars = config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS - prefix_chars
+            preceding_text = (
+                preceding_text[:prefix_chars]
+                + "\n...[TRUNCATED]...\n"
+                + preceding_text[int(len(preceding_text) - suffix_chars) :]
+            )
+
+        if len(following_text) > config.CONTEXT_CHECKING.MAX_FOLLOWUP_TEXT_CHARS:
+            following_text = following_text[: config.CONTEXT_CHECKING.MAX_FOLLOWUP_TEXT_CHARS]
+
+        contexts[chunk_id] = ChunkWithContext(
+            document_id=base.document_id,
+            chunk_text=_chunk_to_text(base),
+            preceding_text=preceding_text,
+            following_text=following_text,
+            page_numbers=base.page_numbers,
+            document_name=base.title,
+            toc_path=base.toc_path,
+        )
+
+    return contexts

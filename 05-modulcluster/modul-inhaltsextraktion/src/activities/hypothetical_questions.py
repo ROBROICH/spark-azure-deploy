@@ -4,23 +4,21 @@ Temporal activities for Hypothetical Questions extraction.
 
 Architecture:
 - _process_hypo_questions_batch: Processes a single sub-batch of chunks with one LLM call.
-  Sub-batch splitting is done at the workflow level so each activity is independently
+  Sub-batch splitting is done at the workflow level so each LLM call is independently
   retried by Temporal.
 """
 
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import timedelta
 
-from temporalio import activity, workflow
-from temporalio.common import RetryPolicy
+from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
+from temporal.activities.llm import llm_invoke_structured
+from temporalio import workflow
 
 from src.activities.enrichment_utils import extract_table_text as _extract_table_text
-from src.activities.llm_invoke import LlmInvokeInput, llm_invoke_structured_direct
-from src.concurrency import get_model_throttle
 from src.config import get_config
-from src.models.model_manager import SelfHostedConfig
+from src.env import ENV
 from src.schemas import Chunk
 from src.workflows.hypothetical_questions.output_format import (
     BatchedHypotheticalQuestionsResponse,
@@ -93,19 +91,6 @@ def _clean_content_for_hypothetical_questions(content: str) -> str:
     return content
 
 
-_HYPO_QUESTIONS_LLM_CONFIG: SelfHostedConfig = {
-    "provider": "self_hosted",
-    "model_name": "metadata",
-}
-
-LLM_RETRY_POLICY: RetryPolicy = RetryPolicy(
-    maximum_attempts=30,
-    initial_interval=timedelta(seconds=10),
-    backoff_coefficient=2,
-    maximum_interval=timedelta(seconds=30),
-)
-
-
 @dataclass
 class ProcessHypotheticalQuestionsBatchInput:
     """Input for Hypothetical Questions batch processing."""
@@ -113,54 +98,46 @@ class ProcessHypotheticalQuestionsBatchInput:
     chunks: list[Chunk]
 
 
-@activity.defn(name="process_hypo_questions_batch")
 async def _process_hypo_questions_batch(
     input: ProcessHypotheticalQuestionsBatchInput,
 ) -> list[Chunk]:
     """
     Processes a sub-batch of chunks with a single LLM call.
 
-    Each activity invocation = one LLM call. Sub-batch splitting is done at the
-    workflow level so Temporal retries each LLM call independently.
-
     Returns:
         List of enriched Chunk objects with hypothetical_questions metadata
     """
     chunks = input.chunks
-    activity.logger.info(f"Processing sub-batch of {len(chunks)} chunks for Hypothetical Questions")
 
     # --- Single LLM call for this sub-batch ---
-    async with get_model_throttle("hypothetical_questions").acquire():
-        snippet_parts = []
-        for i, chunk in enumerate(chunks):
-            cleaned_content = _clean_content_for_hypothetical_questions(chunk.page_content)
-            aktueller_abschnitt = chunk.metadata.get("toc_path", "Nicht verfügbar")
-            snippet_parts.append(
-                f"--- Textabschnitt {i + 1} ---\n"
-                f"**Aktueller Abschnitt:** {aktueller_abschnitt}\n\n"
-                f'**Text:** "{cleaned_content}"'
-            )
-        chunks_text = "\n\n".join(snippet_parts)
-
-        result = await llm_invoke_structured_direct(
-            input=LlmInvokeInput(
-                llm_config=_HYPO_QUESTIONS_LLM_CONFIG,
-                prompt_template=BATCHED_HQ_USER_TEMPLATE,
-                input_dict={"chunks_text": chunks_text},
-                agent_name=f"hypo_questions_batch_{chunks[0].chunk_id}",
-                system_prompt=BATCHED_HQ_SYSTEM_PROMPT,
-            ),
-            output_class=BatchedHypotheticalQuestionsResponse,
+    snippet_parts = []
+    for i, chunk in enumerate(chunks):
+        cleaned_content = _clean_content_for_hypothetical_questions(chunk.page_content)
+        aktueller_abschnitt = chunk.metadata.get("toc_path", "Nicht verfügbar")
+        snippet_parts.append(
+            f"--- Textabschnitt {i + 1} ---\n"
+            f"**Aktueller Abschnitt:** {aktueller_abschnitt}\n\n"
+            f'**Text:** "{cleaned_content}"'
         )
+    chunks_text = "\n\n".join(snippet_parts)
+
+    result = await llm_invoke_structured(
+        render_prompt_format(BATCHED_HQ_USER_TEMPLATE, chunks_text=chunks_text),
+        wrap_system_prompt(BATCHED_HQ_SYSTEM_PROMPT),
+        BatchedHypotheticalQuestionsResponse,
+        model=ENV.METADATA_MODEL_NAME,
+        temperature=0.1,
+    )
 
     # --- Map results back to chunks ---
     hypo_results: list[HypotheticalQuestionsResult]
     if len(result.results) == len(chunks):
         hypo_results = result.results
     else:
-        activity.logger.warning(
-            f"Batched hypo questions returned {len(result.results)} results "
-            f"for {len(chunks)} chunks, padding with empty results"
+        workflow.logger.warning(
+            "Batched hypo questions returned %d results for %d chunks, padding with empty results",
+            len(result.results),
+            len(chunks),
         )
         hypo_results = list(result.results)
         while len(hypo_results) < len(chunks):
@@ -168,7 +145,7 @@ async def _process_hypo_questions_batch(
 
     enriched_chunks: list[Chunk] = []
     for j, chunk in enumerate(chunks):
-        questions = hypo_results[j].questions[:3] if hypo_results[j].questions else []
+        questions: list[str] = hypo_results[j].questions[:3] if hypo_results[j].questions else []
 
         if questions:
             updated_metadata = {**chunk.metadata, "hypothetical_questions": questions}
@@ -194,14 +171,13 @@ async def _process_hypo_questions_batch(
         else:
             enriched_chunks.append(chunk)
 
-    activity.logger.info(f"Sub-batch completed: processed {len(enriched_chunks)} chunks")
     return enriched_chunks
 
 
 async def process_hypothetical_questions_batch(
     input: ProcessHypotheticalQuestionsBatchInput,
 ) -> list[Chunk]:
-    """Workflow wrapper: splits chunks into sub-batches and runs each as a separate activity."""
+    """Workflow wrapper: splits chunks into sub-batches and runs each as a separate LLM call."""
     cfg = get_config()
     chunks = input.chunks
     batch_size = cfg.SCHWERPUNKT_CLASSIFICATION_BATCH_SIZE
@@ -210,11 +186,8 @@ async def process_hypothetical_questions_batch(
 
     sub_batch_results = await asyncio.gather(
         *[
-            workflow.execute_activity(
-                _process_hypo_questions_batch,
+            _process_hypo_questions_batch(
                 ProcessHypotheticalQuestionsBatchInput(chunks=sub_batch),
-                start_to_close_timeout=timedelta(minutes=5),
-                retry_policy=LLM_RETRY_POLICY,
             )
             for sub_batch in sub_batches
         ]

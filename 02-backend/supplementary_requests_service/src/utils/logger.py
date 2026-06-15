@@ -1,0 +1,7 @@
+"""Logger utility module for structured event logging."""
+
+from event_logging import EventLogger
+
+from src.config.settings import settings
+
+logger = EventLogger(service_name=settings.SERVICE_NAME)

@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE byrecht-norm SYSTEM "testportal-normen.dtd">
+<!-- Structure mirrors the extracted archive sub-directory; see `archive_subdir` in the parser config -->
+<byrecht-norm builddate="20250820215504">
+  <kopf>
+    <!-- angaben.versunabh: from BayImSchG.xml lines 5-14 -->
+    <angaben.versunabh>
+      <dokumentation doktyp="gesetz" dokid="BayTestG" ersatz="BayTestG"/>
+      <ausfertigung>
+        <ausfertigungsdatum>2000-01-01</ausfertigungsdatum>
+        <fundstelle.GVBl>
+          <jahr>2000</jahr>
+          <seite>S=1</seite>
+        </fundstelle.GVBl>
+      </ausfertigung>
+    </angaben.versunabh>
+    <!-- angaben.versabh: from BayImSchG.xml lines 15-31 -->
+    <angaben.versabh version.id="p">
+      <inkraft>2025-08-12</inkraft>
+      <fassung>
+        <fassungsdatum>2000-01-01</fassungsdatum>
+      </fassung>
+      <gliederungsNr.BayRS>BayRS 2000-1-1-T</gliederungsNr.BayRS>
+      <kurzbezeichnung>Testgesetz</kurzbezeichnung>
+      <titelangaben>Gesetz zum testen von Gesetzen<br /> (<amtlicheAbk>BayTestG</amtlicheAbk>)<br /> vom 1. Januar 2000<br />BayRS 2000-1-1-T</titelangaben>
+      <amtlicheAbk>BayTestG</amtlicheAbk>
+    </angaben.versabh>
+  </kopf>
+  <rumpf>
+    <!-- aenderungsverlauf: standangaben equivalent; from BayImSchG.xml lines 34-81 -->
+    <aenderungsverlauf>
+      <p>Änderungen</p>
+      <ul>
+        <li>
+          <symbol id="x">1.</symbol>
+          <p>Neugefasst durch Bek. v. 17.5.2013 I 1274; 2021, 123;</p>
+        </li>
+        <li>
+          <symbol id="x">2.</symbol>
+          <p>zuletzt geändert durch Art. 1 G v. 12.8.2025 I Nr. 189</p>
+        </li>
+      </ul>
+    </aenderungsverlauf>
+    <!-- gliederung: chapter/section with TOC title; from BayImSchG.xml lines 88-92 -->
+    <gliederung gliederungsid="G_1" version="p">
+      <gliederung.titel><p>Abschnitt Kapitel</p></gliederung.titel>
+      <!-- Art. 1: plain sentences testing sentence splitting without list markers -->
+      <einzelnorm version="p" einzelnormid="P_1">
+        <para.nr>Art. 1</para.nr>
+        <para.titel>Grammatikalische Sätze</para.titel>
+        <!-- absatz with multiple plain sentences; from BayImSchG.xml lines 95-141 for absatz structure -->
+        <jurAbsatz>
+          <absatz.nr>(1)</absatz.nr>
+          <absatz.text>
+            <p><satz.nr id="xx">1</satz.nr>Ein einfacher Satz mit Interpunktion. <satz.nr id="xx">2</satz.nr>Ein zweiter Satz ohne Markierungen. <satz.nr id="xx">3</satz.nr>§ 1 Absatz 1 enthält 3 Sätze.</p>
+          </absatz.text>
+        </jurAbsatz>
+        <jurAbsatz>
+          <absatz.nr>(2)</absatz.nr>
+          <absatz.text>
+            <p>Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).</p>
+          </absatz.text>
+        </jurAbsatz>
+        <jurAbsatz>
+          <absatz.nr>(3)</absatz.nr>
+          <absatz.text>
+            <p><satz.nr id="xx">1</satz.nr>Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. <satz.nr id="xx">2</satz.nr>Der, Die und Das beginnen mit einem römischen Zahlbuchstaben, sollten aber keinen Satz unterbrechen.</p>
+          </absatz.text>
+        </jurAbsatz>
+      </einzelnorm>
+      <!-- Art. 2: sentences with nested list markers -->
+      <einzelnorm version="p" einzelnormid="P_2">
+        <para.nr>Art. 2</para.nr>
+        <para.titel>Sätze mit Markierungen</para.titel>
+        <!-- Abs. 1: numbered arabic list with eindeutige Markierungen; from BayImSchG.xml Art. 1 Abs. 1 lines 97-139 -->
+        <jurAbsatz>
+          <absatz.nr>(1)</absatz.nr>
+          <absatz.text>
+            <p>Dieser Satz</p>
+            <ul>
+              <li>
+                <symbol id="x">1.</symbol>
+                <p>ist verschachtelt und</p>
+              </li>
+              <li>
+                <symbol id="x">2.</symbol>
+                <p>bietet eindeutige Markierungen.</p>
+              </li>
+            </ul>
+          </absatz.text>
+        </jurAbsatz>
+        <!-- BayAbmG Art. 18 Abs. 2 has nested ambiguous markers -->
+        <jurAbsatz>
+          <absatz.nr>(2)</absatz.nr>
+          <absatz.text>
+            <p>Dieser Satz</p>
+            <ul>
+              <li>
+                <symbol id="x">–</symbol>
+                <p>ist verschachtelt, aber</p>
+              </li>
+              <li>
+                <symbol id="x">–</symbol>
+                <p>bietet keine eindeutigen Markierungen.</p>
+              </li>
+            </ul>
+          </absatz.text>
+        </jurAbsatz>
+        <!-- BayImSchG.xml Art. 1 Abs. 1 -->
+        <jurAbsatz>
+          <absatz.nr>(3)</absatz.nr>
+          <absatz.text>
+          <p>
+            <satz.nr id="xx">1</satz.nr>Dieser Satz wird aufgeteilt in:</p>
+            <ul>
+              <li>
+                <symbol id="x">1.</symbol>
+                <p>eine einzelne verschachtelte Ebene,</p>
+              </li>
+              <li>
+                <symbol id="x">2.</symbol>
+                <p>eine tiefer verschachtelte mit,</p>
+                <ul>
+                  <li>
+                    <symbol id="x">a)</symbol>
+                    <p>Teil a,</p>
+                  </li>
+                  <li>
+                    <symbol id="x">b)</symbol>
+                    <p>Teil b</p>
+                  </li>
+                </ul>
+                <p>(und gemeinsamer Endtext);</p>
+              </li>
+            </ul>
+          <!-- BayWaldG.xml Art. 17 Abs. 1 -->
+            <p> <satz.nr id="xx">2</satz.nr>Dieser Satz ist nicht enthalten.</p>
+          </absatz.text>
+        </jurAbsatz>
+        <jurAbsatz>
+        <!-- BayWaldG Art. 17 Abs. 1 -->
+        <!-- BayWG Art. 24 Abs. 2 -->
+          <absatz.nr>(4)</absatz.nr>
+          <absatz.text>
+            <p><satz.nr id="xx">1</satz.nr>Dieser Satz enthält eine Aufzählung:</p>
+            <ul>
+              <li>
+                <symbol id="x">1</symbol>
+                <p>teil 1,</p>
+              </li>
+              <li>
+                <symbol id="x">2</symbol>
+                <p>teil 2.</p>
+              </li>
+            </ul>
+            <p>und endtext. <satz.nr id="xx">2</satz.nr>Satz 2 kommt nach dem endtext</p>
+          </absatz.text>
+        </jurAbsatz>
+      </einzelnorm>
+    </gliederung>
+  </rumpf>
+</byrecht-norm>

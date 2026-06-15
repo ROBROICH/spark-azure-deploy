@@ -1,0 +1,257 @@
+# =============================================================================
+# 03-service-layer — Application Service Layer
+# =============================================================================
+# Deploys all backend microservices of the SPARK Workflow application.
+# Services are grouped by functional domain. Each service is an independent
+# Helm chart source located under sources/internal/02-backend/ or
+# sources/internal/04-shared-services/, and communicates with peers over the
+# in-cluster Kubernetes Service DNS.
+#
+# Service groups and their roles within this layer:
+#
+#   Workflow-Dienste        — Core workflow lifecycle management
+#     project-logic-service         Projects, stages, and state transitions
+#     temporal-job-service          HTTP bridge to Temporal task queues
+#     document-management-service   File storage, metadata, pre-processing
+#     agent-orchestration-service   AI agent dispatch and monitoring
+#
+#   Interaktionsdienste     — User interaction and participation
+#     comment-service               Public comments on draft legislation
+#     supplementary-requests-service  Supplementary-information requests
+#     identity-management-service   User identity and OIDC integration
+#     objections-management-service Public objection management
+#
+#   Integrationsdienste     — External system integrations
+#     fpp-service                   Domain-specific examination sub-tasks
+#     llm-client                    proxy for litellm tasks
+#
+#   Beschlussdienste        — Resolution and document production
+#     administrative-file-draft     Administrative draft (Verwaltungsakt) composition
+#
+#   Datenbankdienste        — Legal knowledge base accessors
+#     gesetze-normen-db-service     Legal norms database
+#     jura-db-service               Legal case-law database
+#     gesetzesbegruendung-db-service  Legislative justification database
+#
+#   Prüfungsdienste         — Examination and quality checks
+#     formal-completeness-check     Formal completeness validation
+#     plausibility-notes            AI-assisted plausibility annotations
+#     examination-service           Multi-step examination coordination
+#     protocol-service              Protocol and record generation
+#     feedback-service              User feedback collection and routing
+#     rechtsaenderungs-monitoring   Legal-change publication monitoring
+#
+# Global values are forwarded to all subcharts unchanged.
+# =============================================================================
+
+global:
+  stage:
+    name: ""
+  labels:
+    "spark-workflow.layer/name": service-layer
+  # Cluster-wide auth configuration (AUTH_*, TEMPORAL_JOB_SERVICE_URL) is
+  # injected via global.extraEnv in 00-spark-workflow — when this layer is
+  # installed standalone, supply that block in your install values.
+
+# ── Workflow-Dienste ──────────────────────────────────────────────────────────
+
+# Service-to-service base URLs are set here under each service's extraEnv:
+# block. These values are fully derived from Release.Name and Release.Namespace
+# via inline tpl expressions.
+#
+# extraEnv (not env) is used deliberately: a layer-level env: list would
+# REPLACE the source chart's env defaults wholesale (Helm list coalescing),
+# wiping the chart's own required variables. extraEnv merges per variable
+# name through the chart's containerEnv helper instead.
+# Override at 00-spark-workflow level via:
+#   service-layer.<service-name>.extraEnv:
+#     - name: <ENV_VAR>
+#       value: "https://custom-endpoint"
+
+project-logic-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": workflow-dienste
+  extraEnv:
+    # Peer service addresses — resolved from Release.Name and Release.Namespace.
+    - name: API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL
+      value: '{{ printf "http://%s-administrative-file-draft.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__DMS_BASE_URL
+      value: '{{ printf "http://%s-document-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__EXAMINATION_BASE_URL
+      value: '{{ printf "http://%s-examination-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__FCS_BASE_URL
+      value: '{{ printf "http://%s-formal-completeness-check.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__OBJECTIONS_BASE_URL
+      value: '{{ printf "http://%s-objections-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__PLAUSIBILITY_BASE_URL
+      value: '{{ printf "http://%s-plausibility-notes.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__PLS_BASE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+temporal-job-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": workflow-dienste
+
+document-management-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": workflow-dienste
+  extraEnv:
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+agent-orchestration-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": workflow-dienste
+  extraEnv:
+    # Peer service addresses — resolved from Release.Name and Release.Namespace.
+    - name: API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL
+      value: '{{ printf "http://%s-administrative-file-draft.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__DMS_BASE_URL
+      value: '{{ printf "http://%s-document-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__EXAMINATION_SERVICE_BASE_URL
+      value: '{{ printf "http://%s-examination-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__FPP_BASE_URL
+      value: '{{ printf "http://%s-fpp-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__FVP_BASE_URL
+      value: '{{ printf "http://%s-formal-completeness-check.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__OBJECTIONS_SERVICE_BASE_URL
+      value: '{{ printf "http://%s-objections-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__PLAUSIBILITY_NOTES_BASE_URL
+      value: '{{ printf "http://%s-plausibility-notes.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: API__PLS_BASE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+# ── Interaktionsdienste ───────────────────────────────────────────────────────
+comment-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": interaktionsdienste
+
+supplementary-requests-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": interaktionsdienste
+
+identity-management-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": interaktionsdienste
+
+objections-management-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": interaktionsdienste
+  extraEnv:
+    - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      value: '{{ printf "http://%s-document-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+# ── Integrationsdienste ───────────────────────────────────────────────────────
+fpp-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": integrationsdienste
+  extraEnv:
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+# ── Beschlussdienste ──────────────────────────────────────────────────────────
+administrative-file-draft:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": beschlussdienste
+  extraEnv:
+    - name: UNO_HOST
+      value: '{{ printf "%s-unoserver.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+# ── Datenbankdienste ──────────────────────────────────────────────────────────
+gesetze-normen-db-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": datenbankdienste
+
+jura-db-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": datenbankdienste
+  extraEnv:
+    - name: GESETZE_NORMEN_URL
+      value: '{{ printf "http://%s-gesetze-normen-db-service.%s.svc.cluster.local:8000" .Release.Name .Release.Namespace }}'
+
+gesetzesbegruendung-db-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": datenbankdienste
+  extraEnv:
+    - name: GESETZE_NORMEN_URL
+      value: '{{ printf "http://%s-gesetze-normen-db-service.%s.svc.cluster.local:8000" .Release.Name .Release.Namespace }}'
+
+# ── Prüfungsdienste ───────────────────────────────────────────────────────────
+formal-completeness-check:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+  extraEnv:
+    - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      value: '{{ printf "http://%s-document-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+plausibility-notes:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+  extraEnv:
+    - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      value: '{{ printf "http://%s-document-management-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+examination-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+  extraEnv:
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+protocol-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+
+feedback-service:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+  extraEnv:
+    - name: PROJECT_LOGIC_SERVICE_URL
+      value: '{{ printf "http://%s-project-logic-service.%s.svc.cluster.local" .Release.Name .Release.Namespace }}'
+
+rechtsaenderungs-monitoring:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": pruefungsdienste
+
+
+llm-client:
+  enabled: true
+  labels:
+    "spark-workflow.group/name": integrationsdienste
+  extraEnv:
+  # LiteLLM proxy base URL.
+  - name: LITELLM_BASE_URL
+    value: "<litellm-proxy-url>"
+  # LiteLLM proxy master key; sourced from the litellm-proxy-credentials secret.
+  - name: LITELLM_MASTER_KEY
+    valueFrom:
+      secretKeyRef:
+        key: LITELLM_MASTER_KEY
+        name: litellm-proxy-credentials-llm-custom

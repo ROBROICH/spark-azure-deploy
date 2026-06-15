@@ -3,116 +3,113 @@
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime
+from typing import ClassVar
 
+from alembic_utils import VersionedMixin
+from node_crud import common_table_args, create_node_base, parent_fk
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
-    DateTime,
     Float,
     ForeignKey,
     Index,
     Integer,
     String,
     Text,
-    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.ext.asyncio import AsyncAttrs
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
-from sqlalchemy.sql.schema import ForeignKeyConstraint
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+Base, NodeBase = create_node_base()
 
 
-class Base(DeclarativeBase, AsyncAttrs):
-    """SQLAlchemy declarative base."""
-
-    __abstract__ = True
-
-
-class TimestampMixin:
-    """Mixin to automatically create timestamps."""
-
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        nullable=False,
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True),
-        default=lambda: datetime.now(UTC),
-        onupdate=lambda: datetime.now(UTC),
-        nullable=False,
-    )
-
-
-class Category(Base, TimestampMixin):
+class Category(NodeBase, VersionedMixin):
     """Category for grouping document types per project."""
 
     __tablename__ = "category"
-    __table_args__ = (
-        UniqueConstraint("project_id", "name", name="uq_category_project_name"),
-        UniqueConstraint("id", "project_id", name="uq_category_id_project_id"),
-    )
+    __table_args__ = common_table_args("category")
 
-    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
 
     document_types: Mapped[list[DocumentType]] = relationship(
         "DocumentType",
         back_populates="category",
         cascade="all, delete-orphan",
-        foreign_keys="[DocumentType.category_id, DocumentType.project_id]",
+        foreign_keys="[DocumentType.category_id, DocumentType.project_version]",
     )
 
 
-class DocumentType(Base, TimestampMixin):
+class DocumentType(NodeBase, VersionedMixin):
     """Required document type definitions per project."""
 
     __tablename__ = "document_type"
     __table_args__ = (
-        UniqueConstraint("project_id", "name", name="uq_document_type_project_name"),
-        UniqueConstraint("id", "project_id", name="uq_document_type_id_project_id"),
-        ForeignKeyConstraint(
-            ["category_id", "project_id"],
-            ["category.id", "category.project_id"],
-            ondelete="SET NULL",
+        parent_fk("category_id", "category", ondelete="SET NULL"),
+        *common_table_args("document_type"),
+        Index(
+            "uq_document_type_project_name",
+            "project_id",
+            "project_version",
+            "name",
+            unique=True,
+            postgresql_where=text("is_deleted IS false"),
+            sqlite_where=text("is_deleted IS false"),
         ),
         CheckConstraint("origin IN ('system', 'custom')", name="chk_document_type_origin"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
     category_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
-    deleted: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     is_resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     origin: Mapped[str] = mapped_column(String, nullable=False, default="system")
 
     category: Mapped[Category | None] = relationship(
         "Category",
         back_populates="document_types",
-        foreign_keys=[category_id, project_id],
+        foreign_keys="[DocumentType.category_id, DocumentType.project_version]",
     )
 
     assigned_documents: Mapped[list[Document]] = relationship(
         "Document",
         back_populates="document_type",
         cascade="all, delete-orphan",
-        foreign_keys="[Document.ai_suggested_required_document_type_id, Document.project_id]",
+        foreign_keys="[Document.ai_suggested_required_document_type_id, Document.project_version]",
     )
 
 
-class Document(Base, TimestampMixin):
+class Document(NodeBase, VersionedMixin):
     """Table for assigned and unassigned documents."""
 
     __tablename__ = "document"
+    __external_parent_cols__: ClassVar[dict[str, tuple[str, str]]] = {
+        "file_id": ("document_management_service", "file"),
+        "content_extraction_id": ("document_management_service", "file"),
+    }
+    __table_args__ = (
+        parent_fk(
+            "ai_suggested_required_document_type_id",
+            "document_type",
+            ondelete="CASCADE",
+        ),
+        parent_fk(
+            "human_required_document_type_id",
+            "document_type",
+            ondelete="SET NULL",
+        ),
+        *common_table_args("document"),
+        Index(
+            "uq_document_project_file_id",
+            "project_id",
+            "project_version",
+            "file_id",
+            unique=True,
+            postgresql_where=text("file_id IS NOT NULL"),
+        ),
+    )
 
-    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
     file_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True, index=True)
     content_extraction_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     ai_suggested_required_document_type_id: Mapped[uuid.UUID | None] = mapped_column(
@@ -126,37 +123,17 @@ class Document(Base, TimestampMixin):
 
     human_required_document_type_id: Mapped[uuid.UUID | None] = mapped_column(
         PG_UUID(as_uuid=True),
-        ForeignKey(
-            "document_type.id",
-            name="fk_document_human_required_document_type",
-            ondelete="SET NULL",
-        ),
         nullable=True,
     )
 
     document_type: Mapped[DocumentType | None] = relationship(
         "DocumentType",
         back_populates="assigned_documents",
-        foreign_keys=[ai_suggested_required_document_type_id, project_id],
-    )
-
-    __table_args__ = (
-        ForeignKeyConstraint(
-            ["ai_suggested_required_document_type_id", "project_id"],
-            ["document_type.id", "document_type.project_id"],
-            ondelete="CASCADE",
-        ),
-        Index(
-            "uq_document_project_file_id",
-            "project_id",
-            "file_id",
-            unique=True,
-            postgresql_where=text("file_id IS NOT NULL"),
-        ),
+        foreign_keys="[Document.ai_suggested_required_document_type_id, Document.project_version]",
     )
 
 
-class TemplateCategory(Base, TimestampMixin):
+class TemplateCategory(Base, VersionedMixin):
     """Template category for seeding project-specific categories."""
 
     __tablename__ = "template_category"
@@ -183,7 +160,7 @@ class TemplateCategory(Base, TimestampMixin):
     )
 
 
-class TemplateDocumentType(Base, TimestampMixin):
+class TemplateDocumentType(Base, VersionedMixin):
     """Template document type for seeding project-specific document types."""
 
     __tablename__ = "template_document_type"
@@ -216,24 +193,48 @@ class TemplateDocumentType(Base, TimestampMixin):
     )
 
 
-class ProjectTemplateVersion(Base, TimestampMixin):
+class ProjectTemplateVersion(NodeBase, VersionedMixin):
     """Tracks project to project_type registration for template lookup."""
 
     __tablename__ = "project_template_version"
-    __table_args__ = (UniqueConstraint("project_id", name="uq_project_template_version_project_id"),)
+    __table_args__ = (
+        *common_table_args("project_template_version"),
+        Index(
+            "uq_project_template_version_project_id",
+            "project_id",
+            "project_version",
+            unique=True,
+            postgresql_where=text("is_deleted IS false"),
+        ),
+    )
 
-    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
     project_type_id: Mapped[uuid.UUID | None] = mapped_column(PG_UUID(as_uuid=True), nullable=True)
     version: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
 
 
-class TableOfContentNotes(Base, TimestampMixin):
+class TableOfContentNotes(NodeBase, VersionedMixin):
     """From Agent extracted table of content files"""
 
     __tablename__ = "table_of_content_notes"
+    __table_args__ = common_table_args("table_of_content_notes")
 
-    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    project_id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False, index=True)
     content: Mapped[str] = mapped_column(Text, nullable=False)
     is_resolved: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+
+
+class TocJobStatus(NodeBase, VersionedMixin):
+    """Persists the result status of the TOC matching job per project."""
+
+    __tablename__ = "toc_job_status"
+    __table_args__ = (
+        *common_table_args("toc_job_status"),
+        Index(
+            "uq_toc_job_status_project_id",
+            "project_id",
+            "project_version",
+            unique=True,
+            postgresql_where=text("is_deleted IS false"),
+        ),
+    )
+
+    status: Mapped[str] = mapped_column(String, nullable=False)

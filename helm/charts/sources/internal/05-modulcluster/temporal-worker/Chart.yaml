@@ -1,0 +1,11 @@
+apiVersion: v2
+name: temporal-worker
+description: |
+  Generic reusable Temporal worker chart. All instance-specific configuration
+  is driven via values — image, replicas, env vars, resources. Deploy multiple
+  instances by declaring separate dependencies with unique aliases in the parent
+  umbrella's Chart.yaml and adding a matching keyed section in its values.yaml.
+  nameOverride sets the Kubernetes resource name prefix for each instance.
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

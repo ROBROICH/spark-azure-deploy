@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from io import BytesIO
 from pathlib import PurePosixPath
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, override
 
 import aioboto3
 from aioboto3.session import Session
@@ -17,7 +17,7 @@ from src.utils.logger import logger
 
 
 class AsyncS3StorageClient(BaseStorageProviderService):
-    """Async S3 storage client for MinIO and Ceph RGW.
+    """Async S3-compatible storage client for MinIO, Ceph RGW, and AWS S3.
 
     Implements non-blocking operations using aioboto3.
     Inherits common path handling from BaseStorageProviderService.
@@ -32,8 +32,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         access_key: str = settings.S3_ACCESS_KEY_ID,  # type: ignore
         secret_key: str = settings.S3_SECRET_ACCESS_KEY,  # type: ignore
         region: str = settings.S3_REGION,  # type: ignore
-        **_,
-    ):
+        **_: Any,
+    ) -> None:
         super().__init__(
             bucket_name=bucket_name,
             doc_store_path=doc_store_path,
@@ -65,20 +65,17 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             action=EventAction.NOTIFY,
             outcome=EventOutcome.SUCCESS,
             category=EventCategory.FILE,
-            message=(
-                f"AsyncS3Client initialized: bucket={bucket_name}, "
-                f"endpoint={endpoint_url}"
-            ),
+            message=(f"AsyncS3Client initialized: bucket={bucket_name}, endpoint={endpoint_url}"),
         )
 
-        self._public_client: Session = None
-        self._private_client: Session = None
+        self._public_client: Session | None = None
+        self._private_client: Session | None = None
 
     def _get_key(self, document_name: str) -> str:
         """Convert document name to S3 object key."""
         return f"{self.doc_store_path}/{document_name}".lstrip("/")
 
-    async def _ensure_clients(self):
+    async def _ensure_clients(self) -> None:
         """Ensures clients exist."""
         if self._private_client is None or self._public_client is None:
             await self.initialize()
@@ -97,13 +94,17 @@ class AsyncS3StorageClient(BaseStorageProviderService):
                 Key=key,
             )
         except ClientError as e:
-            if e.response["Error"]["Code"] in ("404", "NoSuchKey", "NotFound"):
+            error = e.response.get("Error", {})
+            code = error.get("Code")
+
+            if code in ("404", "NoSuchKey", "NotFound"):
                 raise FileNotFoundError(f"Document '{document_name}' not found") from e
+
             raise
 
         return head
 
-    async def initialize(self):
+    async def initialize(self) -> None:
         """Enter async context for long-lived clients (call once at startup)."""
         self._private_client = await self.session.client(
             service_name="s3",
@@ -120,7 +121,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             message="Long-lived S3 clients initialized",
         )
 
-    async def close(self):
+    @override
+    async def close(self) -> None:
         """Exit async contexts (call once on shutdown)."""
         if self._private_client:
             await self._private_client.__aexit__(None, None, None)
@@ -135,8 +137,9 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             message="S3 clients closed",
         )
 
+    @override
     async def bucket_exists(self) -> bool:
-        """Check if the configured bucket exists in S3 storage.
+        """Check if the configured bucket exists in S3-compatible storage.
 
         Returns:
             True if the bucket exists, False otherwise.
@@ -149,7 +152,10 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             await self._private_client.head_bucket(Bucket=self.bucket_name)
             return True
         except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+            error = e.response.get("Error", {})
+            code = error.get("Code")
+
+            if code == "404":
                 logger.debug(
                     action=EventAction.READ,
                     outcome=EventOutcome.FAILURE,
@@ -157,15 +163,15 @@ class AsyncS3StorageClient(BaseStorageProviderService):
                     message=f"Bucket '{self.bucket_name}' does not exist",
                 )
                 return False
-            else:
-                logger.warn(
-                    action=EventAction.READ,
-                    outcome=EventOutcome.FAILURE,
-                    category=EventCategory.FILE,
-                    message=f"Error checking bucket '{self.bucket_name}': {str(e)}",
-                )
-                return False
+            logger.warn(
+                action=EventAction.READ,
+                outcome=EventOutcome.FAILURE,
+                category=EventCategory.FILE,
+                message=f"Error checking bucket '{self.bucket_name}': {e!s}",
+            )
+            return False
 
+    @override
     async def document_exists(self, document_name: str) -> bool:
         """Check if a document exists in storage.
 
@@ -185,6 +191,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         except FileNotFoundError:
             return False
 
+    @override
     async def get_file_mime_type(self, document_name: str) -> str:
         """Retrieve the MIME type (Content-Type) of a stored document.
 
@@ -210,6 +217,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
 
         return content_type
 
+    @override
     async def delete_document(self, document_name: str) -> None:
         """Delete a document from storage.
 
@@ -230,6 +238,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         else:
             raise FileNotFoundError(f"Document '{document_name}' not found")
 
+    @override
     async def copy_document(
         self,
         source_name: str,
@@ -261,6 +270,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             CopySource=f"{self.bucket_name}/{src_key}",
         )
 
+    @override
     async def upload_document_from_obj(
         self,
         document_name: str,
@@ -303,6 +313,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             ExtraArgs=extra_args,
         )
 
+    @override
     async def download_document_as_file_obj(self, document_name: str) -> BytesIO:
         """Download a document into a BytesIO object.
 
@@ -329,7 +340,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         bio.seek(0)
         return bio
 
-    async def download_document_stream(  # type: ignore
+    @override
+    async def download_document_stream(
         self,
         document_name: str,
         chunk_size: int = 256 * 1024,
@@ -355,8 +367,12 @@ class AsyncS3StorageClient(BaseStorageProviderService):
                 Key=key,
             )
         except ClientError as e:
-            if e.response["Error"]["Code"] in {"404", "NoSuchKey", "NotFound"}:
+            error = e.response.get("Error", {})
+            code = error.get("Code")
+
+            if code in ("404", "NoSuchKey", "NotFound"):
                 raise FileNotFoundError(f"Document '{document_name}' not found") from e
+
             raise
 
         body = response["Body"]
@@ -369,9 +385,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         finally:
             body.close()
 
-    async def list_all_documents(
-        self, path: bool = False, prefix: str | None = None
-    ) -> list[str]:
+    @override
+    async def list_all_documents(self, path: bool = False, prefix: str | None = None) -> list[str]:
         """List all documents under the configured path.
 
         Args:
@@ -390,21 +405,19 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         files = []
         async for page in paginator.paginate(**list_kwargs):
             for obj in page.get("Contents", []):
-                name = (
-                    PurePosixPath(obj["Key"])
-                    .relative_to(self.doc_store_path.rstrip("/") + "/")
-                    .as_posix()
-                )
+                name = PurePosixPath(obj["Key"]).relative_to(self.doc_store_path.rstrip("/") + "/").as_posix()
                 if path:
                     files.append(name)
                 else:
                     files.append(PurePosixPath(name).name)
         return files
 
+    @override
     async def generate_upload_signed_url(
         self,
         document_name: str,
         expiration_minutes: int = 15,
+        create_new_version: bool = False,
         mime_type: str | None = None,
     ) -> str:
         """Generate a presigned URL for direct upload.
@@ -421,19 +434,20 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             FileExistsError: If document already exists.
         """
         await self._ensure_clients()
-        if await self.document_exists(document_name):
+        if not create_new_version and await self.document_exists(document_name):
             raise FileExistsError(f"Document '{document_name}' exists")
         key = self._get_key(document_name)
         params = {"Bucket": self.bucket_name, "Key": key}
         if mime_type:
             params["ContentType"] = mime_type
-        url = await self._public_client.generate_presigned_url(
+
+        return await self._public_client.generate_presigned_url(
             "put_object",
             Params=params,
             ExpiresIn=expiration_minutes * 60,
         )
-        return url
 
+    @override
     async def generate_download_signed_url(
         self,
         document_name: str,
@@ -460,11 +474,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             raise FileNotFoundError(f"Document '{document_name}' not found")
         key = self._get_key(document_name)
         filename = PurePosixPath(document_name).name
-        disposition = (
-            f'inline; filename="{filename}"'
-            if inline
-            else f'attachment; filename="{filename}"'
-        )
+        disposition = f'inline; filename="{filename}"' if inline else f'attachment; filename="{filename}"'
         params = {
             "Bucket": self.bucket_name,
             "Key": key,
@@ -472,13 +482,14 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         }
         if mime_type:
             params["ResponseContentType"] = mime_type
-        url = await self._public_client.generate_presigned_url(
+
+        return await self._public_client.generate_presigned_url(
             "get_object",
             Params=params,
             ExpiresIn=expiration_minutes * 60,
         )
-        return url
 
+    @override
     async def update_metadata(
         self,
         document_name: str,
@@ -543,12 +554,13 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             message=f"Updated metadata on {document_name}: {updated_keys}",
         )
 
+    @override
     async def get_metadata(
         self,
         document_name: str,
         keys: list[str] | None = None,
         default: Any = None,
-    ) -> dict[str, str]:
+    ) -> dict[str, str | None]:
         """
         Retrieve metadata (or specific metadata keys) from an S3 object.
 

@@ -3,7 +3,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.models.db.workflow_enum import ApprovalStatus
+from src.models.db.workflow_enum import ApprovalStatus, ZipApprovalStatus
 
 
 class CancelResponse(BaseModel):
@@ -14,9 +14,11 @@ class CancelResponse(BaseModel):
 class ApprovalActionResponse(BaseModel):
     """Model representing an approval response."""
 
-    status: Literal["success", "already_processed", "not_found"]
+    status: Literal["success", "already_processed", "not_found", "failed"]
     message: str
     current_approval_status: ApprovalStatus | None = None
+    zip_approval_status: ZipApprovalStatus | None = None
+    new_version: int | None = None
 
 
 class FileChange(BaseModel):
@@ -52,6 +54,7 @@ class RenameChange(BaseModel):
     old_name: str
     new_name: str
     sha: str
+    bucket_path: str | None = None
 
 
 class NewFile(BaseModel):
@@ -65,18 +68,8 @@ class NewFile(BaseModel):
 class FileDiffResponse(BaseModel):
     """Model representing project file diff."""
 
-    new: list[NewFile] = Field(
-        default_factory=list, description="List of newly added files"
-    )
-    deleted: list[DeleteChange] = Field(
-        default_factory=list, description="List of files that were removed"
-    )
-    changed: list[FileChange] = Field(
-        default_factory=list, description="List of files with content changes"
-    )
-    renamed: list[RenameChange] = Field(
-        default_factory=list, description="List of files that were renamed"
-    )
-    unchanged: list[Unchanged] = Field(
-        default_factory=list, description="List of files that remained unchanged"
-    )
+    new: list[NewFile] = Field(default_factory=list, description="List of newly added files")
+    deleted: list[DeleteChange] = Field(default_factory=list, description="List of files that were removed")
+    changed: list[FileChange] = Field(default_factory=list, description="List of files with content changes")
+    renamed: list[RenameChange] = Field(default_factory=list, description="List of files that were renamed")
+    unchanged: list[Unchanged] = Field(default_factory=list, description="List of files that remained unchanged")

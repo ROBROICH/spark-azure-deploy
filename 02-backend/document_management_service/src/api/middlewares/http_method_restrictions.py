@@ -1,5 +1,9 @@
+from collections.abc import Awaitable, Callable
+from typing import override
+
 from fastapi import HTTPException, Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 from src.config.settings import settings
 
@@ -16,7 +20,8 @@ class HTTPMethodRestrictionsMiddleware(BaseHTTPMiddleware):
     OPTIONS is allowed for CORS preflight requests.
     """
 
-    async def dispatch(self, request: Request, call_next):
+    @override
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         """
         Process the request and block specific HTTP methods.
 
@@ -37,5 +42,4 @@ class HTTPMethodRestrictionsMiddleware(BaseHTTPMiddleware):
                 detail=f"HTTP method '{request.method}' is not allowed",
             )
 
-        response = await call_next(request)
-        return response
+        return await call_next(request)

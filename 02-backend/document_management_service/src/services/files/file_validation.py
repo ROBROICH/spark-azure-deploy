@@ -59,7 +59,7 @@ def validate_file_upload(
             outcome=EventOutcome.FAILURE,
             category=EventCategory.FILE,
             file_name=filename,
-            message=f"Unsupported file extension: {str(e)}",
+            message=f"Unsupported file extension: {e!s}",
         )
         raise
 
@@ -75,7 +75,7 @@ def validate_file_upload(
             outcome=EventOutcome.FAILURE,
             category=EventCategory.FILE,
             file_name=filename,
-            message=f"Unsupported MIME type: {str(e)}",
+            message=f"Unsupported MIME type: {e!s}",
         )
         raise e
 
@@ -84,6 +84,7 @@ def validate_file_upload(
         validate_file_by_content_bytes(
             content=content_bytes,
             allowed_mime_types=allowed_mime_types,
+            expected_mime_type=mime_type,
         )
 
     logger.info(

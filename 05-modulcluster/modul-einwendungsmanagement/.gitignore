@@ -1,0 +1,4 @@
+notebooks
+src/notebooks
+.venv
+.vscode/

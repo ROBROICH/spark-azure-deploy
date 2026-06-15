@@ -6,7 +6,7 @@ import socket
 from collections.abc import Callable, Sequence
 from enum import Enum
 from functools import wraps
-from typing import override
+from typing import ParamSpec, TypeVar, override
 
 from opentelemetry import trace
 from opentelemetry._logs import set_logger_provider
@@ -27,7 +27,10 @@ from temporalio import activity, workflow
 from temporalio.contrib.opentelemetry._id_generator import TemporalIdGenerator
 
 from temporal.auto_trace import enable_auto_tracing
-from temporal.custom_otel_plugin import CustomTracerProvider
+from temporal.CustomOtelPlugin import CustomTracerProvider
+
+P = ParamSpec("P")
+T = TypeVar("T")
 
 _provider: CustomTracerProvider | None = None
 _log_provider: LoggerProvider | None = None
@@ -43,7 +46,7 @@ class TracingMode(str, Enum):
 class ObservabilityConfig(BaseModel):
     service_name: str = Field(min_length=1)
     otel_endpoint: str = Field(min_length=1)
-    tracing_mode: TracingMode = TracingMode.FULL
+    tracing_mode: TracingMode = TracingMode.MINIMAL
 
 
 def setup_observability(config: ObservabilityConfig):
@@ -56,7 +59,7 @@ def setup_observability(config: ObservabilityConfig):
     service_name = config.service_name
     otel_config = {
         "endpoint": config.otel_endpoint,
-        "insecure": config.otel_endpoint.startswith(("http://", "grpc://")),
+        "insecure": not config.otel_endpoint.startswith("https://"),
     }
 
     resource = Resource(
@@ -203,7 +206,7 @@ def _in_temporal_context() -> bool:
     return activity.in_activity() or workflow.in_workflow()
 
 
-def traced[T, **P](func: Callable[P, T]) -> Callable[P, T]:
+def traced(func: Callable[P, T]) -> Callable[P, T]:
     if getattr(func, "__traced__", False):
         return func
 
@@ -213,9 +216,7 @@ def traced[T, **P](func: Callable[P, T]) -> Callable[P, T]:
     async def async_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         if not _in_temporal_context():
             return await func(*args, **kwargs)  # type: ignore[misc]
-        with tracer.start_as_current_span(
-            func.__qualname__, attributes=_temporal_span_attributes()
-        ):
+        with tracer.start_as_current_span(func.__qualname__, attributes=_temporal_span_attributes()):
             return await func(*args, **kwargs)  # type: ignore[misc]
 
     @wraps(func)
@@ -224,9 +225,7 @@ def traced[T, **P](func: Callable[P, T]) -> Callable[P, T]:
             async for item in func(*args, **kwargs):  # type: ignore[misc]
                 yield item
             return
-        with tracer.start_as_current_span(
-            func.__qualname__, attributes=_temporal_span_attributes()
-        ):
+        with tracer.start_as_current_span(func.__qualname__, attributes=_temporal_span_attributes()):
             async for item in func(*args, **kwargs):  # type: ignore[misc]
                 yield item
 
@@ -235,18 +234,14 @@ def traced[T, **P](func: Callable[P, T]) -> Callable[P, T]:
         if not _in_temporal_context():
             yield from func(*args, **kwargs)  # type: ignore[misc]
             return
-        with tracer.start_as_current_span(
-            func.__qualname__, attributes=_temporal_span_attributes()
-        ):
+        with tracer.start_as_current_span(func.__qualname__, attributes=_temporal_span_attributes()):
             yield from func(*args, **kwargs)  # type: ignore[misc]
 
     @wraps(func)
     def sync_wrapper(*args: P.args, **kwargs: P.kwargs) -> T:
         if not _in_temporal_context():
             return func(*args, **kwargs)
-        with tracer.start_as_current_span(
-            func.__qualname__, attributes=_temporal_span_attributes()
-        ):
+        with tracer.start_as_current_span(func.__qualname__, attributes=_temporal_span_attributes()):
             return func(*args, **kwargs)
 
     import asyncio

@@ -8,8 +8,83 @@ from typing import Any
 import pypdfium2 as pdfium
 
 from src.config import get_config
+from src.utils.pdfium_lock import _pdfium_lock
+from src.utils.pil_lock import _pil_lock
+
+__all__ = ["TableExtractor"]
 
 logger = logging.getLogger(__name__)
+
+
+def _crop_single_table(
+    table_info: dict[str, Any],
+    page_images_cache: dict[int, Any],
+    pdf_doc: pdfium.PdfDocument,
+    images_bytes: dict[str, bytes],
+    output_prefix: str,
+) -> None:
+    """Crop a single table image from a rendered PDF page. Called inside _pdfium_lock."""
+    try:
+        bbox = table_info["bbox"]
+        page_no = table_info.get("page_no", 1)
+        table_idx = table_info.get("index", 0)
+
+        page_idx = page_no - 1
+        if page_idx < 0 or page_idx >= len(pdf_doc):
+            logger.warning(f"Invalid page {page_no} for table {table_idx}")
+            return
+
+        if page_idx not in page_images_cache:
+            page = pdf_doc[page_idx]
+            scale = get_config().DOCLING_IMAGES_SCALE
+            bitmap = page.render(scale=scale)
+            with _pil_lock:
+                pil_image = bitmap.to_pil()
+            page_images_cache[page_idx] = {
+                "pil_image": pil_image,
+                "pdf_width": page.get_width(),
+                "pdf_height": page.get_height(),
+            }
+
+        page_data = page_images_cache[page_idx]
+        pil_image = page_data["pil_image"]
+        pdf_height = page_data["pdf_height"]
+
+        scale = get_config().DOCLING_IMAGES_SCALE
+        img_width = pil_image.width
+        img_height = pil_image.height
+
+        # Convert bbox from docling format (BOTTOMLEFT origin) to image coords (TOPLEFT)
+        left = bbox.get("l", 0) * scale
+        right = bbox.get("r", 0) * scale
+        top = (pdf_height - bbox.get("t", 0)) * scale
+        bottom = (pdf_height - bbox.get("b", 0)) * scale
+
+        padding = 5
+        left = max(0, left - padding)
+        top = max(0, top - padding)
+        right = min(img_width, right + padding)
+        bottom = min(img_height, bottom + padding)
+
+        if left >= right or top >= bottom:
+            logger.warning(f"Invalid crop region for table {table_idx}: ({left}, {top}, {right}, {bottom})")
+            return
+
+        crop_box = (int(left), int(top), int(right), int(bottom))
+        with _pil_lock:
+            cropped_image = pil_image.crop(crop_box)
+            img_buffer = io.BytesIO()
+            cropped_image.save(img_buffer, format="PNG")
+        img_bytes = img_buffer.getvalue()
+
+        img_filename = f"{output_prefix}_p{page_no}_table{table_idx}.png"
+        table_info["img_path"] = img_filename
+        images_bytes[img_filename] = img_bytes
+
+        logger.debug(f"Cropped table image: {img_filename} ({int(right - left)}x{int(bottom - top)}px)")
+
+    except Exception as e:
+        logger.warning(f"Failed to crop table {table_info.get('index', '?')}: {e}")
 
 
 class TableExtractor:
@@ -133,20 +208,20 @@ class TableExtractor:
                 if cell is None:
                     # Empty cell (shouldn't happen if data is complete)
                     html_parts.append("<td></td>")
-                elif cell == {}:
+                    continue
+                if not cell:
                     # Spanned cell - skip (already covered by spanning cell)
                     continue
-                else:
-                    tag = "th" if cell.get("is_header") else "td"
-                    attrs: list[str] = []
-                    if cell.get("row_span", 1) > 1:
-                        attrs.append(f'rowspan="{cell["row_span"]}"')
-                    if cell.get("col_span", 1) > 1:
-                        attrs.append(f'colspan="{cell["col_span"]}"')
-                    attr_str = " " + " ".join(attrs) if attrs else ""
-                    # Escape HTML in text content
-                    text = cell.get("text", "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-                    html_parts.append(f"<{tag}{attr_str}>{text}</{tag}>")
+                tag = "th" if cell.get("is_header") else "td"
+                attrs: list[str] = []
+                if cell.get("row_span", 1) > 1:
+                    attrs.append(f'rowspan="{cell["row_span"]}"')
+                if cell.get("col_span", 1) > 1:
+                    attrs.append(f'colspan="{cell["col_span"]}"')
+                attr_str = " " + " ".join(attrs) if attrs else ""
+                # Escape HTML in text content
+                text = cell.get("text", "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+                html_parts.append(f"<{tag}{attr_str}>{text}</{tag}>")
             html_parts.append("</tr>")
         html_parts.append("</table>")
 
@@ -187,76 +262,16 @@ class TableExtractor:
         logger.info(f"Cropping {len(tables_without_images)} table images from PDF pages")
 
         try:
-            pdf_doc = pdfium.PdfDocument(pdf_bytes)
-            page_images_cache: dict[int, Any] = {}  # Cache rendered pages
+            with _pdfium_lock:
+                pdf_doc = pdfium.PdfDocument(pdf_bytes)
+                page_images_cache: dict[int, Any] = {}  # Cache rendered pages
 
-            for table_info in tables_without_images:
-                try:
-                    bbox = table_info["bbox"]
-                    page_no = table_info.get("page_no", 1)
-                    table_idx = table_info.get("index", 0)
+                for table_info in tables_without_images:
+                    _crop_single_table(table_info, page_images_cache, pdf_doc, images_bytes, output_prefix)
 
-                    page_idx = page_no - 1
-                    if page_idx < 0 or page_idx >= len(pdf_doc):
-                        logger.warning(f"Invalid page {page_no} for table {table_idx}")
-                        continue
+                pdf_doc.close()
+                page_images_cache.clear()
 
-                    # Get or render page image (with caching)
-                    if page_idx not in page_images_cache:
-                        page = pdf_doc[page_idx]
-                        scale = get_config().DOCLING_IMAGES_SCALE
-                        bitmap = page.render(scale=scale)
-                        pil_image = bitmap.to_pil()
-                        page_images_cache[page_idx] = {
-                            "pil_image": pil_image,
-                            "pdf_width": page.get_width(),
-                            "pdf_height": page.get_height(),
-                        }
-
-                    page_data = page_images_cache[page_idx]
-                    pil_image = page_data["pil_image"]
-                    pdf_height = page_data["pdf_height"]
-
-                    scale = get_config().DOCLING_IMAGES_SCALE
-                    img_width = pil_image.width
-                    img_height = pil_image.height
-
-                    # Convert bbox from docling format (BOTTOMLEFT origin) to image coords (TOPLEFT)
-                    left = bbox.get("l", 0) * scale
-                    right = bbox.get("r", 0) * scale
-                    top = (pdf_height - bbox.get("t", 0)) * scale
-                    bottom = (pdf_height - bbox.get("b", 0)) * scale
-
-                    # Add padding
-                    padding = 5
-                    left = max(0, left - padding)
-                    top = max(0, top - padding)
-                    right = min(img_width, right + padding)
-                    bottom = min(img_height, bottom + padding)
-
-                    if left >= right or top >= bottom:
-                        logger.warning(f"Invalid crop region for table {table_idx}: ({left}, {top}, {right}, {bottom})")
-                        continue
-
-                    crop_box = (int(left), int(top), int(right), int(bottom))
-                    cropped_image = pil_image.crop(crop_box)
-
-                    img_buffer = io.BytesIO()
-                    cropped_image.save(img_buffer, format="PNG")
-                    img_bytes = img_buffer.getvalue()
-
-                    img_filename = f"{output_prefix}_p{page_no}_table{table_idx}.png"
-                    table_info["img_path"] = img_filename
-                    images_bytes[img_filename] = img_bytes
-
-                    logger.debug(f"Cropped table image: {img_filename} ({int(right - left)}x{int(bottom - top)}px)")
-
-                except Exception as e:
-                    logger.warning(f"Failed to crop table {table_info.get('index', '?')}: {e}")
-                    continue
-
-            pdf_doc.close()
-            page_images_cache.clear()
             logger.info(
                 f"Successfully cropped {sum(1 for t in tables_without_images if t.get('img_path'))} table images"
             )
