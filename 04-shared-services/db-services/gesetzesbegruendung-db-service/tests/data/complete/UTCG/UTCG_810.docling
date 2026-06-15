@@ -1,0 +1,83 @@
+{
+  "document": {
+    "filename": "synthetic.pdf",
+    "md_content": "## Bundesrat\n\n## Gesetzentwurf der Bundesregierung\n\nEntwurf eines Gesetzes zu der Zweiten Änderung des Übereinkommens vom 15. Mai 2026 über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)\n\n## A. Problem und Ziel\n\nDie bestehende Fassung des Übereinkommens erfasst verteilte Spark-Workflows nur unzureichend. Ziel des Gesetzes ist es, die völkerrechtlichen Voraussetzungen für eine grenzüberschreitende Unittestcoverageprüfung zu schaffen und die innerstaatliche Anwendung sicherzustellen.\n\n## 2. Vollzugsaufwand\n\nFür die Verwaltung entsteht ein geringfügiger zusätzlicher Vollzugsaufwand durch die Führung des Testfallregisters und die Erstellung gemeinsamer Prüfberichte. Der Aufwand wird im Rahmen der vorhandenen Personal- und Sachmittel aufgefangen; zusätzliche Stellen sind nicht erforderlich. Den Vertragsparteien entstehen keine über den bisherigen Rahmen hinausgehenden laufenden Kosten.",
+    "json_content": {
+      "texts": [
+        {
+          "label": "page_header",
+          "text": "Drucksache 810/26",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "section_header",
+          "text": "Bundesrat",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "section_header",
+          "text": "Gesetzentwurf der Bundesregierung",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "text",
+          "text": "Entwurf eines Gesetzes zu der Zweiten Änderung des Übereinkommens vom 15. Mai 2026 über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "section_header",
+          "text": "A. Problem und Ziel",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "text",
+          "text": "Die bestehende Fassung des Übereinkommens erfasst verteilte Spark-Workflows nur unzureichend. Ziel des Gesetzes ist es, die völkerrechtlichen Voraussetzungen für eine grenzüberschreitende Unittestcoverageprüfung zu schaffen und die innerstaatliche Anwendung sicherzustellen.",
+          "prov": [
+            {
+              "page_no": 1
+            }
+          ]
+        },
+        {
+          "label": "section_header",
+          "text": "2. Vollzugsaufwand",
+          "prov": [
+            {
+              "page_no": 2
+            }
+          ]
+        },
+        {
+          "label": "text",
+          "text": "Für die Verwaltung entsteht ein geringfügiger zusätzlicher Vollzugsaufwand durch die Führung des Testfallregisters und die Erstellung gemeinsamer Prüfberichte. Der Aufwand wird im Rahmen der vorhandenen Personal- und Sachmittel aufgefangen; zusätzliche Stellen sind nicht erforderlich. Den Vertragsparteien entstehen keine über den bisherigen Rahmen hinausgehenden laufenden Kosten.",
+          "prov": [
+            {
+              "page_no": 2
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "status": "success"
+}

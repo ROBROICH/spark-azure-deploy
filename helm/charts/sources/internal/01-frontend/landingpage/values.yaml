@@ -1,0 +1,234 @@
+# =============================================================================
+# landingpage — Helm values (base layer, 01-frontend)
+# =============================================================================
+# Component label: landingpage. Chart:01-frontend/landingpage/
+#
+# Merge at deploy: values.yaml + values-<overlay>.yaml
+#   helm template <release> . -f values.yaml -f values-<overlay>.yaml
+#
+# All Helm template keys are listed below. Unused keys use "" for strings, [] for lists, {} for maps.
+# Environment variables must not use empty value: omit unused vars or use placeholders (<postgresdb-host>, …).
+# Overlay-specific overrides belong in values-<overlay>.yaml (extraEnv, podLabels, image, …).
+# =============================================================================
+
+
+# Desired pod replicas when autoscaling.enabled is false.
+# Example: 3
+
+replicaCount: 1
+
+# Container image. If tag is empty, Chart.appVersion is used.
+# Example:
+#   repository: registry.example.com/my-team/my-service
+#   tag: "1.2.3"
+#   pullPolicy: Always
+
+image:
+  repository: "<container-registry>/landingpage-app"
+  tag: "<image-tag>"
+  pullPolicy: Always
+
+# Pull secrets for private registries (list).
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+imagePullSecrets: []
+
+# Override chart name used in labels.
+# Example: my-short-name
+
+nameOverride: ''
+
+# Override fully qualified resource name.
+# Example: my-service-prod
+
+fullnameOverride: ''
+
+# Target Kubernetes namespace for all resources of this chart.
+#
+# When non-empty, every resource (Deployment, Service, ServiceAccount, HPA)
+# is placed in the named namespace. When empty, the release namespace is used
+# — the value supplied via helm install --namespace.
+#
+# When this chart is deployed as part of an umbrella, the parent chart sets
+# this value in its own values.yaml. Override it per chart in your install
+# values when a dedicated namespace is required.
+#
+# The namespace must exist in the cluster before installation; this chart does
+# not create namespace objects.
+
+namespaceOverride: ''
+
+# Stage name appended to generated resource names as a suffix (e.g. "-dev").
+# When this chart is deployed inside an umbrella, the stage is propagated via
+# global.stage.name. Set it here only for standalone installs.
+# Leave empty to omit the suffix.
+
+stage:
+  name: ''
+
+# Service classification labels applied to Deployment, Service, ServiceAccount, and HPA.
+#
+# labels.app.kubernetes.io/component — workload category: landingpage | backend | agent
+# labels.environment — environment tag on pods. When deployed inside an
+#                      umbrella, this is provided via global.labels.environment.
+#                      Set it here for standalone installs.
+
+labels:
+  app.kubernetes.io/component: landingpage
+
+# Container ports (list).
+# Example: [{containerPort: 8000, name: http}]
+
+containerPorts:
+- containerPort: 80
+
+# ServiceAccount for the pod (map).
+# Example:
+#   create: true
+#   automount: true
+#   annotations: {}
+#   name: 
+
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ''
+
+# Extra annotations on the pod template (map).
+# Example: {prometheus.io/scrape: "true"}
+
+# Extra annotations on the Deployment/resource metadata (map).
+annotations: {}
+
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). Pod selectors are set by the
+# chart templates using Kubernetes recommended labels (app.kubernetes.io/name,
+# app.kubernetes.io/instance) and must not be overridden here.
+
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Service exposure (map). Selector is set by templates (app.kubernetes.io/name + instance).
+# Example:
+#   type: ClusterIP
+#   port: 80
+#   ports:
+#     - {port: 80, targetPort: 8000, protocol: TCP, name: http}
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+  selector: {}
+
+# Ingress (map). Set enabled: true to render.
+# Example:
+#   enabled: true
+#   className: nginx
+#   annotations: {}
+#   hosts: []
+#   tls: []
+
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  hosts: []
+  tls: []
+
+# CPU/memory requests and limits (map). Use {} when unset.
+# Example: {requests: {cpu: 100m, memory: 128Mi}, limits: {cpu: 500m, memory: 256Mi}}
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 32Mi
+  limits:
+    cpu: 100m
+    memory: 64Mi
+
+# Base environment variables injected into the container (list of EnvVar objects).
+# The landingpage container reads VITE_* vars at runtime via the entrypoint script.
+# All vars below are required — replace placeholders before deploying.
+env: []
+extraEnv: []
+
+# Startup probe (map). Use {} when unset.
+# Example: {httpGet: {path: /startup, port: 8000}, periodSeconds: 10, failureThreshold: 6}
+
+startupProbe: {}
+
+# Liveness probe (map). Use {} when unset.
+# Example: {httpGet: {path: /healthz, port: 8000}, periodSeconds: 10}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 10
+
+# Readiness probe (map). Use {} when unset.
+# Example: {httpGet: {path: /ready, port: 8000}, periodSeconds: 10}
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 3
+  periodSeconds: 5
+
+# HorizontalPodAutoscaler (map).
+# Example: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilizationPercentage: 80}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Pod volumes (list).
+# Example: [{name: config, configMap: {name: my-config}}]
+
+volumes: []
+
+# Container volume mounts (list).
+# Example: [{name: config, mountPath: /etc/config, readOnly: true}]
+
+volumeMounts: []
+
+# Node selector (map).
+# Example: {kubernetes.io/os: linux}
+
+nodeSelector: {}
+
+# Pod tolerations (list).
+# Example: [{key: dedicated, operator: Equal, value: backend, effect: NoSchedule}]
+
+tolerations: []
+
+# Pod affinity rules (map).
+# Example: {}
+
+affinity: {}

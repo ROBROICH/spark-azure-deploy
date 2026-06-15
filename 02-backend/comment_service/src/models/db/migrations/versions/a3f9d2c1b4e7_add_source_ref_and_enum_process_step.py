@@ -63,9 +63,7 @@ def upgrade() -> None:
         sa.Column("source_item_id", sa.String(255), nullable=True),
     )
 
-    op.create_index(
-        "ix_comment_project_id", "comment", ["project_id"], if_not_exists=True
-    )
+    op.create_index("ix_comment_project_id", "comment", ["project_id"], if_not_exists=True)
     op.create_index(
         "ix_comment_project_process_step",
         "comment",

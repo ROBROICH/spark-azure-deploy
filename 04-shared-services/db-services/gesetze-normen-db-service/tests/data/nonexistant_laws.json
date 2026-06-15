@@ -1,0 +1,12 @@
+{
+    "bund": {
+        "parser": "XmlProcessor1",
+        "base_url": "http://test.test",
+        "gesetz": [
+            "foo"
+        ],
+        "verordnung": [
+            "bar"
+        ]
+    }
+}

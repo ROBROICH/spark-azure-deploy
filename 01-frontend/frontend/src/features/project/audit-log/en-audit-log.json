@@ -1,0 +1,161 @@
+{
+  "sidebar": {
+    "title": "Audit log for {{0}}",
+    "drilldownTitle": "Workflow details",
+    "requestDrilldownTitle": "Request details",
+    "projectFallback": "this project",
+    "close": "Close"
+  },
+  "refresh": {
+    "label": "Refresh audit log",
+    "tooltip": "Reloads the audit log from the server and replaces the current cached collection data."
+  },
+  "filterBar": {
+    "download": "Download audit log",
+    "searchBar": {
+      "placeholder": "Search by keyword"
+    },
+    "pdf": {
+      "title": "Audit log for {{0}}",
+      "generated-on": "Generated on: {{0}} at {{1}}",
+      "entries": "Entries: {{0}}"
+    },
+    "timePeriods": {
+      "label": "Time period",
+      "all": "All periods",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "7-days": "Last 7 days",
+      "30-days": "Last 30 days",
+      "180-days": "Last 180 days",
+      "365-days": "Last 365 days",
+      "over-365-days": "Older than 365 days"
+    },
+    "source": {
+      "label": "Source",
+      "all": "All sources",
+      "agent": "Agent",
+      "user": "User"
+    },
+    "service": {
+      "label": "Service",
+      "all": "All services",
+      "options": {
+        "project_logic": "Project details",
+        "formal_completeness": "Formal completeness check",
+        "plausibility": "Plausibility check",
+        "comment": "Comments",
+        "supplementary": "Supplementary requests",
+        "document_management": "Documents",
+        "administrative_draft": "Administrative draft",
+        "examination": "Legal review and resolution drafting",
+        "objections_management": "Public participation"
+      }
+    }
+  },
+  "document": {
+    "date": "{{0}}",
+    "badgeAi": "AI-generated",
+    "showMore_one": "Show {{0}} more",
+    "showMore_other": "Show {{0}} more",
+    "table": {
+      "name": "Project name",
+      "projectTypeName": "Project type",
+      "statusName": "Status",
+      "company": "Company",
+      "userName": "Contact person",
+      "adress": {
+        "label": "Address",
+        "house": {
+          "street": "Street",
+          "houseNumber": "No."
+        },
+        "place": {
+          "plz": "ZIP",
+          "location": "City"
+        }
+      },
+      "contact": {
+        "label": "Contact",
+        "displayLabels": true,
+        "r1": { "email": "Email: " },
+        "r2": { "phone": "Tel: " },
+        "r3": { "fax": "Fax: " }
+      }
+    }
+  },
+  "pagination": {
+    "label": "Audit log pagination",
+    "previous": "Previous",
+    "previousPage": "Go to previous audit log page",
+    "next": "Next",
+    "nextPage": "Go to next audit log page",
+    "loaded": "{{count}} entries loaded",
+    "pageLabel": "Page",
+    "pageOption": "{{page}}",
+    "pageSelect": "Select audit log page",
+    "pageStatus": "Page {{current}} of {{total}}",
+    "pageTotal": "of {{total}}",
+    "summary": "{{count}} entries from {{offset}} of {{total}}"
+  },
+  "states": {
+    "loading": "Loading audit log.",
+    "error": "The audit log could not be loaded.",
+    "retry": "Retry",
+    "empty": "No audit log entries match this selection."
+  },
+  "export": {
+    "error": "The audit log could not be downloaded.",
+    "workflowUnavailable": "Workflow details cannot be downloaded."
+  },
+  "drilldown": {
+    "workflow": "Workflow",
+    "request": "Request",
+    "changeCount_one": "{{count}} change",
+    "changeCount_other": "{{count}} changes",
+    "back": "Back"
+  },
+  "source": {
+    "agent": "Agent",
+    "user": "User"
+  },
+  "changeType": {
+    "create": "Created",
+    "update": "Updated",
+    "delete": "Deleted",
+    "action": "Action"
+  },
+  "fields": {
+    "timestamp": "Timestamp",
+    "service": "Service",
+    "source": "Source",
+    "entityType": "Entity",
+    "entityId": "Entity ID",
+    "actionType": "Action type",
+    "workflowType": "Workflow type",
+    "workflowRunId": "Workflow run ID",
+    "requestId": "Request ID",
+    "actorUserId": "User ID",
+    "triggeredByUserId": "Triggered by"
+  },
+  "event": {
+    "aggregatedTitle_one": "{{count}} change via {{workflow}}",
+    "aggregatedTitle_other": "{{count}} changes via {{workflow}}",
+    "requestAggregatedTitle_one": "{{count}} change in one request",
+    "requestAggregatedTitle_other": "{{count}} changes in one request",
+    "groupCount_one": "{{count}} change",
+    "groupCount_other": "{{count}} changes",
+    "showWorkflow": "Show changes",
+    "showGroup": "Show changes",
+    "aggregatedHint": "This card summarizes a workflow. The detail view shows the individual events.",
+    "requestAggregatedHint": "This card summarizes the actions of one HTTP request. The detail view shows the individual events.",
+    "noRowDiff": "This entry does not contain a row diff.",
+    "actionTitle": "Action",
+    "changeTitle": "{{changeType}}: {{entityType}}"
+  },
+  "diff": {
+    "field": "Field",
+    "before": "Before",
+    "after": "After"
+  }
+}

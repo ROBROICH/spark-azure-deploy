@@ -1,0 +1,33 @@
+# Ignore everything by default
+**
+
+# Root workspace files
+!pyproject.toml
+!uv.lock
+
+# All pyproject.toml files for dependency resolution
+!**/pyproject.toml
+.venv/**
+
+# Workspace and used shared libraries
+!04-shared-services/db-services/shared/**
+!04-shared-services/audit-client/**
+!04-shared-services/temporal/**
+!04-shared-services/authentification/**
+!04-shared-services/internal-auth/**
+!02-backend/logging/**
+
+# Allow module code
+!04-shared-services/db-services/jura-db-service/jura_db/**
+!04-shared-services/db-services/jura-db-service/alembic/**
+!04-shared-services/db-services/jura-db-service/alembic.ini
+!04-shared-services/db-services/jura-db-service/README.md
+
+# Re-ignore Python junk everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

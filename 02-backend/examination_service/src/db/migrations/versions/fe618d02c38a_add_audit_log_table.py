@@ -1,0 +1,54 @@
+"""add audit_log table
+
+Revision ID: fe618d02c38a
+Revises: a1b2c3d4e5f6
+Create Date: 2026-05-11 18:13:12.125932
+
+"""
+
+from collections.abc import Sequence
+
+import sqlalchemy as sa
+from alembic import op
+from sqlalchemy.dialects import postgresql
+
+# revision identifiers, used by Alembic.
+revision: str = "fe618d02c38a"
+down_revision: str | Sequence[str] | None = "a1b2c3d4e5f6"
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
+
+
+def upgrade() -> None:
+    """Upgrade schema."""
+    op.create_table(
+        "audit_log",
+        sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column(
+            "timestamp",
+            sa.DateTime(timezone=True),
+            server_default=sa.text("now()"),
+            nullable=False,
+        ),
+        sa.Column("project_id", postgresql.UUID(as_uuid=True), nullable=False),
+        sa.Column("entity_id", postgresql.UUID(as_uuid=True), nullable=True),
+        sa.Column("entity_type", sa.String(), nullable=False),
+        sa.Column("change_type", sa.String(), nullable=False),
+        sa.Column("action_type", sa.String(), nullable=True),
+        sa.Column("actor_user_id", postgresql.UUID(as_uuid=True), nullable=True),
+        sa.Column("triggered_by_user_id", postgresql.UUID(as_uuid=True), nullable=True),
+        sa.Column("workflow_run_id", sa.String(), nullable=True),
+        sa.Column("workflow_type", sa.String(), nullable=True),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        "ix_audit_log_project_timestamp",
+        "audit_log",
+        ["project_id", sa.text("timestamp DESC")],
+    )
+
+
+def downgrade() -> None:
+    """Downgrade schema."""
+    op.drop_index("ix_audit_log_project_timestamp", table_name="audit_log")
+    op.drop_table("audit_log")

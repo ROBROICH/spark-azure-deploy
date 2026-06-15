@@ -10,15 +10,11 @@ from _thread import LockType
 
 
 class AsyncRateLimiter:
+    """Thread-safe async rate limiter using token-bucket timing."""
+
     _last_call_time: float
     delay: float
     _lock: LockType
-
-    """
-    A thread-safe, asynchronous rate limiter to control the frequency of operations.
-    This ensures that operations do not exceed a specified rate, even when called
-    from multiple threads with different event loops.
-    """
 
     def __init__(self, rate_limit: int, per_seconds: int = 60) -> None:
         """
@@ -50,8 +46,7 @@ class AsyncRateLimiter:
             current_time = time.monotonic()
 
             wait_duration = next_call_time - current_time
-            if wait_duration < 0:
-                wait_duration = 0
+            wait_duration = max(wait_duration, 0)
 
             # Update the last call time based on when this operation will finish waiting
             self._last_call_time = current_time + wait_duration

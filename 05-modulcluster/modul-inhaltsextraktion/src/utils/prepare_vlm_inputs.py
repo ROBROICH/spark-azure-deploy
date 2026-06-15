@@ -1,3 +1,5 @@
+"""Prepare visual element inputs for VLM processing."""
+
 from __future__ import annotations
 
 import logging
@@ -8,7 +10,7 @@ from src.providers.base import ContentItemDict, ContentItemTable
 from src.workflows.vlm_enhancement.output_format import VLMWorkflowInput
 
 if TYPE_CHECKING:
-    from src.activities.postprocessing import FilterEnhanceResult
+    from src.activities.postprocessing.schemas import FilterEnhanceResult
 
 logger = logging.getLogger(__name__)
 
@@ -156,14 +158,13 @@ def _prepare_table_input(
             raw_html=raw_table_html,
             full_tag=full_tag_for_replacement,
         )
-    else:
-        return VLMWorkflowInput(
-            element_type="table",
-            image_ref=image_ref,
-            image_data=image_bytes,
-            context_text=context_text,
-            full_tag=full_tag_for_replacement,
-        )
+    return VLMWorkflowInput(
+        element_type="table",
+        image_ref=image_ref,
+        image_data=image_bytes,
+        context_text=context_text,
+        full_tag=full_tag_for_replacement,
+    )
 
 
 def _prepare_image_inputs(
@@ -173,7 +174,7 @@ def _prepare_image_inputs(
     """Build VLM inputs for markdown image tags."""
     inputs: list[VLMWorkflowInput] = []
     # Capture full markdown tag + filename for local image refs.
-    image_pattern = r"(!\[.*?]\(images/([^)]+)\))"
+    image_pattern = r"(!\[.*?]\(images/((?:[^()]|\([^)]*\))+)\))"
     added_images: set[str] = set()
     for match in re.finditer(image_pattern, markdown_content):
         full_image_tag = match.group(1)

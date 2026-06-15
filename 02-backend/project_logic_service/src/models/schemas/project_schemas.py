@@ -1,19 +1,70 @@
 from datetime import date, datetime
-from enum import Enum
+from enum import StrEnum
 from uuid import UUID
 
 from pydantic import BaseModel, Field
 from pydantic.alias_generators import to_camel
 
 
-class ProjectStatusEnum(str, Enum):
+class GermanState(StrEnum):
+    """German federal states.
+
+    Short forms from destatis:
+    https://www.destatis.de/DE/Methoden/abkuerzung-bundeslaender-DE-EN.html
+    """
+
+    BY = "Bayern"
+    BW = "Baden-Württemberg"
+    BE = "Berlin"
+    BB = "Brandenburg"
+    HB = "Bremen"
+    HH = "Hamburg"
+    HE = "Hessen"
+    MV = "Mecklenburg-Vorpommern"
+    NI = "Niedersachsen"
+    NW = "Nordrhein-Westfalen"
+    RP = "Rheinland-Pfalz"
+    SL = "Saarland"
+    SN = "Sachsen"
+    ST = "Sachsen-Anhalt"
+    SH = "Schleswig-Holstein"
+    TH = "Thüringen"
+
+
+class ProjectStatusEnum(StrEnum):
     """Project status enum values."""
 
     IN_CREATION = "In Erstellung"
     OPEN = "Offen"
     IN_PROGRESS = "In Bearbeitung"
-    APPROVED = "Genehmigt"
-    REJECTED = "Abgelehnt"
+    COMPLETED = "Abgeschlossen"
+    UPLOAD_DOCUMENTS = "In Erstellung"  # FE wants to show same name for both steps
+
+
+class ProjectInternalStatusEnum(StrEnum):
+    """Canonical internal project status values used for transitions."""
+
+    IN_CREATION = "IN_CREATION"
+    OPEN = "OPEN"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
+    UPLOAD_DOCUMENTS = "UPLOAD_DOCUMENTS"
+
+    @property
+    def transition_order(self) -> int:
+        """Monotonic ordering for status transitions."""
+        return {
+            ProjectInternalStatusEnum.IN_CREATION: 0,
+            ProjectInternalStatusEnum.UPLOAD_DOCUMENTS: 1,
+            ProjectInternalStatusEnum.OPEN: 2,
+            ProjectInternalStatusEnum.IN_PROGRESS: 3,
+            ProjectInternalStatusEnum.COMPLETED: 4,
+        }[self]
+
+    @property
+    def display_name(self) -> str:
+        """Localized display name used in `project_status.name`."""
+        return ProjectStatusEnum[self.name].value
 
 
 class ProjectResponse(BaseModel):
@@ -24,11 +75,15 @@ class ProjectResponse(BaseModel):
     name: str = Field(..., description="Verfahrensname")
     project_type_id: UUID = Field(..., description="ID of the Verfahren")
     project_type_name: str = Field(..., description="Projekt Type Name")
-    created_by_id: UUID | None = Field(
-        None, description="ID of the user who created the project"
-    )
+    created_by_id: UUID = Field(..., description="ID of the user who created the project")
     entry_date: date = Field(..., description="Antragseingang")
     internal_project_number: str = Field(..., description="Aktenzeichen")
+    state: GermanState | None = Field(None, description="Bundesland")
+    imported: bool | None = Field(None, description="Flag if project was imported through an external system")
+    # Assignment
+    owners: list[UUID] = Field(default_factory=list, description="Liste der Verfahrensleitungen")
+    members: list[UUID] = Field(default_factory=list, description="Liste der Bearbeiter")
+    auditors: list[UUID] = Field(default_factory=list, description="Liste der Auditoren")
 
     # Antragsstellenden Details
     salutation: str | None = Field(None, description="Anrede")
@@ -58,7 +113,11 @@ class ProjectResponse(BaseModel):
     )
 
     created_at: datetime = Field(...)
+    original_created_at: datetime = Field(...)
     updated_at: datetime = Field(...)
+
+    project_version: int = Field(..., description="Current version of this record")
+    latest_version: int = Field(..., description="Latest version number for the project")
 
     model_config = {
         "alias_generator": to_camel,
@@ -75,14 +134,14 @@ class CreateProjectRequest(BaseModel):
     project_type_id: UUID = Field(..., description="ID of the Verfahren")
     created_by_id: UUID | None = Field(
         None,
-        description=(
-            "ID of the user who created the project. "
-            "Optional for open deployments without built-in authentication."
-        ),
+        description=("ID of the user who created the project. If None the OIDC user ID will be used."),
     )
     entry_date: date = Field(..., description="Antragseingang")
     internal_project_number: str = Field(..., description="Aktenzeichen")
+    state: GermanState | None = Field(None, description="Bundesland")
     status_id: UUID | None = Field(None, description="Projek Status")
+
+    imported: bool | None = Field(None, description="Imported via an external system")
 
     # Antragsstellenden Details
     salutation: str | None = Field(None, description="Anrede")
@@ -110,6 +169,7 @@ class CreateProjectRequest(BaseModel):
                     "createdById": "00000000-0000-0000-0000-000000000000",
                     "entryDate": "2025-01-01",
                     "internalProjectNumber": "P001",
+                    "state": "Bayern",
                     "salutation": "Herr",
                     "company": "Example AG",
                     "firstName": "John",
@@ -135,11 +195,10 @@ class UpdateProjectRequest(BaseModel):
     # Details
     name: str | None = Field(None, description="Verfahrensname")
     project_type_id: UUID | None = Field(None, description="ID of the Verfahren")
-    created_by_id: UUID | None = Field(
-        None, description="ID of the user who updated the project"
-    )
+    created_by_id: UUID | None = Field(None, description="ID of the user who updated the project")
     entry_date: date | None = Field(None)
     internal_project_number: str | None = Field(None)
+    state: GermanState | None = Field(None, description="Bundesland")
 
     # Antragsstellenden Details
     salutation: str | None = Field(None, description="Anrede")
@@ -157,7 +216,6 @@ class UpdateProjectRequest(BaseModel):
     fax: str | None = Field(None, description="Fax")
 
     # Metainformation
-    status_id: UUID | None = Field(None)
     current_process_step_id: UUID | None = Field(
         None,
         description="Id of the current process step",
@@ -170,7 +228,7 @@ class UpdateProjectRequest(BaseModel):
             "examples": [
                 {
                     "location": "Munich",
-                    "company": "Infrastruktur AG",
+                    "company": "Bayer AG",
                 }
             ]
         },
@@ -180,7 +238,10 @@ class UpdateProjectRequest(BaseModel):
 class UpdateProjectStatusRequest(BaseModel):
     """Pydantic model for UpdateProjectStatus schema."""
 
-    status_name: str = Field(..., description="Status Name")
+    internal_name: ProjectInternalStatusEnum = Field(
+        ...,
+        description="Internal status name (e.g. OPEN, IN_PROGRESS)",
+    )
 
     model_config = {
         "alias_generator": to_camel,
@@ -188,8 +249,20 @@ class UpdateProjectStatusRequest(BaseModel):
         "json_schema_extra": {
             "examples": [
                 {
-                    "statusName": "Offen",
+                    "internalName": "OPEN",
                 }
             ]
         },
+    }
+
+
+class LatestVersionResponse(BaseModel):
+    """Response for the latest version number."""
+
+    project_id: UUID
+    latest_version: int
+
+    model_config = {
+        "alias_generator": to_camel,
+        "populate_by_name": True,
     }

@@ -1,0 +1,673 @@
+/**
+ * Design System Styles
+ *
+ * This file contains the design tokens as CSS variables and Tailwind CSS v4 configuration.
+ * Design tokens are defined here and mapped to Tailwind utilities via @theme inline.
+ *
+ * Structure:
+ * 1. Tailwind imports and configuration
+ * 2. Base styles (body, code)
+ * 3. Light theme variables (:root)
+ * 4. Dark theme variables (.dark) (currently not used)
+ * 5. Tailwind theme mapping (@theme inline)
+ * 6. Base layer styles (@layer base)
+ *
+ * These tokens are accessed via Tailwind utility classes (e.g., bg-primary uses var(--primary)).
+ */
+
+/* ==========================================================================
+   Tailwind CSS v4 Configuration
+   ========================================================================== */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./assets/fonts/InterVariable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Custom dark mode variant for Tailwind CSS v4 */
+@custom-variant dark (&:is(.dark *));
+
+/* ==========================================================================
+   Light Theme Variables (:root)
+   ========================================================================== */
+
+:root {
+  /* === Application design tokens === */
+
+  /* === Color palette === */
+  --primary-900: theme('colors.blue.900');
+  --primary-600: theme('colors.blue.600');
+  --primary-300: theme('colors.blue.300');
+  --primary-200: theme('colors.blue.200');
+  --primary-100: theme('colors.blue.100');
+  --primary-50: theme('colors.blue.50');
+
+  --brand-950: theme('colors.indigo.950');
+  --brand-800: #31317e;
+
+  /* === Focus tokens === */
+  --focus-outline: theme('colors.blue.600');
+  
+  --neutral-black: theme('colors.black');
+  --neutral-800: theme('colors.slate.800');
+  --neutral-700: theme('colors.slate.700');
+  --neutral-600: theme('colors.slate.600');
+  --neutral-500: theme('colors.slate.500');
+  --neutral-400: theme('colors.slate.400');
+  --neutral-300: theme('colors.slate.300');
+  --neutral-200: theme('colors.slate.200');
+  --neutral-100: theme('colors.slate.100');
+  --neutral-50: theme('colors.slate.50');
+  --neutral-white: theme('colors.white');
+
+  --success-900: theme('colors.emerald.900');
+  --success-800: theme('colors.emerald.800');
+  --success-700: theme('colors.emerald.700');
+  --success-200: theme('colors.emerald.200');
+  --success-100: theme('colors.emerald.100');
+  --success-50: theme('colors.emerald.50');
+
+  --error-950: theme('colors.red.950');
+  --error-900: theme('colors.red.900');
+  --error-800: theme('colors.red.800');
+  --error-700: theme('colors.red.700');
+  --error-600: theme('colors.red.600');
+  --error-200: theme('colors.red.200');
+  --error-50: theme('colors.red.50');
+  --destructive: theme('colors.red.900');
+
+  --warning-900: theme('colors.orange.900');
+  --warning-800: theme('colors.orange.800');
+  --warning-600: theme('colors.orange.600');
+  --warning-200: theme('colors.orange.200');
+  --warning-100: theme('colors.orange.100');
+  --warning-50: theme('colors.orange.50');
+
+  --alarm-800: theme('colors.amber.800');
+  --alarm-100: theme('colors.amber.100');
+
+  --ki-800: theme('colors.violet.800');
+  --ki-600: theme('colors.violet.600');
+  --ki-200: theme('colors.violet.200');
+  --ki-100: theme('colors.violet.100');
+  --ki-50: theme('colors.violet.50');
+  --gradient-ki: linear-gradient(90deg, theme('colors.violet.600') 0%, theme('colors.violet.900') 100%);
+
+  /* === AI gradient tokens === */
+  --effect-gradient-ai-fill-primary: #F3E8FF;
+  --effect-gradient-ai-fill-secondary: #E9D5FF;
+  --effect-gradient-ai-fill-primary-hover: #FAF5FF;
+  --effect-gradient-ai-fill-secondary-hover: #F3E8FF;
+  --effect-gradient-ai-border-primary: #C084FC;
+  --effect-gradient-ai-border-secondary: #9333EA;
+  --effect-gradient-ai-text-icon-primary: #9333EA;
+  --effect-gradient-ai-text-icon-secondary: #581C87;
+  --effect-gradient-ai-text-icon-disabled: #C084FC;
+
+  /* === Semantic Colors === */
+  --brand: var(--primary-900);
+  --invert: var(--neutral-white);
+  --accent: var(--primary-50);
+  --success: var(--success-900);
+  --error: var(--error-900);
+  --warning: var(--warning-800);
+  --alarm: var(--alarm-800);
+  --ki: var(--ki-800);
+  --ring: var(--focus-outline); /* focus ring – matches focus-ring utility */
+
+  /* === Text Colors === */
+  /* Core text color tokens */
+  --text-clickable: var(--primary-900);
+  --text-primary: var(--brand-950);
+  --text-secondary: var(--neutral-600);
+  --text-invert: var(--neutral-white);
+  --text-ki: var(--ki-800);
+  --text-success: var(--success-800);
+  --text-error: var(--error-800);
+  --text-warning: var(--warning-900);
+
+  /* === Background Colors === */
+  /* Core background color tokens */
+  --bg-brand: var(--primary-900);
+  --bg-accent: var(--primary-50);
+  --bg-primary: var(--neutral-white);
+  --bg-secondary: var(--neutral-50);
+  --bg-tertiary: var(--neutral-100);
+  --bg-quaternary: var(--neutral-200);
+
+  /* === Highlight Colors === */
+  /* State and highlight color tokens */
+  --highlight-brand: var(--primary-100);
+  --highlight-neutral: var(--neutral-white);
+  --highlight-inactive: var(--neutral-200);
+  --highlight-success: var(--success-100);
+  --highlight-ki: var(--ki-200);
+  --highlight-error: var(--error-50);
+  --highlight-warning: var(--warning-100);
+  --highlight-warning-light: var(--warning-50);
+  --highlight-alarm: var(--alarm-100);
+
+  /* === Border Colors === */
+  /* Border color tokens */
+  --border-brand: var(--primary-900);
+  --border-highlight: var(--primary-200);
+  --border-form: var(--neutral-600);
+  --border-primary: var(--neutral-200);
+  --border-secondary: var(--neutral-300);
+  --border-tertiary: var(--neutral-400);
+  --border-ki: var(--ki-200);
+  --border-simple: var(--neutral-white);
+  --border-success: theme('colors.green.600');
+  --border-warning: var(--warning-600);
+  --border-error: var(--error-600);
+
+  /* Layout */
+  --radius: 0.625rem;
+  --cell-size: 50px;
+
+  /* === Button-specific tokens === */
+  --button-shadow: 0px 2px 8px 2px rgba(8, 35, 48, 0.24);
+
+  /* === Shadow tokens === */
+  --shadow-elevated: 0px 2px 4px 0px rgba(2, 6, 23, 0.1), 0px 4px 16px 0px rgba(2, 6, 23, 0.1), inset 0px -4px 8px 0px rgba(2, 6, 23, 0.05);
+  --shadow-flat: 0px 2px 4px 0px rgba(2, 6, 23, 0.1), 0px 4px 16px 0px rgba(2, 6, 23, 0.1);
+
+  /* === TYPOGRAPHY SYSTEM === */
+  /* Font family */
+  --font-family:
+    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ==========================================================================
+   Dark Theme Variables (.dark)
+   This is just a placeholder for the dark theme variables, 
+   there is currently no dark theme in the design system.
+   ========================================================================== */
+
+.dark {
+  /* Core colors */
+  --background: theme('colors.gray.900');
+  --foreground: theme('colors.white');
+  --primary: theme('colors.blue.600');
+  --primary-foreground: theme('colors.white');
+  --secondary: theme('colors.gray.700');
+  --secondary-foreground: theme('colors.white');
+  --destructive: theme('colors.red.600');
+  --destructive-foreground: theme('colors.white');
+  --muted: theme('colors.gray.700');
+  --muted-foreground: theme('colors.gray.400');
+  --accent: theme('colors.gray.700');
+  --accent-foreground: theme('colors.white');
+}
+
+/* ==========================================================================
+   Tailwind Theme Mapping (@theme inline)
+   ========================================================================== */
+
+@theme inline {
+  /* Primitives */
+  --color-primary-900: var(--primary-900);
+  --color-primary-600: var(--primary-600);
+  --color-primary-300: var(--primary-300);
+  --color-primary-200: var(--primary-200);
+  --color-primary-100: var(--primary-100);
+  --color-primary-50: var(--primary-50);
+  --color-neutral-black: var(--neutral-black);
+  --color-neutral-800: var(--neutral-800);
+  --color-neutral-700: var(--neutral-700);
+  --color-neutral-600: var(--neutral-600);
+  --color-neutral-500: var(--neutral-500);
+  --color-neutral-400: var(--neutral-400);
+  --color-neutral-300: var(--neutral-300);
+  --color-neutral-200: var(--neutral-200);
+  --color-neutral-100: var(--neutral-100);
+  --color-neutral-50: var(--neutral-50);
+  --color-neutral-white: var(--neutral-white);
+  --color-success-900: var(--success-900);
+  --color-success-800: var(--success-800);
+  --color-success-700: var(--success-700);
+  --color-success-200: var(--success-200);
+  --color-success-100: var(--success-100);
+  --color-success-50: var(--success-50);
+  --color-error-950: var(--error-950);
+  --color-error-900: var(--error-900);
+  --color-error-800: var(--error-800);
+  --color-error-700: var(--error-700);
+  --color-error-600: var(--error-600);
+  --color-error-200: var(--error-200);
+  --color-error-50: var(--error-50);
+  --color-destructive: var(--destructive);
+  --color-warning-900: var(--warning-900);
+  --color-warning-800: var(--warning-800);
+  --color-warning-600: var(--warning-600);
+  --color-warning-200: var(--warning-200);
+  --color-warning-100: var(--warning-100);
+  --color-warning-50: var(--warning-50);
+  --color-alarm-800: var(--alarm-800);
+  --color-alarm-100: var(--alarm-100);
+  --color-ki-800: var(--ki-800);
+  --color-ki-600: var(--ki-600);
+  --color-ki-200: var(--ki-200);
+  --color-ki-100: var(--ki-100);
+  --color-ki-50: var(--ki-50);
+  --color-brand-950: var(--brand-950);
+  --color-brand-800: var(--brand-800);
+  --color-focus-outline: var(--focus-outline);
+
+  /* === Text Colors === */
+  --color-text-clickable: var(--text-clickable);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-invert: var(--text-invert);
+  --color-text-ki: var(--text-ki);
+  --color-text-success: var(--text-success);
+  --color-text-error: var(--text-error);
+  --color-text-warning: var(--text-warning);
+
+  /* === Background Colors === */
+  --color-bg-brand: var(--bg-brand);
+  --color-bg-accent: var(--bg-accent);
+  --color-bg-primary: var(--bg-primary);
+  --color-bg-secondary: var(--bg-secondary);
+  --color-bg-tertiary: var(--bg-tertiary);
+  --color-bg-quaternary: var(--bg-quaternary);
+
+  /* === Highlight Colors === */
+  --color-highlight-brand: var(--highlight-brand);
+  --color-highlight-neutral: var(--highlight-neutral);
+  --color-highlight-inactive: var(--highlight-inactive);
+  --color-highlight-success: var(--highlight-success);
+  --color-highlight-ki: var(--highlight-ki);
+  --color-highlight-error: var(--highlight-error);
+  --color-highlight-warning: var(--highlight-warning);
+  --color-highlight-warning-light: var(--highlight-warning-light);
+  --color-highlight-alarm: var(--highlight-alarm);
+
+  /* === Border Colors === */
+  --color-border-brand: var(--border-brand);
+  --color-border-highlight: var(--border-highlight);
+  --color-border-form: var(--border-form);
+  --color-border-primary: var(--border-primary);
+  --color-border-secondary: var(--border-secondary);
+  --color-border-tertiary: var(--border-tertiary);
+  --color-border-ki: var(--border-ki);
+  --color-border-simple: var(--border-simple);
+  --color-border-success: var(--border-success);
+  --color-border-warning: var(--border-warning);
+  --color-border-error: var(--border-error);
+
+  /* === Shadow mappings === */
+  --shadow-button: var(--button-shadow);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-flat: var(--shadow-flat);
+
+  /* === Semantic Colors === */
+  --color-brand: var(--brand);
+  --color-invert: var(--invert);
+  --color-accent: var(--accent);
+  --color-success: var(--success);
+  --color-error: var(--error);
+  --color-warning: var(--warning);
+  --color-alarm: var(--alarm);
+  --color-ki: var(--ki);
+  --color-ring: var(--ring);
+
+  /* Layout mappings */
+  --max-width-container: 1600px;
+  --max-width-container-sm: 1088px;
+
+  /* Typography mappings */
+  --font-sans: var(--font-family);
+
+  /* Accordion animations */
+  --animate-accordion-down: accordion-down 200ms ease-out;
+  --animate-accordion-up: accordion-up 200ms ease-out;
+
+  /* Indeterminate progress bar: short segment slides across the track */
+  --animate-progress-slide: progress-slide 2.4s ease-in-out infinite;
+
+  /* Unterlagen-aktualisieren dialog headline / progress accent. */
+  --color-brand-navy: #1e1d49;
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+  to {
+    height: 0;
+  }
+}
+
+@keyframes progress-slide {
+  0% {
+    left: -64px;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+/* ==========================================================================
+   Base Layer Styles
+   ========================================================================== */
+
+@layer base {
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+
+  body {
+    @apply m-0;
+    font-family: var(--font-family);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+  }
+
+  code {
+    font-family:
+      source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  }
+
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
+  }
+
+  /* Override browser's native focus ring color for all
+     native elements (button, input, a, etc.) that don't yet use the design system elements */
+  :focus-visible {
+    outline-color: var(--focus-outline);
+  }
+}
+
+@layer utilities {
+  .skeleton-pulse {
+    animation: skeleton-pulse 2000ms
+      calc(var(--skeleton-index, 0) * 150ms) ease-in-out infinite both;
+  }
+
+  [data-skeleton-list] > :nth-child(1) {
+    --skeleton-index: 0;
+  }
+  [data-skeleton-list] > :nth-child(2) {
+    --skeleton-index: 1;
+  }
+  [data-skeleton-list] > :nth-child(3) {
+    --skeleton-index: 2;
+  }
+  [data-skeleton-list] > :nth-child(4) {
+    --skeleton-index: 3;
+  }
+  [data-skeleton-list] > :nth-child(5) {
+    --skeleton-index: 4;
+  }
+  [data-skeleton-list] > :nth-child(6) {
+    --skeleton-index: 5;
+  }
+  [data-skeleton-list] > :nth-child(7) {
+    --skeleton-index: 6;
+  }
+  [data-skeleton-list] > :nth-child(8) {
+    --skeleton-index: 7;
+  }
+  [data-skeleton-list] > :nth-child(9) {
+    --skeleton-index: 8;
+  }
+  [data-skeleton-list] > :nth-child(10) {
+    --skeleton-index: 9;
+  }
+  [data-skeleton-list] > :nth-child(11) {
+    --skeleton-index: 10;
+  }
+  [data-skeleton-list] > :nth-child(12) {
+    --skeleton-index: 11;
+  }
+  [data-skeleton-list] > :nth-child(13) {
+    --skeleton-index: 12;
+  }
+  [data-skeleton-list] > :nth-child(14) {
+    --skeleton-index: 13;
+  }
+  [data-skeleton-list] > :nth-child(15) {
+    --skeleton-index: 14;
+  }
+  [data-skeleton-list] > :nth-child(16) {
+    --skeleton-index: 15;
+  }
+  [data-skeleton-list] > :nth-child(17) {
+    --skeleton-index: 16;
+  }
+  [data-skeleton-list] > :nth-child(18) {
+    --skeleton-index: 17;
+  }
+  [data-skeleton-list] > :nth-child(19) {
+    --skeleton-index: 18;
+  }
+  [data-skeleton-list] > :nth-child(20) {
+    --skeleton-index: 19;
+  }
+
+  /* Heading utility classes */
+  .text-heading-2xl {
+    @apply text-4xl leading-10 font-bold;
+  }
+  .text-heading-xl {
+    font-size: 1.75rem; /* 28px */
+    line-height: 2rem; /* 32px */
+    @apply font-bold;
+  }
+  .text-heading-l {
+    font-size: 1.5rem; /* 24px */
+    @apply leading-7 font-bold;
+  }
+  .text-heading {
+    @apply text-xl leading-7 font-bold;
+  }
+  .text-heading-sm {
+    @apply text-lg leading-6 font-bold;
+  }
+
+  /* Body text utility classes */
+  .text-body-l {
+    @apply text-lg leading-6;
+  }
+  .text-body {
+    @apply text-base leading-5;
+  }
+  .text-body-s {
+    @apply text-sm leading-4;
+  }
+
+  /* Link utility classes */
+  .text-body-link {
+    @apply text-base leading-5 text-text-clickable underline;
+    text-underline-offset: 4px;
+  }
+  .text-body-link-s {
+    @apply text-sm leading-4 text-text-clickable underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Overline utility classes */
+  .text-overline-xl {
+    @apply text-lg leading-6 font-bold text-text-secondary uppercase;
+    letter-spacing: 3px;
+  }
+  .text-overline-l {
+    @apply text-base leading-6 font-bold text-text-secondary uppercase;
+    letter-spacing: 2px;
+  }
+  .text-overline {
+    @apply text-sm leading-5 font-bold text-text-secondary uppercase;
+    letter-spacing: 1.5px;
+  }
+  .text-overline-s {
+    @apply text-xs leading-5 font-bold text-text-secondary uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .rainbow-animated-text {
+    @apply inline-block bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      90deg,
+      #ec4899,
+      #f97316,
+      #eab308,
+      #22c55e,
+      #0ea5e9,
+      #a855f7,
+      #ec4899
+    );
+    background-size: 200% 100%;
+    animation: rainbow-flow 4s linear infinite;
+  }
+
+  .progress-bar-gradient-fill {
+    background-image: linear-gradient(
+      90deg,
+      rgba(88, 28, 135, 1) 0%,
+      rgba(147, 51, 234, 1) 32%,
+      rgba(192, 132, 252, 1) 50%,
+      rgba(147, 51, 234, 1) 68%,
+      rgba(88, 28, 135, 1) 100%
+    );
+    background-size: 220% 100%;
+    animation: progress-bar-gradient-flow 2.4s linear infinite;
+  }
+
+  /* AI / KI fill gradient background – reusable across AI-branded elements */
+  .bg-ai-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--effect-gradient-ai-fill-primary) 0%,
+      var(--effect-gradient-ai-fill-secondary) 100%
+    );
+  }
+
+  /* AI / KI gradient text – reusable across AI-branded elements */
+  .text-ai-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      180deg,
+      var(--effect-gradient-ai-text-icon-primary) 0%,
+      var(--effect-gradient-ai-text-icon-secondary) 100%
+    );
+  }
+
+  /* Focus ring utility for consistent focus styling */
+  .focus-ring {
+    @apply focus-visible:ring-2 focus-visible:ring-focus-outline focus-visible:ring-offset-2 focus-visible:outline-none;
+  }
+
+  /* Focus-within variant for wrapper elements around visually hidden controls. */
+  .focus-ring-within {
+    @apply focus-within:ring-2 focus-within:ring-focus-outline focus-within:ring-offset-2 focus-within:outline-none;
+  }
+
+  /* Inset variant for elements whose children have background colors that
+     would paint over an outset ring. Uses box-shadow so the ring renders
+     inside the element bounds with the same blue + white offset appearance. */
+  .focus-ring-inset {
+    @apply outline-none;
+    &:focus-visible {
+      box-shadow:
+        inset 0 0 0 2px var(--focus-outline),
+        inset 0 0 0 3px var(--neutral-white);
+    }
+  }
+
+  /* Selected ring for highlighted/selected items on light backgrounds */
+  .selected-ring {
+    @apply ring-2 ring-brand-950 ring-offset-1 outline-none;
+  }
+
+  /* Selected ring inverted for items on dark/brand backgrounds */
+  .selected-ring-invert {
+    @apply ring-2 ring-white ring-offset-1 ring-offset-brand-950 outline-none;
+  }
+
+  /* Inset selected ring for elements inside overflow:hidden containers */
+  .selected-ring-inset {
+    box-shadow:
+      inset 0 0 0 2px var(--brand-950),
+      inset 0 0 0 3px var(--neutral-white);
+  }
+
+  /* Inset selected ring that activates only when accordion/element is open */
+  .data-open-selected-ring-inset {
+    &[data-state='open'] {
+      box-shadow:
+        inset 0 0 0 2px var(--brand-950),
+        inset 0 0 0 3px var(--neutral-white);
+    }
+  }
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 0.05;
+  }
+  50% {
+    opacity: 0.15;
+  }
+}
+
+@keyframes rainbow-flow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+@keyframes progress-bar-gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 220% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse {
+    animation: none;
+    opacity: 0.12;
+  }
+
+  .progress-bar-gradient-fill {
+    animation: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  .print-exact {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

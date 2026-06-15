@@ -1,0 +1,210 @@
+{
+  "aiSuggestionBadge": {
+    "label": "Suggestion"
+  },
+  "importedProjectBadge": {
+    "label": "FPP",
+    "tooltip": "This project was imported via the \"Fachplanungsportal\""
+  },
+  "languageSwitcher": {
+    "currentLanguage": "Current language: {{language}}",
+    "selectedLanguage": "{{language}}, currently selected"
+  },
+  "nodeAction": {
+    "updateFailed": "Could not save the change. Changes were reverted."
+  },
+  "mutationError": {
+    "forbidden": "Your permissions are not sufficient for this action."
+  },
+  "app": {
+    "title": "SPARK Workflow",
+    "loading": "Loading..."
+  },
+  "maintenancePage": {
+    "label": "Maintenance Mode",
+    "title": "We'll be back shortly.",
+    "description": "The application is currently in maintenance mode. Please try again later."
+  },
+  "somethingWentWrong": {
+    "title": "Something went wrong.",
+    "description": "Please reload the page. If the problem persists, try again later.",
+    "reload": "Reload page",
+    "dashboard": "Go to dashboard"
+  },
+  "notFound": {
+    "description": "The page could not be found.",
+    "dashboard": "Go to dashboard"
+  },
+  "navigation": {
+    "home": "Home",
+    "designSystem": "Design System",
+    "authTest": "Auth Test",
+    "projects": "Projects"
+  },
+  "projectNavbar": {
+    "startProcess": "Start review process",
+    "goToProject": "Go to project",
+    "stepSelectLabel": "Select process step",
+    "stepSelectNavAriaLabel": "Process step navigation",
+    "headerAriaLabel": "Project navigation",
+    "backLabel": "Back",
+    "startProcessConfirmTitle": "Start AI processing of the documents",
+    "startProcessConfirmDescription": "Starting the processing begins the AI-supported formal completeness check of the submitted documents. This process may take several hours. No changes to the project are possible while processing is running.\n\nNote: If another project is currently already being processed by the AI, please start this project only after the ongoing processing has been completed.",
+    "startProcessConfirm": "Start processing",
+    "startProcessCancel": "Cancel",
+    "startProcessDisabledBySystemLoad": "The review process can only be started once system load is below {{threshold}}%.",
+    "startProcessError": "Could not start the workflow. Please try again.",
+    "startProcessSuccess": "AI processing started successfully.",
+    "startProcessRequiresMultipleFiles": "To start the review process, at least one file must have been uploaded.",
+    "deleteProject": "Delete project",
+    "deleteProjectConfirmTitle": "Delete project?",
+    "deleteProjectConfirmDescription": "Do you really want to delete the project \"{{projectName}}\"? This action is permanent and cannot be undone.",
+    "deleteConfirm": "Delete",
+    "deleteCancel": "Cancel",
+    "deleteProjectSuccess": "Project \"{{projectName}}\" was deleted.",
+    "deleteProjectError": "Project could not be deleted. Please try again.",
+    "actionsMenuLabel": "More actions",
+    "favoriteProject": "Mark project as favorite",
+    "unfavoriteProject": "Remove from favorites",
+    "favoriteLimitReached": "Maximum of {{count}} favorites reached",
+    "steps": {
+      "projectOverview": "Project overview",
+      "formalCompletenessCheck": "Formal completeness check",
+      "materialCompletenessCheck": "Material completeness check",
+      "ewms": "Public participation",
+      "legalReview": "Legal review and resolution drafting"
+    },
+    "titles": {
+      "ewms": "Public participation",
+      "fvp": "Formal completeness check",
+      "mvp": "Material completeness check",
+      "overview": "Overview: {{projectName}}",
+      "pp": "Plausibility check",
+      "rpb": "Legal review and resolution drafting"
+    }
+  },
+  "breadcrumbs": {
+    "projects": "Projects",
+    "reviewProcess": "Review process",
+    "projectOverview": "{{name}} – Go to project overview"
+  },
+  "safeMarkdown": {
+    "externalUrlTooltip": "External link. The content has not been verified."
+  },
+  "PdfQuickView": {
+    "loading": "Loading...",
+    "documentNotFound": "Document not found",
+    "closePreview": "Close preview"
+  },
+  "searchInput": {
+    "deleteSearch": "Clear search"
+  },
+  "currentUserLoadError": {
+    "title": "There was a problem during SPARK's initial load.",
+    "description": "Please reload the page. If the error persists, contact your system administrator.",
+    "reload": "Reload page"
+  },
+  "sessionExpiredDialog": {
+    "title": "Your sign-in has expired",
+    "description": "Your session has expired. Please reload the page and sign in again.",
+    "reload": "Sign in again"
+  },
+  "splitButton": {
+    "checked": "Reviewed",
+    "unchecked": "Review"
+  },
+  "secondaryDisplay": {
+    "fallbackTitle": "Secondary display"
+  },
+  "common": {
+    "open": "Open",
+    "cancel": "Cancel",
+    "accept": "Accept",
+    "search": "Search",
+    "edit": "Edit",
+    "download": "Download",
+    "noData": "No data available",
+    "noEntriesYet": "The list is empty.",
+    "more": "more",
+    "less": "less",
+    "save": "Save",
+    "resetFilter": "Reset filter",
+    "characters": "characters"
+  },
+  "dialog": {
+    "closeAriaLabel": "Close"
+  },
+  "toast": {
+    "closeAriaLabel": "Close"
+  },
+  "sidebar": {
+    "home": "Dashboard",
+    "projects": "Projects",
+    "settings": "Settings",
+    "collapse": "Collapse",
+    "collapseProject": "Collapse {{name}}",
+    "collapseSidebar": "Collapse sidebar",
+    "closeMobileMenu": "Close menu",
+    "expand": "Expand",
+    "expandProject": "Expand {{name}}",
+    "expandSidebar": "Expand sidebar",
+    "close": "Close",
+    "open": "Open",
+    "performance": "Performance indicators",
+    "accessibility": "Accessibility",
+    "currentProject": "Selected project",
+    "favorites": "Favorites",
+    "deadlineLabel": "Deadline",
+    "processSteps": "Process steps",
+    "aiAgents_one": "{{count}} agent",
+    "aiAgents_other": "{{count}} agents",
+    "changelog": "Changelog",
+    "changelogAriaLabelWithVersion": "Changelog, version {{version}}",
+    "mainNavAriaLabel": "Main navigation",
+    "openMobileMenu": "Open menu",
+    "roleSwitcher": {
+      "ariaCurrent": "Frontend role {{frontendRole}}, Keycloak role {{keycloakRole}}",
+      "triggerLabel": "FE {{frontendRole}} / KC {{keycloakRole}}",
+      "frontendRole": "Frontend role",
+      "keycloakRole": "Keycloak role",
+      "frontendRoleTooltipLabel": "Explain frontend role",
+      "frontendRoleTooltip": "Changes only the role used by the frontend for UI checks. Use it to verify whether client-side buttons and views are shown or hidden correctly without changing the Keycloak role.",
+      "keycloakRoleTooltipLabel": "Explain Keycloak role",
+      "keycloakRoleTooltip": "Changes the role in the identity service and therefore the permissions seen by backend endpoints. Use it to test server-side authorization when the frontend role intentionally differs.",
+      "keycloakUnavailable": "Keycloak switching is only available in testing and staging.",
+      "useKeycloakRole": "Use Keycloak role ({{role}})",
+      "roleMismatch": "Frontend and Keycloak roles differ.",
+      "keycloakRoleSwitchConfirm": "You will be logged out so the Keycloak role {{role}} is permanently applied to your session. After signing in again, the change is active. Continue?",
+      "keycloakRoleUpdateSuccess": "Keycloak role updated.",
+      "keycloakRoleUpdateError": "Keycloak role could not be updated.",
+      "roles": {
+        "admin": "Admin",
+        "user": "User"
+      }
+    },
+    "systemLoad": {
+      "label": "System load",
+      "buttonAria": "Refresh system load, currently {{load}}",
+      "title": "System load",
+      "loading": "Loading system load...",
+      "error": "System load is unavailable.",
+      "unavailableValue": "n/a",
+      "runningWorkflows": "Workflows",
+      "currentComplexity": "Current",
+      "maxComplexity": "Maximum",
+      "breakdown": "Breakdown",
+      "runningCount": "Count",
+      "complexityWeight": "Weight",
+      "totalComplexity": "Total",
+      "noBreakdown": "No running workflows"
+    }
+  },
+  "upcomingDeadline": {
+    "today": "Deadline today",
+    "tomorrow": "Deadline tomorrow",
+    "inDays": "Deadline in {{count}} days"
+  },
+  "SwimlaneTabs": {
+    "defaultAriaLabel": "Section navigation"
+  }
+}

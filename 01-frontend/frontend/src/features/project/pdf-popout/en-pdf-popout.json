@@ -1,0 +1,62 @@
+{
+  "PdfDocumentViewer": {
+    "emptyState": "Select a document to open the preview.",
+    "nonPdfError": "This document is not a PDF and cannot be displayed in this preview.",
+    "loadError": "Failed to load PDF.",
+    "notFound": "This document is no longer available in the current project.",
+    "frameTitle": "Document view: {{title}}"
+  },
+  "PdfCollapsedLane": {
+    "focusWindowTooltip": "Focus PDF window",
+    "focusWindowAria": "Focus PDF window",
+    "popInTooltip": "Bring PDF view back",
+    "popInAria": "Bring PDF view back"
+  },
+  "PdfFileTreePopover": {
+    "openTreeAria": "Open document tree",
+    "heading": "Documents",
+    "loadingAria": "Loading documents",
+    "loadError": "Failed to load documents."
+  },
+  "PdfFileTree": {
+    "recentlyOpened": "Recently opened",
+    "connectedBadge": "Connected",
+    "closeLaneAria": "Close panel for this document",
+    "popInAria": "Bring connected document back to main window"
+  },
+  "PdfViewerPane": {
+    "popOutAria": "Open {{title}} in new window"
+  },
+  "PdfViewerLane": {
+    "title": "Document view",
+    "selectFileFallback": "Select document"
+  },
+  "PdfPopoutPaneHeader": {
+    "connectedFallbackTitle": "Connected document",
+    "defaultFallbackTitle": "Document",
+    "connectedBadge": "Connected",
+    "minimizeAria": "Bring PDF view back",
+    "closePaneAria": "Close panel"
+  },
+  "PdfPopoutSidebar": {
+    "heading": "Documents",
+    "filterTablistLabel": "Document filter",
+    "filterAll": "All ({{count}})",
+    "filterTopic": "{{label}} ({{count}})",
+    "collapseSidebarAria": "Collapse sidebar",
+    "expandSidebarAria": "Expand sidebar",
+    "loadError": "Failed to load documents."
+  },
+  "PdfDarkFileTreeDropdown": {
+    "heading": "Switch displayed document",
+    "triggerAria": "Switch document",
+    "loadingAria": "Loading documents",
+    "loadError": "Failed to load documents."
+  },
+  "PdfPopoutWindow": {
+    "windowTitle": "PDF Viewer",
+    "emptyState": "No document open.",
+    "reservedTitle": "Reserved document window",
+    "reservedDescription": "This window stays available for document viewing while you are inside a project."
+  }
+}

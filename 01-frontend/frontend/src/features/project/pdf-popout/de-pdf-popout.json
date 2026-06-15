@@ -1,0 +1,62 @@
+{
+  "PdfDocumentViewer": {
+    "emptyState": "Unterlage wählen, um die Vorschau zu öffnen.",
+    "nonPdfError": "Diese Unterlage ist kein PDF und kann in dieser Vorschau nicht angezeigt werden.",
+    "loadError": "PDF konnte nicht geladen werden.",
+    "notFound": "Diese Unterlage ist im aktuellen Verfahren nicht mehr verfügbar.",
+    "frameTitle": "Unterlagenansicht: {{title}}"
+  },
+  "PdfCollapsedLane": {
+    "focusWindowTooltip": "PDF-Fenster fokussieren",
+    "focusWindowAria": "PDF-Fenster fokussieren",
+    "popInTooltip": "PDF-Ansicht zurückholen",
+    "popInAria": "PDF-Ansicht zurückholen"
+  },
+  "PdfFileTreePopover": {
+    "openTreeAria": "Unterlagenbaum öffnen",
+    "heading": "Unterlagen",
+    "loadingAria": "Unterlagen werden geladen",
+    "loadError": "Unterlagen konnten nicht geladen werden."
+  },
+  "PdfFileTree": {
+    "recentlyOpened": "Zuletzt geöffnet",
+    "connectedBadge": "Verbunden",
+    "closeLaneAria": "Panel für diese Unterlage schließen",
+    "popInAria": "Verbundene Unterlage zurück ins Hauptfenster holen"
+  },
+  "PdfViewerPane": {
+    "popOutAria": "{{title}} in neuem Fenster öffnen"
+  },
+  "PdfViewerLane": {
+    "title": "Unterlagenansicht",
+    "selectFileFallback": "Unterlage wählen"
+  },
+  "PdfPopoutPaneHeader": {
+    "connectedFallbackTitle": "Verbundene Unterlage",
+    "defaultFallbackTitle": "Unterlage",
+    "connectedBadge": "Verbunden",
+    "minimizeAria": "PDF-Ansicht zurückholen",
+    "closePaneAria": "Panel schließen"
+  },
+  "PdfPopoutSidebar": {
+    "heading": "Unterlagen",
+    "filterTablistLabel": "Unterlagenfilter",
+    "filterAll": "Alle ({{count}})",
+    "filterTopic": "{{label}} ({{count}})",
+    "collapseSidebarAria": "Seitenleiste einklappen",
+    "expandSidebarAria": "Seitenleiste ausklappen",
+    "loadError": "Unterlagen konnten nicht geladen werden."
+  },
+  "PdfDarkFileTreeDropdown": {
+    "heading": "Angezeigte Unterlage wechseln",
+    "triggerAria": "Unterlage wechseln",
+    "loadingAria": "Unterlagen werden geladen",
+    "loadError": "Unterlagen konnten nicht geladen werden."
+  },
+  "PdfPopoutWindow": {
+    "windowTitle": "PDF-Ansicht",
+    "emptyState": "Keine Unterlage geöffnet.",
+    "reservedTitle": "Reserviertes Unterlagenfenster",
+    "reservedDescription": "Dieses Fenster bleibt für die Unterlagenanzeige reserviert, solange Sie sich innerhalb eines Verfahrens befinden."
+  }
+}

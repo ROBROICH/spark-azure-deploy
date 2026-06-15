@@ -1,15 +1,16 @@
 from typing import Any
 from uuid import UUID
 
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-
+from audit_client import ChangeType, record_audit_entry
 from event_logging.enums import (
     EventAction,
     EventCategory,
     EventOutcome,
     LogEventDefault,
 )
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.exceptions.exceptions import NotFoundError
 from src.models.db.enums import ProcessStep, SourceType
 from src.models.db_models import Comment
@@ -20,6 +21,7 @@ from src.models.schemas.comment_schemas import (
     UpdateCommentRequest,
 )
 from src.utils.logger import logger
+
 
 def _decompose_source_ref(data: dict[str, Any], source_ref: SourceRef | None) -> None:
     """Extract source_ref into flat source_type/source_item_id columns."""
@@ -43,8 +45,7 @@ def _to_comment_response(comment: Comment) -> CommentResponse:
                 EventCategory.DATABASE,
                 default_event=LogEventDefault.VALIDATION_FAILURE,
                 message=(
-                    "Detected inconsistent source reference on comment id="
-                    f"{comment.id}; returning source_ref as null"
+                    f"Detected inconsistent source reference on comment id={comment.id}; returning source_ref as null"
                 ),
             )
     return CommentResponse(
@@ -101,7 +102,10 @@ async def get_comments(
 
 
 async def create_comment(
-    project_id: UUID, payload: CreateCommentRequest, db: AsyncSession
+    project_id: UUID,
+    payload: CreateCommentRequest,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> CommentResponse:
     logger.info(
         EventAction.WRITE,
@@ -116,6 +120,16 @@ async def create_comment(
 
     comment = Comment(**comment_dict)
     db.add(comment)
+    await db.flush()
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="comment",
+            change_type=ChangeType.CREATE,
+            entity_id=comment.id,
+            **audit_context,
+        )
     await db.commit()
     await db.refresh(comment)
     logger.info(
@@ -129,11 +143,13 @@ async def create_comment(
 
 
 async def update_comment(
-    project_id: UUID, comment_id: UUID, payload: UpdateCommentRequest, db: AsyncSession
+    project_id: UUID,
+    comment_id: UUID,
+    payload: UpdateCommentRequest,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> CommentResponse:
-    query = select(Comment).where(
-        Comment.id == comment_id, Comment.project_id == project_id
-    )
+    query = select(Comment).where(Comment.id == comment_id, Comment.project_id == project_id)
     result = await db.execute(query)
     comment = result.scalar_one_or_none()
 
@@ -158,6 +174,15 @@ async def update_comment(
     for field, value in update_dict.items():
         setattr(comment, field, value)
 
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="comment",
+            change_type=ChangeType.UPDATE,
+            entity_id=comment.id,
+            **audit_context,
+        )
     await db.commit()
     await db.refresh(comment)
     logger.info(
@@ -171,11 +196,12 @@ async def update_comment(
 
 
 async def delete_comment(
-    project_id: UUID, comment_id: UUID, db: AsyncSession
+    project_id: UUID,
+    comment_id: UUID,
+    db: AsyncSession,
+    audit_context: dict[str, Any] | None = None,
 ) -> None:
-    query = select(Comment).where(
-        Comment.id == comment_id, Comment.project_id == project_id
-    )
+    query = select(Comment).where(Comment.id == comment_id, Comment.project_id == project_id)
     result = await db.execute(query)
     comment = result.scalar_one_or_none()
 
@@ -183,6 +209,15 @@ async def delete_comment(
         raise NotFoundError(f"Comment {comment_id} not found")
 
     await db.delete(comment)
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=project_id,
+            entity_type="comment",
+            change_type=ChangeType.DELETE,
+            entity_id=comment_id,
+            **audit_context,
+        )
     await db.commit()
 
     logger.info(

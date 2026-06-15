@@ -16,6 +16,7 @@ from temporalio import activity
 from unoserver.client import UnoClient
 
 from src.env import ENV
+from src.utils.pdfium_lock import _pdfium_lock
 
 
 class NotValidPdfError(Exception):
@@ -27,8 +28,15 @@ class Preprocessor:
 
     @staticmethod
     async def validate_pdf(file_bytes: bytes) -> None:
+        """Validate that bytes represent a valid PDF by attempting to open with pdfium."""
+
+        def _validate(data: bytes) -> None:
+            """Synchronous PDF validation under pdfium lock."""
+            with _pdfium_lock:
+                pdfium.PdfDocument(data)
+
         try:
-            pdfium.PdfDocument(file_bytes)
+            await asyncio.to_thread(_validate, file_bytes)
         except Exception as err:
             raise NotValidPdfError() from err
 

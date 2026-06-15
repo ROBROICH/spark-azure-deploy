@@ -1,0 +1,42 @@
+{{- if .Values.operator.enabled }}
+{{- $selectorLabel := include "spicedb.operatorName" . }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spicedb.operatorName" . }}
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ $selectorLabel }}
+  template:
+    metadata:
+      labels:
+        {{- include "spicedb.labels" . | nindent 8 }}
+        app.kubernetes.io/name: {{ $selectorLabel }}
+    spec:
+      serviceAccountName: {{ include "spicedb.operatorName" . }}
+      {{- with .Values.operator.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: spicedb-operator
+          image: "{{ .Values.operator.image.repository }}:{{ .Values.operator.image.tag }}"
+          imagePullPolicy: {{ .Values.operator.image.pullPolicy | default "IfNotPresent" }}
+          args:
+            - run
+            - --crd=/crds
+            - --watch-namespaces={{ .Values.cluster.namespace | default .Release.Namespace }}
+          ports:
+            - containerPort: 8080
+              name: prometheus
+              protocol: TCP
+          {{- with .Values.operator.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

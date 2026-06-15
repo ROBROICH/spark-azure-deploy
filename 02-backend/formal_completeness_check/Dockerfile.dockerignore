@@ -11,6 +11,21 @@
 
 # Workspace and used shared libraries
 !02-backend/logging
+!04-shared-services/audit-client
+!04-shared-services/internal-auth
+!04-shared-services/alembic-utils
+!04-shared-services/node-crud
+!04-shared-services/authentification
+
 !02-backend/formal_completeness_check/src/**
 !02-backend/formal_completeness_check/alembic.ini
 !02-backend/formal_completeness_check/README.md
+
+# Re-ignore Python junk everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

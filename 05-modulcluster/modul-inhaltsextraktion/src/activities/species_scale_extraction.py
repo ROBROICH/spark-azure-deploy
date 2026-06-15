@@ -10,15 +10,13 @@ Architecture:
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import timedelta
 
-from temporalio import activity, workflow
-from temporalio.common import RetryPolicy
+from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
+from temporal.activities.llm import llm_invoke_structured
+from temporalio import workflow
 
-from src.activities.llm_invoke import LlmInvokeInput, llm_invoke_structured_direct
-from src.concurrency import get_model_throttle
 from src.config import get_config
-from src.models.model_manager import SelfHostedConfig
+from src.env import ENV
 from src.schemas import Chunk
 from src.workflows.species_scale.output_format import (
     BatchedSpeciesAndScaleResponse,
@@ -30,10 +28,6 @@ from src.workflows.species_scale.prompt import (
 )
 
 # Module-level constants to avoid repetition
-_SPECIES_SCALE_LLM_CONFIG: SelfHostedConfig = {
-    "provider": "self_hosted",
-    "model_name": "metadata",
-}
 
 
 def _clean_content_for_species_scale(content: str) -> str:
@@ -60,6 +54,21 @@ def _clean_content_for_species_scale(content: str) -> str:
     return content
 
 
+async def _extract_single_species_scale(chunk: Chunk) -> SpeciesAndScaleResult:
+    """Extract species and scale from a single chunk (fallback for batch mismatch)."""
+    single_result = await llm_invoke_structured(
+        render_prompt_format(
+            BATCHED_SPECIES_SCALE_USER_TEMPLATE,
+            chunks_text=f"--- Textabschnitt 1 ---\n{_clean_content_for_species_scale(chunk.page_content)}",
+        ),
+        wrap_system_prompt(BATCHED_SPECIES_SCALE_SYSTEM_PROMPT),
+        BatchedSpeciesAndScaleResponse,
+        model=ENV.METADATA_MODEL_NAME,
+        temperature=0.1,
+    )
+    return single_result.extractions[0] if single_result.extractions else SpeciesAndScaleResult()
+
+
 async def _extract_species_scale_batch(
     chunks: list[Chunk],
 ) -> list[SpeciesAndScaleResult]:
@@ -67,53 +76,35 @@ async def _extract_species_scale_batch(
 
     Errors propagate to let Temporal retry the activity.
     """
-    async with get_model_throttle("species_scale").acquire():
-        snippet_parts = []
-        for i, chunk in enumerate(chunks):
-            cleaned_content = _clean_content_for_species_scale(chunk.page_content)
-            snippet_parts.append(f"--- Textabschnitt {i + 1} ---\n{cleaned_content}")
-        chunks_text = "\n\n".join(snippet_parts)
+    snippet_parts = []
+    for i, chunk in enumerate(chunks):
+        cleaned_content = _clean_content_for_species_scale(chunk.page_content)
+        snippet_parts.append(f"--- Textabschnitt {i + 1} ---\n{cleaned_content}")
+    chunks_text = "\n\n".join(snippet_parts)
 
-        result = await llm_invoke_structured_direct(
-            input=LlmInvokeInput(
-                llm_config=_SPECIES_SCALE_LLM_CONFIG,
-                prompt_template=BATCHED_SPECIES_SCALE_USER_TEMPLATE,
-                input_dict={"chunks_text": chunks_text},
-                agent_name=f"species_scale_batch_{chunks[0].chunk_id}",
-                system_prompt=BATCHED_SPECIES_SCALE_SYSTEM_PROMPT,
-            ),
-            output_class=BatchedSpeciesAndScaleResponse,
-        )
+    result = await llm_invoke_structured(
+        render_prompt_format(
+            BATCHED_SPECIES_SCALE_USER_TEMPLATE,
+            chunks_text=chunks_text,
+        ),
+        wrap_system_prompt(BATCHED_SPECIES_SCALE_SYSTEM_PROMPT),
+        BatchedSpeciesAndScaleResponse,
+        model=ENV.METADATA_MODEL_NAME,
+        temperature=0.1,
+    )
 
-        if len(result.extractions) == len(chunks):
-            return result.extractions
+    if len(result.extractions) == len(chunks):
+        return result.extractions
 
-        # Count mismatch — fall back to individual processing
-        activity.logger.warning(
-            f"Batched species/scale returned {len(result.extractions)} results "
-            f"for {len(chunks)} chunks, falling back to individual processing"
-        )
-
-    # Process each chunk individually (outside the throttle context)
+    # Count mismatch — fall back to individual processing
+    workflow.logger.warning(
+        "Batched species/scale returned %d results for %d chunks, falling back to individual processing",
+        len(result.extractions),
+        len(chunks),
+    )
     individual_results: list[SpeciesAndScaleResult] = []
     for chunk in chunks:
-        async with get_model_throttle("species_scale").acquire():
-            single_result = await llm_invoke_structured_direct(
-                input=LlmInvokeInput(
-                    llm_config=_SPECIES_SCALE_LLM_CONFIG,
-                    prompt_template=BATCHED_SPECIES_SCALE_USER_TEMPLATE,
-                    input_dict={
-                        "chunks_text": (
-                            f"--- Textabschnitt 1 ---\n{_clean_content_for_species_scale(chunk.page_content)}"
-                        )
-                    },
-                    agent_name=f"species_scale_individual_{chunk.chunk_id}",
-                    system_prompt=BATCHED_SPECIES_SCALE_SYSTEM_PROMPT,
-                ),
-                output_class=BatchedSpeciesAndScaleResponse,
-            )
-            result = single_result.extractions[0] if single_result.extractions else SpeciesAndScaleResult()
-            individual_results.append(result)
+        individual_results.append(await _extract_single_species_scale(chunk))
     return individual_results
 
 
@@ -124,13 +115,10 @@ class ProcessSpeciesScaleBatchInput:
     chunks: list[Chunk]
 
 
-@activity.defn(name="process_species_scale_batch")
 async def _process_species_scale_batch(
     input: ProcessSpeciesScaleBatchInput,
 ) -> list[Chunk]:
     """Processes a batch of chunks for Species/Scale extraction using batched LLM calls."""
-    activity.logger.info(f"Processing batch of {len(input.chunks)} chunks for Species/Scale")
-
     chunks = input.chunks
     cfg = get_config()
     batch_size = cfg.SCHWERPUNKT_CLASSIFICATION_BATCH_SIZE
@@ -160,7 +148,6 @@ async def _process_species_scale_batch(
             chunk.model_copy(update={"metadata": updated_metadata, "sub_chunks": updated_sub_chunks})
         )
 
-    activity.logger.info(f"Batch completed: processed {len(enriched_chunks)} chunks")
     return enriched_chunks
 
 
@@ -169,15 +156,4 @@ async def process_species_scale_batch(
     num_concurrent_batches: int = 1,
 ) -> list[Chunk]:
     """Workflow wrapper for Species/Scale batch processing."""
-    timeout_minutes = 10 + max(0, num_concurrent_batches - 1) * 3
-    return await workflow.execute_activity(
-        _process_species_scale_batch,
-        input,
-        start_to_close_timeout=timedelta(minutes=timeout_minutes),
-        retry_policy=RetryPolicy(
-            maximum_attempts=get_config().TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS,
-            initial_interval=timedelta(seconds=5),
-            backoff_coefficient=2,
-            maximum_interval=timedelta(seconds=30),
-        ),
-    )
+    return await _process_species_scale_batch(input)

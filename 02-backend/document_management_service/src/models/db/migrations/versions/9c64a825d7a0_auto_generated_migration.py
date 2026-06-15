@@ -31,19 +31,11 @@ def upgrade() -> None:
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        op.f("ix_zip_file_bucket_path"), "zip_file", ["bucket_path"], unique=True
-    )
-    op.create_index(
-        op.f("ix_zip_file_filename"), "zip_file", ["filename"], unique=False
-    )
-    op.create_index(
-        op.f("ix_zip_file_project_id"), "zip_file", ["project_id"], unique=False
-    )
+    op.create_index(op.f("ix_zip_file_bucket_path"), "zip_file", ["bucket_path"], unique=True)
+    op.create_index(op.f("ix_zip_file_filename"), "zip_file", ["filename"], unique=False)
+    op.create_index(op.f("ix_zip_file_project_id"), "zip_file", ["project_id"], unique=False)
     op.add_column("file", sa.Column("source_zip_file_id", sa.UUID(), nullable=True))
-    op.create_index(
-        op.f("ix_file_source_zip_file_id"), "file", ["source_zip_file_id"], unique=False
-    )
+    op.create_index(op.f("ix_file_source_zip_file_id"), "file", ["source_zip_file_id"], unique=False)
     op.create_foreign_key(None, "file", "zip_file", ["source_zip_file_id"], ["id"])
     op.create_unique_constraint(
         "uq_file_zip_entry_source",

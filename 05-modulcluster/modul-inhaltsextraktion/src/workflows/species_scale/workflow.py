@@ -2,18 +2,14 @@
 """
 Temporal workflow for Species/Scale extraction.
 
-Processes chunks in concurrent batches. Rate limiting is handled by the
-shared process-level semaphore in concurrency.py, so all batches safely
-compete for the same LLM concurrency slots.
+Processes chunks in concurrent batches. LLM calls are dispatched to the
+shared LLM worker via Temporal activities.
 """
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any
-from uuid import uuid4
 
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
 
 from src.activities.species_scale_extraction import (
     ProcessSpeciesScaleBatchInput,
@@ -41,40 +37,18 @@ class SpeciesScaleWorkflowOutput:
 species_scale_workflow_id = "species-scale-workflow"
 
 
-async def start_species_scale(client: Client, input: SpeciesScaleWorkflowInput) -> WorkflowHandle[Any, Any]:
-    from src.env import ENV
-
-    return await client.start_workflow(
-        species_scale_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
-async def execute_species_scale(client: Client, input: SpeciesScaleWorkflowInput) -> SpeciesScaleWorkflowOutput:
-    from src.env import ENV
-
-    return await client.execute_workflow(
-        species_scale_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
 @workflow.defn(name=species_scale_workflow_id)
 class SpeciesScaleWorkflow:
     """
     Workflow for extracting Species/Scale metadata from document chunks.
 
-    Processes chunks in concurrent batches. Rate limiting is handled by the
-    shared process-level semaphore in concurrency.py, so all batches safely
-    compete for the same LLM concurrency slots.
+    Processes chunks in concurrent batches. LLM calls are dispatched to the
+    shared LLM worker via Temporal activities.
     """
 
     @workflow.run
     async def run(self, input: SpeciesScaleWorkflowInput) -> SpeciesScaleWorkflowOutput:
+        """Extract species and map scale information from chunks in batches."""
         cfg = snapshot_config()
 
         if not cfg.ENABLE_SPECIES_SCALE_EXTRACTION:

@@ -50,11 +50,11 @@ class InhaltsverzeichnisMatchingWorkflow:
         workflow.logger.info(f"Starting InhaltsverzeichnisMatchingWorkflow for project {params.project_id}")
 
         # 1. Execute Finder Workflow
-        finder_workflow_id = f"iv-finder-{params.project_id}-{workflow.info().run_id}"
         extraction_output: InhaltsverzeichnisFinderOutput = await workflow.execute_child_workflow(
             InhaltsverzeichnisFinderWorkflow.run,
             InhaltsverzeichnisFinderParams(project_id=params.project_id, document_types=params.document_types),
-            id=finder_workflow_id,
+            id=str(workflow.uuid4()),
+            task_timeout=timedelta(seconds=60),
         )
 
         # 2. Check Extraction Status & Early Return
@@ -75,14 +75,14 @@ class InhaltsverzeichnisMatchingWorkflow:
         workflow.logger.info(f"Found {len(document_types)} document types. Starting matching.")
 
         # 4. Execute Matching Workflow
-        matching_workflow_id = f"iv-matching-{params.project_id}-{workflow.info().run_id}"
         dms_response: DMSFileResponse = await workflow.execute_child_workflow(
             LLMMatchingWorkflow.run,
             LLMMatchingParams(
                 project_id=params.project_id,
                 document_types=document_types_payload,
             ),
-            id=matching_workflow_id,
+            id=str(workflow.uuid4()),
+            task_timeout=timedelta(seconds=60),
         )
 
         # 5. Download Matching Result JSON

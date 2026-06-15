@@ -1,0 +1,263 @@
+{
+  "analysisPage": {
+    "description": "Die Beteiligungseingänge werden aktuell hochgeladen, in einzelne Argumente zerschnitten und thematisch zugeordnet.",
+    "heading": "Dateiverarbeitung läuft"
+  },
+  "arguments": {
+    "addArgument": "Neues Argument",
+    "approve": "Prüfen",
+    "acceptClassificationLabel": "Themenvorschlag für Argument {{referenceId}} übernehmen",
+    "approveArgumentLabel": "Argument {{referenceId}} prüfen",
+    "approved": "Geprüft",
+    "approvedArgumentLabel": "Argument {{referenceId}} nicht mehr prüfen",
+    "checkAll": "Alle prüfen",
+    "checked": "Geprüft",
+    "classificationFailed": "Die Argumente konnten nicht klassifiziert werden.",
+    "deleteArgumentLabel": "Argument {{referenceId}} löschen",
+    "deleteDialog": {
+      "cancel": "Abbrechen",
+      "confirm": "Löschen",
+      "description": "Möchten Sie das Argument {{referenceId}} wirklich löschen?",
+      "title": "Argument löschen?"
+    },
+    "empty": "Wählen Sie eine Einwendung aus, um die Argumente anzuzeigen.",
+    "entryReference": "Einwendung {{referenceId}}",
+    "inResolutionBadge": "Im Beschluss",
+    "invalidBadge": "Nicht valides Argument",
+    "loading": "Argumente werden geladen",
+    "progressBadge_one": "{{approvedCount}} von {{totalCount}} Argument geprüft",
+    "progressBadge_other": "{{approvedCount}} von {{totalCount}} Argumenten geprüft",
+    "rejectClassificationLabel": "Themenvorschlag für Argument {{referenceId}} verwerfen",
+    "title": "Argumente",
+    "toggleLabel": "Alle Argumente prüfen",
+    "topicGroupLabel": "Kategorie für Argument {{referenceId}} auswählen",
+    "topicLabel": "Unterkategorie für Argument {{referenceId}} auswählen",
+    "subtopicLabel": "Unterthema für Argument {{referenceId}} auswählen",
+    "unassignedTopic": "Kein Thema",
+    "unassignedSubtopic": "Kein Unterthema",
+    "unknownSender": "Unbekannter Absender",
+    "validBadge": "Valides Argument"
+  },
+  "documentViewer": {
+    "empty": "Wählen Sie eine Einwendung aus, um das Dokument anzuzeigen.",
+    "emptyExtractedText": "Kein extrahierter Text vorhanden.",
+    "loadingExtractedText": "Extrahierter Text wird geladen",
+    "navigation": "Dokumentansicht",
+    "promptInjectionBlocked": "Der extrahierte Text wird nicht angezeigt, weil eine Prompt-Injection erkannt wurde.",
+    "tabs": {
+      "extractedText": "Extrahierter Text",
+      "originalFile": "Originaldatei"
+    }
+  },
+  "fileReviewPage": {
+    "badgeError_one": "{{count}} Datei mit Fehler",
+    "badgeError_other": "{{count}} Dateien mit Fehlern",
+    "badgeSuccess_one": "{{count}} Datei erfolgreich hochgeladen",
+    "badgeSuccess_other": "{{count}} Dateien erfolgreich hochgeladen",
+    "badgeWarning_one": "{{count}} Datei mit Warnung",
+    "badgeWarning_other": "{{count}} Dateien mit Warnungen",
+    "cancel": "Abbrechen",
+    "description": "Überprüfen Sie, für welche Dateien die KI-Analyse gestartet wurde.",
+    "empty": "Es wurden keine Dateiergebnisse zurückgegeben.",
+    "failedSection": "Für folgende Dateien konnte die KI-Analyse nicht gestartet werden",
+    "fileCount_one": "{{count}} Datei",
+    "fileCount_other": "{{count}} Dateien",
+    "failureReasons": {
+      "duplicate": "Duplikat",
+      "fileNotFound": "Datei nicht gefunden",
+      "invalidFilename": "Dateiname ungültig",
+      "renameFailed": "Umbenennen fehlgeschlagen",
+      "unsupportedFiletype": "Dateityp nicht unterstützt",
+      "uploadFailed": "Upload fehlgeschlagen",
+      "validationFailed": "Datei konnte nicht validiert werden",
+      "virusDetected": "Virus erkannt",
+      "zipInvalid": "Ungültige ZIP-Datei",
+      "zipNotFound": "ZIP-Datei nicht gefunden",
+      "unknown": "Fehlgeschlagen"
+    },
+    "failureReasonTooltips": {
+      "invalidFilename": "Dateinamen müssen mit Buchstabe E/S/N und vierstelliger Nummer beginnen. Beispiel: E0001 oder S0567."
+    },
+    "heading": "Hochgeladene Dateien",
+    "successfulSection": "Für folgende Dateien wurde die KI-Analyse gestartet",
+    "close": "Weiter zur Analyse"
+  },
+  "importDialog": {
+    "cancel": "Abbrechen",
+    "chooseFile": "Datei auswählen",
+    "description": "Laden Sie eine ZIP-Datei mit PDF-Dateien hoch. Nach erfolgreicher Verarbeitung startet die KI-Analyse automatisch.",
+    "dropZoneDescription": "Datei auswählen oder per Drag & Drop hierher ziehen",
+    "dropZoneTitle": "ZIP-Datei hochladen",
+    "fileInputLabel": "ZIP-Datei für Beteiligungseingänge auswählen",
+    "formatHint": "Unterstütztes Format: ZIP-Datei bestehend aus max. 1000 einzelnen PDF-Dateien. Mehrfacher Upload möglich.",
+    "invalidFileType": "Bitte wählen Sie eine ZIP-Datei aus.",
+    "missingFile": "Bitte wählen Sie zuerst eine ZIP-Datei aus.",
+    "next": "Hochladen und KI-Analyse starten",
+    "statusError": "Der Importstatus konnte nicht aktualisiert werden.",
+    "statusLoadingTitle": "Importstatus wird geprüft",
+    "analysisStartHint": "Nach Hochladen extrahiert die KI die in den Beteiligungseingängen enthaltenen Inhalte und kategorisiert die einzelnen Argumente nach Thema.",
+    "removeFile": "Datei entfernen",
+    "title": "Beteiligungseingänge hochladen",
+    "uploadError": "Die ZIP-Datei konnte nicht hochgeladen werden. Bitte versuchen Sie es erneut.",
+    "uploading": "Wird hochgeladen ...",
+    "uploadingDescription": "Die Dateien werden geprüft. Danach startet die KI-Analyse automatisch.",
+    "uploadingTitle": "Dateien werden hochgeladen"
+  },
+  "responseImportDialog": {
+    "cancel": "Abbrechen",
+    "chooseFile": "Datei auswählen",
+    "close": "Schließen",
+    "description": "Wählen Sie eine Datei mit Erwiderungen aus und starten Sie den Import.",
+    "dropZoneDescription": "Datei auswählen oder per Drag & Drop hierher ziehen",
+    "dropZoneTitle": "Erwiderungen importieren",
+    "errorDescription": "Die Erwiderungen konnten nicht importiert werden. Bitte versuchen Sie es erneut.",
+    "errorTitle": "Import fehlgeschlagen",
+    "fileInputLabel": "Datei mit Erwiderungen auswählen",
+    "formatHint": "Unterstütztes Format: CSV",
+    "importingDescription": "Die ausgewählte Datei wird hochgeladen und verarbeitet.",
+    "importingTitle": "Erwiderungen werden importiert ...",
+    "invalidFileType": "Bitte wählen Sie eine CSV-Datei aus.",
+    "missingFile": "Bitte wählen Sie zuerst eine Datei aus.",
+    "next": "Weiter",
+    "removeFile": "Datei entfernen",
+    "successDescription": "{{updatedLabel}} importiert, {{skippedLabel}}.",
+    "successTitle": "Erwiderungen importiert",
+    "updatedCount_one": "{{count}} Erwiderung",
+    "updatedCount_other": "{{count}} Erwiderungen",
+    "skippedCount_one": "{{count}} übersprungen",
+    "skippedCount_other": "{{count}} übersprungen",
+    "title": "Erwiderungen importieren"
+  },
+  "importPage": {
+    "chooseData": "Dateien auswählen",
+    "dragAndDrop": "Dateien auswählen oder per Drag & Drop hierher ziehen",
+    "dropZoneLabel": "Importbereich",
+    "fileInputLabel": "Importdateien auswählen",
+    "formatHint": "Unterstütztes Format: PDF in ZIP",
+    "importButton": "Beteiligungseingänge importieren",
+    "pageDescription": "In diesem Prüfschritt können Beteiligungseingänge (Einwendungen Privater, Stellungnahmen von Trägern öffentlicher Belange (TöB) sowie anerkannter Naturschutzvereinigungen) strukturiert verarbeitet werden. Die KI analysiert die Beteiligungseingänge, extrahiert daraus die einzelnen Argumente und ordnet diese thematisch zu. Dies dient der Unterstützung bei der Bearbeitung und Prüfung von Beteiligungseingängen. Die Verarbeitungsergebnisse können konsolidiert in einer CSV-Datei exportiert werden, um diese etwa der Vorhabenträgerin für ihre Erwiderungen zur Verfügung zu stellen.",
+    "pageTitle": "Behörden- und Öffentlichkeitsbeteiligung",
+    "step1Description": "Laden Sie alle Beteiligungseingänge (jeweils im PDF-Format) in einer ZIP-Datei hoch.",
+    "step1Title": "Beteiligungseingänge importieren",
+    "step2Description": "Die KI extrahiert Argumente aus den Beteiligungseingängen und ordnet diese thematisch zu.",
+    "step2Title": "KI analysiert automatisch",
+    "step3Description": "Prüfen und validieren Sie die extrahierten Argumente und thematischen Zuordnungen. Erstellen Sie bei Bedarf eine CSV-Datei zur weiteren Bearbeitung.",
+    "step3Title": "Prüfen, Bewerten und Exportieren",
+    "title": "Einwendungen und Stellungnahmen importieren"
+  },
+  "loadingPage": {
+    "description": "Die Inhalte Ihrer Dateien werden gelesen, in Argumente zerschnitten und thematisch aufbereitet. Das kann mehrere Stunden dauern.",
+    "heading": "KI-Analyse läuft ...",
+    "progressLabel": "KI-Analyse",
+    "progress": {
+      "remainingTime": {
+        "minutes": "Verbleibende Zeit: ca. {{count}} Min.",
+        "hours": "Verbleibende Zeit: ca. {{count}} Std."
+      },
+      "almostDone": "Die Analyse dauert länger als erwartet. Der Vorgang läuft weiter."
+    },
+    "statusCheckLabel": "EWMS-Analysestatus wird geprüft"
+  },
+  "objections": {
+    "approvedBadge_one": "{{approvedCount}} von {{totalCount}} Argument geprüft",
+    "approvedBadge_other": "{{approvedCount}} von {{totalCount}} Argumenten geprüft",
+    "argumentsBadge_one": "{{count}} Argument",
+    "argumentsBadge_other": "{{count}} Argumente",
+    "filterLabel": "Einwendungen filtern",
+    "searchLabel": "Durchsuchen",
+    "filters": {
+      "all": "Alle",
+      "ppa": "TöB",
+      "private": "Privat"
+    },
+    "loadingMore": "Weitere Beteiligungseingänge werden geladen ...",
+    "matching": "Warte auf Analyseergebnis",
+    "failed": "Fehlgeschlagen",
+    "promptInjection": "Prompt-Injection erkannt",
+    "unprocessed": "Nicht analysiert",
+    "sort": {
+      "label": "Sortierung",
+      "options": {
+        "createdAtAsc": "Älteste zuerst",
+        "createdAtDesc": "Neueste zuerst",
+        "nameAsc": "Name (A → Z)",
+        "nameDesc": "Name (Z → A)"
+      }
+    },
+    "typeFilter": {
+      "label": "Nach Art",
+      "options": {
+        "all": "Alle ({{count}})",
+        "einwendung": "Einwendungen ({{count}})",
+        "naturschutz": "Stellungn. Naturschutzvereinigungen ({{count}})",
+        "stellungnahme": "Stellungnahmen TöB ({{count}})"
+      }
+    },
+    "selectLabel": "Einwendung von {{name}} ({{referenceId}}) auswählen",
+    "title": "Beteiligungseingänge"
+  },
+  "taxonomy": {
+    "Artenschutz": "Artenschutz",
+    "Artenvorkommen und Schutzmaßnahmen": "Artenvorkommen und Schutzmaßnahmen",
+    "Baubedingte Immissionen": "Baubedingte Immissionen",
+    "Biotope und Ausgleich": "Biotope und Ausgleich",
+    "Eigentum": "Eigentum",
+    "Feinstaubbelastung": "Feinstaubbelastung",
+    "Flurstücke und Nutzung": "Flurstücke und Nutzung",
+    "Geruchsimmissionen": "Geruchsimmissionen",
+    "Immissionen": "Immissionen",
+    "Landschaftsbild": "Landschaftsbild",
+    "Lichtimmissionen": "Lichtimmissionen",
+    "Lärmschutz": "Lärmschutz",
+    "Naturschutz": "Naturschutz",
+    "Schallpegel und Grenzwerte": "Schallpegel und Grenzwerte",
+    "Stickoxidbelastung": "Stickoxidbelastung",
+    "Verkehr": "Verkehr",
+    "Verkehrsführung": "Verkehrsführung",
+    "Verkehrslärm": "Verkehrslärm"
+  },
+  "toolbar": {
+    "export": "Export",
+    "exportError": "Der Export konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",
+    "exportStarted": "Der Export wurde gestartet.",
+    "importResponses": "Erwiderungen importieren",
+    "processingAdditionalObjections": "Es werden aktuell weitere Einwendungen verarbeitet.",
+    "progressBadge_one": "{{checkedCount}} von {{totalCount}} Argument geprüft",
+    "progressBadge_other": "{{checkedCount}} von {{totalCount}} Argumenten geprüft",
+    "submitAdditionally": "Beteiligungseingänge importieren",
+    "tabs": {
+      "sender": "Absender",
+      "topics": "Themen"
+    }
+  },
+  "topicClassification": {
+    "argument": "Argument",
+    "back": "Zurück",
+    "contextLabel": "Kontext",
+    "einordnung": "Einordnung",
+    "einordnungPlaceholder": "Einordnung und Beschlussvorschlag eingeben ...",
+    "einwendungen": "Einwendungen",
+    "erwiderung": "Erwiderung",
+    "missingTopic": "Thema nicht verfügbar",
+    "reset": "Zurücksetzen",
+    "save": "Speichern",
+    "topicGroupLabel": "Themenbereich",
+    "topicNameLabel": "Thema",
+    "subtopicNameLabel": "Unterthema"
+  },
+  "topics": {
+    "approvedBadge_one": "{{approvedCount}} von {{totalCount}} Argument geprüft",
+    "approvedBadge_other": "{{approvedCount}} von {{totalCount}} Argumenten geprüft",
+    "argumentsBadge_one": "{{count}} Argument",
+    "argumentsBadge_other": "{{count}} Argumente",
+    "collapseLabel": "Thema {{name}} einklappen",
+    "duplicates": "{{count}} Duplikate",
+    "empty": "Wählen Sie ein Thema aus, um die Argumente anzuzeigen.",
+    "expandLabel": "Thema {{name}} aufklappen",
+    "searchLabel": "Themen durchsuchen",
+    "selectSubtopicLabel": "Unterthema {{name}} auswählen",
+    "selectLabel": "Thema {{name}} auswählen",
+    "title": "Themen",
+    "unassignedSubtopic": "Kein Unterthema"
+  }
+}

@@ -1,3 +1,5 @@
+"""Pydantic models for DMS files, extracted document details, and metadata."""
+
 from datetime import UTC, datetime
 from enum import Enum
 
@@ -34,11 +36,15 @@ class DMSDocument(BaseModel):
 
 
 class ProjectBaseMetadataStatus(str, Enum):
+    """Status of project base metadata loaded from the extraction summary."""
+
     COMPLETE = "complete"
     FALLBACK_MISSING = "fallback_missing"
 
 
 class BaseMetadata(BaseModel):
+    """Project-level metadata surfaced in plausibility result context."""
+
     application_id: str
     processing_timestamp: datetime
     project_applicant: str | None = None
@@ -55,6 +61,8 @@ class BaseMetadata(BaseModel):
 
     @classmethod
     def fallback_unknown(cls, project_id: str) -> "BaseMetadata":
+        """Create an explicit unknown-metadata fallback for incomplete summaries."""
+
         return cls(
             application_id=project_id,
             processing_timestamp=datetime.now(UTC),

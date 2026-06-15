@@ -3,7 +3,7 @@ from collections.abc import Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-from src.config.constants import SECURITY_HEADERS_EXCLUDED_PATHS
+from src.config.constants import AUTH_EXCLUDED_PATHS
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -35,9 +35,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
         if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains; preload"
-            )
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
         response.headers["X-Content-Type-Options"] = "nosniff"
 
@@ -47,13 +45,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
+        response.headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate"
+
         return response
 
     def _is_excluded_path(self, path: str) -> bool:
-        if path in SECURITY_HEADERS_EXCLUDED_PATHS:
+        if path in AUTH_EXCLUDED_PATHS:
             return True
 
-        if path.startswith("/static/"):
-            return True
-
-        return False
+        return path.startswith("/static/")

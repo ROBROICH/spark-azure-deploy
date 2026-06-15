@@ -1,0 +1,6 @@
+apiVersion: v2
+name: plausibility-notes
+description: A Helm chart for Kubernetes deployment of plausibility notes service
+type: application
+version: 0.1.0
+appVersion: "1.16.0"

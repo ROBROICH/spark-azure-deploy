@@ -1,0 +1,10 @@
+data/*
+.env
+notebooks/*
+*.ipynb
+relevance_check/*
+.deepeval
+evals/data/*
+evals/results/*
+!evals/results/.gitkeep
+vulnerabilities-report.json

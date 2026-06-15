@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dokumente>
+<dokumente builddate="20260501121530" doknr="BJNRTESTS">
+    <norm builddate="20260501121530" doknr="BJNRTESTS">
+        <metadaten>
+            <jurabk>TestG</jurabk>
+            <enbez>§ 1</enbez>
+            <titel format="XML">Verschachtelte Sätze</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <!-- abs 1: intro + nested list (arabic with nested alpha) + shared endtext -->
+                    <P>(1) Es ist verboten,
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">Tests zu skippen (Skipverbote).</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">Tests der besonders geschützten Arten
+                                    <DL Font="normal" Type="alpha">
+                                        <DT>a)</DT>
+                                        <DD Font="normal">
+                                            <LA Size="normal">zu löschen</LA>
+                                        </DD>
+                                        <DT>b)</DT>
+                                        <DD Font="normal">
+                                            <LA Size="normal">auf `pytest.mark.integration` zu setzen</LA>
+                                        </DD>
+                                    </DL> oder sonst zu deaktivieren (Deaktivierungsverbote).
+                                </LA>
+                            </DD>
+                        </DL>Artikel 6 und 7 der Verordnung bleiben unberührt.
+                    </P>
+                    <!-- abs 2: dash markers (ambiguous, get a synthetic prefix) -->
+                    <P>(2) Dieses Gesetz dient dem Schutz vor
+                        <DL Font="normal" Type="Dash">
+                            <DT>–</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">schädlichen Einwirkungen,</LA>
+                            </DD>
+                            <DT>–</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">erheblichen Bugs.</LA>
+                            </DD>
+                        </DL>
+                    </P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTESTS">
+        <metadaten>
+            <jurabk>TestG</jurabk>
+            <enbez>§ 2</enbez>
+            <titel format="XML">Abkürzungen und Endtext</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <!-- abs 1: the abbreviation "e. V." must not trigger a sentence split -->
+                    <P>(1) Die Regeln des Projekts Spark Workflow eingehalten worden sind. Die Regeln der Auftraggeber eingehalten worden sind.</P>
+                    <!-- abs 2: list with shared endtext followed by a new sentence in the same paragraph -->
+                    <P>(2) Der Plan enthält:
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">teil 1,</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">teil 2.</LA>
+                            </DD>
+                        </DL>und endtext. Satz 2 kommt nach dem endtext.
+                    </P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTESTS">
+        <metadaten>
+            <jurabk>TestG</jurabk>
+            <enbez>§ 3</enbez>
+            <titel format="XML">Sonderfälle</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <!-- abs 1: a "(weggefallen)" list item must be filtered out -->
+                    <P>(1) Verboten ist:
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">etwas Erlaubtes,</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">(weggefallen)</LA>
+                            </DD>
+                            <DT>3.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">etwas anderes Erlaubtes.</LA>
+                            </DD>
+                        </DL>
+                    </P>
+                    <!-- abs 2a: footnote markers (FnR) must be stripped from the text -->
+                    <P>(2a) Ein Satz mit einer Fußnote im Text.<FnR ID="f1">1</FnR></P>
+                    <!-- abs 3a: dates, ALL CAPS and semicolons must not split the sentence -->
+                    <P>(3a) Diese Vorschrift gilt; sie ist gültig. Sie wurde am 20. Juli 2022 (BGBl. I S. 1353) geändert und am 8. Mai 2024 (BGBl. 2024 I Nr. 151) angepasst. Ende der Vorschrift.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+</dokumente>

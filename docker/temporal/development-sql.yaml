@@ -4,3 +4,12 @@ limit.maxIDLength:
 system.forceSearchAttributesCacheRefreshOnRead:
   - value: true # Dev setup only. Please don't turn this on in production.
     constraints: {}
+matching.useNewMatcher:
+  - value: true
+    constraints: {}
+matching.enableFairness:
+  - value: true
+    constraints: {}
+matching.enableMigration:
+  - value: true
+    constraints: {}

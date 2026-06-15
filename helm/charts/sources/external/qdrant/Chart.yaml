@@ -1,0 +1,17 @@
+apiVersion: v2
+name: qdrant
+description: >
+  Thin project wrapper around the official qdrant/qdrant Helm chart.
+  Deploys Qdrant as a 3-replica StatefulSet with persistent storage,
+  cluster mode enabled, and project-managed image references.
+
+  Upstream chart: https://qdrant.github.io/qdrant-helm  version 1.17.0 (appVersion v1.17.0)
+  Kustomize source: repo/04-shared-services/db/qdrant/
+type: application
+version: 0.1.0
+appVersion: "v1.17.0"
+
+dependencies:
+  - name: qdrant
+    version: "1.17.0"
+    repository: "https://qdrant.github.io/qdrant-helm"

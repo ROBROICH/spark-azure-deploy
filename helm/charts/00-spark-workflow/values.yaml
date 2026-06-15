@@ -1,0 +1,931 @@
+# =============================================================================
+# spark-workflow — values.yaml
+# =============================================================================
+#
+# Full configuration reference for a complete SPARK Workflow deployment.
+# Replace every <placeholder> with deployment-specific values before installing.
+# Secrets should be supplied via Kubernetes Secret objects and referenced
+# through secretKeyRef — do NOT inline credentials in this file.
+#
+# Install:
+#   helm dep update charts/00-spark-workflow
+#   helm upgrade --install spark charts/00-spark-workflow \
+#     --namespace spark --create-namespace \
+#     -f values.yaml
+#
+# Render without installing:
+#   helm template spark charts/00-spark-workflow --namespace spark -f values.yaml
+#
+# Single-layer override:
+#   helm upgrade spark charts/00-spark-workflow \
+#     --set service-layer.temporal-job-service.replicaCount=3
+#
+# Env var precedence (last wins per name):
+#   global.env → global.extraEnv → <chart>.env → <chart>.extraEnv
+#
+# Key path structure (top-level umbrella → layer → service):
+#   service-layer.<service-name>.extraEnv[...]
+#   ai-module-layer.<alias>.extraEnv[...]
+#   orchestration-layer.temporal.temporal.<key>
+#
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Global — shared configuration propagated to every subchart
+# ---------------------------------------------------------------------------
+
+global:
+
+  # Stage suffix appended to generated resource names.
+  # E.g. "dev" → spark-frontend-dev.  Leave empty for no suffix.
+  stage:
+    name: ""
+
+  # Extra pod labels applied to every workload across all layers.
+  # Precedence (lowest → highest): global.labels → values.labels
+  # spark-workflow.layer/name and spark-workflow.group/name are set by each
+  # layer umbrella automatically via global.labels.layer/group.
+  labels:
+    app.kubernetes.io/part-of: spark-workflow
+
+  # Shared baseline env vars injected into every container (lowest priority).
+  # Chart-level env always wins on name collision.
+  env: []
+
+  # Shared override vars injected after global.env (second-lowest priority).
+  # Use this block for cluster-wide credentials and auth configuration.
+  extraEnv:
+
+    # ── Authentication & authorisation (all services) ──────────────────────
+    # JWT audience claim validated by each service.
+    - name: AUTH_AUDIENCE
+      value: "<auth-audience>"
+
+    # Base URL of the Keycloak/OIDC server (e.g. https://keycloak.example.com).
+    - name: AUTH_BASE_URL
+      value: "<keycloak-base-url>"
+
+    # Authentication enforcement mode: optional_verify | enforce | disabled.
+    - name: AUTH_MODE
+      value: "<auth-mode>"
+
+    # Keycloak realm used for token validation.
+    - name: AUTH_REALM
+      value: "<auth-realm>"
+
+    # SpiceDB gRPC endpoint for relationship-based access control.
+    - name: AUTH_SPICE_DB_ENDPOINT
+      value: "<spicedb-host>:50051"
+
+    # Set to "true" to connect to SpiceDB without TLS (development/staging only).
+    - name: AUTH_SPICE_DB_INSECURE
+      value: "true"
+
+    # SpiceDB pre-shared key — sourced from the spicedb-config Secret.
+    - name: AUTH_SPICE_DB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: spicedb-config
+          key: preshared_key
+
+    # Temporal-job-service base URL — required by the backend services and by
+    # every AI module worker (workflow progress reporting and job dispatch).
+    # Chart-agnostic template: derives the stage suffix from global.stage.name.
+    - name: TEMPORAL_JOB_SERVICE_URL
+      value: '{{ printf "http://%s-temporal-job-service%s.%s.svc.cluster.local" .Release.Name (ternary (printf "-%s" .Values.global.stage.name) "" (not (empty .Values.global.stage.name))) .Release.Namespace }}'
+
+# ── Layer toggles — merged into each configuration block ──────────────────────
+# Each layer section below starts with `enabled: true`.
+# To disable a layer, set the `enabled` key to false inside that block,
+# or pass --set <layer>.enabled=false at install time.
+# basisdienste has no configuration below; its toggle stands alone.
+
+basisdienste:
+  enabled: true
+
+  qdrant:
+    qdrant:
+      chartTests:
+        dbInteraction:
+          image: ""
+          resources:
+            requests:
+              cpu: 100m
+              memory: 200Mi
+            limits:
+              cpu: 100m
+              memory: 200Mi
+# =============================================================================
+# Layer 2 — Frontend
+# =============================================================================
+#
+# Path: frontend-layer.<key>
+# The frontend chart renders a single Nginx-based SPA container.
+# VITE_* variables are baked into the container at startup via an entrypoint
+# script; they must all be set before the first deployment.
+
+frontend-layer:
+  enabled: true
+
+  frontend:
+    image:
+      repository: "<container-registry>/frontend-app"
+      tag: "<image-tag>"
+
+    replicaCount: 1
+
+    extraEnv:
+      # Public API prefix used by all fetch() calls in the SPA.
+      - name: VITE_API_BASE_URL
+        value: "/api"
+
+      # Client-side base path for React Router.
+      - name: VITE_APP_BASE_PATH
+        value: "/app"
+
+      # Enable EWMS feature flag (Einwendungsmanagement).
+      - name: VITE_ENABLE_EWMS_FEATURE
+        value: "true"
+
+      # Set to "true" to activate the maintenance mode splash page.
+      - name: VITE_ENABLE_MAINTENANCE_MODE
+        value: "false"
+
+      # Sentry error-reporting DSN. Set to "" to disable Sentry.
+      - name: VITE_SENTRY_DSN
+        value: "null"
+
+      # Sentry environment tag shown in the Sentry dashboard.
+      - name: VITE_SENTRY_ENVIRONMENT
+        value: "<sentry-environment>"
+
+      # Full URL of the Temporal Web UI (used by the admin panel).
+      - name: VITE_TEMPORAL_UI_BASE_URL
+        value: "https://dashboard.example.com/temporal/namespaces/default/workflows"
+
+# =============================================================================
+# Layer 3 — Service Layer
+# =============================================================================
+#
+# Path: service-layer.<service-name>.extraEnv[...]
+#
+# Use extraEnv at the service level for deployment-specific config (DB creds,
+# S3 buckets, CORS, Temporal queues, etc.). Values in global.extraEnv (auth,
+# SpiceDB) are already injected — do not repeat them here unless overriding.
+#
+# Database credentials are expected in per-service Kubernetes Secrets:
+#   Secret name: <service-name>-db-credentials
+#   Keys:        username, password
+# The CNPG pooler hostname follows the pattern:
+#   {release}-cnpg-postgres-pooler-rw.{namespace}.svc.cluster.local
+
+service-layer:
+  enabled: true
+
+  # ── project-logic-service ──────────────────────────────────────────────────
+  # Core project state machine and workflow coordinator.
+  project-logic-service:
+    image:
+      repository: "<container-registry>/pls-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL
+      #     value: "<administrative-file-draft-service-url>"
+      #   - name: API__DMS_BASE_URL
+      #     value: "<document-management-service-url>"
+      #   - name: API__EXAMINATION_BASE_URL
+      #     value: "<examination-service-url>"
+      #   - name: API__FCS_BASE_URL
+      #     value: "<formal-completeness-check-url>"
+      #   - name: API__OBJECTIONS_BASE_URL
+      #     value: "<objections-management-service-url>"
+      #   - name: API__PLAUSIBILITY_BASE_URL
+      #     value: "<plausibility-notes-url>"
+      #   - name: API__PLS_BASE_URL
+      #     value: "<project-logic-service-url>"
+      - name: DB_NAME
+        value: "project_logic_service"
+
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: PROJECT_LOGIC_SERVICE_CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: TEMPORAL__S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL__S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL__S3_REGION
+        value: "my-store"
+      - name: TEMPORAL__S3_ACCESS_KEY_ID
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_ACCESS_KEY_ID } }
+      - name: TEMPORAL__S3_SECRET_ACCESS_KEY
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_SECRET_ACCESS_KEY } }
+
+
+  # ── temporal-job-service ───────────────────────────────────────────────────
+  # REST facade exposing Temporal workflow submission and status APIs.
+  temporal-job-service:
+    image:
+      repository: "<container-registry>/temporal-jobs-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: DB__NAME
+        value: "temporal_job_service"
+      - name: DB__USER
+        valueFrom: { secretKeyRef: { name: temporal-job-service-db-user, key: username } }
+      - name: DB__PASSWORD
+        valueFrom: { secretKeyRef: { name: temporal-job-service-db-user, key: password } }
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL__S3_ARCHIVAL_BUCKET_NAME
+        value: "temporal-archival"
+      - name: TEMPORAL__S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL__S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL__S3_REGION
+        value: "my-store"
+
+
+  # ── document-management-service ───────────────────────────────────────────
+  # Document storage, virus scanning, and lifecycle management.
+  document-management-service:
+    image:
+      repository: "<container-registry>/dms-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      # Primary document storage bucket.
+      - name: ENV
+        value: "development"
+      - name: BUCKET_NAME
+        value: "dms"
+      - name: CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: DB_NAME
+        value: "document_management_service"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: QUARANTINE_BUCKET_NAME
+        value: "quarantine-bucket-test"
+      - name: QUARANTINE_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: S3_EXTERNAL_URL
+        value: "https://s3.example.com"
+      - name: S3_REGION
+        value: "my-store"
+      - name: TEMPORAL__S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL__S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL__S3_REGION
+        value: "my-store"
+      - name: TEMPORAL__S3_ACCESS_KEY_ID
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_ACCESS_KEY_ID } }
+      - name: TEMPORAL__S3_SECRET_ACCESS_KEY
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_SECRET_ACCESS_KEY } }
+
+  # ── agent-orchestration-service ───────────────────────────────────────────
+  # Coordinates multi-agent AI workflows via Temporal.
+  agent-orchestration-service:
+    image:
+      repository: "<container-registry>/agent-orchestration-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL
+      #     value: "<administrative-file-draft-service-url>"
+      #   - name: API__DMS_BASE_URL
+      #     value: "<document-management-service-url>"
+      #   - name: API__EXAMINATION_SERVICE_BASE_URL
+      #     value: "<examination-service-url>"
+      #   - name: API__FPP_BASE_URL
+      #     value: "<fpp-service-url>"
+      #   - name: API__FVP_BASE_URL
+      #     value: "<formal-completeness-check-url>"
+      #   - name: API__OBJECTIONS_SERVICE_BASE_URL
+      #     value: "<objections-management-service-url>"
+      #   - name: API__PLAUSIBILITY_NOTES_BASE_URL
+      #     value: "<plausibility-notes-url>"
+      #   - name: API__PLS_BASE_URL
+      #     value: "<project-logic-service-url>"
+      # FPP external-service OAuth credentials.
+      - name: CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL__S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL__S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL__S3_REGION
+        value: "my-store"
+      - name: TEMPORAL__S3_ACCESS_KEY_ID
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_ACCESS_KEY_ID } }
+      - name: TEMPORAL__S3_SECRET_ACCESS_KEY
+        valueFrom: { secretKeyRef: { name: temporal-s3-secrets, key: TEMPORAL_S3_SECRET_ACCESS_KEY } }
+
+
+  # ── administrative-file-draft ──────────────────────────────────────────────
+  # Manages administrative file drafts and planning document lifecycle.
+  administrative-file-draft:
+    image:
+      repository: "<container-registry>/administrative-file-draft"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: UNO_HOST
+      #     value: "<unoserver-hostname>"
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: DB_NAME
+        value: "administrative_file_draft"
+
+  # ── comment-service ────────────────────────────────────────────────────────
+  # Inline comment and annotation management for planning documents.
+  comment-service:
+    image:
+      repository: "<container-registry>/comment-module"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      - name: DB_NAME
+        value: "comment_service"
+
+  # ── examination-service ────────────────────────────────────────────────────
+  # Orchestrates formal examination workflows for submitted documents.
+  examination-service:
+    image:
+      repository: "<container-registry>/examination-service"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: BACKEND_CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: DB_NAME
+        value: "examination_service"
+
+  # ── feedback-service ───────────────────────────────────────────────────────
+  # Collects and stores user feedback on AI module results.
+  feedback-service:
+    image:
+      repository: "<container-registry>/feedback-module"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: DB_NAME
+        value: "feedback_service"
+
+  # ── formal-completeness-check ─────────────────────────────────────────────
+  # Checks submitted planning documents for formal completeness.
+  formal-completeness-check:
+    image:
+      repository: "<container-registry>/fcs-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      #     value: "<document-management-service-url>"
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: DB_NAME
+        value: "formal_completeness_check"
+
+  # ── fpp-service ────────────────────────────────────────────────────────────
+  # Formal planning procedure service.
+  fpp-service:
+    image:
+      repository: "<container-registry>/fpp-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: BACKEND_CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: DB_NAME
+        value: "fpp_service"
+      - name: FPP_ALLOWED_DOMAINS
+        value: ""
+
+
+  llm-client:
+    image:
+      repository: "<container-registry>/llm-client"
+      tag: "<image-tag>"
+    extraEnv:
+      - name: LITELLM_BASE_URL
+        value: "https://litellm.example.com/v1"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── identity-management-service ───────────────────────────────────────────
+  # User identity and role management backed by Keycloak admin APIs.
+  identity-management-service:
+    image:
+      repository: "<container-registry>/identity-management-module"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      - name: AUTH_BASE_URL
+        value: "https://dashboard.example.com/auth"
+      - name: AUTH_PRIVILEGED_CLIENT_ID
+        value: "role-changer"
+      - name: DB_NAME
+        value: "identity_management_service"
+
+  # ── objections-management-service ─────────────────────────────────────────
+  # Manages objection records and resolution workflows.
+  objections-management-service:
+    image:
+      repository: "<container-registry>/objections-management-module"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      #     value: "<document-management-service-url>"
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: DB_NAME
+        value: "objections_management_service"
+
+  # ── plausibility-notes ────────────────────────────────────────────────────
+  # Plausibility audit notes for reviewed planning documents.
+  plausibility-notes:
+    image:
+      repository: "<container-registry>/plausibility-notes-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: DOCUMENT_MANAGEMENT_SERVICE_URL
+      #     value: "<document-management-service-url>"
+      #   - name: PROJECT_LOGIC_SERVICE_URL
+      #     value: "<project-logic-service-url>"
+      - name: CORS_ORIGINS
+        value: "https://dashboard.example.com"
+      - name: DB_NAME
+        value: "plausibility_notes"
+
+  # ── supplementary-requests-service ────────────────────────────────────────
+  # Handles requests for supplementary information in planning procedures.
+  supplementary-requests-service:
+    image:
+      repository: "<container-registry>/supplementary-requests-service"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      - name: DB_NAME
+        value: "supplementary_requests_service"
+      - name: SUPPLEMENTARY_REQUESTS_SERVICE_CORS_ORIGINS
+        value: "https://dashboard.example.com"
+
+  # ── protocol-service ──────────────────────────────────────────────────────
+  # Cross-service audit trail — reads all service databases in read-only mode.
+  protocol-service:
+    image:
+      repository: "<container-registry>/protocol-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: PROTOCOL_SERVICE_CORS_ORIGINS
+        value: "https://dashboard.example.com"
+
+      - name: ADMINISTRATIVE_DRAFT_DB_NAME
+        value: "administrative_file_draft"
+      - name: COMMENT_DB_NAME
+        value: "comment_service"
+      - name: DOCUMENT_MANAGEMENT_DB_NAME
+        value: "document_management_service"
+      - name: EXAMINATION_DB_NAME
+        value: "examination_service"
+      - name: FORMAL_COMPLETENESS_DB_NAME
+        value: "formal_completeness_check"
+      - name: OBJECTIONS_MANAGEMENT_DB_NAME
+        value: "objections_management_service"
+      - name: PLAUSIBILITY_DB_NAME
+        value: "plausibility_notes"
+      - name: PROJECT_LOGIC_DB_NAME
+        value: "project_logic_service"
+      - name: SUPPLEMENTARY_DB_NAME
+        value: "supplementary_requests_service"
+
+  # ── rechtsaenderungs-monitoring ────────────────────────────────────────────
+  # Monitors legal amendments and classifies changes.
+  rechtsaenderungs-monitoring:
+    image:
+      repository: "<container-registry>/rechtsaenderungsmonitoring"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: DB_NAME
+        value: "rechtsaenderungs_monitoring"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── gesetze-normen-db-service ─────────────────────────────────────────────
+  # Laws and legal norms reference database and PDF extraction accessor.
+  gesetze-normen-db-service:
+    image:
+      repository: "<container-registry>/gesetze-normen-db"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: DB_NAME
+        value: "gesetze_normen"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── jura-db-service ────────────────────────────────────────────────────────
+  # General legal reference database with LLM-powered chunking.
+  jura-db-service:
+    image:
+      repository: "<container-registry>/jura-db"
+      tag: "<image-tag>"
+    replicaCount: 3
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: GESETZE_NORMEN_URL
+      #     value: "<gesetze-normen-db-service-url>"
+      - name: CHUNKING_APIKEY
+        valueFrom: { secretKeyRef: { name: litellm-proxy-credentials, key: master-key } }
+      - name: CHUNKING_URL
+        value: "https://litellm.example.com/v1"
+      - name: DB_NAME
+        value: "jura"
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── gesetzesbegruendung-db-service ────────────────────────────────────────
+  # Legislative reasoning reference database. Integrates with Docling for OCR.
+  gesetzesbegruendung-db-service:
+    image:
+      repository: "<container-registry>/begruendungen-db"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
+      # as tpl expressions derived from Release.Name and Release.Namespace.
+      # Uncomment and set an explicit value only when a non-standard endpoint is required:
+      #   - name: GESETZE_NORMEN_URL
+      #     value: "<gesetze-normen-db-service-url>"
+      - name: CHUNKING_APIKEY
+        valueFrom: { secretKeyRef: { name: litellm-proxy-credentials, key: master-key } }
+      - name: CHUNKING_URL
+        value: "https://litellm.example.com/v1"
+      - name: DB_NAME
+        value: "gesetzesbegruendung"
+      # Shared docling instance (basisdienste docling-rq is disabled on dev).
+      - name: DOCLING_HOST
+        value: "https://docling.example.com"
+      - name: DOCLING_CLIENT_ID
+        valueFrom: { secretKeyRef: { name: docling-keycloak-secrets, key: KEYCLOAK_CLIENT_ID } }
+      - name: DOCLING_CLIENT_SECRET
+        valueFrom: { secretKeyRef: { name: docling-keycloak-secrets, key: KEYCLOAK_CLIENT_SECRET } }
+      - name: DOCLING_TOKEN_URL
+        value: "https://keycloak.example.com/realms/master/protocol/openid-connect/token"
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+# =============================================================================
+# Layer 4 — Orchestration (Temporal)
+# =============================================================================
+#
+# Path: orchestration-layer.temporal.temporal.<key>
+# The third nesting level ("temporal") is the upstream chart name inside the
+# sources/external/temporal wrapper.
+#
+# Common overrides: web replica count, CORS origin for the Temporal UI,
+# dynamic config flags (matching, fairness, migration).
+
+orchestration-layer:
+  enabled: true
+  temporal:
+    temporal:
+      web:
+        additionalEnv:
+          - name: TEMPORAL_CORS_ORIGINS
+            value: "https://dashboard.example.com"
+        image: { repository: "temporalio/ui", tag: "2.44.0" }
+      admintools:
+        image: { repository: "temporalio/admin-tools", tag: "1.29.1-tctl-1.18.4-cli-1.5.0" }
+      server:
+        image: { repository: "temporalio/server", tag: "1.29.1" }
+        config:
+          persistence:
+            # Direct -rw service (NOT the pgbouncer pooler): the temporal
+            # schema tools require session-level features.
+            default:
+              sql:
+                host: "<db-host>"
+                user: "temporal"
+                existingSecret: "temporal-db-credentials"
+            visibility:
+              sql:
+                host: "<db-host>"
+                user: "temporal"
+                existingSecret: "temporal-db-credentials"
+    searchAttributesJob:
+      image: { repository: "temporalio/admin-tools", tag: "1.29.1-tctl-1.18.4-cli-1.5.0" }
+
+# =============================================================================
+# Layer 5 — AI Module Layer
+# =============================================================================
+#
+# Path: ai-module-layer.<alias>.extraEnv[...]
+# Each alias is a separately configured instance of the temporal-worker chart.
+# Shared Temporal / S3 config repeats per module because each module has its
+# own Temporal task queue and may reference different model endpoints.
+
+ai-module-layer:
+  enabled: true
+
+  # ── inhaltsextraktion ─────────────────────────────────────────────────────
+  # Document content extraction: full text, tables, and metadata.
+  inhaltsextraktion:
+    image:
+      repository: "<container-registry>/inhaltsextraktion-backend"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      - name: LITELLM_BASE_URL
+        value: "https://litellm.example.com/v1"
+      - name: METADATA_MODEL_NAME
+        value: "self-hosted/gpt-oss-120b"
+      - name: SCHWERPUNKTTHEMA_MODEL_NAME
+        value: "self-hosted/gpt-oss-120b"
+      - name: STRUCTURE_MODEL_NAME
+        value: "self-hosted/gpt-oss-120b"
+      - name: SUMMARIZATION_MODEL_NAME
+        value: "self-hosted/gpt-oss-120b"
+      - name: VLM_SUMMARY_MODEL_NAME
+        value: "self-hosted/gpt-oss-120b"
+      - name: VLLM_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: INJECTION_MODEL_URL
+        value: "https://prompt-injection.example.com/predict"
+      - name: KEYCLOAK_TOKEN_URL
+        value: "https://keycloak.example.com/realms/master/protocol/openid-connect/token"
+      # Shared docling instance (basisdienste docling-rq is disabled on dev).
+      - name: DOCLING_HOST
+        value: ""
+      - name: DOCLING_PORT
+        value: "443"
+      - name: DOCLING_PROTOCOL
+        value: "https"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── formale-vollstaendigkeitspruefung ─────────────────────────────────────
+  # AI-assisted formal completeness check.
+  formale-vollstaendigkeitspruefung:
+    image:
+      repository: "<container-registry>/formale-pruefung-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: LITELLM_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── plausibilitaetspruefung ────────────────────────────────────────────────
+  # Plausibility verification of AI-generated results.
+  plausibilitaetspruefung:
+    image:
+      repository: "<container-registry>/plausibilitaet-pruefung-module"
+      tag: "<image-tag>"
+    replicaCount: 5
+    extraEnv:
+      - name: LITELLM_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── materielle-vollstaendigkeitspruefung ──────────────────────────────────
+  # Semantic / material completeness check for planning documents.
+  materielle-vollstaendigkeitspruefung:
+    image:
+      repository: "<container-registry>/suche-und-zuordnung"
+      tag: "<image-tag>"
+    replicaCount: 1
+    extraEnv:
+      - name: LLM_DB_RESEARCH_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: LLM_EMBEDDING_MODEL
+        value: "self-hosted/bge-m3"
+      - name: LLM_PAGEINDEX_SVM_MODEL_STAGE1
+        value: "self-hosted/gpt-oss-120b"
+      - name: LLM_PAGEINDEX_SVM_MODEL_STAGE2
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── einwendungsmanagement ─────────────────────────────────────────────────
+  # Classification and routing of objections.
+  einwendungsmanagement:
+    image:
+      repository: "<container-registry>/einwendungsmanagement-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── rechtliche-pruefung-und-bewertung ─────────────────────────────────────
+  # Legal assessment and evaluation of planning procedures.
+  rechtliche-pruefung-und-bewertung:
+    image:
+      repository: "<container-registry>/bewertung-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: LITELLM_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── rechtsmethodik ────────────────────────────────────────────────────────
+  # Legal methodology analysis.
+  rechtsmethodik:
+    image:
+      repository: "<container-registry>/rechtsmethodik-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: MODELS_LARGE_LLM
+        value: "self-hosted/gpt-oss-120b"
+      - name: MODELS_MEDIUM_LLM
+        value: "self-hosted/gpt-oss-120b"
+      - name: MODELS_SMALL_LLM
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── anonymisierung ────────────────────────────────────────────────────────
+  # PII anonymisation of document content.
+  anonymisierung:
+    image:
+      repository: "<container-registry>/anonymisierung-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: LLM_MODEL
+        value: "self-hosted/gpt-oss-120b"
+      - name: OTEL_ENDPOINT
+        value: "otel-gateway.observability.svc.cluster.local:4317"
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── normenermittlung ──────────────────────────────────────────────────────
+  # Norm determination — resolves applicable norms via vector search + LLM.
+  normenermittlung:
+    image:
+      repository: "<container-registry>/norm-tbm-spec-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "temporal-payloads"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "https://s3.example.com"
+      - name: TEMPORAL_S3_REGION
+        value: "my-store"
+
+  # ── risikohinweiser ───────────────────────────────────────────────────────
+  # Risk-indicator analysis for planning documents.
+  risikohinweiser:
+    image:
+      repository: "<container-registry>/risikohinweiser-module"
+      tag: "<image-tag>"
+    replicaCount: 2
+    extraEnv:
+      - name: LITELLM_MODEL
+        value: "<llm-model-name>"
+      - name: OTEL_ENDPOINT
+        value: ""
+      - name: TEMPORAL_S3_BUCKET_NAME
+        value: "<temporal-payloads-bucket>"
+      - name: TEMPORAL_S3_ENDPOINT_URL
+        value: "<object-storage-url>"

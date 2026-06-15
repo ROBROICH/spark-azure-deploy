@@ -7,21 +7,23 @@ requires-python = ">=3.13,<3.14"
 readme = "README.md"
 dependencies = [
     "temporal",
+    "internal-auth",
     "tiktoken>=0.12.0",
     "unoserver==3.5",
-    "instructor>=1.12.0",
-    "beautifulsoup4>=4.14.3",
-    "google-auth>=2.40.3",
-    "pillow>=12.1.1",
+    "pillow>=12.2.0",
     "pypdfium2>=5.3.0",
     "pikepdf>=9.0.0",
     "imagehash>=4.3.2",
     "qdrant-client>=1.16.1,<2.0.0",
     "prompt-injection",
+    "opencv-python-headless>=4.13.0.92",
+    "transformers>=5.8.1",
+    "semantic-text-splitter>=0.30.1",
 ]
 
 [tool.uv.sources]
 temporal = { workspace = true }
+internal-auth = { workspace = true }
 prompt-injection = { workspace = true }
 
 [build-system]
@@ -33,7 +35,7 @@ dev = [
     "pytest-cov>=6.2.1,<7",
     "pytest-mock>=3.14.1,<4",
     "interrogate>=1.7.0,<2",
-    "pytest>=8.4.1,<10",
+    "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.3.0",
     "pytest-timeout>=2.3.1",
     "ruff>=0.14.6,<0.15",
@@ -49,14 +51,68 @@ constraint-dependencies = [
     "marshmallow>=3.26.2",
     "virtualenv>=20.36.1",
     "protobuf>=6.33.5",
-    "pyasn1>=0.6.2",
+    "pyasn1>=0.6.3",
     "jsonpointer>=3.1.1",
 ]
+override-dependencies = []
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+norecursedirs = ["notebooks", ".venv", "node_modules"]
 timeout = 20
+
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "notebooks/*",
+    "tests/*",
+    ".venv/*",
+    "src/utils/s3_utils.py",
+    "src/workflows/*/prompt.py",
+    "src/worker.py",
+    "src/api/routers/file_upload.py",
+    "src/api/routers/document_processing.py",
+    "src/workflows/process_documents_workflow.py",
+    "src/workflows/single_document_workflow.py",
+    "src/workflows/summarization/workflow.py",
+    "src/workflows/vlm_enhancement/workflow.py",
+    "src/workflows/schwerpunkt/workflow.py",
+    "src/workflows/helpers/vlm_batch_processor.py",
+    "src/activities/vlm_invoke.py",
+    "src/utils/prepare_vlm_inputs.py",
+    "src/utils/mineru_utils.py",
+    "src/concurrency.py",
+    "src/processors/chunker.py",
+    "src/utils/text_utils.py",
+    "src/workflows/types.py",
+    "src/workflows/vlm_enhancement/output_format.py",
+    "src/workflows/document_metadata/output_format.py",
+]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "@workflow.run",
+    "async def run\\(self",
+    "for attempt in range\\(max_retries\\)",
+    "await asyncio.sleep\\(wait_time\\)",
+    "time.sleep\\(wait_time\\)",
+    "response = super\\(\\)._generate",
+    "response = await super\\(\\)._agenerate",
+]
+
+[tool.interrogate]
+exclude = ["tests", "notebooks", "scripts", "pageindex-demo", ".venv"]
+fail-under = 80
+ignore-init-method = true
+ignore-nested-functions = true
+ignore-nested-classes = true
+ignore-magic = true
 
 [tool.pyrefly]
 search_path = ["."]

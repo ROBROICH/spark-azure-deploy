@@ -14,6 +14,7 @@ dependencies = [
     "alembic>=1.16.4,<2.0.0",
     "psycopg2-binary>=2.9.10,<3.0.0",
     "asyncpg>=0.30.0,<0.31.0",
+    "greenlet>=3.1.0,<4.0.0",
     "httpx>=0.28.1,<0.29.0",
     "pyyaml>=6.0.2,<7.0.0",
     "puremagic>=1.30,<2.0",
@@ -22,18 +23,23 @@ dependencies = [
     "aioboto3>=15.5.0,<16.0.0",
     "aiohttp>=3.13.3,<4.0.0",
     "event-logging",
-    "temporalio>=1.23.0,<2.0.0",
+    "node-crud",
+    "alembic-utils",
+    "audit-client",
+    "authentification",
+    "temporal",
+    "temporalio>=1.27.0,<2.0.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest>=8.4.1,<10",
+    "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.1.0,<2",
     "httpx>=0.28.1,<0.29",
     "pytest-cov>=6.2.1,<7",
     "interrogate>=1.7.0,<2",
     "pytest-env>=1.1.5,<2",
-    "pytest-httpx>=0.35.0,<0.37",
+    "pytest-httpx>=0.36.2,<0.37",
     "pre-commit>=4.3.0,<5",
     "types-pyyaml>=6.0.12.20250915,<7",
     "mypy>=1.18.2,<2",
@@ -42,6 +48,7 @@ dev = [
     "aiosqlite>=0.20.0",
     "ruff>=0.14.6,<0.15",
     "pyrefly>=0.49.0",
+    "py-pglite[psycopg,sqlalchemy]>=0.5.3",
 ]
 
 [tool.uv]
@@ -49,6 +56,11 @@ package = false
 
 [tool.uv.sources]
 event-logging = { workspace = true }
+node-crud = { workspace = true }
+alembic-utils = { workspace = true }
+audit-client = { workspace = true }
+authentification = { workspace = true }
+temporal = { workspace = true }
 
 
 [build-system]
@@ -108,3 +120,6 @@ missing-source-for-stubs = "error"
 deprecated = "error"
 redundant-cast = "error"
 unnecessary-comparison = "error"
+
+[tool.swagger]
+name = "Document Management Service"

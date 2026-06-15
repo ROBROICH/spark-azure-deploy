@@ -1,75 +1,54 @@
-# Shared platform services for local development
-# Usage: docker compose up -d
+# Local infrastructure for native development.
+# Runtime Python services are started with process-compose.yaml.
 services:
-  # Temporal dependencies
-  elasticsearch:
-    image: elasticsearch:7.17.27
-    restart: unless-stopped
-    environment:
-      - cluster.routing.allocation.disk.threshold_enabled=true
-      - cluster.routing.allocation.disk.watermark.low=512mb
-      - cluster.routing.allocation.disk.watermark.high=256mb
-      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
-      - discovery.type=single-node
-      - ES_JAVA_OPTS=-Xms256m -Xmx256m
-      - xpack.security.enabled=false
-      - ingest.geoip.downloader.enabled=false
-
   postgresql:
-    image: postgres:16.10
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     ports:
-      - "127.0.0.1:5432:5432"
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./scripts/data/gesetze-normen-seed.sql.gz:/seed/gesetze-normen-seed.sql.gz:ro
     environment:
-      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run ./scripts/create_secrets.sh to generate .env}
       POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: postgres
     configs:
       - source: postgresql_init_sql
         target: /docker-entrypoint-initdb.d/init.sql
+      - source: postgresql_seed_gesetze_normen
+        target: /docker-entrypoint-initdb.d/seed-gesetze-normen.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
 
-  # Temporal workflow engine
   temporal:
     image: temporalio/auto-setup:1.29.0
     restart: unless-stopped
     ports:
-      - "127.0.0.1:7233:7233"
+      - "7233:7233"
     volumes:
       - ./docker/temporal/development-sql.yaml:/etc/temporal/config/dynamicconfig/development-sql.yaml
     environment:
-      - DB=postgres12
-      - DB_PORT=5432
-      - POSTGRES_USER=postgres
-      - POSTGRES_PWD=${DB_PASSWORD:?Run ./scripts/create_secrets.sh to generate .env}
-      - POSTGRES_SEEDS=postgresql
-      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml
-      - ENABLE_ES=true
-      - ES_SEEDS=elasticsearch
-      - ES_VERSION=v7
-      # Below needs to bind to 0.0.0.0 so it
-      # works when connected to a VPN :)
-      - BIND_ON_IP=0.0.0.0
-      - TEMPORAL_ADDRESS=0.0.0.0:7233
-      - TEMPORAL_CLI_ADDRESS=0.0.0.0:7233
+      DB: postgres12
+      DB_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PWD: ${DB_PASSWORD}
+      POSTGRES_SEEDS: postgresql
+      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
+      BIND_ON_IP: 0.0.0.0
+      TEMPORAL_ADDRESS: 0.0.0.0:7233
+      TEMPORAL_CLI_ADDRESS: 0.0.0.0:7233
     depends_on:
-      - postgresql
-      - elasticsearch
+      postgresql:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "tctl", "--address", "temporal:7233", "cluster", "h"]
-      interval: 1s
+      interval: 2s
       timeout: 5s
-      retries: 30
-
-  temporal-admin-tools:
-    image: temporalio/admin-tools:1.29
-    restart: unless-stopped
-    environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
-    depends_on:
-      - temporal
-    stdin_open: true
-    tty: true
+      retries: 60
 
   temporal-init:
     image: temporalio/admin-tools:1.29
@@ -77,163 +56,356 @@ services:
       temporal:
         condition: service_healthy
     environment:
-      - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
+      TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CLI_ADDRESS: temporal:7233
     restart: "no"
     entrypoint:
       - /bin/sh
       - -c
       - |
         set -eu
-        # Ripped out from auto-setup.sh of auto-setup image
         until temporal operator cluster health --address temporal:7233 | grep -q SERVING; do
           echo "Waiting for Temporal server to start..."
           sleep 1
         done
-        echo "Temporal server started."
 
         until temporal operator search-attribute list --address temporal:7233 --namespace default >/dev/null 2>&1; do
           echo "Waiting for namespace cache to refresh..."
           sleep 1
         done
-        echo "Namespace cache refreshed."
 
-        temporal operator search-attribute create --address temporal:7233 --namespace default --name ProjectId --type Keyword
-        echo "Search attribute ProjectId registered."
-        temporal operator namespace update --namespace default --retention 60d
+        temporal operator search-attribute create --address temporal:7233 --namespace default --name ProjectId --type Keyword || true
+        temporal operator search-attribute create --address temporal:7233 --namespace default --name ProjectVersion --type Int || true
+        echo "Project search attributes registered."
+        temporal operator namespace update --address temporal:7233 --namespace default --retention 60d
+        tail -f /dev/null
 
   temporal-ui:
     image: temporalio/ui:2.44.1
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"
+      - "8233:8080"
     depends_on:
-      - temporal
+      temporal:
+        condition: service_healthy
     environment:
-      - TEMPORAL_ADDRESS=temporal:7233
+      TEMPORAL_ADDRESS: temporal:7233
 
-  codec:
-    build:
-      context: .
-      dockerfile: 02-backend/temporal_codec_service/Dockerfile
-    env_file:
-      - 02-backend/temporal_codec_service/.env.local
-      - .env
-    environment:
-      TEMPORAL_S3_ENDPOINT_URL: "http://minio:9000"
-    ports:
-      - "127.0.0.1:8005:8000"
-    depends_on:
-      - minio
-    restart: unless-stopped
-
-  # MinIO S3-compatible storage for Temporal large payloads
   minio:
     image: minio/minio
     restart: unless-stopped
     ports:
-      - "127.0.0.1:9000:9000"
-      - "127.0.0.1:9001:9001"
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID:?Run ./scripts/create_secrets.sh to generate .env}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY:?Run ./scripts/create_secrets.sh to generate .env}
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY}
     command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live >/dev/null"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
 
   minio-init:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     environment:
       S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
       S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
-      TEMPORAL_S3_ACCESS_KEY_ID: ${TEMPORAL_S3_ACCESS_KEY_ID}
-      TEMPORAL_S3_SECRET_ACCESS_KEY: ${TEMPORAL_S3_SECRET_ACCESS_KEY}
-    entrypoint: >
-      /bin/sh -c '
-      until mc alias set local http://minio:9000 $$S3_ACCESS_KEY_ID $$S3_SECRET_ACCESS_KEY; do sleep 1; done;
-      mc mb -p local/dms-local || true;
-      mc mb -p local/temporal-payloads || true;
-      mc admin user svcacct add local $$S3_ACCESS_KEY_ID --access-key "$$S3_ACCESS_KEY_ID" --secret-key "$$S3_SECRET_ACCESS_KEY" || true;
-      mc admin user svcacct add local $$S3_ACCESS_KEY_ID --access-key "$$TEMPORAL_S3_ACCESS_KEY_ID" --secret-key "$$TEMPORAL_S3_SECRET_ACCESS_KEY" || true;
-      '
+      DMS_BUCKET_NAME: dms-local
+      TEMPORAL_S3_BUCKET_NAME: temporal-payloads
+      QUARANTINE_BUCKET_NAME: quarantine-bucket
+    restart: "no"
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        set -eu
+        mc alias set local http://minio:9000 "$$S3_ACCESS_KEY_ID" "$$S3_SECRET_ACCESS_KEY"
+        mc mb -p "local/$$DMS_BUCKET_NAME" || true
+        mc mb -p "local/$$TEMPORAL_S3_BUCKET_NAME" || true
+        mc mb -p "local/$$QUARANTINE_BUCKET_NAME" || true
+        tail -f /dev/null
 
-  # Qdrant vector database
   qdrant:
-    image: qdrant/qdrant:v1.17.0
+    image: qdrant/qdrant:v1.17.1
     restart: unless-stopped
     ports:
-      - "127.0.0.1:6333:6333"
-      - "127.0.0.1:6334:6334"
+      - "6333:6333"
+      - "6334:6334"
     ulimits:
       nofile:
         soft: 65536
         hard: 65536
+    volumes:
+      - qdrant_data:/qdrant/storage
 
-  # Observability Stack
   tempo:
     image: grafana/tempo:2.9.0
+    profiles: ["observability"]
     command: ["-config.file=/etc/tempo.yaml"]
     volumes:
       - ./docker/observability/tempo.yaml:/etc/tempo.yaml
+      - tempo_data:/var/tempo
     ports:
-      - "127.0.0.1:3200:3200" # Tempo HTTP API
+      - "3200:3200"
 
   loki:
     image: grafana/loki:3.6.3
+    profiles: ["observability"]
     command: ["-config.file=/etc/loki/local-config.yaml"]
+    volumes:
+      - loki_data:/loki
     ports:
-      - "127.0.0.1:3100:3100"
+      - "3100:3100"
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.142.0
+    profiles: ["observability"]
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     volumes:
       - ./docker/observability/otel-collector.yaml:/etc/otelcol-contrib/config.yaml:ro
     environment:
-      - TEMPORAL_UI_HOST=http://temporal-ui:8080
+      TEMPORAL_UI_HOST: http://localhost:8233
     ports:
-      - "127.0.0.1:4317:4317" # OTLP gRPC
-      - "127.0.0.1:4318:4318" # OTLP HTTP
+      - "4317:4317"
+      - "4318:4318"
     depends_on:
       - tempo
       - loki
 
   prometheus:
     image: prom/prometheus:v3.4.2
+    profiles: ["observability"]
     command:
       - "--config.file=/etc/prometheus/prometheus.yaml"
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=7d"
     volumes:
       - ./docker/observability/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - prometheus_data:/prometheus
     ports:
-      - "127.0.0.1:9090:9090"
+      - "9090:9090"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   grafana:
     image: grafana/grafana-oss:11.2.0
+    profiles: ["observability"]
+    user: "0"
     ports:
-      - "127.0.0.1:3000:3000"
+      - "3001:3000"
     environment:
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
     volumes:
       - ./docker/observability/datasources:/etc/grafana/provisioning/datasources:ro
       - ./docker/observability/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - grafana_data:/var/lib/grafana
     depends_on:
       - tempo
       - loki
       - prometheus
 
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    command:
+      - start-dev
+      - --http-port=9090
+    environment:
+      KC_DB: dev-file
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 9090
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_FEATURES: token-exchange
+      KC_HEALTH_ENABLED: true
+    ports:
+      - "9090:9090"
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "bash -ec 'exec 3<>/dev/tcp/localhost/9000; printf \"GET /health/ready HTTP/1.0\\r\\n\\r\\n\" >&3; head -n 1 <&3 | grep -q \"200\"'",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  keycloak-bootstrap:
+    image: quay.io/keycloak/keycloak:26.0
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    environment:
+      KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      LOCAL_KEYCLOAK_CLIENT_SECRET: ${LOCAL_KEYCLOAK_CLIENT_SECRET}
+      LOCAL_USER_ID: ${LOCAL_USER_ID}
+      LOCAL_USER_EMAIL: ${LOCAL_USER_EMAIL}
+      LOCAL_USER_PASSWORD: ${LOCAL_USER_PASSWORD}
+      LOCAL_USER_FIRST_NAME: ${LOCAL_USER_FIRST_NAME}
+      LOCAL_USER_LAST_NAME: ${LOCAL_USER_LAST_NAME}
+    restart: on-failure
+    volumes:
+      - ./docker/keycloak/bootstrap.sh:/bootstrap.sh:ro
+    entrypoint: ["/bin/bash", "/bootstrap.sh"]
+
+  oauth2-proxy:
+    image: quay.io/oauth2-proxy/oauth2-proxy:v7.8.1
+    restart: unless-stopped
+    ports:
+      - "3000:4180"
+    depends_on:
+      keycloak-bootstrap:
+        condition: service_completed_successfully
+    environment:
+      OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
+      # The frontend dev server runs on the host via process-compose.
+      OAUTH2_PROXY_UPSTREAMS: http://host.docker.internal:3002
+      OAUTH2_PROXY_PROVIDER: keycloak-oidc
+      OAUTH2_PROXY_CLIENT_ID: local-client
+      OAUTH2_PROXY_CLIENT_SECRET: ${LOCAL_KEYCLOAK_CLIENT_SECRET}
+      OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
+      OAUTH2_PROXY_COOKIE_SECURE: "false"
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:3000/oauth2/callback
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
+      OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
+      # The browser reaches Keycloak via localhost:9090, this container via
+      # keycloak:9090. OIDC discovery cannot express that split, so the
+      # endpoints are set explicitly.
+      OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:9090/realms/local
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:9090/realms/local/protocol/openid-connect/auth
+      OAUTH2_PROXY_REDEEM_URL: http://keycloak:9090/realms/local/protocol/openid-connect/token
+      OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:9090/realms/local/protocol/openid-connect/certs
+      OAUTH2_PROXY_PROFILE_URL: http://keycloak:9090/realms/local/protocol/openid-connect/userinfo
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  spicedb:
+    image: authzed/spicedb:v1.49.0
+    container_name: spicedb
+    command: >
+      serve
+      --datastore-engine=memory
+      --grpc-preshared-key=${AUTH_SPICE_DB_TOKEN}
+    environment:
+      ZED_TOKEN: ${AUTH_SPICE_DB_TOKEN}
+    healthcheck:
+      test: [ "CMD", "grpc_health_probe", "-addr=:50051" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "50051:50051"
+
+volumes:
+  postgresql_data:
+    driver: local
+  minio_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  tempo_data:
+  loki_data:
+  prometheus_data:
+  grafana_data:
+
 configs:
+  # Loads the public gesetze-normen seed (deconstructed norms) on first
+  # database initialization. Runs after init.sql created the databases.
+  postgresql_seed_gesetze_normen:
+    content: |
+      echo "Seeding the gesetze-normen database from /seed/gesetze-normen-seed.sql.gz"
+      # sed drops pg_dump 17 statements that PostgreSQL 16 does not know:
+      # the \restrict guard and the transaction_timeout setting.
+      gunzip -c /seed/gesetze-normen-seed.sql.gz \
+        | sed -e '/^\\restrict /d' -e '/^\\unrestrict /d' -e '/^SET transaction_timeout/d' \
+        | psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname gesetze-normen
+      echo "Finished seeding the gesetze-normen database"
+
   postgresql_init_sql:
     content: |
-      CREATE DATABASE temporal;
-      CREATE DATABASE dms;
-      CREATE DATABASE comment_service_db;
-      CREATE DATABASE formal_completeness_check;
-      CREATE DATABASE plausibility_notes;
-      CREATE DATABASE project_logic;
+      SELECT 'CREATE DATABASE temporal'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'temporal')\gexec
+      SELECT 'CREATE DATABASE spicedb'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spicedb')\gexec
+      SELECT 'CREATE DATABASE project_logic'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'project_logic')\gexec
+      SELECT 'CREATE DATABASE dms'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'dms')\gexec
+      SELECT 'CREATE DATABASE formal_completeness_check'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'formal_completeness_check')\gexec
+      SELECT 'CREATE DATABASE plausibility_notes'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'plausibility_notes')\gexec
+      SELECT 'CREATE DATABASE examination_service_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'examination_service_db')\gexec
+      SELECT 'CREATE DATABASE administrative_file_draft'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'administrative_file_draft')\gexec
+      SELECT 'CREATE DATABASE diplan'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'diplan')\gexec
+      SELECT 'CREATE DATABASE comment_service_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'comment_service_db')\gexec
+      SELECT 'CREATE DATABASE feedback_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'feedback_db')\gexec
+      SELECT 'CREATE DATABASE objections_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'objections_db')\gexec
+      SELECT 'CREATE DATABASE identity_management_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'identity_management_db')\gexec
+      SELECT 'CREATE DATABASE supplementary_requests'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'supplementary_requests')\gexec
+      SELECT 'CREATE DATABASE fpp'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'fpp')\gexec
+      SELECT 'CREATE DATABASE "gesetze-normen"'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gesetze-normen')\gexec
+      SELECT 'CREATE DATABASE "begruendungen-db"'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'begruendungen-db')\gexec
+      SELECT 'CREATE DATABASE "jura-db"'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'jura-db')\gexec
+      SELECT 'CREATE DATABASE "fallvergleichsservice-db"'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'fallvergleichsservice-db')\gexec
+      SELECT 'CREATE DATABASE "rechtsaenderungsmonitoring-db"'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rechtsaenderungsmonitoring-db')\gexec
+      SELECT 'CREATE DATABASE rechtsbegriffe'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rechtsbegriffe')\gexec
+      SELECT 'CREATE DATABASE temporal_job_service_db'
+      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'temporal_job_service_db')\gexec
 
-networks:
-  default:
-    name: stack
+      CREATE EXTENSION IF NOT EXISTS vector;
+
+      \connect project_logic
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect dms
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect formal_completeness_check
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect plausibility_notes
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect examination_service_db
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect administrative_file_draft
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect diplan
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect "gesetze-normen"
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect "begruendungen-db"
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect "jura-db"
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect "fallvergleichsservice-db"
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect "rechtsaenderungsmonitoring-db"
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect rechtsbegriffe
+      CREATE EXTENSION IF NOT EXISTS vector;
+      \connect temporal_job_service_db
+      CREATE EXTENSION IF NOT EXISTS vector;

@@ -32,6 +32,20 @@ class UpdateFileStatusInput:
     status: str
 
 
+@dataclass
+class UpdateZipApprovalStatusInput:
+    zip_file_id: str
+    status: str | None
+    error: str | None = None
+
+
+@dataclass
+class PersistZipDiffInput:
+    zip_file_id: str
+    source_project_version: int
+    diff: "FileDiffResult"
+
+
 # Extract ZIP
 @dataclass
 class ExtractZipInput:
@@ -39,14 +53,16 @@ class ExtractZipInput:
     filename: str
     project_id: str
     zip_path: str
+    file_type: str = "zip"
 
 
-# Compute Sha256 Diff
 @dataclass
-class ComputeShaDiffInput:
+class ComputeDiffInput:
     project_id: str
     zip_file_id: str
     files: list[SingleFileResult]
+    project_version: int = 1
+    entry_file_type: str = "document"
     rename_similarity_threshold: float = 0.65
     rename_same_dir_only: bool = True
 
@@ -55,7 +71,7 @@ class ComputeShaDiffInput:
 class NewFile:
     filename: str
     bucket_path: str
-    sha: str
+    sha: str | None = None
 
 
 @dataclass
@@ -73,6 +89,7 @@ class RenameChange:
     old_name: str
     new_name: str
     sha: str
+    bucket_path: str | None = None
 
 
 @dataclass
@@ -90,35 +107,39 @@ class Unchanged:
 
 
 @dataclass
+class DuplicateFile:
+    """Represents a file that has a duplicate filename in the target."""
+
+    filename: str
+    bucket_path: str
+    existing_file_id: str
+
+
+@dataclass
 class FileDiffResult:
     new: list[NewFile] = field(default_factory=list)
     deleted: list[DeleteChange] = field(default_factory=list)
     changed: list[FileChange] = field(default_factory=list)
     renamed: list[RenameChange] = field(default_factory=list)
     unchanged: list[Unchanged] = field(default_factory=list)
+    duplicate: list[DuplicateFile] = field(default_factory=list)
 
 
-# Ingest Files
 @dataclass
 class IngestFileInput:
     zip_file_id: str
     project_id: str
+    project_version: int
     filename: str
     bucket_path: str
+    entry_file_type: str = "document"
+    file_id: str | None = None
 
 
-# Delete Files
-@dataclass
-class DeleteFileInput:
-    project_id: str
-    filename: str
-    file_id: str
-
-
-# Rename Files
 @dataclass
 class RenameFileInput:
     project_id: str
+    project_version: int
     file_id: str
     old_name: str
     new_name: str

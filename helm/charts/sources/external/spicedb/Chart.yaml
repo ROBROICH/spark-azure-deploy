@@ -1,0 +1,25 @@
+apiVersion: v2
+name: spicedb
+description: >
+  Self-contained chart for SpiceDB authorization infrastructure.
+  Templates all operator and cluster resources directly — no community
+  chart dependency.
+
+  Resources managed:
+    Operator (namespace spicedb-operator):
+      - ServiceAccount, ClusterRole, ClusterRoleBinding
+      - Deployment (operator controller)
+      - ConfigMap  (update-graph — spicedb image registry path)
+
+    Cluster (namespace spicedb):
+      - SpiceDBCluster CR  (reconciled by the operator)
+      - ServiceAccounts    (spicedb + default, with imagePullSecrets)
+      - CNPG Cluster       (optional — operator-managed PostgreSQL backend)
+
+  Note: the spicedb-config Secret (preshared_key + datastore_uri) must be
+  created externally before deploying — this chart does not manage secrets.
+
+  Source: repo/03-infrastructure-resources/tooling/spicedb{,-operator}/
+type: application
+version: 0.1.0
+appVersion: "v1.51.0"

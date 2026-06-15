@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel
 from temporalio import activity
 
-from src.dms.schemas import DMSFileResponse
+from src.dms.schemas import BaseMetadata, DMSFileResponse, ProjectBaseMetadataStatus
 from src.workflows.clients import dms_client
 
 
@@ -17,7 +17,7 @@ class UploadTemporalCheckpointInput(BaseModel):
     workflow_id: str
     run_id: str
     filename: str
-    payload: dict[str, Any]
+    payload: Any
 
 
 class AggregateCheckpointsInput(BaseModel):
@@ -30,12 +30,26 @@ class AggregateCheckpointsInput(BaseModel):
     file_ids: list[str]
 
 
+class ProjectMetadataResult(BaseModel):
+    """Pre-fetched project metadata from DMS."""
+
+    metadata: BaseMetadata
+    status: ProjectBaseMetadataStatus
+
+
 @activity.defn
 async def fetch_erlauterungsbericht_document_ids(classification_file_id: str | None) -> list[str]:
     """Fetches and extracts Erläuterungsbericht document IDs from DMS classification output."""
     if not classification_file_id:
         return []
     return await dms_client.fetch_erlauterungsbericht_document_ids(classification_file_id)
+
+
+@activity.defn
+async def fetch_project_metadata(project_id: str) -> ProjectMetadataResult:
+    """Fetch project base metadata from DMS."""
+    metadata, status = await dms_client.get_project_base_metadata(project_id=project_id)
+    return ProjectMetadataResult(metadata=metadata, status=status)
 
 
 @activity.defn

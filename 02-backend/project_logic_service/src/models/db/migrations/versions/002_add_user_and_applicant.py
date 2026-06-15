@@ -44,9 +44,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(
-        "ix_user_keycloak_user_id", "user", ["keycloak_user_id"], unique=True
-    )
+    op.create_index("ix_user_keycloak_user_id", "user", ["keycloak_user_id"], unique=True)
 
     # Create applicant table
     op.create_table(
@@ -140,9 +138,7 @@ def downgrade() -> None:
     op.add_column("project", sa.Column("last_name", sa.String(), nullable=True))
     op.add_column("project", sa.Column("street", sa.String(), nullable=True))
     op.add_column("project", sa.Column("house_number", sa.String(), nullable=True))
-    op.add_column(
-        "project", sa.Column("address_supplement", sa.String(), nullable=True)
-    )
+    op.add_column("project", sa.Column("address_supplement", sa.String(), nullable=True))
     op.add_column("project", sa.Column("plz", sa.String(), nullable=True))
     op.add_column("project", sa.Column("location", sa.String(), nullable=True))
     op.add_column("project", sa.Column("country", sa.String(), nullable=True))

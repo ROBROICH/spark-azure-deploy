@@ -1,0 +1,21 @@
+{
+  "nodes": [
+    {
+      "frontend_parent_ids": [],
+      "id": "<GESETZ>",
+      "node_type": "gesetz",
+      "parents": []
+    },
+    {
+      "frontend_parent_ids": [],
+      "id": "<PROJECT>",
+      "node_type": "project",
+      "parents": [
+        {
+          "id": "<PROJECT>",
+          "node_type": "project"
+        }
+      ]
+    }
+  ]
+}

@@ -1,43 +1,50 @@
-from collections.abc import Callable
+"""Qdrant client helpers for claim and chunk retrieval."""
+
 from typing import Any, Literal, TypeVar
 
-from qdrant_client import QdrantClient, models
+from qdrant_client import AsyncQdrantClient, models
 from temporalio import activity
-from temporalio.exceptions import ApplicationError
 
 from src.config.config import Config
 from src.config.env import ENV
 from src.qdrant.schemas import (
     ChunkPayload,
     ClaimPayload,
-    ParentChunkPayload,
 )
 
-TPayload = TypeVar("TPayload", ChunkPayload, ClaimPayload, ParentChunkPayload)
+TPayload = TypeVar("TPayload", ChunkPayload, ClaimPayload)
 
 
-class PlausibilityQdrantClient(QdrantClient):
+class PlausibilityQdrantClient(AsyncQdrantClient):
+    """Async Qdrant client configured for plausibility-check collections."""
+
     def __init__(
         self,
     ) -> None:
-        super().__init__(url=ENV.QDRANT.CLUSTER_ENDPOINT, port=None)
+        """Initialize the client from environment settings."""
+
+        super().__init__(url=ENV.QDRANT.CLUSTER_ENDPOINT, port=None, timeout=120)
 
     def _get_collection_name(
         self,
         project_id: str,
-        collection_type: Literal["claims", "chunks", "parent_chunks"],
+        collection_type: Literal["claims", "chunks", "parent_chunks", "summaries"],
     ) -> str:
+        """Map logical collection types to the configured Qdrant collection names."""
+
         if collection_type == "claims":
             return Config.QDRANT.CLAIM_COLLECTION_NAME
-        if collection_type in ["chunks", "parent_chunks"]:
+        if collection_type in ["chunks", "parent_chunks", "summaries"]:
             return Config.QDRANT.DATA_COLLECTION_NAME
         raise ValueError(f"Unknown collection type: {collection_type}")
 
     def get_collection_must_conditions(
         self,
         project_id: str,
-        collection_type: Literal["claims", "chunks", "parent_chunks"],
+        collection_type: Literal["claims", "chunks", "parent_chunks", "summaries"],
     ) -> list[models.Condition]:
+        """Build the base filter conditions shared by a logical collection type."""
+
         if collection_type == "claims":
             return [
                 models.FieldCondition(
@@ -45,7 +52,7 @@ class PlausibilityQdrantClient(QdrantClient):
                     match=models.MatchValue(value=project_id),
                 )
             ]
-        elif collection_type in ["chunks", "parent_chunks"]:
+        elif collection_type in ["chunks", "parent_chunks", "summaries"]:
             must_conditions: list[models.Condition] = [
                 models.FieldCondition(
                     key="project_id",
@@ -66,21 +73,30 @@ class PlausibilityQdrantClient(QdrantClient):
                         match=models.MatchValue(value="parent_chunk"),
                     )
                 )
+            elif collection_type == "summaries":
+                must_conditions.append(
+                    models.FieldCondition(
+                        key="type",
+                        match=models.MatchValue(value="summary"),
+                    )
+                )
             return must_conditions
         else:
             raise ValueError(f"Unknown collection type: {collection_type}")
 
-    def _get_record_ids(
+    async def _get_record_ids(
         self,
         collection_name: str,
         collection_filter: models.Filter,
     ) -> list[str]:
+        """Scroll a collection and return unique record IDs in encounter order."""
+
         seen: set[str] = set()
         ordered_ids: list[str] = []
 
         offset = None
         while True:
-            response, offset = self.scroll(
+            response, offset = await self.scroll(
                 collection_name=collection_name,
                 scroll_filter=collection_filter,
                 limit=1000,
@@ -100,23 +116,104 @@ class PlausibilityQdrantClient(QdrantClient):
 
         return ordered_ids
 
-    def _get_record_payloads(
+    async def _get_record_payloads(
         self,
         project_id: str,
         point_ids: list[str],
-        collection: Literal["claims", "chunks", "parent_chunks"],
+        collection: Literal["claims", "chunks", "summaries", "parent_chunks"],
         with_vectors: bool = False,
     ) -> list[Any]:
+        """Retrieve Qdrant payload records by point ID."""
+
         collection_name = self._get_collection_name(project_id, collection)
 
         unique_ids = list(set(point_ids))
 
-        return self.retrieve(
+        return await self.retrieve(
             collection_name=collection_name,
             ids=unique_ids,
             with_payload=True,
             with_vectors=with_vectors,
         )
+
+    _MATCH_ANY_BATCH_SIZE: int = 500
+
+    async def _get_record_payloads_by_payload_field(
+        self,
+        project_id: str,
+        payload_field: str,
+        field_values: list[str],
+        collection: Literal["chunks", "parent_chunks"],
+        with_vectors: bool = False,
+    ) -> list[Any]:
+        """Retrieve records by matching a payload field value instead of Qdrant point ID.
+
+        Use this for collections where the caller-supplied IDs are payload field
+        values (e.g. chunk_id) rather than Qdrant point IDs.
+
+        Splits large ID lists into sub-batches to avoid overloading the Qdrant
+        ``MatchAny`` filter.
+        """
+        unique_values = list(set(field_values))
+        if not unique_values:
+            return []
+
+        records: list[Any] = []
+        seen: set[str] = set()
+
+        for i in range(0, len(unique_values), self._MATCH_ANY_BATCH_SIZE):
+            batch_values = unique_values[i : i + self._MATCH_ANY_BATCH_SIZE]
+            batch_records = await self._scroll_by_payload_field(
+                project_id=project_id,
+                payload_field=payload_field,
+                values=batch_values,
+                collection=collection,
+                with_vectors=with_vectors,
+            )
+            for record in batch_records:
+                record_id = str(record.id)
+                if record_id not in seen:
+                    seen.add(record_id)
+                    records.append(record)
+
+        return records
+
+    async def _scroll_by_payload_field(
+        self,
+        project_id: str,
+        payload_field: str,
+        values: list[str],
+        collection: Literal["chunks", "parent_chunks"],
+        with_vectors: bool = False,
+    ) -> list[Any]:
+        """Scroll a single MatchAny batch and return all matching records."""
+        collection_name = self._get_collection_name(project_id, collection)
+        must_conditions = self.get_collection_must_conditions(project_id, collection)
+        must_conditions.append(
+            models.FieldCondition(
+                key=payload_field,
+                match=models.MatchAny(any=values),
+            )
+        )
+        collection_filter = models.Filter(must=must_conditions)
+
+        records: list[Any] = []
+        offset = None
+
+        while True:
+            response, offset = await self.scroll(
+                collection_name=collection_name,
+                scroll_filter=collection_filter,
+                limit=1000,
+                offset=offset,
+                with_payload=True,
+                with_vectors=with_vectors,
+            )
+            records.extend(response)
+            if offset is None:
+                break
+
+        return records
 
     def _build_knn_filter(
         self,
@@ -150,6 +247,13 @@ class PlausibilityQdrantClient(QdrantClient):
                     )
                 )
 
+        must_conditions.append(
+            models.FieldCondition(
+                key="project_id",
+                match=models.MatchValue(value=claim_payload.project_id),
+            )
+        )
+
         if same_doc_claims_only:
             must_conditions.append(
                 models.FieldCondition(
@@ -168,40 +272,40 @@ class PlausibilityQdrantClient(QdrantClient):
 
         return models.Filter(must=must_conditions, must_not=must_not_conditions)
 
-    def init_claim_collection(self) -> None:
+    async def init_claim_collection(self) -> None:
         """Initialize Qdrant collection for claims with the appropriate schema."""
         # Collection creation is idempotent, so this is safe to call multiple times
-        if self.collection_exists(collection_name=Config.QDRANT.CLAIM_COLLECTION_NAME):
+        if await self.collection_exists(collection_name=Config.QDRANT.CLAIM_COLLECTION_NAME):
             return
 
         collection_name = Config.QDRANT.CLAIM_COLLECTION_NAME
 
-        self.create_collection(
+        await self.create_collection(
             collection_name=collection_name,
             vectors_config=models.VectorParams(size=ENV.QDRANT.VECTOR_SIZE, distance=models.Distance.COSINE),
         )
 
         for keyword_field in Config.QDRANT.INDEX_KEYWORDS:
-            self.create_payload_index(
+            await self.create_payload_index(
                 collection_name=collection_name, field_name=keyword_field, field_schema=models.PayloadSchemaType.KEYWORD
             )
         for text_field in Config.QDRANT.INDEX_TEXT:
-            self.create_payload_index(
+            await self.create_payload_index(
                 collection_name=collection_name, field_name=text_field, field_schema=models.PayloadSchemaType.TEXT
             )
         for bool_field in Config.QDRANT.INDEX_BOOLS:
-            self.create_payload_index(
+            await self.create_payload_index(
                 collection_name=collection_name, field_name=bool_field, field_schema=models.PayloadSchemaType.BOOL
             )
 
-    def clear_document_claims(self, project_id: str, document_id: str) -> None:
+    async def clear_document_claims(self, project_id: str, document_id: str) -> None:
         """Delete all claims associated with a specific document ID."""
         collection_name = Config.QDRANT.CLAIM_COLLECTION_NAME
 
-        if not self.collection_exists(collection_name=collection_name):
+        if not await self.collection_exists(collection_name=collection_name):
             return
 
-        self.delete(
+        await self.delete(
             collection_name=collection_name,
             points_selector=models.FilterSelector(
                 filter=models.Filter(
@@ -219,7 +323,7 @@ class PlausibilityQdrantClient(QdrantClient):
             ),
         )
 
-    def get_claim_knn_ids_all_claims_batched(
+    async def get_claim_knn_ids_all_claims_batched(
         self,
         project_id: str,
         claim_payloads: list["ClaimPayload"],
@@ -269,7 +373,7 @@ class PlausibilityQdrantClient(QdrantClient):
         flat_responses: list[Any] = []
         for i in range(0, len(flat_requests), batch_size):
             batch = flat_requests[i : i + batch_size]
-            batch_result = self.query_batch_points(
+            batch_result = await self.query_batch_points(
                 collection_name=collection_name,
                 requests=batch,
             )
@@ -307,6 +411,9 @@ class PlausibilityQdrantClient(QdrantClient):
                 continue
 
             payload_data = dict(record.payload)
+            if model_cls is ChunkPayload and "source_file_id" in payload_data:
+                # Normalize data-collection payloads to the raw DMS source document id.
+                payload_data["document_id"] = payload_data["source_file_id"]
             if with_vectors:
                 payload_data["vector"] = record.vector
 
@@ -314,67 +421,17 @@ class PlausibilityQdrantClient(QdrantClient):
 
         return parsed_payloads
 
-    def _get_single_payload(
-        self,
-        get_payloads_fn: Callable[..., list[TPayload]],
-        project_id: str,
-        record_id: str,
-        label: str,
-        with_vector: bool = False,
-    ) -> TPayload:
-        payloads = get_payloads_fn(project_id, [record_id], with_vectors=with_vector)
-
-        if not payloads:
-            raise ApplicationError(
-                f"{label} {record_id} not found for project {project_id}.",
-                non_retryable=True,
-            )
-
-        if len(payloads) > 1:
-            raise ApplicationError(
-                f"Found {len(payloads)} {label.lower()}s with ID {record_id} in project {project_id}",
-                non_retryable=True,
-            )
-
-        return payloads[0]
-
-    def get_parent_chunk_payloads(
-        self, project_id: str, parent_chunk_ids: list[str], with_vectors: bool = False
-    ) -> list[ParentChunkPayload]:
-        if not parent_chunk_ids:
-            return []
-
-        records = self._get_record_payloads(
-            project_id=project_id,
-            point_ids=parent_chunk_ids,
-            collection="parent_chunks",
-            with_vectors=with_vectors,
-        )
-
-        return self._parse_payload_records(
-            records=records,
-            model_cls=ParentChunkPayload,
-            with_vectors=with_vectors,
-            payload_name="Parent chunk",
-        )
-
-    def get_parent_chunk_payload(
-        self, project_id: str, parent_chunk_id: str, with_vector: bool = False
-    ) -> ParentChunkPayload:
-        return self._get_single_payload(
-            self.get_parent_chunk_payloads, project_id, parent_chunk_id, "Parent chunk", with_vector
-        )
-
-    def get_chunk_payloads(
+    async def get_chunk_payloads(
         self, project_id: str, chunk_ids: list[str], with_vectors: bool = False
     ) -> list[ChunkPayload]:
         """Retrieve chunk payloads for the provided chunk IDs."""
         if not chunk_ids:
             return []
 
-        records = self._get_record_payloads(
+        records = await self._get_record_payloads_by_payload_field(
             project_id=project_id,
-            point_ids=chunk_ids,
+            payload_field="chunk_id",
+            field_values=chunk_ids,
             collection="chunks",
             with_vectors=with_vectors,
         )
@@ -386,48 +443,14 @@ class PlausibilityQdrantClient(QdrantClient):
             payload_name="Chunk",
         )
 
-    def get_chunk_payload(self, project_id: str, chunk_id: str, with_vector: bool = False) -> ChunkPayload:
-        return self._get_single_payload(self.get_chunk_payloads, project_id, chunk_id, "Chunk", with_vector)
-
-    def _traverse_linked_chunks(
-        self,
-        project_id: str,
-        start_id: str | None,
-        count: int,
-        direction: Literal["previous", "next"],
-    ) -> list[ChunkPayload]:
-        """Walk a linked-list of chunks in the given direction, returning up to ``count`` payloads."""
-        chunks: list[ChunkPayload] = []
-        current_id = start_id
-        for _ in range(count):
-            if not current_id:
-                break
-            chunk = self.get_chunk_payload(project_id=project_id, chunk_id=current_id)
-            chunks.append(chunk)
-            current_id = chunk.previous_chunk_id if direction == "previous" else chunk.next_chunk_id
-        return chunks
-
-    def get_chunk_payload_with_neighbors(
-        self,
-        project_id: str,
-        chunk_id: str,
-        prev: int = 1,
-        n_next: int = 1,
-    ) -> tuple[ChunkPayload, list[ChunkPayload], list[ChunkPayload]]:
-        """Retrieve the chunk payload for the given chunk ID along with its previous and next neighbors."""
-        base = self.get_chunk_payload(project_id=project_id, chunk_id=chunk_id)
-        previous_chunks = self._traverse_linked_chunks(project_id, base.previous_chunk_id, prev, "previous")
-        next_chunks = self._traverse_linked_chunks(project_id, base.next_chunk_id, n_next, "next")
-        return base, previous_chunks, next_chunks
-
-    def get_claim_payloads(
+    async def get_claim_payloads(
         self, project_id: str, claim_ids: list[str], with_vectors: bool = False
     ) -> list[ClaimPayload]:
         """Retrieve claim payloads for the provided claim IDs."""
         if not claim_ids:
             return []
 
-        records = self._get_record_payloads(
+        records = await self._get_record_payloads(
             project_id=project_id,
             point_ids=claim_ids,
             collection="claims",
@@ -441,11 +464,8 @@ class PlausibilityQdrantClient(QdrantClient):
             payload_name="Claim",
         )
 
-    def get_claim_payload(self, project_id: str, claim_id: str, with_vector: bool = False) -> ClaimPayload:
-        return self._get_single_payload(self.get_claim_payloads, project_id, claim_id, "Claim", with_vector)
-
-    def get_chunk_ids_by_document_id(self, project_id: str, document_id: str) -> list[str]:
-        """Retrieve all chunk IDs associated with a specific document ID."""
+    async def get_chunk_ids_by_document_id(self, project_id: str, document_id: str) -> list[str]:
+        """Retrieve all chunk_id payload values for chunks associated with a specific document ID."""
         collection_name = self._get_collection_name(project_id, "chunks")
         collection_must_conditions = self.get_collection_must_conditions(project_id, "chunks")
         collection_must_conditions.append(
@@ -454,33 +474,40 @@ class PlausibilityQdrantClient(QdrantClient):
                 match=models.MatchValue(value=document_id),
             )
         )
-        collection_filter = models.Filter(must=collection_must_conditions)
-        return self._get_record_ids(
-            collection_name=collection_name,
-            collection_filter=collection_filter,
+        collection_filter = models.Filter(
+            must=collection_must_conditions,
+            must_not=[
+                models.FieldCondition(
+                    key="is_deleted",
+                    match=models.MatchValue(value=True),
+                )
+            ],
         )
 
-    async def delete_collections(self, project_id: str) -> None:
-        """Remove an existing Qdrant collection if it exists.
+        seen: set[str] = set()
+        chunk_ids: list[str] = []
+        offset = None
 
-        Args:
-            project_id: Identifier used to locate the project's collection.
+        while True:
+            response, offset = await self.scroll(
+                collection_name=collection_name,
+                scroll_filter=collection_filter,
+                limit=1000,
+                offset=offset,
+                with_payload=["chunk_id"],
+                with_vectors=False,
+            )
+            for record in response:
+                chunk_id = record.payload and record.payload.get("chunk_id")
+                if isinstance(chunk_id, str) and chunk_id not in seen:
+                    seen.add(chunk_id)
+                    chunk_ids.append(chunk_id)
+            if offset is None:
+                break
 
-        Raises:
-            RuntimeError: If the collection deletion fails.
-        """
-        claim_collection_name = self._get_collection_name(project_id, "claims")
-        chunk_collection_name = self._get_collection_name(project_id, "chunks")
-        try:
-            self.delete_collection(collection_name=claim_collection_name)
-        except Exception as exc:
-            raise RuntimeError(f"Failed to delete collection {claim_collection_name}: {exc}") from exc
-        try:
-            self.delete_collection(collection_name=chunk_collection_name)
-        except Exception as exc:
-            raise RuntimeError(f"Failed to delete chunk collection {chunk_collection_name}: {exc}") from exc
+        return chunk_ids
 
-    def get_claim_ids(self, document_id: str, project_id: str) -> list[str]:
+    async def get_claim_ids(self, document_id: str, project_id: str) -> list[str]:
         """Retrieve all claim IDs for a given document."""
         collection_name = self._get_collection_name(project_id, "claims")
         collection_must_conditions = self.get_collection_must_conditions(project_id, "claims")
@@ -492,7 +519,7 @@ class PlausibilityQdrantClient(QdrantClient):
         )
         collection_filter = models.Filter(must=collection_must_conditions)
 
-        all_claim_ids = self._get_record_ids(
+        all_claim_ids = await self._get_record_ids(
             collection_name=collection_name,
             collection_filter=collection_filter,
         )

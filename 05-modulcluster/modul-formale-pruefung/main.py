@@ -16,11 +16,13 @@ setup_observability(
 )
 import asyncio
 import logging
+import sys
 
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
+from temporal.workflows.formale_pruefung.types import TASK_QUEUE as FORMALE_PRUEFUNG_TASK_QUEUE
 
-from src.activities import llm_activities, non_llm_activities
+from src.activities import activities
 from src.workflows import workflows
 
 logger = logging.getLogger(__name__)
@@ -45,20 +47,16 @@ async def main():
     with limited concurrency to prevent overloading.
     """
     target_host = ENV.TEMPORAL.HOST
-    task_queue = ENV.TEMPORAL.TASK_QUEUE
-    llm_task_queue = f"{task_queue}-llm"
+    task_queue = FORMALE_PRUEFUNG_TASK_QUEUE
 
     logger.info("Initializing Temporal Worker Process....")
     logger.info(f"Target Temporal Host: {target_host}")
     logger.info(f"Main task queue: {task_queue}")
-    logger.info(f"LLM task queue: {llm_task_queue}")
     logger.info(f"Registered Workflows: {len(workflows)}")
-    logger.info(f"Non-LLM Activities: {len(non_llm_activities)}")
-    logger.info(f"LLM Activities: {len(llm_activities)}")
+    logger.info(f"Activities: {len(activities)}")
     logger.info(f"LLM max concurrent activities: {config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES}")
 
     main_storage = _create_storage()
-    llm_storage = _create_storage()
 
     try:
         async with asyncio.TaskGroup() as tg:
@@ -66,20 +64,9 @@ async def main():
                 start_temporal_worker(
                     host=target_host,
                     workflows=workflows,
-                    activities=non_llm_activities,
+                    activities=activities,
                     task_queue=task_queue,
                     storage=main_storage,
-                )
-            )
-            tg.create_task(
-                start_temporal_worker(
-                    host=target_host,
-                    workflows=[],
-                    activities=llm_activities,
-                    task_queue=llm_task_queue,
-                    storage=llm_storage,
-                    max_concurrent_activities=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
-                    max_task_queue_activities_per_second=ENV.TEMPORAL.LLM_MAX_PER_SECOND,
                 )
             )
     except ExceptionGroup as eg:
@@ -98,4 +85,4 @@ if __name__ == "__main__":
         logger.info("Received stop signal (KeyboardInterrupt). Shutting down...")
     except Exception:
         logger.exception("Unhandled exception. Exiting.")
-        raise
+        sys.exit(1)

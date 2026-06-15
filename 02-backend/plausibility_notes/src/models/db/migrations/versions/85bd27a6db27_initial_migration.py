@@ -42,18 +42,14 @@ def upgrade() -> None:
     op.create_table(
         "plausibility_note_occurrence",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column(
-            "plausibility_note_id", postgresql.UUID(as_uuid=True), nullable=False
-        ),
+        sa.Column("plausibility_note_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("document_id", sa.String(), nullable=False),
         sa.Column("document_name", sa.String(), nullable=False),
         sa.Column("content_excerpt", sa.Text(), nullable=False),
         sa.Column("page_number", sa.Integer(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["plausibility_note_id"], ["plausibility_note.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["plausibility_note_id"], ["plausibility_note.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -72,8 +68,6 @@ def downgrade() -> None:
         table_name="plausibility_note_occurrence",
     )
     op.drop_table("plausibility_note_occurrence")
-    op.drop_index(
-        op.f("ix_plausibility_note_project_id"), table_name="plausibility_note"
-    )
+    op.drop_index(op.f("ix_plausibility_note_project_id"), table_name="plausibility_note")
     op.drop_table("plausibility_note")
     # ### end Alembic commands ###

@@ -1,0 +1,90 @@
+{
+  "items": [
+    {
+      "category": "name",
+      "label": "Name einer natürlichen Person",
+      "description": "Alle Namen natürlicher Personen. Dazu zählen vollsändige Namen, Vornamen, Nachnamen, Anreden sowie Namen mit akademischem oder beruflichem Titel.",
+      "examples": [
+        "Lena Bergmann",
+        "Lena",
+        "Bergmann",
+        "Herr Neumann",
+        "Frau Adler",
+        "Dr. Weber",
+        "Prof. Dr. Hartmann",
+        "Jonas Feld",
+        "Miriam König"
+      ]
+    },
+    {
+      "category": "adresse",
+      "label": "Vollständige Postadresse",
+      "description": "Postadressen mit Straße und Hausnummer. Dies gilt unabhängig davon, ob die Adresse einer natürlichen Person, einem Unternehmen, einer Behörde, einem Dienstleister, einer öffentlichen Stelle oder einer sonstigen Organisation zugeordnet ist. Eine Adresse soll bereits dann geschwärzt werden, wenn Straße und Hausnummer erkennbar sind, auch wenn PLZ oder Ort fehlen.",
+      "examples": [
+        "Pfeffergasse 18, 50667 Köln",
+        "Falkenstraße 340 80331 München",
+        "Rosenplatz 12"
+      ]
+    },
+    {
+      "category": "telefon",
+      "label": "Telefonnummer oder Faxnummer",
+      "description": "Telefonnummern und Faxnummern. Auch Telefonnummern mit Leerzeichen, Schrägstrichen, Klammern oder OCR-bedingten Trennungen sind zu extrahieren.",
+      "examples": [
+        "0211/ 543-8821",
+        "0160/ 4729185",
+        "+49 (0)621 987654"
+      ]
+    },
+    {
+      "category": "email",
+      "label": "E-Mail-Adresse",
+      "description": "E-Mail-Adressen von natürlichen Personen, Unternehmen, Behörden, Dienstleistern, öffentlichen Stellen oder sonstigen Organisationen.",
+      "examples": [
+        "lena.bergmann@example.de",
+        "Jonas.Feld@beispielmail.de",
+        "Miriam.Koenig@stadtwerke-musterstadt.de"
+      ]
+    },
+    {
+      "category": "geburtsdatum",
+      "label": "Geburtsdatum",
+      "description": "Geburtsdaten natürlicher Personen, wenn sie als solche erkennbar sind. Extrahiere nur den konkreten Datumswert.",
+      "examples": [
+        "14.09.1984"
+      ]
+    },
+    {
+      "category": "personenbezogenes_kennzeichen",
+      "label": "Personenbezogene Kennzeichen",
+      "description": "Kundennummern, Personalnummern, Versicherungsnummern, Vertragsnummern oder sonstige Kennzeichen, wenn sie sensible Kennzeichen mit Personenbezug sind.",
+      "examples": [
+        "Kundennummer 5824",
+        "Personalausweisnummer L01X00T47",
+        "Krankenversicherungsnummer A123456780",
+        "Steuernummer 12/345/678994"
+      ]
+    },
+    {
+      "category": "zahlungs_informationen",
+      "label": "Zahlungsinformationen",
+      "description": "Informationen zu Zahlungen, wie Kreditkartennummern, Bankkontonummern oder andere finanzielle Kennzeichen.",
+      "examples": [
+        "Kreditkartennummer 4111 1111 1111 1111",
+        "IBAN DE07 1234 1234 1234 1234 12",
+        "BIC DEUTDAFFXXX"
+      ]
+    },
+    {
+      "category": "funktion",
+      "label": "Namentlich identifizierbare Funktion",
+      "description": "Namentlich identifizierbare Funktionsträger bei konkreten Unternehmen, Behörden oder Organisationen, wenn eine natürliche Person genannt wird oder eine eindeutige Funktion mit einer konkreten Organisation kombiniert ist. Wenn möglich, sollen Name und Funktion getrennt extrahiert werden.",
+      "examples": [
+        "Dr. Weber, Geschäftsführer der Rheintal KI Consulting GmbH",
+        "Lena Bergmann, Projektleiterin der Deutschlandwerk AG",
+        "Geschäftsführer der Alpenrand Käsemanufaktur",
+        "Projektleiterin der Münchner Bierfass Holding SE"
+      ]
+    }
+  ]
+}

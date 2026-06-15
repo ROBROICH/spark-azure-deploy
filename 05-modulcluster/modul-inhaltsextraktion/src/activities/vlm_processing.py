@@ -8,17 +8,18 @@ This module contains higher-level VLM processing activities:
 For core VLM API invocation, see vlm_invoke.py
 """
 
+import asyncio
 import re
 from datetime import timedelta
 
+from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
 from pydantic import BaseModel
+from temporal.activities.llm import llm_invoke_structured
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from src.activities.llm_invoke import LlmInvokeInput, llm_invoke_structured_direct
-from src.concurrency import get_model_throttle
 from src.config import get_config
-from src.models.model_manager import SelfHostedConfig
+from src.env import ENV
 from src.workflows.vlm_enhancement.output_format import (
     VlmAnalysis,
     VLMWorkflowOutput,
@@ -32,48 +33,37 @@ from src.workflows.vlm_enhancement.prompt import (
 
 
 class SummarizeVisualElementInput(BaseModel):
+    """Input for the summarize_visual_element activity."""
+
     context_text: str
     extraction_result: str
     description_result: str
 
 
-@activity.defn(name="summarize_visual_element")
-async def _summarize_visual_element(
+async def summarize_visual_element(
     input: SummarizeVisualElementInput,
 ) -> VlmAnalysis:
     """
-    Core logic for analyzing VLM results using an LLM to detect hallucinations
+    Analyze VLM results using an LLM to detect hallucinations
     and extract metadata like captions and footnotes.
-
-    This uses the LLM invoke helper which now properly calls a Temporal activity.
     """
-    context_text = input.context_text
-    extraction_result = input.extraction_result
-    description_result = input.description_result
-
-    async with get_model_throttle("vlm_summary").acquire():
-        llm_config = SelfHostedConfig(
-            provider="self_hosted",
-            model_name="vlm_summary",
-        )
-
-        llm_input = LlmInvokeInput(
-            llm_config=llm_config,
-            prompt_template=VLM_LLM_SUMMARY_USER_TEMPLATE,
-            input_dict={
-                "context_text": context_text,
-                "extraction_result": extraction_result,
-                "description_result": description_result,
-            },
-            agent_name="vlm.summarize_visual_element",
-            system_prompt=VLM_LLM_SUMMARY_SYSTEM_PROMPT,
-        )
-
-        analysis = await llm_invoke_structured_direct(llm_input, VlmAnalysis)
-        return analysis
+    return await llm_invoke_structured(
+        render_prompt_format(
+            VLM_LLM_SUMMARY_USER_TEMPLATE,
+            context_text=input.context_text,
+            extraction_result=input.extraction_result,
+            description_result=input.description_result,
+        ),
+        wrap_system_prompt(VLM_LLM_SUMMARY_SYSTEM_PROMPT),
+        VlmAnalysis,
+        model=ENV.VLM_SUMMARY_MODEL_NAME,
+        temperature=0.1,
+    )
 
 
 class ApplyVlmResultsInput(BaseModel):
+    """Input for the apply_vlm_results activity."""
+
     vlm_results: list[VLMWorkflowOutput]
     markdown: str
 
@@ -114,48 +104,51 @@ async def _apply_vlm_results(input: ApplyVlmResultsInput) -> str:
             activity.logger.info(f"Replacements: 0 made, {replacements_skipped} skipped")
         return markdown
 
-    # Sort patterns longest-first to prevent partial matches
-    sorted_patterns = sorted(replacements.keys(), key=len, reverse=True)
+    def _regex_replace_sync() -> tuple[str, int, int, bool]:
+        """CPU-bound regex replacement -- runs in a thread to keep the event loop free."""
+        sorted_patterns = sorted(replacements.keys(), key=len, reverse=True)
+        combined_pattern = re.compile(
+            "|".join(re.escape(p) for p in sorted_patterns),
+            re.DOTALL,
+        )
 
-    # Compile single regex with all patterns
-    combined_pattern = re.compile(
-        "|".join(re.escape(p) for p in sorted_patterns),
-        re.DOTALL,
-    )
+        replaced: set[str] = set()
+        made = 0
+        parts: list[str] = []
+        last_end = 0
+        aborted = False
 
-    # Single-pass replacement: each pattern replaced at most once
-    replaced: set[str] = set()
-    replacements_made = 0
-    parts: list[str] = []
-    last_end = 0
+        for match in combined_pattern.finditer(markdown):
+            matched_text = match.group(0)
+            if matched_text in replaced:
+                continue
 
-    for match in combined_pattern.finditer(markdown):
-        matched_text = match.group(0)
-        if matched_text in replaced:
-            # Already replaced once — keep original text (skip this occurrence)
-            continue
+            replaced.add(matched_text)
+            replacement = replacements[matched_text]
 
-        replaced.add(matched_text)
-        replacement = replacements[matched_text]
+            parts.append(markdown[last_end : match.start()])
+            parts.append(replacement)
+            last_end = match.end()
+            made += 1
 
-        parts.append(markdown[last_end : match.start()])
-        parts.append(replacement)
-        last_end = match.end()
-        replacements_made += 1
+            current_size = sum(len(p) for p in parts) + (len(markdown) - last_end)
+            if current_size > max_allowed_size:
+                aborted = True
+                break
 
-        # Check size safety (approximate — sum of parts so far)
-        current_size = sum(len(p) for p in parts) + (len(markdown) - last_end)
-        if current_size > max_allowed_size:
-            activity.logger.error(
-                f"ABORTING: Output grew to {current_size / (1024 * 1024):.1f} MB "
-                f"after {replacements_made} replacements."
-            )
-            break
+        parts.append(markdown[last_end:])
+        result_md = "".join(parts)
+        not_found_count = len(replacements) - len(replaced)
+        return result_md, made, not_found_count, aborted
 
-    parts.append(markdown[last_end:])
-    final_md = "".join(parts)
-
-    not_found = len(replacements) - len(replaced)
+    final_md, replacements_made, not_found, aborted = await asyncio.to_thread(_regex_replace_sync)
+    if aborted:
+        final_size_approx = len(final_md) / (1024 * 1024)
+        activity.logger.error(
+            f"ABORTING: Output reached {final_size_approx:.1f} MB "
+            f"(limit: {max_allowed_size / (1024 * 1024):.1f} MB) "
+            f"after {replacements_made} replacements."
+        )
     replacements_skipped += not_found
 
     if replacements_skipped > 0:
@@ -187,21 +180,4 @@ async def apply_vlm_results(
         ApplyVlmResultsInput(vlm_results=vlm_results, markdown=markdown),
         start_to_close_timeout=timedelta(minutes=10),
         retry_policy=RetryPolicy(maximum_attempts=get_config().TEMPORAL_PROCESSING_ACTIVITY_MAX_ATTEMPTS),
-    )
-
-
-async def summarize_visual_element(
-    input: SummarizeVisualElementInput,
-) -> VlmAnalysis:
-    """Workflow wrapper to analyze and summarize VLM results."""
-    return await workflow.execute_activity(
-        _summarize_visual_element,
-        input,
-        start_to_close_timeout=timedelta(minutes=15),  # Accounts for semaphore + rate limiter queue wait time
-        retry_policy=RetryPolicy(
-            maximum_attempts=get_config().TEMPORAL_VLM_ACTIVITY_MAX_ATTEMPTS,
-            initial_interval=timedelta(seconds=10),
-            backoff_coefficient=2,
-            maximum_interval=timedelta(seconds=120),
-        ),
     )

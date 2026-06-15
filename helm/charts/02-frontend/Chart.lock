@@ -1,0 +1,9 @@
+dependencies:
+- name: frontend
+  repository: file://../sources/internal/01-frontend/frontend
+  version: 0.1.0
+- name: landingpage
+  repository: file://../sources/internal/01-frontend/landingpage
+  version: 0.1.0
+digest: sha256:cbbbf3c0dbf4075cdf379ac7a0f1f124b0fc98651bc33544c18593a29b84d173
+generated: "2026-06-11T14:55:36.398308+02:00"

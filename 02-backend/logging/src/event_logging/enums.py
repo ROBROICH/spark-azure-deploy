@@ -25,7 +25,6 @@ class LogEventDefault(str, Enum):
     AGENT_ERROR = "agent_error"
 
 
-
 class LogEventSystem(str, Enum):
     CONTAINER_LIFECYCLE = "container_lifecycle"
     HEALTH_CHECK = "health_check"
@@ -101,7 +100,6 @@ class EventCategory(str, Enum):
     SERVICE = "service"
 
 
-
 class EventOutcome(str, Enum):
     SUCCESS = "success"
     FAILURE = "failure"
@@ -136,7 +134,6 @@ class ServiceComponent(str, Enum):
     LLM = "llm"
     API_GATEWAY = "api_gateway"
     SESSION = "session"
-    
 
 
 class UserType(str, Enum):

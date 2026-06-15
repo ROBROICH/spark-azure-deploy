@@ -1,0 +1,22 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "temporal-worker.fullname" . }}
+  namespace: {{ include "temporal-worker.namespace" . }}
+  labels:
+    {{- include "temporal-worker.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- range .Values.service.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol | default "TCP" }}
+      {{- if .name }}
+      name: {{ .name }}
+      {{- end }}
+    {{- end }}
+  selector:
+    {{- include "temporal-worker.selectorLabels" . | nindent 4 }}
+{{- end }}

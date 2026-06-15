@@ -1,5 +1,7 @@
 """Test configuration and fixtures."""
 
+# ruff: noqa: E402
+
 import os
 
 _TEST_ENV_VARS = {
@@ -11,6 +13,7 @@ _TEST_ENV_VARS = {
     "DB_NAME": "test_db",
     "SERVICE_NAME": "plausibility-notes-test",
     "DOCUMENT_MANAGEMENT_SERVICE_URL": "http://localhost:8000",
+    "PROJECT_LOGIC_SERVICE_URL": "http://localhost:8001",
 }
 for key, value in _TEST_ENV_VARS.items():
     os.environ.setdefault(key, value)
@@ -20,6 +23,8 @@ from collections.abc import AsyncIterator, Iterator
 
 import pytest
 import pytest_asyncio
+from sqlalchemy import JSON
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import (
     AsyncEngine,
     AsyncSession,
@@ -31,6 +36,24 @@ from sqlalchemy.pool import StaticPool
 from src.models.db_models import Base
 
 IN_MEMORY_DB_URL = "sqlite+aiosqlite:///:memory:"
+
+_sqlite_metadata_patched = False
+
+
+def _patch_postgres_types_for_sqlite() -> None:
+    """Swap PostgreSQL-only array columns for JSON in the SQLite unit harness."""
+    global _sqlite_metadata_patched
+
+    if _sqlite_metadata_patched:
+        return
+
+    for table in Base.metadata.tables.values():
+        for column in table.columns:
+            if isinstance(column.type, ARRAY):
+                column.type = JSON()
+                column.server_default = None
+
+    _sqlite_metadata_patched = True
 
 
 @pytest.fixture(scope="session")
@@ -44,6 +67,7 @@ def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
 @pytest_asyncio.fixture
 async def async_engine() -> AsyncIterator[AsyncEngine]:
     """Create an in-memory SQLite engine for tests."""
+    _patch_postgres_types_for_sqlite()
     engine = create_async_engine(
         IN_MEMORY_DB_URL,
         connect_args={"check_same_thread": False},

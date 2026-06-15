@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+<channel>
+<atom:link href="http://recht.test/rss-feed.xml" rel="self" type="application/rss+xml"/>
+<title>Aktualitätendienst</title><description>Neu im Testgesetzblatt Teil I verkündete Vorschriften</description><link>http://test.test</link>
+<lastBuildDate>Mon, 1 June 2026 05:30:02 GMT</lastBuildDate>
+<item>
+<title>TGBl. 2026 I Nr. 1</title>
+<link>https://recht.test/eli/bund/TGBl_1/2026/1</link>
+<guid>https://recht.test/eli/bund/TGBl_1/2026/1</guid>
+<description>Vierte Verordnung zur Änderung der Testcases vom 18. August 2025</description>
+<pubDate>Mon, 1 June 2026 05:30:02 GMT</pubDate>
+</item>
+</channel>
+</rss>

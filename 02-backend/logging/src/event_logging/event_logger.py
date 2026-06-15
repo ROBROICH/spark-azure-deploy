@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import sys
-from typing import Any
-from typing_extensions import Unpack
+from typing import Any, Unpack
 
 from pydantic import BaseModel, Field
 
+from event_logging.context import project_id_var, trace_id_var
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -18,8 +18,7 @@ from event_logging.enums import (
     LogLevel,
     ServiceComponent,
 )
-from event_logging.context import project_id_var, trace_id_var
-from event_logging.formatters import LogFormatter, JsonFormatter, PrettyFormatter
+from event_logging.formatters import JsonFormatter, LogFormatter, PrettyFormatter
 from event_logging.settings import LoggingSettings
 from event_logging.types import LogContext
 from event_logging.utils import generate_timestamp, map_ecs_context
@@ -89,9 +88,7 @@ class EventLogger(BaseModel):
         # Service component (default or override)
         comp = kwargs.get("service_component") or self.service_component
         if comp:
-            payload["service.component"] = (
-                comp.value if hasattr(comp, "value") else comp
-            )
+            payload["service.component"] = comp.value if hasattr(comp, "value") else comp
 
         # Remove None values from payload
         payload = {k: v for k, v in payload.items() if v is not None}

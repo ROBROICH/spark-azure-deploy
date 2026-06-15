@@ -1,0 +1,18 @@
+{
+  "deleted": [],
+  "inserted": [],
+  "updated": [
+    {
+      "created_at": "<TIMESTAMP>",
+      "frontend_parent_ids": [],
+      "id": "<GESETZ>",
+      "is_deleted": false,
+      "jurabk": "ON",
+      "name": "Updated Name",
+      "node_type": "gesetz",
+      "project_id": "<PROJECT>",
+      "update_type": "automated",
+      "updated_at": "<TIMESTAMP>"
+    }
+  ]
+}

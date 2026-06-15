@@ -16,7 +16,7 @@ Coordinate System (bbox):
     - bottom: distance from top edge to bottom side
 """
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel
 from typing_extensions import TypedDict
@@ -111,7 +111,6 @@ class ExtractionResult(BaseModel):
     content_list: list[ContentItemDict]  # List of content items as dicts
     images: dict[str, bytes]  # filename -> image bytes
     original_md_content: str | None = None  # Original provider markdown (for comparison)
-    provider_json: dict[str, Any] | None = None  # Raw provider JSON (for debugging)
 
     class Config:
         arbitrary_types_allowed = True  # Allow bytes in Pydantic model

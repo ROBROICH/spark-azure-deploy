@@ -3,13 +3,14 @@
 Handles non-LLM based markdown enhancement tasks.
 """
 
+import logging
 import re
 from typing import cast
 
-from temporalio import activity
-
 from src.providers.base import ContentItemDict, ContentItemImage, ContentItemTable, ContentItemText
 from src.utils.text_utils import fix_utf8_mojibake
+
+logger = logging.getLogger(__name__)
 
 
 class MarkdownEnhancer:
@@ -28,10 +29,10 @@ class MarkdownEnhancer:
             content = re.sub(r"\$([^\$]*)\^\{[c]irc\}([^\$]*)\$", r"\1°\2", content)
 
             if original_content != content:
-                activity.logger.info("Replaced LaTeX symbols in markdown content.")
+                logger.info("Replaced LaTeX symbols in markdown content.")
             return content
         except Exception as e:
-            activity.logger.error(f"Error replacing LaTeX symbols: {e}")
+            logger.error(f"Error replacing LaTeX symbols: {e}")
             return markdown_content
 
     @staticmethod
@@ -117,7 +118,7 @@ class MarkdownEnhancer:
         5. Ensure page 1 is present exactly once at the start.
         """
         if not content_list:
-            activity.logger.warning("Content list is empty. Skipping page number insertion.")
+            logger.warning("Content list is empty. Skipping page number insertion.")
             return markdown_content
 
         # --- pass 1: locate first anchor position per page ----------------
@@ -133,7 +134,7 @@ class MarkdownEnhancer:
             try:
                 match = re.search(pattern, markdown_content[search_offset:])
             except re.error as exc:
-                activity.logger.error(f"Invalid regex for page {page_idx + 1}: {exc}")
+                logger.error(f"Invalid regex for page {page_idx + 1}: {exc}")
                 continue
 
             if match is None:
@@ -157,7 +158,7 @@ class MarkdownEnhancer:
         # Warn for pages (other than 0) with zero matched items
         for page_idx in all_page_indices:
             if page_idx != 0 and page_idx not in page_first_pos:
-                activity.logger.warning(f"Could not find anchor to insert page number {page_idx + 1}.")
+                logger.warning(f"Could not find anchor to insert page number {page_idx + 1}.")
 
         # Insert in reverse so positions stay valid
         for page_idx in sorted(page_first_pos.keys(), reverse=True):
@@ -178,5 +179,5 @@ class MarkdownEnhancer:
         page_one_tag = '<seite nummer="1" />\n\n'
         modified_content = f"{page_one_tag}{modified_content}"
 
-        activity.logger.info("Successfully inserted page numbers into markdown content.")
+        logger.info("Successfully inserted page numbers into markdown content.")
         return modified_content

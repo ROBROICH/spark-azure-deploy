@@ -22,9 +22,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.add_column(
         "document_type",
-        sa.Column(
-            "is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_resolved", sa.Boolean(), nullable=False, server_default=sa.false()),
     )
     op.add_column(
         "document",

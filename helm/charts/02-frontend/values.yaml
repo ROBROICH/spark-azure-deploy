@@ -1,0 +1,28 @@
+# =============================================================================
+# 02-frontend — Frontend Layer
+# =============================================================================
+# Deploys the SPARK Workflow single-page application served by an Nginx
+# container. The frontend communicates with the service layer via the API
+# Gateway (Envoy / Istio EnvoyFilter) and authenticates users through the
+# OIDC provider configured in the identity-management-service.
+#
+# This layer contains a single chart source (sources/internal/01-frontend/frontend).
+# All configuration knobs are available under the `frontend:` key.
+# =============================================================================
+
+global:
+  stage:
+    name: ""
+  labels:
+    "spark-workflow.layer/name": frontend-layer
+
+# SPARK Workflow single-page application (React/Nginx).
+frontend:
+  labels:
+    "spark-workflow.group/name": frontend
+  enabled: true
+
+landingpage:
+  labels:
+    "spark-workflow.group/name": frontend
+  enabled: true

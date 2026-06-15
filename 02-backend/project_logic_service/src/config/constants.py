@@ -1,7 +1,7 @@
 """Application constants shared across the service."""
 
-# Paths excluded from security headers
-SECURITY_HEADERS_EXCLUDED_PATHS = [
+# Paths excluded from authentication and security headers
+AUTH_EXCLUDED_PATHS = [
     "/",
     "/docs",
     "/openapi.json",

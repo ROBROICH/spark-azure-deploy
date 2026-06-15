@@ -19,13 +19,9 @@ depends_on: str | Sequence[str] | None = None
 
 def upgrade() -> None:
     """Rename document_type_id to ai_suggested_required_document_type_id."""
-    op.execute(
-        "ALTER TABLE document RENAME COLUMN document_type_id TO ai_suggested_required_document_type_id"
-    )
+    op.execute("ALTER TABLE document RENAME COLUMN document_type_id TO ai_suggested_required_document_type_id")
 
 
 def downgrade() -> None:
     """Rename ai_suggested_required_document_type_id back to document_type_id."""
-    op.execute(
-        "ALTER TABLE document RENAME COLUMN ai_suggested_required_document_type_id TO document_type_id"
-    )
+    op.execute("ALTER TABLE document RENAME COLUMN ai_suggested_required_document_type_id TO document_type_id")

@@ -1,0 +1,104 @@
+[project]
+name = "authentification"
+version = "0.1.15"
+description = "Shared authentification utilities."
+requires-python = ">=3.13, <3.14"
+dependencies = [
+    "event-logging",
+    "internal-auth",
+    "pyjwt[crypto] (>=2.13.0,<3.0.0)",
+    "cryptography>=44.0.0",
+    "pydantic>=2.10.6,<3.0.0",
+    "pydantic-settings (>=2.12.0,<3.0.0)",
+    "fastapi (>=0.128.0,<1.0.0)",
+    "authzed (>=1.24.1,<2.0.0)",
+    "grpcio (>=1.76.0,<2.0.0)",
+    "cryptography>=46.0.5",
+    "httpx>=0.28.1",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.1.0,<2",
+    "pytest-cov>=6.2.1,<7",
+    "interrogate>=1.7.0,<2",
+    "pre-commit>=4.3.0,<5",
+    "mypy>=1.18.2,<2",
+    "asgi-lifespan>=2.1.0,<3",
+    "keyring>=25.7.0,<26",
+    "keyrings-google-artifactregistry-auth>=1.1.2,<2",
+    "ruff>=0.14.6,<0.15",
+    "pyrefly>=0.49.0",
+]
+
+[tool.uv]
+package = true
+
+[tool.uv.sources]
+event-logging = { workspace = true }
+internal-auth = { workspace = true }
+
+[tool.hatch.build.targets.sdist]
+include = ["src/authentification"]
+
+[tool.hatch.build.targets.wheel]
+include = ["src/authentification"]
+
+[tool.hatch.build.targets.wheel.sources]
+"src/authentification" = "authentification"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.pytest.ini_options]
+markers = [
+    "integration: mark a test as an integration test (uses real external services)"
+]
+addopts = "-m 'not integration' --cov=src --cov-report=term-missing"
+testpaths = [
+    "tests"
+]
+asyncio_mode = "auto"
+asyncio_default_test_loop_scope = "session"
+asyncio_default_fixture_loop_scope = "session"
+
+[tool.coverage.run]
+source = ["src"]
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = true
+ignore-module = true
+ignore-nested-functions = true
+exclude = [
+    "tests", # Exclude docstrings for tests
+]
+verbose = 1
+
+[tool.mypy]
+ignore_missing_imports = true
+
+[tool.pyrefly]
+search_path = ["."]
+project-includes = ["src"]
+disable-search-path-heuristics = true
+disable-project-excludes-heuristics = true
+
+[tool.pyrefly.errors]
+implicit-any = "error"
+unannotated-parameter = "error"
+unannotated-return = "error"
+unannotated-attribute = "error"
+implicit-abstract-class = "error"
+implicitly-defined-attribute = "error"
+missing-override-decorator = "error"
+not-required-key-access = "error"
+open-unpacking = "error"
+untyped-import = "error"
+missing-source = "error"
+missing-source-for-stubs = "error"
+deprecated = "error"
+redundant-cast = "error"
+unnecessary-comparison = "error"

@@ -14,47 +14,47 @@ repos:
       - id: trailing-whitespace       # Removes trailing whitespace from lines
       - id: mixed-line-ending         # Normalizes line endings across files (LF vs CRLF)
 
-  - repo: https://github.com/python-poetry/poetry
-    rev: 2.1.3
-    hooks:
-      # Check the lock file is up to date with requirements.
-      - id: poetry-check
-        args: ["-C", "02-backend/formal_completeness_check", "--lock"]
-        always_run: true
-
   - repo: local
     hooks:
+      # Check the lock file is up to date with requirements.
+      - id: uv-lock-check
+        name: uv-lock-check
+        entry: uv lock --check
+        language: system
+        always_run: true
+        pass_filenames: false
+
       # Runs the ruff linter
       - id: ruff
         name: ruff
-        entry: bash -c 'cd 02-backend/formal_completeness_check && poetry run ruff check --fix'
+        entry: bash -c 'uv run ruff check 02-backend/formal_completeness_check/src --fix'
         language: system
         types: [python]
         always_run: true
-        pass_filenames: true
+        pass_filenames: false
 
       # Runs the ruff formatter
       - id: ruff-format
         name: ruff-format
-        entry: bash -c 'cd 02-backend/formal_completeness_check && poetry run ruff format'
+        entry: bash -c 'uv run ruff format 02-backend/formal_completeness_check/src'
         language: system
         types: [python]
         always_run: true
-        pass_filenames: true
+        pass_filenames: false
 
-      # Runs mypy
-      - id: mypy
-        name: mypy
-        entry: bash -c 'cd 02-backend/formal_completeness_check && mypy src'
+      # Runs pyrefly
+      - id: pyrefly
+        name: pyrefly
+        entry: bash -c 'cd 02-backend/formal_completeness_check && uv run pyrefly check src'
         language: system
-        types: [ python ]
+        types: [python]
         always_run: true
-        pass_filenames: true
+        pass_filenames: false
 
       # Runs the CI prechecks locally
       - id: ci-precheck
         name: ci-precheck
-        entry: bash -c 'cd 02-backend/formal_completeness_check && poetry run bash ../../03-infrastructure-resources/tooling/ci-precheck/ci-precheck.sh'
+        entry: bash -c 'cd 02-backend/formal_completeness_check && uv run bash ../../03-infrastructure-resources/tooling/ci-precheck/ci-precheck.sh'
         language: system
         types: [python]
         always_run: true

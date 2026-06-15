@@ -1,0 +1,442 @@
+{
+  "common": {
+    "notSpecified": "Keine Angabe"
+  },
+  "TopicWritePermissionBadge": {
+    "editable": "Bearbeitbar",
+    "notEditable": "Nicht bearbeitbar",
+    "tooltip": {
+      "admin": "Sie können dieses Thema bearbeiten, weil Sie Administrator sind.",
+      "assigned": "Sie können dieses Thema bearbeiten, weil es Ihnen zugewiesen ist.",
+      "assignedToOtherUser": "Sie können dieses Thema nicht bearbeiten, weil es einer anderen Person zugewiesen ist.",
+      "noTopic": "Dieses Kapitel hat kein verknüpftes Thema.",
+      "notMember": "Sie können dieses Thema nicht bearbeiten, weil Sie nicht zum Verfahrensteam gehören.",
+      "owner": "Sie können dieses Thema bearbeiten, weil Sie Verfahrensleitung sind.",
+      "unassignedTopic": "Sie können dieses Thema bearbeiten, weil es niemandem zugewiesen ist."
+    }
+  },
+  "ProjectRouteError": {
+    "notFound": "Das Verfahren konnte nicht gefunden werden.",
+    "initializationFailed": "Das Projekt konnte nicht initialisiert werden.",
+    "workflowInitializationFailed": "Initialisierungs-Workflows konnten nicht gestartet werden.",
+    "dashboardCta": "Zum Dashboard"
+  },
+  "ProjectDetails": {
+    "title": "Verfahrensinformation",
+    "projectName": "Verfahrensname",
+    "art": "Art",
+    "federalState": "Bundesland",
+    "federalStates": {
+      "Baden-Württemberg": "Baden-Württemberg",
+      "Bayern": "Bayern",
+      "Berlin": "Berlin",
+      "Brandenburg": "Brandenburg",
+      "Bremen": "Bremen",
+      "Hamburg": "Hamburg",
+      "Hessen": "Hessen",
+      "Mecklenburg-Vorpommern": "Mecklenburg-Vorpommern",
+      "Niedersachsen": "Niedersachsen",
+      "Nordrhein-Westfalen": "Nordrhein-Westfalen",
+      "Rheinland-Pfalz": "Rheinland-Pfalz",
+      "Saarland": "Saarland",
+      "Sachsen": "Sachsen",
+      "Sachsen-Anhalt": "Sachsen-Anhalt",
+      "Schleswig-Holstein": "Schleswig-Holstein",
+      "Thüringen": "Thüringen"
+    },
+    "status": "Status",
+    "aktenzeichen": "Aktenzeichen",
+    "verfahrensleitung": "Verfahrensleitung",
+    "entryDate": "Antragseingang",
+    "createdAt": "Erstellungsdatum",
+    "editAriaLabel": "Verfahrensinformation bearbeiten",
+    "edit": {
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "saving": "Wird gespeichert…",
+      "saveSuccess": "Verfahrensinformation wurde gespeichert.",
+      "submitError": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.",
+      "fieldRequired": "Dieses Feld ist ein Pflichtfeld.",
+      "emojiNotAllowed": "Emojis sind im Verfahrensnamen nicht erlaubt.",
+      "projectNameTooLong": "Der Verfahrensname darf maximal 125 Zeichen lang sein.",
+      "selectType": "Art auswählen",
+      "selectState": "Bundesland auswählen"
+    }
+  },
+  "ApplicantDetails": {
+    "title": "Antragstellende",
+    "salutation": "Anrede",
+    "company": "Firma",
+    "fullName": "Name",
+    "firstName": "Vorname",
+    "lastName": "Nachname",
+    "contactPerson": "Ansprechperson",
+    "address": "Adresse",
+    "street": "Straße",
+    "houseNumber": "Hausnummer",
+    "addressSupplement": "Adresszusatz",
+    "plz": "PLZ",
+    "location": "Ort",
+    "country": "Land",
+    "email": "E-Mail",
+    "phone": "Telefon",
+    "fax": "Fax",
+    "editAriaLabel": "Antragstellende bearbeiten",
+    "edit": {
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "saving": "Wird gespeichert…",
+      "saveSuccess": "Antragstellende wurden gespeichert.",
+      "submitError": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.",
+      "fieldRequired": "Dieses Feld ist ein Pflichtfeld.",
+      "emailInvalid": "Bitte geben Sie eine gültige E-Mail-Adresse ein.",
+      "plzInvalid": "Die PLZ muss 5 Ziffern haben.",
+      "salutationFirma": "Firma",
+      "salutationFrau": "Frau",
+      "salutationHerr": "Herr",
+      "salutationDivers": "Divers",
+      "salutationPersonengemeinschaft": "Personengemeinschaft"
+    }
+  },
+  "Deadlines": {
+    "title": "Deadlines und Termine",
+    "tableHeaders": {
+      "deadlineType": "Beschreibung",
+      "startAt": "Beginn",
+      "endAt": "Ende",
+      "legalBasis": "Rechtsgrundlage (optional)",
+      "action": "Aktion"
+    },
+    "actionsMenu": "Aktionen-Menü",
+    "actions": {
+      "edit": "Bearbeiten",
+      "delete": "Löschen"
+    },
+    "addButton": "Frist hinzufügen",
+    "emptyState": "Keine Deadlines vorhanden.",
+    "createSuccess": "Frist wurde hinzugefügt.",
+    "updateSuccess": "Frist wurde gespeichert.",
+    "deleteSuccess": "Frist wurde gelöscht.",
+    "createDialog": {
+      "title": "Eintrag anlegen",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "editDialog": {
+      "title": "Eintrag bearbeiten",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "deleteDialog": {
+      "title": "Frist löschen",
+      "description": "Möchten Sie diese Frist wirklich löschen?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "form": {
+      "deadlineType": "Beschreibung",
+      "startAt": "Beginn",
+      "endAt": "Ende",
+      "legalBasis": "Rechtsgrundlage (optional)",
+      "fieldRequired": "Dieses Feld ist ein Pflichtfeld.",
+      "endBeforeStart": "Das Ende darf nicht vor dem Beginn liegen."
+    }
+  },
+  "Documents": {
+    "uploadButton": "Antragsunterlagen hochladen",
+    "emptyState": "Es wurden noch keine Antragsunterlagen hochgeladen. Bitte laden Sie die Antragsunterlagen jetzt hoch.",
+    "tableAriaLabel": "Unterlagen",
+    "tableHeaders": {
+      "contents": "Unterlagen",
+      "version": "Versionierung"
+    },
+    "errorState": {
+      "title": "Unterlagen konnten nicht geladen werden",
+      "description": "Beim Laden der Unterlagen ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
+      "retry": "Erneut versuchen"
+    },
+    "previewFallbackTitle": "Dokumentvorschau",
+    "previewError": {
+      "title": "Vorschau konnte nicht geladen werden",
+      "description": "Beim Laden des Dokuments ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut oder schließen Sie die Vorschau."
+    },
+    "tree": {
+      "expandFolder": "{{folderName}} ausklappen",
+      "collapseFolder": "{{folderName}} einklappen"
+    },
+    "searchInputLabel": "Dokumente durchsuchen",
+    "searchPlaceholder": "Unterlagen durchsuchen …",
+    "sectionTitle": "Antragsunterlagen",
+    "uploadInstructions": "Bitte entweder mehrere PDF-Dateien oder eine ZIP-Datei hochladen.",
+    "uploadWarning": {
+      "title": "Wichtiger Hinweis",
+      "description": "Erlaubt sind nur PDF-Dateien oder genau eine ZIP-Datei. ZIP-Dateien dürfen nur PDFs enthalten, alle anderen Dateien darin werden ignoriert."
+    },
+    "processing": {
+      "title": "Die Daten werden bereitgestellt",
+      "description": "Die hochgeladenen Dateien werden aktuell verarbeitet. Die Unterlagen werden angezeigt, sobald die Verarbeitung abgeschlossen ist."
+    },
+    "processingError": {
+      "title": "Die Daten konnten nicht bereitgestellt werden",
+      "description": "Die hochgeladenen Dateien konnten nicht vollständig verarbeitet werden. Bitte laden Sie die Dateien erneut hoch oder versuchen Sie es später noch einmal.",
+      "dismissAriaLabel": "Fehlermeldung schließen"
+    },
+    "readOnlyEmptyState": {
+      "title": "Noch keine Unterlagen hinzugefügt",
+      "description": "Fügen Sie Unterlagen für das Verfahren hinzu, um die Bearbeitung zu starten."
+    },
+    "updateDocuments": {
+      "buttonLabel": "Unterlagen aktualisieren",
+      "versionOption": "Version {{version}}",
+      "versionSelectAriaLabel": "Dokumentversion auswählen",
+      "closeError": "Der Vorgang konnte serverseitig nicht abgebrochen werden. Bitte später erneut prüfen.",
+      "dialogTitle": "Unterlagen aktualisieren",
+      "minimize": "Fenster minimieren",
+      "upload": {
+        "title": "Unterlagen hochladen",
+        "dropzoneTitle": "Unterlagen hochladen",
+        "dropzoneText": "Unterlagen auswählen oder per Drag & Drop hierher ziehen",
+        "selectButton": "Unterlagen auswählen",
+        "formatHint": "Unterstütztes Format: ZIP bestehend aus PDF-Dateien",
+        "uploadedListTitle": "Hochgeladene Unterlagen",
+        "errors": {
+          "unsupportedFormat": "Dateiformat nicht unterstützt",
+          "uploadFailed": "Hochladen fehlgeschlagen",
+          "processingFailed": "Verarbeitung fehlgeschlagen. Bitte erneut versuchen."
+        },
+        "status": {
+          "queued": "Wartet auf Hochladen",
+          "uploading": "Wird hochgeladen",
+          "success": "Erfolgreich hochgeladen",
+          "unsupported": "Dateiformat nicht unterstützt",
+          "failed": "Hochladen fehlgeschlagen"
+        },
+        "cancel": "Abbrechen",
+        "next": "Weiter"
+      },
+      "uploading": {
+        "title": "Unterlagen werden hochgeladen …",
+        "description": "Die Unterlagen werden verarbeitet. Dies kann einige Minuten dauern.",
+        "cancel": "Abbrechen"
+      },
+      "diff": {
+        "title": "Unterlagen aktualisieren",
+        "description": "Wählen Sie die Unterlagen aus, die hinzugefügt oder ersetzt werden sollen. Im nächsten Schritt können Sie wählen, welche KI-Prozesse neu durchlaufen werden sollen.",
+        "previousDocuments": "Bisherige Antragsunterlagen",
+        "newDocuments": "Neue Antragsunterlagen",
+        "toggleAll": "Alle auswählen",
+        "deselectAll": "Auswahl aufheben",
+        "clearFilter": "Filter zurücksetzen",
+        "selectedCount": "{{count}} von {{total}} Dokumenten ausgewählt",
+        "documentsCount_one": "{{count}} Dokument",
+        "documentsCount_other": "{{count}} Dokumente",
+        "retry": "Erneut versuchen",
+        "loading": "Änderungen werden geladen.",
+        "loadError": "Die Änderungen konnten nicht geladen werden. Bitte schließen Sie den Dialog und versuchen Sie es erneut.",
+        "approveError": "Die Version konnte nicht erstellt werden. Bitte erneut versuchen.",
+        "rejectError": "Die Ablehnung konnte nicht gesendet werden. Bitte erneut versuchen.",
+        "cancel": "Abbrechen",
+        "reject": "Ablehnen",
+        "confirmAndContinue": "Bestätigen und fortfahren",
+        "selectionAria": "Änderung übernehmen: {{filename}}",
+        "folderAria_one": "Ordner {{name}}, {{count}} Dokument",
+        "folderAria_other": "Ordner {{name}}, {{count}} Dokumente",
+        "changes": {
+          "new": "Neu",
+          "replaced": "Ersetzt",
+          "deleted": "Gelöscht",
+          "renamed": "Umbenannt",
+          "unchanged": ""
+        }
+      },
+      "uploadSuccess": {
+        "title": "Hochladen erfolgreich",
+        "heading": "Unterlagen erfolgreich hochgeladen",
+        "description": "Die Unterlagen wurden in das Verfahren übernommen.",
+        "close": "Schließen"
+      },
+      "approvalInitializing": {
+        "title": "Unterlagen aktualisieren",
+        "description": "Die neue Version wird gerade initialisiert. Das kann einige Minuten dauern.",
+        "initializing": "Initialisierung läuft"
+      },
+      "aiProcesses": {
+        "title": "Unterlagen aktualisieren",
+        "heading": "Unterlagen erfolgreich aktualisiert",
+        "description": "Die ausgewählten Unterlagen wurden erfolgreich hochgeladen.\nWenn Sie bereits KI-Ergebnisse generiert haben, sind diese somit veraltet.\nStarten Sie jetzt die KI-Analyse in der formalen Vollständigkeitsprüfung erneut, um mit dem geänderten Unterlagenstand weiterzuarbeiten.",
+        "back": "Zurück",
+        "close": "Schließen",
+        "continueToFvp": "Zur formalen Vollständigkeitsprüfung"
+      },
+      "toast": {
+        "uploadingMessage": "Unterlagen werden hochgeladen …",
+        "successMessage": "Unterlagen erfolgreich hochgeladen.",
+        "maximizeAria": "Dialog wieder öffnen",
+        "closeAria": "Schließen"
+      }
+    }
+  },
+  "Sidebar": {
+    "comments": "Kommentare",
+    "close": "Schließen",
+    "commentsPanel": {
+      "addComment": "Kommentar hinzufügen",
+      "empty": "Keine Kommentare",
+      "countLabel_one": "{{count}} Kommentar",
+      "countLabel_other": "{{count}} Kommentare",
+      "actions": {
+        "editAria": "Kommentar bearbeiten",
+        "removeAria": "Kommentar löschen"
+      },
+      "source": {
+        "materialLaw": "Gesetz",
+        "materialNorm": "Norm",
+        "materialSatz": "Satz",
+        "materialFundstelle": "Fundstelle"
+      },
+      "processSteps": {
+        "unsorted": "Ohne Zuordnung",
+        "formalCompletenessCheck": "1. Formale Vollständigkeitsprüfung",
+        "plausibilityCheck": "2. Plausibilitätsprüfung",
+        "materialCompletenessCheck": "3. Materielle Vollständigkeitsprüfung",
+        "legalReview": "4. Rechtliche Prüfung und Beschlusserstellung"
+      },
+      "loadingAria": "Kommentare werden geladen",
+      "loadError": "Die Kommentare konnten nicht geladen werden.",
+      "retry": "Erneut versuchen"
+    },
+    "commentForm": {
+      "createTitle": "Kommentar hinzufügen",
+      "editTitle": "Kommentar bearbeiten",
+      "titleLabel": "Titel*",
+      "titlePlaceholder": "Kommentartitel",
+      "contentLabel": "Inhalt*",
+      "contentPlaceholder": "Kommentarinhalt",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "processStepLabel": "Prüfschritt*",
+      "processStepPlaceholder": "Prüfschritt auswählen",
+      "validation": {
+        "titleRequired": "Titel ist erforderlich.",
+        "titleMaxLength": "Der Titel darf maximal 255 Zeichen lang sein.",
+        "contentRequired": "Inhalt ist erforderlich.",
+        "contentMaxLength": "Der Inhalt darf maximal 2000 Zeichen lang sein.",
+        "processStepRequired": "Bitte wählen Sie einen Prüfschritt aus."
+      },
+      "saveError": "Der Kommentar konnte nicht gespeichert werden."
+    },
+    "commentDeleteDialog": {
+      "title": "Kommentar löschen",
+      "description": "Möchten Sie den Kommentar wirklich löschen?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen",
+      "error": "Der Kommentar konnte nicht gelöscht werden."
+    },
+    "runningWorkflowsPanel": {
+      "title": "Workflows",
+      "close": "Workflows schließen",
+      "emptyState": "Es sind noch keine Workflows vorhanden.",
+      "error": "Der Workflow-Status konnte nicht geladen werden.",
+      "notAvailable": "N/V",
+      "unknownWorkflowType": "Verarbeitung",
+      "openTemporal": "In Temporal öffnen",
+      "openTemporalAria": "{{name}} in Temporal öffnen",
+      "status": {
+        "pending": "Ausstehend",
+        "success": "Erfolgreich",
+        "failed": "Fehlgeschlagen"
+      },
+      "workflowNames": {
+        "contentExtraction": "Inhaltsextraktion",
+        "processDocuments": "Unterlagenverarbeitung",
+        "fileProcessing": "Dateiverarbeitung",
+        "fvp": "Formale Vollständigkeitsprüfung",
+        "documentMatching": "Unterlagenzuordnung",
+        "tableOfContents": "Inhaltsverzeichnis-Abgleich",
+        "plausibility": "Plausibilitätsprüfung",
+        "normAssignment": "Normzuordnung",
+        "assessment": "Bewertung",
+        "riskWarnings": "Risikohinweise",
+        "indexing": "Indizierung",
+        "ewmsExport": "EWMS-Export"
+      },
+      "details": {
+        "workflowId": "Workflow-ID",
+        "runId": "Run-ID",
+        "workflowType": "Workflow-Typ",
+        "startedAt": "Gestartet am",
+        "finishedAt": "Beendet am",
+        "elapsedTime": "Verstrichene Zeit",
+        "runTime": "Laufzeit",
+        "childWorkflowCount": "Untergeordnete Workflows",
+        "workflowRuns": "Läufe ({{count}})"
+      }
+    }
+  },
+  "Team": {
+    "title": "Team",
+    "tableHeaders": {
+      "name": "Name",
+      "role": "Rolle",
+      "topic": "Thema",
+      "action": "Aktion"
+    },
+    "actionsMenu": "Aktionen-Menü",
+    "actions": {
+      "edit": "Bearbeiten",
+      "delete": "Entfernen"
+    },
+    "addButton": "Person hinzufügen",
+    "emptyState": "Keine Teammitglieder vorhanden.",
+    "projectLoadError": "Projektdaten konnten nicht geladen werden. Teamänderungen sind aktuell nicht möglich.",
+    "roles": {
+      "owner": "Verfahrensleitung",
+      "member": "Bearbeitende"
+    },
+    "createDialog": {
+      "title": "Person hinzufügen",
+      "save": "Hinzufügen",
+      "cancel": "Abbrechen"
+    },
+    "editDialog": {
+      "title": "Person bearbeiten",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "deleteDialog": {
+      "title": "Person löschen",
+      "description": "Möchten Sie diese Person wirklich löschen?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen"
+    },
+    "form": {
+      "name": "Name",
+      "role": "Rolle",
+      "fieldRequired": "Dieses Feld ist ein Pflichtfeld.",
+      "selectUser": "Person auswählen",
+      "selectUsers": "Personen auswählen",
+      "selectRole": "Rolle auswählen",
+      "invalidTopic": "Mindestens ein ausgewähltes Thema ist nicht verfügbar.",
+      "topic": "Thema"
+    },
+    "topicAssignment": {
+      "addTopic": "Thema hinzufügen",
+      "assignedTopics": "Zugeordnete Themen:",
+      "empty": "Keine Themen verfügbar.",
+      "removeTopic": "Thema {{topic}} entfernen"
+    },
+    "userPicker": {
+      "empty": "Keine Personen verfügbar.",
+      "loadError": "Personen konnten nicht geladen werden.",
+      "saveError": "Team konnte nicht gespeichert werden. Bitte erneut versuchen.",
+      "lastOwnerRemoveError": "Das Entfernen der letzten verfahrensleitenden Person ist nicht möglich.",
+      "addSuccess": "Person wurde hinzugefügt.",
+      "updateSuccess": "Person wurde gespeichert.",
+      "deleteSuccess": "Person wurde gelöscht.",
+      "selectedCount": "{{count}} ausgewählt"
+    }
+  },
+  "ProjectMasterDataSection": {
+    "title": "Vorhabensstammdaten und Antragstellende"
+  }
+}

@@ -1,30 +1,22 @@
 """Environment settings loaded from env vars or .env files."""
 
 import os
-from typing import Literal
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-LiteLLMModel = Literal[
-    "mistral-small-24b-instruct",
-    "gpt-oss-120b",
-]
+from temporal.activities.models import ChatModel
 
 
 class LiteLLMConfig(BaseModel):
     """LiteLLM API settings."""
 
-    BASE_URL: str = Field(min_length=1)
-    MASTER_KEY: str = Field(min_length=1)
-    MODEL: LiteLLMModel = Field(min_length=1)
+    MODEL: ChatModel = Field(min_length=1)
 
 
 class TemporalConfig(BaseModel):
     """Temporal and Temporal S3 settings."""
 
     HOST: str = Field(min_length=1)
-    TASK_QUEUE: str = Field(min_length=1)
     LLM_MAX_PER_SECOND: int = Field(gt=0)
     S3_BUCKET_NAME: str = Field(min_length=1)
     S3_ENDPOINT_URL: str = Field(min_length=1)
@@ -41,6 +33,7 @@ class Settings(BaseSettings):
     OTEL_SERVICE_NAME: str = Field(min_length=1)
     OTEL_ENDPOINT: str = Field(min_length=1)
     TEMPORAL: TemporalConfig
+    TEMPORAL_JOB_SERVICE_URL: str
 
     model_config = SettingsConfigDict(
         env_file=[".env.local", ".env"] if not os.getenv("SKIP_DOTENV") else None,

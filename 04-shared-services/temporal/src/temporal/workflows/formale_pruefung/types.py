@@ -9,12 +9,13 @@ from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
+TASK_QUEUE = "formale-pruefung"
+
 # ---------------------------------------------------------------------------
 # Shared types (used across multiple workflows)
 # ---------------------------------------------------------------------------
 
 
-# TODO Import this from the DMSClient if the shared package is created or not use it here
 class DMSFileResponse(BaseModel):
     """Pydantic model representing a file response from the DMS API.
 
@@ -88,9 +89,9 @@ class DocumentTypeDefinition(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-class ExternalDocumentType(TypedDict):
+class DiPlanDocumentType(TypedDict):
     """
-    Defines a document type within a External document structure.
+    Defines a document type within a DiPlan document structure.
     Attributes:
         name: The human-readable name of the document type.
         id: A unique identifier for the document type.
@@ -105,16 +106,16 @@ class ExternalDocumentType(TypedDict):
     contentRequirements: str
 
 
-class ExternalDocumentCategory(TypedDict):
+class DiPlanDocumentCategory(TypedDict):
     """
-    Represents a major category of the External document types.
+    Represents a major category of the DiPlan document types.
     Attributes:
         name: The name of the document category.
-        children: A list of ExternalDocumentType dictionaries within this category.
+        children: A list of DiPlanDocumentType dictionaries within this category.
     """
 
     name: str
-    children: list[ExternalDocumentType]
+    children: list[DiPlanDocumentType]
 
 
 class LLMMatchingParams(BaseModel):
@@ -125,14 +126,14 @@ class LLMMatchingParams(BaseModel):
         document_ids (Optional[List[str]]): A list of DMS document_ids if given only these
             files are classified. The document grouping is still done across all files,
             but the remaining classification only for the given files.
-        external_preprocessing (bool): Flag indicating whether to apply preprocessing steps
+        diplan_preprocessing (bool): Flag indicating whether to apply preprocessing steps
             to the input data. Defaults to False.
     """
 
     project_id: str
-    document_types: list[DocumentTypeDefinitionDict | ExternalDocumentCategory]
+    document_types: list[DocumentTypeDefinitionDict | DiPlanDocumentCategory]
     document_ids: list[str] | None = None
-    external_preprocessing: bool = False
+    diplan_preprocessing: bool = False
 
 
 class DocumentOutput(BaseModel):

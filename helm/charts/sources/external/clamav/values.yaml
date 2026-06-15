@@ -1,0 +1,185 @@
+##############################################################################
+# ClamAV Helm Chart Values
+#
+# All resources are created in the Helm release namespace.
+# Authorized consumers are identified by SPIFFE principal (MTLS identity).
+##############################################################################
+
+# Number of initial replicas. The HPA overrides this during runtime.
+replicaCount: 2
+
+image:
+  # Replace with your internal mirror, e.g. <container-registry>/infra/clamav-api
+  repository: "<container-registry>/clamav-api"
+  tag: "<image-tag>"
+  pullPolicy: IfNotPresent
+
+# Image pull secrets for private registries.
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+imagePullSecrets: []
+
+# Override the chart name portion of the generated resource names.
+nameOverride: ""
+# Override the full resource name entirely (disables release-name prefix and stage suffix).
+fullnameOverride: ""
+
+# Target Kubernetes namespace for all resources.
+# When empty the Helm release namespace is used.
+# The namespace must exist before installation; this chart does not create it.
+namespaceOverride: ""
+
+# Stage name appended to resource names as a suffix (e.g. "-dev" → spark-clamav-dev).
+# Propagated automatically via global.stage.name when deployed inside an umbrella chart.
+# Set here only for standalone installs.
+stage:
+  name: ""
+
+# Service classification labels applied to all resources.
+# labels.app.kubernetes.io/component — workload category (shared-service, agent, backend, …)
+# labels.environment — environment tag; populated via global.labels.environment in umbrella deploys
+# Extra labels applied to resources managed by this chart.
+# Use this map for any additional key-value labels.
+labels: {}
+
+# ---------------------------------------------------------------------------
+# ClamAV-API application configuration
+# ---------------------------------------------------------------------------
+config:
+  # Disable debug logging in production.
+  debug: false
+  # Maximum accepted upload size (2 GB). Must match clamd StreamMaxLength.
+  maxSize: "2147483648"
+  # Scan timeout in seconds. Must match clamd MaxScanTime (ms).
+  scanTimeout: "600"
+  # REST API listen port.
+  port: "6000"
+  # gRPC DISABLED — not used by any consumer; disabling reduces attack surface.
+  enableGrpc: false
+  grpcPort: "9000"
+  # Unix socket path; clamd.conf LocalSocket must match.
+  socket: "/var/run/clamav/clamd.ctl"
+
+# ---------------------------------------------------------------------------
+# clamd daemon configuration (clamd.conf)
+# Tuned for 2 GB archive scanning with zip-bomb protection.
+# ---------------------------------------------------------------------------
+clamd:
+  # Maximum size for streamed scan input (must match config.maxSize).
+  streamMaxLength: "2048M"
+  # Maximum bytes scanned across all archive extraction layers.
+  maxScanSize: "4096M"
+  # Maximum single file size inside an archive.
+  maxFileSize: "2048M"
+  # Maximum archive nesting depth (zip-bomb protection).
+  maxRecursion: 16
+  # Maximum number of files inside an archive.
+  maxFiles: 50000
+  # Scan timeout in milliseconds (must match config.scanTimeout × 1000).
+  maxScanTime: 600000
+  # Concurrent scan threads (size for your CPU allocation).
+  maxThreads: 20
+  # Queue depth for incoming scan requests.
+  maxQueue: 200
+
+# ---------------------------------------------------------------------------
+# Persistent volume for virus signature databases (freshclam writes here).
+# ---------------------------------------------------------------------------
+persistence:
+  enabled: true
+  # Storage class for the signature PVC. Replace with your cluster's class.
+  storageClass: ""
+  size: 1Gi
+
+# ---------------------------------------------------------------------------
+# Service
+# ---------------------------------------------------------------------------
+service:
+  port: 6000
+
+# ---------------------------------------------------------------------------
+# Resource requests and limits
+# Sized for 2 GB archive scanning with 4 CPU cores and 6 Gi headroom.
+# ---------------------------------------------------------------------------
+resources:
+  requests:
+    cpu: 1000m
+    memory: 3Gi
+  limits:
+    cpu: 4000m
+    memory: 6Gi
+
+# ---------------------------------------------------------------------------
+# Horizontal Pod Autoscaler
+# Scale-up is aggressive; scale-down is conservative (long scan times).
+# ---------------------------------------------------------------------------
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 50
+  targetMemoryUtilizationPercentage: 70
+  scaleUpStabilizationWindowSeconds: 15
+  scaleDownStabilizationWindowSeconds: 600
+
+# ---------------------------------------------------------------------------
+# Pod Disruption Budget
+# ---------------------------------------------------------------------------
+pdb:
+  maxUnavailable: 1
+
+# ---------------------------------------------------------------------------
+# Pod security contexts
+# clamd/freshclam require CHOWN, DAC_OVERRIDE, SETGID, SETUID to manage
+# signature DB files. These four capabilities are the minimum required.
+# ---------------------------------------------------------------------------
+podSecurityContext:
+  fsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+    add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
+  seccompProfile:
+    type: RuntimeDefault
+
+# ---------------------------------------------------------------------------
+# Prometheus scraping annotations
+# ---------------------------------------------------------------------------
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "6000"
+  prometheus.io/path: "/metrics"
+
+# ---------------------------------------------------------------------------
+# Topology spread: distribute pods across nodes for HA.
+# The labelSelector must match the selectorLabels produced by this chart:
+#   app.kubernetes.io/name: clamav
+#   app.kubernetes.io/instance: <release>-clamav[-<stage>]
+# Update the instance value if you set a stage name or fullnameOverride.
+# ---------------------------------------------------------------------------
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: clamav
+
+# ---------------------------------------------------------------------------
+# Additional environment variables injected into the container (list of
+# {name, value} or {name, valueFrom: {secretKeyRef: ...}} objects).
+# ---------------------------------------------------------------------------
+extraEnv: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

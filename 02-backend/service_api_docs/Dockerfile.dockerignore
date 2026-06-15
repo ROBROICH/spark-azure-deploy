@@ -1,0 +1,7 @@
+# Ignore everything by default
+**
+
+# Allow the specs copied by the docs images
+!02-backend/service_api_docs/specs/**
+!02-backend/service_api_docs/Dockerfile
+!02-backend/service_api_docs/Dockerfile.scalar

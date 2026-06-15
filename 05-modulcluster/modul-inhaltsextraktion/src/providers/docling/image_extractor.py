@@ -8,6 +8,8 @@ from typing import Any
 from src.config import get_config
 from src.providers.base import ContentItemDict, ContentItemImage
 
+__all__ = ["ImageExtractor"]
+
 logger = logging.getLogger(__name__)
 
 
@@ -62,13 +64,13 @@ class ImageExtractor:
                 bbox = prov[0]["bbox"]
 
             # Get caption if available
-            caption = ""
             caption_data = picture.get("caption")
-            if caption_data:
-                if isinstance(caption_data, dict):
-                    caption = caption_data.get("text", "")
-                elif isinstance(caption_data, str):
-                    caption = caption_data
+            if isinstance(caption_data, dict):
+                caption = caption_data.get("text", "")
+            elif isinstance(caption_data, str):
+                caption = caption_data
+            else:
+                caption = ""
 
             # Build metadata (same format as _extract_images)
             images_meta.append(
@@ -155,7 +157,42 @@ class ImageExtractor:
         return images_meta, images_bytes
 
     @staticmethod
-    def detect_full_page_images(  # noqa: C901
+    def _collect_pages_with_content(doc_json: dict[str, Any]) -> tuple[set[int], set[int]]:
+        """Return sets of page numbers that already have pictures or tables."""
+        pages_with_pictures: set[int] = set()
+        for pic in doc_json.get("pictures", []):
+            for prov in pic.get("prov", []):
+                page_no = prov.get("page_no")
+                if page_no is not None:
+                    pages_with_pictures.add(page_no)
+
+        pages_with_tables: set[int] = set()
+        for tbl in doc_json.get("tables", []):
+            for prov in tbl.get("prov", []):
+                page_no = prov.get("page_no")
+                if page_no is not None:
+                    pages_with_tables.add(page_no)
+
+        return pages_with_pictures, pages_with_tables
+
+    @staticmethod
+    def _build_text_coverage_map(doc_json: dict[str, Any]) -> dict[int, float]:
+        """Compute total text bbox area per page number."""
+        text_areas_by_page: dict[int, float] = {}
+        for text_elem in doc_json.get("texts", []):
+            for prov in text_elem.get("prov", []):
+                page_no = prov.get("page_no")
+                bbox = prov.get("bbox")
+                if page_no is None or bbox is None:
+                    continue
+                width = abs(bbox.get("r", 0) - bbox.get("l", 0))
+                height = abs(bbox.get("t", 0) - bbox.get("b", 0))
+                text_areas_by_page.setdefault(page_no, 0.0)
+                text_areas_by_page[page_no] += width * height
+        return text_areas_by_page
+
+    @staticmethod
+    def detect_full_page_images(
         doc_json: dict[str, Any],
         output_prefix: str,
         threshold: float | None = None,
@@ -180,33 +217,8 @@ class ImageExtractor:
         if threshold is None:
             threshold = get_config().FULL_PAGE_IMAGE_TEXT_COVERAGE_THRESHOLD
 
-        # Build sets of pages that already have pictures or tables
-        pages_with_pictures: set[int] = set()
-        for pic in doc_json.get("pictures", []):
-            for prov in pic.get("prov", []):
-                page_no = prov.get("page_no")
-                if page_no is not None:
-                    pages_with_pictures.add(page_no)
-
-        pages_with_tables: set[int] = set()
-        for tbl in doc_json.get("tables", []):
-            for prov in tbl.get("prov", []):
-                page_no = prov.get("page_no")
-                if page_no is not None:
-                    pages_with_tables.add(page_no)
-
-        # Collect text bbox areas per page
-        text_areas_by_page: dict[int, float] = {}
-        for text_elem in doc_json.get("texts", []):
-            for prov in text_elem.get("prov", []):
-                page_no = prov.get("page_no")
-                bbox = prov.get("bbox")
-                if page_no is None or bbox is None:
-                    continue
-                width = abs(bbox.get("r", 0) - bbox.get("l", 0))
-                height = abs(bbox.get("t", 0) - bbox.get("b", 0))
-                text_areas_by_page.setdefault(page_no, 0.0)
-                text_areas_by_page[page_no] += width * height
+        pages_with_pictures, pages_with_tables = ImageExtractor._collect_pages_with_content(doc_json)
+        text_areas_by_page = ImageExtractor._build_text_coverage_map(doc_json)
 
         images_meta: list[dict[str, Any]] = []
         images_bytes: dict[str, bytes] = {}

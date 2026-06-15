@@ -1,5 +1,5 @@
 import uuid
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import pytest_asyncio
@@ -10,15 +10,29 @@ from src.models.db.database import get_db_session
 from src.models.schemas.plausibility_notes import PlausibilityCheckResult
 
 
+@pytest.fixture(autouse=True)
+def _mock_project_services(monkeypatch: pytest.MonkeyPatch):
+    async def latest(project_id):
+        return 1
+
+    async def validate(project_id, project_version):
+        return project_version
+
+    monkeypatch.setattr("src.services.plausibility_notes_service._get_latest_project_version", latest)
+    monkeypatch.setattr("src.services.plausibility_notes_service._validate_project_write_version", validate)
+    with patch(
+        "src.services.plausibility_notes_service.verify_file_project_binding", new=AsyncMock(return_value=1)
+    ) as mock:
+        yield mock
+
+
 @pytest_asyncio.fixture
 async def client(db_session):
     """Create an async client with database dependency override."""
     # Override the dependency to use the session from conftest
     app.dependency_overrides[get_db_session] = lambda: db_session
 
-    async with AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac
 
     app.dependency_overrides.clear()
@@ -30,7 +44,9 @@ def mock_results_data():
         "contradictions": [
             {
                 "id": str(uuid.uuid4()),
+                "title": "Title 1",
                 "description": "Desc 1",
+                "rating": 72,
                 "status": "OPEN",
                 "occurrences": [
                     {
@@ -52,12 +68,8 @@ async def test_job_done_endpoint(client, mock_results_data):
     file_id = uuid.uuid4()
 
     # Mock the service function that fetches external file
-    with patch(
-        "src.services.plausibility_notes_service.fetch_results_file"
-    ) as mock_fetch:
-        mock_fetch.return_value = PlausibilityCheckResult.model_validate(
-            mock_results_data
-        )
+    with patch("src.services.plausibility_notes_service.fetch_results_file") as mock_fetch:
+        mock_fetch.return_value = PlausibilityCheckResult.model_validate(mock_results_data)
 
         response = await client.post(
             f"/plausibility-notes/{project_id}/job-done",
@@ -77,6 +89,8 @@ async def test_job_done_endpoint(client, mock_results_data):
         data = response.json()
         assert len(data["contradictions"]) == 1
 
+        assert data["contradictions"][0]["title"] == "Title 1"
+        assert data["contradictions"][0]["rating"] == 72
         assert data["contradictions"][0]["occurrences"][0]["documentName"] == "Doc 1"
 
 
@@ -97,12 +111,8 @@ async def test_update_note_status(client, mock_results_data):
     file_id = uuid.uuid4()
     note_id = mock_results_data["contradictions"][0]["id"]
 
-    with patch(
-        "src.services.plausibility_notes_service.fetch_results_file"
-    ) as mock_fetch:
-        mock_fetch.return_value = PlausibilityCheckResult.model_validate(
-            mock_results_data
-        )
+    with patch("src.services.plausibility_notes_service.fetch_results_file") as mock_fetch:
+        mock_fetch.return_value = PlausibilityCheckResult.model_validate(mock_results_data)
         await client.post(
             f"/plausibility-notes/{project_id}/job-done",
             json={"fileId": str(file_id)},
@@ -138,12 +148,8 @@ async def test_delete_note(client, mock_results_data):
     file_id = uuid.uuid4()
     note_id = mock_results_data["contradictions"][0]["id"]
 
-    with patch(
-        "src.services.plausibility_notes_service.fetch_results_file"
-    ) as mock_fetch:
-        mock_fetch.return_value = PlausibilityCheckResult.model_validate(
-            mock_results_data
-        )
+    with patch("src.services.plausibility_notes_service.fetch_results_file") as mock_fetch:
+        mock_fetch.return_value = PlausibilityCheckResult.model_validate(mock_results_data)
         await client.post(
             f"/plausibility-notes/{project_id}/job-done",
             json={"fileId": str(file_id)},

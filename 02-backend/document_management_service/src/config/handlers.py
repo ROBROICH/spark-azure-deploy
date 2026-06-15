@@ -10,11 +10,14 @@ from event_logging.enums import (
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import FastAPIError, RequestValidationError
 from fastapi.responses import JSONResponse
+from node_crud import register_node_crud_handlers
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.utils.exceptions import (
     FileInvalidFileExtensionError,
     FileInvalidFileTypeError,
+    FileVirusDetectedError,
+    VirusScanUnavailableError,
     WorkflowAlreadyApprovedError,
     WorkflowAlreadyRejectedError,
     WorkflowIncorrectStatusError,
@@ -51,13 +54,21 @@ async def handle_exception(
     )
     return JSONResponse(
         status_code=status_code,
-        content={"detail": message},
+        content={"detail": str(exc).strip() or message},
     )
 
 
 # Map exception classes to status codes and optional custom messages
 EXCEPTION_MAP = {
     # DMS Specific
+    FileVirusDetectedError: (
+        status.HTTP_422_UNPROCESSABLE_CONTENT,
+        "Datei abgelehnt: Schadhafte Inhalte erkannt",
+    ),
+    VirusScanUnavailableError: (
+        status.HTTP_503_SERVICE_UNAVAILABLE,
+        "Virenscanner nicht erreichbar",
+    ),
     FileInvalidFileExtensionError: (
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         "Unsupported file extension",
@@ -179,5 +190,6 @@ def register_exception_handlers(app: FastAPI):
         >>> app = FastAPI()
         >>> register_exception_handlers(app)
     """
+    register_node_crud_handlers(app, logger)
     for exc_class, (status_code, message) in EXCEPTION_MAP.items():
         app.add_exception_handler(exc_class, make_handler(status_code, message))

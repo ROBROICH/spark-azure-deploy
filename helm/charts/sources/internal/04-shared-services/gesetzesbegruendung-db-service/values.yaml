@@ -1,0 +1,281 @@
+# =============================================================================
+# gesetzesbegruendung-db-service
+# Read-only accessor for the legislative-justification database (Gesetzesbegründungen).
+# =============================================================================
+
+# Desired pod replicas when autoscaling.enabled is false.
+
+replicaCount: 3
+
+# Container image. If tag is empty, Chart.appVersion is used.
+image:
+  repository: "<container-registry>/begruendungen-db"
+  tag: "<image-tag>"
+  pullPolicy: Always
+
+# Pull secrets for private registries (list).
+
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+imagePullSecrets: []
+
+# Override chart name used in labels.
+
+nameOverride: ''
+
+# Override fully qualified resource name.
+
+fullnameOverride: ''
+
+# Namespace override. Empty → uses the release namespace (-n flag).
+
+namespaceOverride: ''
+
+# Stage suffix for resource names (e.g. "dev" → resource-dev). Propagated from global.stage.name; set explicitly for standalone installs.
+
+stage:
+  name: ''
+
+# Classification labels applied to all resources.
+# app.kubernetes.io/component: workload category (frontend | backend | agent)
+# environment: propagated from global.labels.environment; set explicitly only for standalone installs.
+
+labels:
+  app.kubernetes.io/component: agent
+
+# Container ports (list).
+
+containerPorts:
+  - containerPort: 8000
+    name: http
+
+# ServiceAccount for the pod (map).
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ''
+
+# Extra annotations on the pod template (map).
+
+# Extra annotations on the Deployment/resource metadata (map).
+annotations: {}
+
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). Pod selectors are set by the
+# chart templates using Kubernetes recommended labels (app.kubernetes.io/name,
+# app.kubernetes.io/instance) and must not be overridden here.
+
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Service exposure (map). Selector is set by templates (app.kubernetes.io/name + instance).
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+  selector: {}
+
+# Ingress (map). Set enabled: true to render.
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  hosts: []
+  tls: []
+
+# CPU/memory requests and limits (map). Use {} when unset.
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 512Mi
+  requests:
+    cpu: 50m
+    memory: 320Mi
+
+# Base environment variables injected into the container (list of EnvVar objects).
+# These apply in every stage. Do not set variables to empty string — omit them
+# or use a placeholder (<postgresdb-host>, …) until the real value is known.
+# Variables from global.env are merged before this list; this list takes
+# precedence on name collisions.
+env:  
+  - name: CHUNKING_APIKEY
+    valueFrom:
+      secretKeyRef:
+        key: master-key
+        name: begruendung-litellm
+  - name: CHUNKING_MODEL
+    value: self-hosted/bge-m3
+  - name: CHUNKING_OVERLAP
+    value: '256'
+  - name: CHUNKING_PROVIDER
+    value: litellm
+  - name: CHUNKING_SIZE
+    value: '2048'
+  - name: CHUNKING_URL
+    value: <https-endpoint-url>
+  - name: DB_HOST
+    value: '{{ printf "%s-cnpg-postgres%s-pooler-rw.%s.svc.cluster.local" .Release.Name (include "gesetzesbegruendung-db-service.stageSuffix" .) .Release.Namespace }}'
+  - name: DB_MAXOVERFLOW
+    value: '5'
+  - name: DB_NAME
+    value: begruendungen-db
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        key: password
+        name: begruendungen-db-credentials
+  - name: DB_POOLSIZE
+    value: '10'
+  - name: DB_PORT
+    value: 5432
+  - name: DB_USER
+    valueFrom:
+      secretKeyRef:
+        key: username
+        name: begruendungen-db-credentials
+  - name: DOCLING_HOST
+    value: '{{ printf "http://%s-docling-rq%s.%s.svc.cluster.local" .Release.Name (include "gesetzesbegruendung-db-service.stageSuffix" .) .Release.Namespace }}'
+  - name: GESETZE_NORMEN_URL
+    value: '{{ printf "http://%s-gesetze-normen-db-service%s.%s.svc.cluster.local:8000" .Release.Name (include "gesetzesbegruendung-db-service.stageSuffix" .) .Release.Namespace }}'
+  # OIDC client credentials for a docling instance protected by client-credentials
+  # auth (env names are DOCLING_* on current images; the secret keys keep their
+  # historical KEYCLOAK_* names).
+  - name: DOCLING_CLIENT_ID
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENT_ID
+        name: docling-keycloak-secrets
+  - name: DOCLING_CLIENT_SECRET
+    valueFrom:
+      secretKeyRef:
+        key: KEYCLOAK_CLIENT_SECRET
+        name: docling-keycloak-secrets
+  - name: DOCLING_TOKEN_URL
+    value: <keycloak-oidc-token-url>
+  - name: LOG_LEVEL
+    value: INFO
+
+  # Additional environment variables merged after env (list of EnvVar objects).
+  # Use for stage-specific values: image-specific settings, feature flags, or
+  # values that differ between dev / test / prod. This list takes precedence
+  # over global.extraEnv on name collisions.
+  #
+  # In-cluster HTTP peer URLs use a Helm printf template so the address follows
+  # the release name, stage suffix, and namespace automatically.
+  #
+  # Scratch directory for ingestion-pipeline downloads (writable volume).
+  - name: CACHE_DIR
+    value: /tmp/db-pipelines-cache
+  - name: OTEL_SERVICE_NAME
+    value: begruendungen-db-worker
+  - name: OTEL_ENDPOINT
+    value: <otel-collector-host>
+
+  # ── Temporal worker (ingestion pipelines) ──────────────────────────────────
+  - name: TEMPORAL_HOST
+    value: '{{ printf "%s-temporal%s-frontend.%s.svc.cluster.local:7233" .Release.Name (include "gesetzesbegruendung-db-service.stageSuffix" .) .Release.Namespace }}'
+  - name: TEMPORAL_S3_BUCKET_NAME
+    value: <temporal-payloads-bucket>
+  - name: TEMPORAL_S3_ENDPOINT_URL
+    value: <object-storage-url>
+  - name: TEMPORAL_S3_REGION
+    value: <s3-region>
+  - name: TEMPORAL_S3_ACCESS_KEY_ID
+    valueFrom:
+      secretKeyRef:
+        name: temporal-s3-secrets
+        key: TEMPORAL_S3_ACCESS_KEY_ID
+  - name: TEMPORAL_S3_SECRET_ACCESS_KEY
+    valueFrom:
+      secretKeyRef:
+        name: temporal-s3-secrets
+        key: TEMPORAL_S3_SECRET_ACCESS_KEY
+
+extraEnv: []
+
+# Startup probe (map). Use {} when unset.
+
+startupProbe:
+  failureThreshold: 30
+  httpGet:
+    path: /startup
+    port: 8000
+  periodSeconds: 10
+
+# Liveness probe (map). Use {} when unset.
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8000
+  initialDelaySeconds: 0
+  periodSeconds: 10
+
+# Readiness probe (map). Use {} when unset.
+
+readinessProbe:
+  httpGet:
+    path: /ready
+    port: 8000
+
+# HorizontalPodAutoscaler (map).
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Pod volumes (list).
+
+volumes:
+  - name: ephemeral-storage
+    emptyDir: {}
+
+# Container volume mounts (list).
+
+volumeMounts:
+  - name: ephemeral-storage
+    mountPath: /tmp/db-pipelines-cache
+
+
+# Node selector (map).
+
+nodeSelector: {}
+
+# Pod tolerations (list).
+
+tolerations: []
+
+# Pod affinity rules (map).
+
+affinity: {}
+
+# Optional background worker Deployment.
+# When enabled, a second Deployment is rendered alongside the app server using the
+# same image and env vars. Configure a different command/args to run the worker entrypoint.
+worker:
+  enabled: false
+  replicaCount: 1
+  command: []
+  args: []
+  resources: {}

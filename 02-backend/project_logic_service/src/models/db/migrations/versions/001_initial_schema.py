@@ -76,9 +76,7 @@ def upgrade() -> None:
         sa.Column("fax", sa.String(), nullable=True),
         # Metadata
         sa.Column("status_id", postgresql.UUID(as_uuid=True), nullable=True),
-        sa.Column(
-            "current_process_step_id", postgresql.UUID(as_uuid=True), nullable=True
-        ),
+        sa.Column("current_process_step_id", postgresql.UUID(as_uuid=True), nullable=True),
         sa.ForeignKeyConstraint(
             ["project_type_id"],
             ["project_type.id"],

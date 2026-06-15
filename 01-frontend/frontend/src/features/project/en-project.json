@@ -1,0 +1,442 @@
+{
+  "common": {
+    "notSpecified": "Not specified"
+  },
+  "TopicWritePermissionBadge": {
+    "editable": "Editable",
+    "notEditable": "Not editable",
+    "tooltip": {
+      "admin": "You can edit this topic because you are an administrator.",
+      "assigned": "You can edit this topic because it is assigned to you.",
+      "assignedToOtherUser": "You cannot edit this topic because it is assigned to someone else.",
+      "noTopic": "This chapter has no linked topic.",
+      "notMember": "You cannot edit this topic because you are not part of the project team.",
+      "owner": "You can edit this topic because you are the project lead.",
+      "unassignedTopic": "You can edit this topic because it is not assigned to anyone."
+    }
+  },
+  "ProjectRouteError": {
+    "notFound": "The project could not be found.",
+    "initializationFailed": "The project could not be initialized.",
+    "workflowInitializationFailed": "Initialization workflows could not be started.",
+    "dashboardCta": "Go to dashboard"
+  },
+  "ProjectDetails": {
+    "title": "Application Details",
+    "projectName": "Project Name",
+    "art": "Type",
+    "federalState": "Federal State",
+    "federalStates": {
+      "Baden-Württemberg": "Baden-Württemberg",
+      "Bayern": "Bavaria",
+      "Berlin": "Berlin",
+      "Brandenburg": "Brandenburg",
+      "Bremen": "Bremen",
+      "Hamburg": "Hamburg",
+      "Hessen": "Hesse",
+      "Mecklenburg-Vorpommern": "Mecklenburg-Western Pomerania",
+      "Niedersachsen": "Lower Saxony",
+      "Nordrhein-Westfalen": "North Rhine-Westphalia",
+      "Rheinland-Pfalz": "Rhineland-Palatinate",
+      "Saarland": "Saarland",
+      "Sachsen": "Saxony",
+      "Sachsen-Anhalt": "Saxony-Anhalt",
+      "Schleswig-Holstein": "Schleswig-Holstein",
+      "Thüringen": "Thuringia"
+    },
+    "status": "Status",
+    "aktenzeichen": "Reference Number",
+    "verfahrensleitung": "Contact Person",
+    "entryDate": "Application Received",
+    "createdAt": "Created At",
+    "editAriaLabel": "Edit application details",
+    "edit": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveSuccess": "Application details were saved.",
+      "submitError": "Failed to save changes. Please try again.",
+      "fieldRequired": "This field is required.",
+      "emojiNotAllowed": "Emoji are not allowed in the project name.",
+      "projectNameTooLong": "The project name must be 125 characters or fewer.",
+      "selectType": "Select type",
+      "selectState": "Select federal state"
+    }
+  },
+  "ApplicantDetails": {
+    "title": "Applicant Details",
+    "salutation": "Salutation",
+    "company": "Company",
+    "fullName": "Name",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "contactPerson": "Contact Person",
+    "address": "Address",
+    "street": "Street",
+    "houseNumber": "House Number",
+    "addressSupplement": "Address Supplement",
+    "plz": "Postal Code",
+    "location": "City",
+    "country": "Country",
+    "email": "Email",
+    "phone": "Phone",
+    "fax": "Fax",
+    "editAriaLabel": "Edit applicant details",
+    "edit": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "saveSuccess": "Applicant details were saved.",
+      "submitError": "Failed to save changes. Please try again.",
+      "fieldRequired": "This field is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "plzInvalid": "Postal code must be 5 digits.",
+      "salutationFirma": "Company",
+      "salutationFrau": "Ms",
+      "salutationHerr": "Mr",
+      "salutationDivers": "Divers",
+      "salutationPersonengemeinschaft": "Group of persons"
+    }
+  },
+  "Deadlines": {
+    "title": "Deadlines and Appointments",
+    "tableHeaders": {
+      "deadlineType": "Description",
+      "startAt": "Start",
+      "endAt": "End",
+      "legalBasis": "Legal basis (optional)",
+      "action": "Action"
+    },
+    "actionsMenu": "Actions menu",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "addButton": "Add deadline",
+    "emptyState": "No deadlines available.",
+    "createSuccess": "Deadline was added.",
+    "updateSuccess": "Deadline was saved.",
+    "deleteSuccess": "Deadline was deleted.",
+    "createDialog": {
+      "title": "Create entry",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "editDialog": {
+      "title": "Edit entry",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "deleteDialog": {
+      "title": "Delete deadline",
+      "description": "Do you really want to delete this deadline?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "deadlineType": "Description",
+      "startAt": "Start",
+      "endAt": "End",
+      "legalBasis": "Legal basis (optional)",
+      "fieldRequired": "This field is required.",
+      "endBeforeStart": "The end date cannot be before the start date."
+    }
+  },
+  "Documents": {
+    "uploadButton": "Upload application documents",
+    "emptyState": "No application documents have been uploaded yet. Please upload the application documents now.",
+    "tableAriaLabel": "Documents",
+    "tableHeaders": {
+      "contents": "Documents",
+      "version": "Versioning"
+    },
+    "errorState": {
+      "title": "Documents could not be loaded",
+      "description": "An error occurred while loading the documents. Please try again.",
+      "retry": "Retry"
+    },
+    "previewFallbackTitle": "Document preview",
+    "previewError": {
+      "title": "Preview could not be loaded",
+      "description": "An error occurred while loading the document. Please try again or close the preview."
+    },
+    "tree": {
+      "expandFolder": "Expand {{folderName}}",
+      "collapseFolder": "Collapse {{folderName}}"
+    },
+    "searchInputLabel": "Search documents",
+    "searchPlaceholder": "Search documents …",
+    "sectionTitle": "Application documents",
+    "uploadInstructions": "Please upload either multiple PDF files or one ZIP file.",
+    "uploadWarning": {
+      "title": "Important notice",
+      "description": "Only PDF files or exactly one ZIP file are allowed. ZIP files may contain PDFs only; all other files inside them will be ignored."
+    },
+    "processing": {
+      "title": "The data is being provided",
+      "description": "The uploaded files are currently being processed. The documents will appear once processing has finished."
+    },
+    "processingError": {
+      "title": "The data could not be provided",
+      "description": "The uploaded files could not be fully processed. Please upload the files again or try again later.",
+      "dismissAriaLabel": "Dismiss error message"
+    },
+    "readOnlyEmptyState": {
+      "title": "No documents added yet",
+      "description": "Add documents for the project to start processing."
+    },
+    "updateDocuments": {
+      "buttonLabel": "Update documents",
+      "versionOption": "Version {{version}}",
+      "versionSelectAriaLabel": "Select document version",
+      "closeError": "The operation could not be cancelled on the server. Please check again later.",
+      "dialogTitle": "Update documents",
+      "minimize": "Minimize window",
+      "upload": {
+        "title": "Upload documents",
+        "dropzoneTitle": "Upload documents",
+        "dropzoneText": "Select documents or drag and drop here",
+        "selectButton": "Select documents",
+        "formatHint": "Supported format: ZIP containing PDF files",
+        "uploadedListTitle": "Uploaded documents",
+        "errors": {
+          "unsupportedFormat": "File format not supported",
+          "uploadFailed": "Upload failed",
+          "processingFailed": "Processing failed. Please try again."
+        },
+        "status": {
+          "queued": "Waiting to upload",
+          "uploading": "Uploading",
+          "success": "Uploaded successfully",
+          "unsupported": "File format not supported",
+          "failed": "Upload failed"
+        },
+        "cancel": "Cancel",
+        "next": "Next"
+      },
+      "uploading": {
+        "title": "Uploading documents …",
+        "description": "The documents are being processed. This may take a few minutes.",
+        "cancel": "Cancel"
+      },
+      "diff": {
+        "title": "Update documents",
+        "description": "Select the documents you want to add or replace. In the next step you can choose which AI processes to re-run.",
+        "previousDocuments": "Previous application documents",
+        "newDocuments": "New application documents",
+        "toggleAll": "Select all",
+        "deselectAll": "Clear selection",
+        "clearFilter": "Clear filter",
+        "selectedCount": "{{count}} of {{total}} documents selected",
+        "documentsCount_one": "{{count}} document",
+        "documentsCount_other": "{{count}} documents",
+        "retry": "Retry",
+        "loading": "Loading changes.",
+        "loadError": "The changes could not be loaded. Please close the dialog and try again.",
+        "approveError": "The version could not be created. Please try again.",
+        "rejectError": "The rejection could not be sent. Please try again.",
+        "cancel": "Cancel",
+        "reject": "Reject",
+        "confirmAndContinue": "Confirm and continue",
+        "selectionAria": "Apply change: {{filename}}",
+        "folderAria_one": "Folder {{name}}, {{count}} document",
+        "folderAria_other": "Folder {{name}}, {{count}} documents",
+        "changes": {
+          "new": "New",
+          "replaced": "Replaced",
+          "deleted": "Deleted",
+          "renamed": "Renamed",
+          "unchanged": ""
+        }
+      },
+      "uploadSuccess": {
+        "title": "Upload successful",
+        "heading": "Documents uploaded successfully",
+        "description": "The documents have been added to the project.",
+        "close": "Close"
+      },
+      "approvalInitializing": {
+        "title": "Update documents",
+        "description": "The new version is being initialized. This may take a few minutes.",
+        "initializing": "Initializing"
+      },
+      "aiProcesses": {
+        "title": "Update documents",
+        "heading": "Document update completed",
+        "description": "The selected documents were uploaded successfully.\nIf you have already generated AI results, they are now outdated.\nRestart the AI analysis in the formal completeness check to continue working with the updated document state.",
+        "back": "Back",
+        "close": "Close",
+        "continueToFvp": "Go to formal completeness check"
+      },
+      "toast": {
+        "uploadingMessage": "Uploading documents …",
+        "successMessage": "Documents uploaded successfully.",
+        "maximizeAria": "Reopen dialog",
+        "closeAria": "Close"
+      }
+    }
+  },
+  "Sidebar": {
+    "comments": "Comments",
+    "close": "Close",
+    "commentsPanel": {
+      "addComment": "Add comment",
+      "empty": "No comments",
+      "countLabel_one": "{{count}} comment",
+      "countLabel_other": "{{count}} comments",
+      "actions": {
+        "editAria": "Edit comment",
+        "removeAria": "Delete comment"
+      },
+      "source": {
+        "materialLaw": "Law",
+        "materialNorm": "Norm",
+        "materialSatz": "Sentence",
+        "materialFundstelle": "Reference"
+      },
+      "processSteps": {
+        "unsorted": "Unassigned",
+        "formalCompletenessCheck": "1. Formal completeness check",
+        "plausibilityCheck": "2. Plausibility check",
+        "materialCompletenessCheck": "3. Material completeness check",
+        "legalReview": "4. Legal review and resolution drafting"
+      },
+      "loadingAria": "Loading comments",
+      "loadError": "The comments could not be loaded.",
+      "retry": "Try again"
+    },
+    "commentForm": {
+      "createTitle": "Add comment",
+      "editTitle": "Edit comment",
+      "titleLabel": "Title*",
+      "titlePlaceholder": "Comment title",
+      "contentLabel": "Content*",
+      "contentPlaceholder": "Comment content",
+      "save": "Save",
+      "cancel": "Cancel",
+      "processStepLabel": "Process step*",
+      "processStepPlaceholder": "Select a process step",
+      "validation": {
+        "titleRequired": "Title is required.",
+        "titleMaxLength": "The title must not exceed 255 characters.",
+        "contentRequired": "Content is required.",
+        "contentMaxLength": "The content must not exceed 2000 characters.",
+        "processStepRequired": "Please select a process step."
+      },
+      "saveError": "The comment could not be saved."
+    },
+    "commentDeleteDialog": {
+      "title": "Delete comment",
+      "description": "Do you really want to delete this comment?",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "error": "The comment could not be deleted."
+    },
+    "runningWorkflowsPanel": {
+      "title": "Workflows",
+      "close": "Close workflows",
+      "emptyState": "No workflows available yet.",
+      "error": "Workflow status could not be loaded.",
+      "notAvailable": "N/A",
+      "unknownWorkflowType": "Processing",
+      "openTemporal": "Open in Temporal",
+      "openTemporalAria": "Open {{name}} in Temporal",
+      "status": {
+        "pending": "Pending",
+        "success": "Success",
+        "failed": "Failed"
+      },
+      "workflowNames": {
+        "contentExtraction": "Content extraction",
+        "processDocuments": "Document processing",
+        "fileProcessing": "File processing",
+        "fvp": "Formal completeness check",
+        "documentMatching": "Document matching",
+        "tableOfContents": "Table of contents matching",
+        "plausibility": "Plausibility check",
+        "normAssignment": "Norm assignment",
+        "assessment": "Assessment",
+        "riskWarnings": "Risk warnings",
+        "indexing": "Indexing",
+        "ewmsExport": "EWMS export"
+      },
+      "details": {
+        "workflowId": "Workflow ID",
+        "runId": "Run ID",
+        "workflowType": "Workflow type",
+        "startedAt": "Started at",
+        "finishedAt": "Finished at",
+        "elapsedTime": "Elapsed time",
+        "runTime": "Run time",
+        "childWorkflowCount": "Child workflows",
+        "workflowRuns": "Runs ({{count}})"
+      }
+    }
+  },
+  "Team": {
+    "title": "Team",
+    "tableHeaders": {
+      "name": "Name",
+      "role": "Role",
+      "topic": "Topic",
+      "action": "Action"
+    },
+    "actionsMenu": "Actions menu",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Remove"
+    },
+    "addButton": "Add person",
+    "emptyState": "No team members available.",
+    "projectLoadError": "Project data could not be loaded. Team changes are currently unavailable.",
+    "roles": {
+      "owner": "Process Lead",
+      "member": "Editor"
+    },
+    "createDialog": {
+      "title": "Add person",
+      "save": "Add",
+      "cancel": "Cancel"
+    },
+    "editDialog": {
+      "title": "Edit person",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "deleteDialog": {
+      "title": "Delete person",
+      "description": "Do you really want to delete this person?",
+      "confirm": "Delete",
+      "cancel": "Cancel"
+    },
+    "form": {
+      "name": "Name",
+      "role": "Role",
+      "fieldRequired": "This field is required.",
+      "selectUser": "Select person",
+      "selectUsers": "Select people",
+      "selectRole": "Select role",
+      "invalidTopic": "At least one selected topic is no longer available.",
+      "topic": "Topic"
+    },
+    "topicAssignment": {
+      "addTopic": "Add topic",
+      "assignedTopics": "Assigned topics:",
+      "empty": "No topics available.",
+      "removeTopic": "Remove topic {{topic}}"
+    },
+    "userPicker": {
+      "empty": "No people available.",
+      "loadError": "People could not be loaded.",
+      "saveError": "Team could not be saved. Please try again.",
+      "lastOwnerRemoveError": "It is not possible to remove the last process lead.",
+      "addSuccess": "Person was added.",
+      "updateSuccess": "Person was saved.",
+      "deleteSuccess": "Person was deleted.",
+      "selectedCount": "{{count}} selected"
+    }
+  },
+  "ProjectMasterDataSection": {
+    "title": "Project Master Data and Applicants"
+  }
+}

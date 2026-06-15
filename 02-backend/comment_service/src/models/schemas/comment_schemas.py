@@ -16,9 +16,7 @@ class SourceRef(BaseModel):
     def validate_item_id(self) -> "SourceRef":
         """Enforce item_id is required when referencing a concrete domain object."""
         if self.type != SourceType.MANUAL and not self.item_id:
-            raise ValueError(
-                f"item_id is required for source type '{self.type.value}'"
-            )
+            raise ValueError(f"item_id is required for source type '{self.type.value}'")
         return self
 
 

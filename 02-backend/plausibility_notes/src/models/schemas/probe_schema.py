@@ -13,4 +13,4 @@ class HealthStatus(BaseModel):
 class CheckResponse(HealthStatus):
     """Response model for health checks"""
 
-    status: Literal["ok"] = "ok"
+    status: Literal["ok"] = "ok"  # pyrefly: ignore[bad-override-mutable-attribute]

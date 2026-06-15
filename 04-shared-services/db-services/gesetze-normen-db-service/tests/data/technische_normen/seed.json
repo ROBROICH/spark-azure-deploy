@@ -1,0 +1,20 @@
+[
+  {
+    "dokument": "ASME B31.12-2019",
+    "titel_de": "Kein deutscher Titel vorhanden",
+    "titel_en": "Hydrogen Piping and Pipelines",
+    "kurzbeschreibung": "ASME B31.12 Standard on Hydrogen Piping and Pipelines contains requirements for piping in gaseous and liquid hydrogen service and pipelines in gaseous hydrogen service."
+  },
+  {
+    "dokument": "DIN EN ISO 14687",
+    "titel_de": "Wasserstoff als Kraftstoff - Produktspezifikation",
+    "titel_en": "Hydrogen fuel quality - Product specification",
+    "kurzbeschreibung": "This document specifies the quality characteristics of hydrogen fuel for utilization in road vehicles, stationary applications and other applications using proton exchange membrane (PEM) fuel cell technology."
+  },
+  {
+    "dokument": "ISO 19880-1",
+    "titel_de": "Gasförmiger Wasserstoff - Tankstellen - Teil 1: Allgemeine Anforderungen",
+    "titel_en": "Gaseous hydrogen - Fuelling stations - Part 1: General requirements",
+    "kurzbeschreibung": "This document establishes the overall system requirements for gaseous hydrogen fuelling stations that dispense gaseous hydrogen fuel to land vehicles."
+  }
+]

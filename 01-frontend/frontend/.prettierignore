@@ -1,0 +1,27 @@
+# Scope Prettier to TypeScript sources only.
+*
+!*/
+!**/*.ts
+!**/*.tsx
+
+node_modules
+dist
+
+# Deployment Configs
+k8s/
+
+# Package manager metadata
+package-lock.json
+pnpm-lock.yaml
+pnpm-workspace.yaml
+yarn.lock
+
+# Generated / coverage artifacts
+coverage/
+src/test/coverage-summary.json
+
+# TanStack router generated file
+routeTree.gen.ts
+
+# Auto-generated API clients from OpenAPI specs
+src/api-clients/

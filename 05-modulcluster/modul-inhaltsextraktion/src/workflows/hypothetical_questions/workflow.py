@@ -2,18 +2,14 @@
 """
 Temporal workflow for Hypothetical Questions extraction.
 
-Processes chunks in concurrent batches. Rate limiting is handled by the
-shared process-level semaphore in concurrency.py, so all batches safely
-compete for the same LLM concurrency slots.
+Processes chunks in concurrent batches. LLM calls are dispatched to the
+shared LLM worker via Temporal activities.
 """
 
 import asyncio
 from dataclasses import dataclass
-from typing import Any
-from uuid import uuid4
 
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
 
 from src.activities.hypothetical_questions import (
     ProcessHypotheticalQuestionsBatchInput,
@@ -41,44 +37,18 @@ class HypotheticalQuestionsWorkflowOutput:
 hypothetical_questions_workflow_id = "hypothetical-questions-workflow"
 
 
-async def start_hypothetical_questions(
-    client: Client, input: HypotheticalQuestionsWorkflowInput
-) -> WorkflowHandle[Any, Any]:
-    from src.env import ENV
-
-    return await client.start_workflow(
-        hypothetical_questions_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
-async def execute_hypothetical_questions(
-    client: Client, input: HypotheticalQuestionsWorkflowInput
-) -> HypotheticalQuestionsWorkflowOutput:
-    from src.env import ENV
-
-    return await client.execute_workflow(
-        hypothetical_questions_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
 @workflow.defn(name=hypothetical_questions_workflow_id)
 class HypotheticalQuestionsWorkflow:
     """
     Workflow for generating Hypothetical Questions from document chunks.
 
-    Processes chunks in concurrent batches. Rate limiting is handled by the
-    shared process-level semaphore in concurrency.py, so all batches safely
-    compete for the same LLM concurrency slots.
+    Processes chunks in concurrent batches. LLM calls are dispatched to the
+    shared LLM worker via Temporal activities.
     """
 
     @workflow.run
     async def run(self, input: HypotheticalQuestionsWorkflowInput) -> HypotheticalQuestionsWorkflowOutput:
+        """Generate hypothetical questions for document chunks in batches."""
         cfg = snapshot_config()
 
         if not cfg.ENABLE_HYPOTHETICAL_QUESTIONS:

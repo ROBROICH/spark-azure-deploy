@@ -3,24 +3,23 @@ Application configuration — internal defaults that do not vary between deploys
 Environment-specific settings live in env.py.
 """
 
-from datetime import timedelta
 from typing import Literal
 
 from pydantic import BaseModel, Field
-from temporalio.common import RetryPolicy
+from temporal.activities.models import ChatModel
 
-from src.config.env import ENV, LiteLLMModel
+from src.config.env import ENV
 
 
 class LLMProfile(BaseModel):
     """Defines configuration parameters for a specific LLM model."""
 
-    model_name: LiteLLMModel = Field(
+    model_name: ChatModel = Field(
         description="LLM model name as registered in the LiteLLM proxy.",
     )
     temperature: float = Field(0.0, ge=0.0, le=1.0, description="Controls randomness (0.0 to 1.0)")
     top_p: float = Field(1.0, ge=0.0, le=1.0, description="Nucleus sampling parameter")
-    max_tokens: int = Field(15000, gt=0, description="Maximum tokens to generate")
+    max_completion_tokens: int = Field(15000, gt=0, description="Maximum tokens to generate")
     reasoning_effort: Literal["low", "medium", "high"] = Field(
         default="medium", description="The level of reasoning effort for the model"
     )
@@ -43,6 +42,7 @@ class InhaltsverzeichnisFinderParamsConfig(BaseModel):
         reasoning_effort="high",
     )
     EXTRACTION_ERROR_TOLERANCE_RATIO: float = 0.3
+    IV_PARSER_MAX_TOKEN: int = 25000
 
 
 class LLMMatchingParamsConfig(BaseModel):
@@ -50,8 +50,8 @@ class LLMMatchingParamsConfig(BaseModel):
 
     N_PAGE_SUMMARY: int = 5
     MAX_ELEMENTS_IN_CONTEXT: int = 5
+    # concurrent_files seems too high
     MAX_CONCURRENT_FILES_FOR_MATCH: int = 100
-    LLM_ACTIVITY_TIMEOUT_SECONDS: int = 1000
     LLM_PROFILE: LLMProfile = LLMProfile(
         model_name=ENV.LITELLM.MODEL,
         reasoning_effort="high",
@@ -61,16 +61,10 @@ class LLMMatchingParamsConfig(BaseModel):
 class TemporalConfig(BaseModel):
     """Runtime tuning for worker/activity execution."""
 
-    LLM_MAX_CONCURRENT_ACTIVITIES: int = 390
+    # concurrent_activities seems too high
+    LLM_MAX_CONCURRENT_ACTIVITIES: int = 1500
     ACTIVITY_TIMEOUT_SECONDS: int = 60
     UPLOAD_ACTIVITY_TIMEOUT_SECONDS: int = 240
-    LLM_ACTIVITY_TIMEOUT_SECONDS: int = 600
-    LLM_RETRY_POLICY: RetryPolicy = RetryPolicy(
-        maximum_attempts=30,
-        initial_interval=timedelta(seconds=10),
-        backoff_coefficient=2,
-        maximum_interval=timedelta(seconds=30),
-    )
     ACTIVITY_MAX_RETRIES: int = 20
 
 
@@ -81,13 +75,6 @@ class DMSConfig(BaseModel):
     MAX_PAGES: int = 200
 
 
-class LiteLLMClientConfig(BaseModel):
-    """LLM client tuning defaults."""
-
-    TIMEOUT_SECONDS: float = 240.0
-    TRUNCATION_MSG: str = "\n... [truncated] ...\n"
-
-
 class Config:
     """Central application configuration for formale-pruefung"""
 
@@ -95,7 +82,6 @@ class Config:
     LLM_MATCHING = LLMMatchingParamsConfig()
     TEMPORAL = TemporalConfig()
     DMS = DMSConfig()
-    LITELLM_CLIENT = LiteLLMClientConfig()
 
 
 config = Config()

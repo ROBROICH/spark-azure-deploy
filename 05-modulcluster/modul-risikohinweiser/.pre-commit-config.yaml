@@ -1,0 +1,18 @@
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-modul-risikohinweiser
+        name: ruff (modul-risikohinweiser)
+        entry: bash -c "cd 05-modulcluster/modul-risikohinweiser && uv run ruff check src --fix"
+        language: system
+        types: [python]
+        pass_filenames: false
+        files: ^05-modulcluster/modul-risikohinweiser/src/
+
+      - id: pyrefly-modul-risikohinweiser
+        name: pyrefly (modul-risikohinweiser)
+        entry: bash -c "cd 05-modulcluster/modul-risikohinweiser && uv run pyrefly check src"
+        language: system
+        types: [python]
+        pass_filenames: false
+        files: ^05-modulcluster/modul-risikohinweiser/src/

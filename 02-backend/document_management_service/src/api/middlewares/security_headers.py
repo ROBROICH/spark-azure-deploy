@@ -1,7 +1,9 @@
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
+from typing import override
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -9,10 +11,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     Middleware for adding security-related HTTP headers.
     """
 
-    def __init__(self, app):
+    def __init__(self, app: ASGIApp) -> None:
         super().__init__(app)
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    @override
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         if self._is_excluded_path(request.url.path):
             return await call_next(request)
 
@@ -33,9 +36,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
 
         if request.url.scheme == "https":
-            response.headers["Strict-Transport-Security"] = (
-                "max-age=31536000; includeSubDomains; preload"
-            )
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
 
         response.headers["X-Content-Type-Options"] = "nosniff"
 
@@ -45,14 +46,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
         response.headers["X-XSS-Protection"] = "1; mode=block"
 
+        response.headers["Cache-Control"] = "no-cache, no-store, private, must-revalidate"
+
         return response
 
     def _is_excluded_path(self, path: str) -> bool:
-        excluded_paths = ["/docs", "/openapi.json", "/redoc", "/healthz", "/"]
-        if path in excluded_paths:
-            return True
-
-        if path.startswith("/static/"):
-            return True
-
-        return False
+        excluded_paths = {"/docs", "/openapi.json", "/redoc", "/healthz", "/"}
+        return path in excluded_paths or path.startswith("/static/")

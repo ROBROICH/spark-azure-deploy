@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from src.models.schemas.config import CamelConfig
+from src.models.schemas.shared import CamelConfig
 
 
 class FileUploadArgs(BaseModel, CamelConfig):
@@ -23,13 +23,23 @@ class FileObject(BaseModel, CamelConfig):
     id: UUID = Field(..., description="File UUID")
     type: str = Field(..., description="File type")
     filename: str = Field(..., description="Original filename")
-    mime_type: str = Field(..., description="MIME type")
+    mime_type: str | None = Field(None, description="MIME type")
     bucket_path: PurePosixPath = Field(..., description="Full path in bucket")
 
     project_id: UUID | None = Field(None, description="Project scope")
     workflow_id: str | None = Field(None, description="Temporal workflow id")
     run_id: str | None = Field(None, description="Temporal run id")
     vector_searchable: bool | None = Field(None, description="If file is vectorized")
+    topics: list[UUID] = Field(default_factory=list, description="List of topic IDs")
 
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
+
+
+class FileUpdateRequest(BaseModel):
+    """Request to update mutable file properties (admin/internal only)."""
+
+    mime_type: str | None = Field(None, description="Override detected MIME type")
+    vector_searchable: bool | None = Field(None, description="If file is vectorized")
+    filename: str | None = Field(None, description="File name")
+    topics: list[UUID] | None = Field(None, description="List of topics")

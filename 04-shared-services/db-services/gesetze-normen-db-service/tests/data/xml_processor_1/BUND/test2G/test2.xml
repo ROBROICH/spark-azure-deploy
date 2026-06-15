@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE dokumente>
+<dokumente builddate="20260501121530" doknr="BJNRTEST2">
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <amtabk>Test2G</amtabk>
+            <ausfertigung-datum manuell="ja">2005-01-02</ausfertigung-datum>
+            <fundstelle typ="amtlich">
+                <periodikum>TGBl I</periodikum>
+                <zitstelle>2026, 2 (2)</zitstelle>
+            </fundstelle>
+            <kurzue>Zweittestgesetz</kurzue>
+            <langue>Zweites Gesetz zum Testen der Coverage von Normen</langue>
+            <standangabe checked="ja">
+                <standtyp>Stand</standtyp>
+                <standkommentar>zuletzt geändert durch Art. 2 G v. 1.5.2026 I Nr. 2</standkommentar>
+            </standangabe>
+        </metadaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 1</enbez>
+            <titel format="XML">Zweck des Gesetzes</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Zweck dieses Gesetzes ist die Regelung des Testbetriebs.</P>
+                    <P>(2) Die Regulierung dient
+                        <DL Font="normal" Type="arabic">
+                            <DT>1.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">der Versorgungssicherheit durch den vorausschauenden Ausbau, die optimierte Nutzung der Testsuite,</LA>
+                            </DD>
+                            <DT>2.</DT>
+                            <DD Font="normal">
+                                <LA Size="normal">der Effizienz des Testbetriebs.</LA>
+                            </DD>
+                        </DL>
+                    </P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 1a</enbez>
+            <titel format="XML">Erster Paragraph a</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 1a.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 2</enbez>
+            <titel format="XML">Zweiter Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 2.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 16a</enbez>
+            <titel format="XML">Sechzehnter Paragraph a</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 16a.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 17</enbez>
+            <titel format="XML">Siebzehnter Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 17.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 17d</enbez>
+            <titel format="XML">Siebzehnter Paragraph d</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Betreiber von Testsuites erstellen einen gemeinsamen Testentwicklungsplan.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 17e</enbez>
+            <titel format="XML">Siebzehnter Paragraph e</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 17e.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 50</enbez>
+            <titel format="XML">Fünfzigster Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 50.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 50a</enbez>
+            <titel format="XML">Fünfzigster Paragraph a</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(weggefallen)</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 50d</enbez>
+            <titel format="XML">Fünfzigster Paragraph d</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 50d.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 51</enbez>
+            <titel format="XML">Einundfünfzigster Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 51.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 120</enbez>
+            <titel format="XML">Hundertzwanzigster Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 120.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+    <norm builddate="20260501121530" doknr="BJNRTEST2">
+        <metadaten>
+            <jurabk>Test2G</jurabk>
+            <enbez>§ 121</enbez>
+            <titel format="XML">Hunderteinundzwanzigster Paragraph</titel>
+        </metadaten>
+        <textdaten>
+            <text format="XML">
+                <Content>
+                    <P>(1) Inhalt von Paragraph 121.</P>
+                </Content>
+            </text>
+            <fussnoten/>
+        </textdaten>
+    </norm>
+</dokumente>

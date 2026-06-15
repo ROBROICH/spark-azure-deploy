@@ -49,9 +49,7 @@ def upgrade() -> None:
         sa.Column("confidence", sa.Float(), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.ForeignKeyConstraint(
-            ["document_type_id"], ["document_type.id"], ondelete="CASCADE"
-        ),
+        sa.ForeignKeyConstraint(["document_type_id"], ["document_type.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(
@@ -61,9 +59,7 @@ def upgrade() -> None:
         unique=False,
     )
     op.create_index(op.f("ix_document_file_id"), "document", ["file_id"], unique=False)
-    op.create_index(
-        op.f("ix_document_project_id"), "document", ["project_id"], unique=False
-    )
+    op.create_index(op.f("ix_document_project_id"), "document", ["project_id"], unique=False)
     # ### end Alembic commands ###
 
 

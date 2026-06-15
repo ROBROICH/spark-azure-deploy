@@ -1,0 +1,268 @@
+{
+  "doknr": "BJNRTEST",
+  "doktyp": "gesetz",
+  "hierarchy": "bund",
+  "builddate": "20250820215504",
+  "jurabk": "TestG",
+  "langue": "Gesetz zum testen von gesetzen",
+  "kurzue": "Testgesetz",
+  "ausfertigung_datum": "2000-01-01",
+  "fundstelle": "BGBl I (1974, 721 (1193))",
+  "eingangsformel": null,
+  "updated_at": "2026-05-05T17:19:08.629540",
+  "bundesland": null,
+  "schlussformel": null,
+  "standangaben": [
+    {
+      "standtyp": "Neuf",
+      "standkommentar": "Neugefasst durch Bek. v. 17.5.2013 I 1274; 2021, 123;",
+      "doknr": "BJNRTEST",
+      "id": null
+    },
+    {
+      "standtyp": "Stand",
+      "standkommentar": "zuletzt geändert durch Art. 1 G v. 12.8.2025 I Nr. 189",
+      "doknr": "BJNRTEST",
+      "id": null
+    }
+  ],
+  "toc": [
+    {
+      "gliederungsbezug": "",
+      "gliederungstitel": "",
+      "paragraph_typ": "§",
+      "paragraph_nr": "1",
+      "text": "Grammatikalische Sätze",
+      "jurabk": "BTestG",
+      "doknr": "BJNRTEST",
+      "id": null
+    },
+    {
+      "gliederungsbezug": "",
+      "gliederungstitel": "",
+      "paragraph_typ": "§",
+      "paragraph_nr": "2",
+      "text": "Sätze mit Markierungen",
+      "jurabk": "BTestG",
+      "doknr": "BJNRTEST",
+      "id": null
+    },
+    {
+      "gliederungsbezug": "",
+      "gliederungstitel": "",
+      "paragraph_typ": "Anlage",
+      "paragraph_nr": null,
+      "text": "(zu § 3 Abs. 6)",
+      "jurabk": "BTestG",
+      "doknr": "BJNRTEST",
+      "id": null
+    }
+  ],
+  "normen": [
+    {
+      "titel": "Grammatikalische Sätze",
+      "doknr": "BJNRTEST",
+      "jurabk": "BTestG",
+      "paragraph_text": "Ein einfacher Satz mit Interpunktion. Ein zweiter Satz ohne Markierungen. § 1 Absatz 1 enthält 3 Sätze.\nEin zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).\nRömische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche \"Die\" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.",
+      "paragraph_typ": "§",
+      "paragraph_nr": 1,
+      "sub_paragraph_nr": "",
+      "absaetze": [
+        {
+          "absatz_nr": "1",
+          "absatz_text": "Ein einfacher Satz mit Interpunktion. Ein zweiter Satz ohne Markierungen. § 1 Absatz 1 enthält 3 Sätze.",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 1,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [],
+              "satz_text": "Ein einfacher Satz mit Interpunktion.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 2,
+              "satz_nr": 2,
+              "markers": [],
+              "satz_text": "Ein zweiter Satz ohne Markierungen.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 3,
+              "satz_nr": 3,
+              "markers": [],
+              "satz_text": "§ 1 Absatz 1 enthält 3 Sätze.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        },
+        {
+          "absatz_nr": "2",
+          "absatz_text": "Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 1,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [],
+              "satz_text": "Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        },
+        {
+          "absatz_nr": "3",
+          "absatz_text": "Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche \"Die\" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 1,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [],
+              "satz_text": "Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 2,
+              "satz_nr": 2,
+              "markers": [],
+              "satz_text": "Das deutsche \"Die\" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "titel": "Sätze mit Markierungen",
+      "doknr": "BJNRTEST",
+      "jurabk": "BTestG",
+      "paragraph_text": "Dieser Satz\n\n1.\n:   ist verschachtelt und\n\n2.\n:   bietet eindeutige Markierungen.\nDieser Satz\n\n–\n:   ist verschachtelt, aber\n\n–\n:   bietet keine eindeutigen Markierungen.\nDieser Satz wird aufgeteilt in:\n\n1.\n:   eine einzelne verschachtelte Ebene,\n\n2.\n:   eine tiefer verschachtelte mit,\n\n    a)\n    :   Teil a,\n\n    b)\n    :   Teil b,\n\n    (und gemeinsamer Endtext).\n\nDieser Satz ist nicht enthalten.",
+      "paragraph_typ": "§",
+      "paragraph_nr": 2,
+      "sub_paragraph_nr": "",
+      "absaetze": [
+        {
+          "absatz_nr": "1",
+          "absatz_text": "Dieser Satz\n\n1.\n:   ist verschachtelt und\n\n2.\n:   bietet eindeutige Markierungen.",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 2,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [
+                "1"
+              ],
+              "satz_text": "Dieser Satz ist verschachtelt.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 2,
+              "satz_nr": 1,
+              "markers": [
+                "2"
+              ],
+              "satz_text": "Dieser Satz bietet eindeutige Markierungen.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        },
+        {
+          "absatz_nr": "2",
+          "absatz_text": "Dieser Satz\n\n–\n:   ist verschachtelt, aber\n\n–\n:   bietet keine eindeutigen Markierungen.",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 2,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [
+                "1. –"
+              ],
+              "satz_text": "Dieser Satz ist verschachtelt, aber.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 2,
+              "satz_nr": 1,
+              "markers": [
+                "2. –"
+              ],
+              "satz_text": "Dieser Satz bietet keine eindeutigen Markierungen.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        },
+        {
+          "absatz_nr": "3",
+          "absatz_text": "Dieser Satz wird aufgeteilt in:\n\n1.\n:   eine einzelne verschachtelte Ebene,\n\n2.\n:   eine tiefer verschachtelte mit,\n\n    a)\n    :   Teil a,\n\n    b)\n    :   Teil b,\n\n    (und gemeinsamer Endtext).\n\nDieser Satz ist nicht enthalten.",
+          "jurabk": "BTestG",
+          "sub_paragraph_nr": "",
+          "paragraph_nr": 2,
+          "saetze": [
+            {
+              "satz_id": 1,
+              "satz_nr": 1,
+              "markers": [
+                "1"
+              ],
+              "satz_text": "Dieser Satz wird aufgeteilt in: eine einzelne verschachtelte Ebene.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 2,
+              "satz_nr": 1,
+              "markers": [
+                "2",
+                "a"
+              ],
+              "satz_text": "Dieser Satz wird aufgeteilt in: eine tiefer verschachtelte mit Teil a (und gemeinsamer Endtext).",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 3,
+              "satz_nr": 1,
+              "markers": [
+                "2",
+                "b"
+              ],
+              "satz_text": "Dieser Satz wird aufgeteilt in: eine tiefer verschachtelte mit Teil b (und gemeinsamer Endtext).",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            },
+            {
+              "satz_id": 4,
+              "satz_nr": 2,
+              "markers": [],
+              "satz_text": "Dieser Satz ist nicht enthalten.",
+              "jurabk": null,
+              "sub_paragraph_nr": ""
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "anlagen": []
+}

@@ -16,7 +16,6 @@ The workflow executes the following logical steps:
     that span multiple pages.
 """
 
-import asyncio
 from datetime import timedelta
 
 from temporal.workflows.formale_pruefung.inhaltsverzeichnis_finder import (
@@ -58,7 +57,6 @@ from src.schemas.inhaltsverzeichnis_finder_schemas import (
     DocumentTypeDescriptionResult,
     InhaltsverzeichnisClassificationResult,
     InhaltsverzeichnisEntry,
-    InhaltsverzeichnisParsedResult,
     InhaltsverzeichnisParserActivityInput,
     MergedDocumentChunk,
     OverallLLMClassificationActivityParams,
@@ -66,6 +64,7 @@ from src.schemas.inhaltsverzeichnis_finder_schemas import (
     SelectInhaltsverzeichnisLLMActivityParams,
 )
 from src.schemas.llm_matching_schemas import DocumentTypeDefinition
+from src.utils.sliding_window import sliding_window
 
 
 @workflow.defn(name=INHALTSVERZEICHNIS_FINDER_WORKFLOW_ID)
@@ -120,7 +119,9 @@ class InhaltsverzeichnisFinderWorkflow:
         ]
 
         # Step 5: LLM parsing final_chunks
-        inhaltsverzeichnis_entries = await self._llm_inhaltsverzeichnis_parser(final_chunks, params)
+        inhaltsverzeichnis_entries = (
+            await llm_inhaltsverzeichnis_parser(InhaltsverzeichnisParserActivityInput(chunk_list=final_chunks))
+        ).entries
 
         # Step 6: Context enrichment
         document_types = await self._llm_document_type_description_generation(
@@ -156,21 +157,24 @@ class InhaltsverzeichnisFinderWorkflow:
             retry_policy=RetryPolicy(maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES),
         )
 
-        tasks = [
-            workflow.execute_activity(
+        async def fetch_doc_chunks(idx: int) -> tuple[int, DMSInhaltsExtraction]:
+            return idx, await workflow.execute_activity(
                 get_inhalts_extraktion_doc_chunks,
                 InhaltsExtraktionChunksActivityParams(
-                    dms_document=dms_document,
+                    dms_document=dms_documents[idx],
                     n_pages=config.INHALTSVERZEICHNIS_FINDER.N_PAGE_SEARCH,
                     include_summary=True,
                 ),
                 start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
                 retry_policy=RetryPolicy(maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES),
             )
-            for dms_document in dms_documents
-        ]
 
-        raw_results: list[DMSInhaltsExtraction] = await asyncio.gather(*tasks)
+        indexed = await sliding_window(
+            list(range(len(dms_documents))),
+            fetch_doc_chunks,
+            concurrency=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
+        )
+        raw_results: list[DMSInhaltsExtraction] = [r for _, r in sorted(indexed)]
         failed = [e for e in raw_results if e.error]
         failure_rate = len(failed) / len(dms_documents) if dms_documents else 1
         failure_threshold = config.INHALTSVERZEICHNIS_FINDER.EXTRACTION_ERROR_TOLERANCE_RATIO
@@ -253,23 +257,32 @@ class InhaltsverzeichnisFinderWorkflow:
         Returns:
             A list of CandidateDoc objects for files that tested positive.
         """
-        classification_tasks = []
-        for doc in docs:
-            file_tasks = [
-                workflow.execute_activity(
-                    llm_chunk_classification,
-                    ChunkLLMClassificationActivityParams(
-                        chunk=chunk.merged_page_content,
-                    ),
-                    task_queue=f"{workflow.info().task_queue}-llm",
-                    start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-                    retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
-                )
-                for chunk in doc.chunks
-            ]
-            classification_tasks.append(asyncio.gather(*file_tasks))
+        items = [(doc_idx, chunk_idx) for doc_idx, doc in enumerate(docs) for chunk_idx in range(len(doc.chunks))]
 
-        all_results: list[list[InhaltsverzeichnisClassificationResult]] = await asyncio.gather(*classification_tasks)
+        async def classify_chunk(
+            item: tuple[int, int],
+        ) -> tuple[int, int, InhaltsverzeichnisClassificationResult]:
+            doc_idx, chunk_idx = item
+            result = await llm_chunk_classification(
+                ChunkLLMClassificationActivityParams(
+                    chunk=docs[doc_idx].chunks[chunk_idx].merged_page_content,
+                )
+            )
+            return doc_idx, chunk_idx, result
+
+        flat_results = await sliding_window(
+            items,
+            classify_chunk,
+            concurrency=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
+        )
+
+        per_doc: dict[int, list[tuple[int, InhaltsverzeichnisClassificationResult]]] = {}
+        for doc_idx, chunk_idx, result in flat_results:
+            per_doc.setdefault(doc_idx, []).append((chunk_idx, result))
+
+        all_results: list[list[InhaltsverzeichnisClassificationResult]] = [
+            [r for _, r in sorted(per_doc.get(i, []))] for i in range(len(docs))
+        ]
 
         candidates = []
         for doc, results in zip(docs, all_results, strict=True):
@@ -309,22 +322,24 @@ class InhaltsverzeichnisFinderWorkflow:
         if not candidates:
             return None
 
-        tasks = [
-            workflow.execute_activity(
-                llm_overall_classification,
+        async def classify_candidate(
+            idx: int,
+        ) -> tuple[int, InhaltsverzeichnisClassificationResult]:
+            c = candidates[idx]
+            return idx, await llm_overall_classification(
                 OverallLLMClassificationActivityParams(
-                    document_name=candidate.data.dms_document.document_name,
-                    document_summary=candidate.data.summary or "",
-                    chunk=candidate.data.chunks[candidate.start_index].merged_page_content,
-                ),
-                task_queue=f"{workflow.info().task_queue}-llm",
-                start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-                retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
+                    document_name=c.data.dms_document.document_name,
+                    document_summary=c.data.summary or "",
+                    chunk=c.data.chunks[c.start_index].merged_page_content,
+                )
             )
-            for candidate in candidates
-        ]
 
-        results: list[InhaltsverzeichnisClassificationResult] = await asyncio.gather(*tasks)
+        indexed = await sliding_window(
+            list(range(len(candidates))),
+            classify_candidate,
+            concurrency=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
+        )
+        results: list[InhaltsverzeichnisClassificationResult] = [r for _, r in sorted(indexed)]
         classification_results = [res.is_global_inhalts_verzeichnis for res in results]
 
         confirmed_candidates = [
@@ -337,14 +352,10 @@ class InhaltsverzeichnisFinderWorkflow:
         if len(confirmed_candidates) == 1:
             return confirmed_candidates[0]
 
-        selected_candidate_idx = await workflow.execute_activity(
-            llm_select_global_inhaltsverzeichnis_document_name,
+        selected_candidate_idx = await llm_select_global_inhaltsverzeichnis_document_name(
             SelectInhaltsverzeichnisLLMActivityParams(
                 document_names=[c.data.dms_document.document_name for c in confirmed_candidates],
-            ),
-            task_queue=f"{workflow.info().task_queue}-llm",
-            start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-            retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
+            )
         )
 
         if selected_candidate_idx is None:
@@ -379,15 +390,11 @@ class InhaltsverzeichnisFinderWorkflow:
             prev_chunk_text = all_chunks[i - 1].merged_page_content
             curr_chunk_text = all_chunks[i].merged_page_content
 
-            is_connected = await workflow.execute_activity(
-                llm_connected_chunk_classification,
+            is_connected = await llm_connected_chunk_classification(
                 ConnectedChunkLLMClassificationActivityParams(
                     first_chunk=prev_chunk_text,
                     second_chunk=curr_chunk_text,
-                ),
-                task_queue=f"{workflow.info().task_queue}-llm",
-                start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-                retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
+                )
             )
 
             if is_connected:
@@ -396,38 +403,6 @@ class InhaltsverzeichnisFinderWorkflow:
                 break
 
         return toc_content
-
-    async def _llm_inhaltsverzeichnis_parser(
-        self, chunks: list[ChunkOutput], params: InhaltsverzeichnisFinderParams
-    ) -> list[InhaltsverzeichnisEntry]:
-        """Executes the LLM-based parser activity to convert TOC chunks into a structured format.
-
-        This method triggers a Temporal activity that concatenates the provided text chunks
-        and uses an LLM to extract a structured list of Table of Contents entries,
-        identifying leaf nodes and their hierarchical paths.
-
-        Args:
-            chunks (List[ChunkOutput]): A list of extracted text chunks (containing `chunk_id`
-                and `page_content`) that collectively represent the raw text of the
-                Table of Contents.
-            params (InhaltsverzeichnisFinderParams): Configuration parameters for the
-                process, including LLM profile settings, timeouts, and retry policies.
-
-        Returns:
-            InhaltsverzeichnisParsedResult: The parsed structure containing a list of
-            leaf entries (sections, chapters) with their hierarchy paths.
-        """
-        inhaltsverzeichnis_parsed_output: InhaltsverzeichnisParsedResult = await workflow.execute_activity(
-            llm_inhaltsverzeichnis_parser,
-            InhaltsverzeichnisParserActivityInput(
-                chunk_list=chunks,
-            ),
-            task_queue=f"{workflow.info().task_queue}-llm",
-            start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-            retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
-        )
-
-        return inhaltsverzeichnis_parsed_output.entries
 
     async def _llm_document_type_description_generation(
         self,
@@ -455,23 +430,26 @@ class InhaltsverzeichnisFinderWorkflow:
             - `document_type_name` is the concatenation of the entry number and title.
             - `document_type_description` is the text generated by the LLM.
         """
-        tasks = [
-            workflow.execute_activity(
-                llm_document_type_description_generation,
+
+        async def generate_description(
+            idx: int,
+        ) -> tuple[int, DocumentTypeDescriptionResult]:
+            entry = inhaltsverzeichnis_entries[idx]
+            return idx, await llm_document_type_description_generation(
                 DocumentTypeDescriptionGenerationActivityInput(
                     hierarchy_path=entry.hierarchy_path,
                     entry_title=entry.entry_title,
                     entry_number=entry.entry_number,
                     document_types=params.document_types,
-                ),
-                task_queue=f"{workflow.info().task_queue}-llm",
-                start_to_close_timeout=timedelta(seconds=config.TEMPORAL.LLM_ACTIVITY_TIMEOUT_SECONDS),
-                retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
+                )
             )
-            for entry in inhaltsverzeichnis_entries
-        ]
 
-        description_results: list[DocumentTypeDescriptionResult] = await asyncio.gather(*tasks)
+        indexed = await sliding_window(
+            list(range(len(inhaltsverzeichnis_entries))),
+            generate_description,
+            concurrency=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
+        )
+        description_results: list[DocumentTypeDescriptionResult] = [r for _, r in sorted(indexed)]
 
         results: list[DocumentTypeDefinition] = [
             DocumentTypeDefinition(

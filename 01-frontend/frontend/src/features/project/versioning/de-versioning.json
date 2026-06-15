@@ -1,0 +1,15 @@
+{
+  "projectVersionConflictDialog": {
+    "notLatest": {
+      "title": "Veraltete Projektversion",
+      "description": "Sie sehen oder bearbeiten eine veraltete Projektversion. Wechseln Sie zur neuesten Version, um weiterzuarbeiten.",
+      "action": "Zur neuesten Version wechseln"
+    },
+    "versionLocked": {
+      "title": "Neue Projektversion wird erstellt",
+      "description_one": "Eine neue Projektversion wird erstellt. Die Ansicht wird in {{count}} Sekunde automatisch aktualisiert.",
+      "description_other": "Eine neue Projektversion wird erstellt. Die Ansicht wird in {{count}} Sekunden automatisch aktualisiert.",
+      "action": "Jetzt aktualisieren"
+    }
+  }
+}

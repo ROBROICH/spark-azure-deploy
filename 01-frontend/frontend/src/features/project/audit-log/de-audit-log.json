@@ -1,0 +1,161 @@
+{
+  "sidebar": {
+    "title": "Protokollierung zu {{0}}",
+    "drilldownTitle": "Workflow-Details",
+    "requestDrilldownTitle": "Request-Details",
+    "projectFallback": "diesem Verfahren",
+    "close": "Schließen"
+  },
+  "refresh": {
+    "label": "Protokollierung aktualisieren",
+    "tooltip": "Lädt die Protokollierung neu vom Server und ersetzt die aktuell gecachten Collection-Daten."
+  },
+  "filterBar": {
+    "download": "Protokoll herunterladen",
+    "searchBar": {
+      "placeholder": "Nach Stichwort suchen"
+    },
+    "pdf": {
+      "title": "Protokollierung zu {{0}}",
+      "generated-on": "Erstellt am: {{0}} um {{1}} Uhr",
+      "entries": "Einträge: {{0}}"
+    },
+    "timePeriods": {
+      "label": "Zeitraum",
+      "all": "Alle Zeiträume",
+      "today": "Heute",
+      "yesterday": "Gestern",
+      "7-days": "Letzte 7 Tage",
+      "30-days": "Letzte 30 Tage",
+      "180-days": "Letzte 180 Tage",
+      "365-days": "Letzte 365 Tage",
+      "over-365-days": "Älter als 365 Tage"
+    },
+    "source": {
+      "label": "Quelle",
+      "all": "Alle Quellen",
+      "agent": "Agent",
+      "user": "Benutzer"
+    },
+    "service": {
+      "label": "Service",
+      "all": "Alle Services",
+      "options": {
+        "project_logic": "Verfahrensdaten",
+        "formal_completeness": "Formale Vollständigkeitsprüfung",
+        "plausibility": "Plausibilitätsprüfung",
+        "comment": "Kommentare",
+        "supplementary": "Nachforderungen",
+        "document_management": "Dokumente",
+        "administrative_draft": "Verwaltungsentwurf",
+        "examination": "Rechtliche Prüfung und Beschlusserstellung",
+        "objections_management": "Behörden- und Öffentlichkeitsbeteiligung"
+      }
+    }
+  },
+  "document": {
+    "date": "{{0}} Uhr",
+    "badgeAi": "KI-generiert",
+    "showMore_one": "{{0}} weiteres anzeigen",
+    "showMore_other": "{{0}} weitere anzeigen",
+    "table": {
+      "name": "Projektbezeichnung",
+      "projectTypeName": "Projekttyp",
+      "statusName": "Status",
+      "company": "Firma",
+      "userName": "Ansprechpartner",
+      "adress": {
+        "label": "Adresse",
+        "house": {
+          "street": "Straße",
+          "houseNumber": "Nr."
+        },
+        "place": {
+          "plz": "PLZ",
+          "location": "Ort"
+        }
+      },
+      "contact": {
+        "label": "Kontakt",
+        "displayLabels": true,
+        "r1": { "email": "E-Mail: " },
+        "r2": { "phone": "Tel: " },
+        "r3": { "fax": "Fax: " }
+      }
+    }
+  },
+  "pagination": {
+    "label": "Protokollierung Paginierung",
+    "previous": "Zurück",
+    "previousPage": "Zur vorherigen Protokollseite wechseln",
+    "next": "Weiter",
+    "nextPage": "Zur nächsten Protokollseite wechseln",
+    "loaded": "{{count}} Einträge geladen",
+    "pageLabel": "Seite",
+    "pageOption": "{{page}}",
+    "pageSelect": "Protokollseite auswählen",
+    "pageStatus": "Seite {{current}} von {{total}}",
+    "pageTotal": "von {{total}}",
+    "summary": "{{count}} Einträge ab {{offset}} von {{total}}"
+  },
+  "states": {
+    "loading": "Protokoll wird geladen.",
+    "error": "Das Protokoll konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "empty": "Für diese Auswahl sind keine Protokolleinträge vorhanden."
+  },
+  "export": {
+    "error": "Das Protokoll konnte nicht heruntergeladen werden.",
+    "workflowUnavailable": "Workflow-Details können nicht heruntergeladen werden."
+  },
+  "drilldown": {
+    "workflow": "Workflow",
+    "request": "Request",
+    "changeCount_one": "{{count}} Änderung",
+    "changeCount_other": "{{count}} Änderungen",
+    "back": "Zurück"
+  },
+  "source": {
+    "agent": "Agent",
+    "user": "Benutzer"
+  },
+  "changeType": {
+    "create": "Erstellt",
+    "update": "Geändert",
+    "delete": "Gelöscht",
+    "action": "Aktion"
+  },
+  "fields": {
+    "timestamp": "Zeitpunkt",
+    "service": "Service",
+    "source": "Quelle",
+    "entityType": "Entität",
+    "entityId": "Entitäts-ID",
+    "actionType": "Aktionstyp",
+    "workflowType": "Workflow-Typ",
+    "workflowRunId": "Workflow-Run-ID",
+    "requestId": "Request-ID",
+    "actorUserId": "Benutzer-ID",
+    "triggeredByUserId": "Ausgelöst durch"
+  },
+  "event": {
+    "aggregatedTitle_one": "{{count}} Änderung via {{workflow}}",
+    "aggregatedTitle_other": "{{count}} Änderungen via {{workflow}}",
+    "requestAggregatedTitle_one": "{{count}} Änderung in einem Request",
+    "requestAggregatedTitle_other": "{{count}} Änderungen in einem Request",
+    "groupCount_one": "{{count}} Änderung",
+    "groupCount_other": "{{count}} Änderungen",
+    "showWorkflow": "Änderungen anzeigen",
+    "showGroup": "Änderungen anzeigen",
+    "aggregatedHint": "Diese Karte fasst einen Workflow zusammen. Die Detailansicht zeigt die einzelnen Ereignisse.",
+    "requestAggregatedHint": "Diese Karte fasst die Aktionen eines HTTP-Requests zusammen. Die Detailansicht zeigt die einzelnen Ereignisse.",
+    "noRowDiff": "Dieser Eintrag enthält keine Zeilendifferenz.",
+    "actionTitle": "Aktion",
+    "changeTitle": "{{changeType}}: {{entityType}}"
+  },
+  "diff": {
+    "field": "Feld",
+    "before": "Vorher",
+    "after": "Nachher"
+  }
+}

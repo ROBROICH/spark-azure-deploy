@@ -1,9 +1,13 @@
+"""DMS HTTP client and mapping helpers for plausibility workflows."""
+
 import json
 import logging
 import tempfile
 from typing import Any
 
 import httpx
+from internal_auth import internal_api_key_headers
+from temporal.project_context import current_project_context
 
 from src.config.config import config
 from src.config.env import ENV
@@ -17,43 +21,39 @@ from src.dms.schemas import (
     ProjectBaseMetadataStatus,
 )
 
+_HTTP_LIMITS = httpx.Limits(max_connections=1500, max_keepalive_connections=1500)
+
 logger = logging.getLogger(__name__)
 
 _ERLAUTERUNGSBERICHT_TYPE = "Erläuterungsbericht"
 
+
+def _with_project_version_params(params: dict[str, Any] | None = None) -> dict[str, Any] | None:
+    """Attach the Temporal project version when an activity context provides it."""
+
+    context = current_project_context()
+    if context is None:
+        return params
+
+    updated_params = dict(params or {})
+    updated_params.setdefault("project_version", context.project_version)
+    return updated_params
+
+
 class DMSClient:
-    """
-    General client for the Document Management System (DMS) with
-    Inhaltsextraktion mapping logic.
-    This client provides methods for interacting with the DMS API to list files,
-    retrieve download URLs, and process JSON files via temporary storage. It
-    also contains specialized methods to map storage files to Inhaltsextraktion
-    domain models using file_id as the primary identifier.
-    """
+    """Authenticated DMS client with content-extraction mapping helpers."""
 
     def __init__(self, timeout: int = 120) -> None:
-        """
-        Initializes the DMS client.
-        Args:
-            timeout (int): Request timeout in seconds. Defaults to 60.
-        """
+        """Initialize the client with a request timeout in seconds."""
+
         self.base_url = ENV.DMS_BASE_URL.rstrip("/")
         self.timeout = timeout
-        self.headers = {"Content-Type": "application/json"}
+        self.headers = {"Content-Type": "application/json", **internal_api_key_headers()}
 
     async def _request(self, method: str, path: str, **kwargs: Any) -> Any:
-        """
-        Internal helper for making authenticated requests to DMS.
-        Args:
-            method (str): HTTP method (e.g., "GET", "POST").
-            path (str): Endpoint path relative to the base URL.
-            **kwargs: Additional arguments passed to the httpx request.
-        Returns:
-            Any: The parsed JSON response body.
-        Raises:
-            httpx.HTTPStatusError: If the request returns an error status.
-        """
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        """Send one authenticated DMS request and return the parsed JSON body."""
+
+        async with httpx.AsyncClient(timeout=self.timeout, limits=_HTTP_LIMITS) as client:
             url = f"{self.base_url}{path}"
             resp = await client.request(method, url, headers=self.headers, **kwargs)
             resp.raise_for_status()
@@ -62,14 +62,8 @@ class DMSClient:
     async def list_files(
         self, project_id: str, file_type: str = "document"
     ) -> list[DMSFileResponse]:
-        """
-        Lists files for a project, optionally filtered by type.
-        Args:
-            project_id (str): The unique identifier of the project.
-            file_type (Optional[str]): Filter by file type (e.g., "document").
-        Returns:
-            List[DMSFileResponse]: A list of file metadata objects.
-        """
+        """List all DMS files for one project and file type across pages."""
+
         all_files = []
         page = 1
         # Safety limit to prevent infinite loops (100k files)
@@ -77,10 +71,11 @@ class DMSClient:
             params = {
                 "projectId": project_id,
                 "page_size": config.DMS.PAGE_SIZE,
+                "include_deleted": False,
                 "file_type": file_type,
                 "page": page,
             }
-            data = await self._request("GET", "/v2/files", params=params)
+            data = await self._request("GET", "/v2/files", params=_with_project_version_params(params))
             if not data:
                 break
             all_files.extend([DMSFileResponse(**item) for item in data])
@@ -90,6 +85,8 @@ class DMSClient:
         return all_files
 
     async def get_dms_documents(self, project_id: str) -> list[DMSDocument]:
+        """Pair source documents with their processed extraction JSON files."""
+
         docs = await self.list_files(project_id, file_type="document")
         extraction_docs = await self.list_files(
             project_id, file_type="content_extraction"
@@ -112,31 +109,20 @@ class DMSClient:
         return results
 
     async def get_download_url(self, file_id: str) -> str:
-        """
-        Retrieves a signed download URL for a file.
-        Args:
-            file_id (str): The unique identifier (UUID) of the file.
-        Returns:
-            str: The signed URL used to download the file.
-        """
-        data = await self._request("GET", f"/v2/files/{file_id}/generate-download-url")
+        """Request a signed download URL from DMS."""
+
+        data = await self._request(
+            "GET",
+            f"/v2/files/{file_id}/generate-download-url",
+            params=_with_project_version_params(),
+        )
         return data["downloadUrl"]
 
     async def download_json(self, file_id: str) -> Any:
-        """
-        Downloads a JSON file from DMS and parses it using a temporary file.
+        """Download and parse a DMS JSON file via the signed URL flow."""
 
-        Args:
-            file_id (str): The unique identifier of the file to download.
-
-        Returns:
-            Any: The parsed JSON content of the file.
-
-        Raises:
-            httpx.HTTPStatusError: If the download request fails.
-        """
         download_url = await self.get_download_url(file_id)
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        async with httpx.AsyncClient(timeout=self.timeout, limits=_HTTP_LIMITS) as client:
             resp = await client.get(download_url)
             resp.raise_for_status()
             with tempfile.NamedTemporaryFile(
@@ -152,15 +138,8 @@ class DMSClient:
         n_pages: int | None = None,
         include_summary: bool = False,
     ) -> DocDataResult:
-        """
-        Retrieves and filters subchunks based on page numbers using file_id.
-        Args:
-            dms_document: The document object containing the file identifier and metadata.
-            n_pages (Optional[int]): Filter for subchunks with page <= n_pages.
-            include_summary (bool): Whether to include the summary.
-        Returns:
-            DocDataResult: Filtered subchunks and optional summary.
-        """
+        """Load extraction details and optionally keep only early-page subchunks."""
+
         f_id = dms_document.content_extraction_id
         data = await self.download_json(f_id)
         details = DocumentDetailsResponse(**data)
@@ -183,6 +162,8 @@ class DMSClient:
         self,
         project_id: str,
     ) -> tuple[BaseMetadata, ProjectBaseMetadataStatus]:
+        """Read project metadata from the extraction summary or return a known fallback."""
+
         extraction_files = await self.list_files(project_id=project_id, file_type="content_extraction")
 
         summary_candidates = [extr_file for extr_file in extraction_files if extr_file.filename == "summary.json"]
@@ -235,17 +216,25 @@ class DMSClient:
             "createNewVersion": True,
             **(extra_params or {}),
         }
-        meta = await self._request("POST", "/v2/files/generate-upload-url", json=params)
-        async with httpx.AsyncClient(timeout=self.timeout) as client:
+        meta = await self._request(
+            "POST",
+            "/v2/internal/files/generate-upload-url",
+            params=_with_project_version_params(),
+            json=params,
+        )
+        async with httpx.AsyncClient(timeout=self.timeout, limits=_HTTP_LIMITS) as client:
             resp = await client.put(
                 meta["uploadUrl"],
                 content=json.dumps(payload),
                 headers={"Content-Type": str(meta.get("mimeType", "application/json"))},
-                timeout=self.timeout,
             )
             resp.raise_for_status()
-        # TODO There might be a need to add a wait for DMS upload delay
-        data = await self._request("POST", "/v2/files/confirm-upload", json=params)
+        data = await self._request(
+            "POST",
+            "/v2/internal/files/confirm-upload",
+            params=_with_project_version_params(),
+            json=params,
+        )
         return DMSFileResponse(**data)
 
     async def upload_temporal_checkpoint(
@@ -276,16 +265,24 @@ class DMSClient:
         )
 
     async def fetch_erlauterungsbericht_document_ids(self, classification_file_id: str) -> list[str]:
-        """Fetches and extracts Erläuterungsbericht document IDs from DMS classification output."""
+        """Fetches and extracts the single highest-confidence Erläuterungsbericht document ID from DMS classification output."""
         if not classification_file_id:
             logger.warning("No classification file ID provided, skipping Erläuterungsbericht document fetch.")
             return []
         classification_data = await self.download_json(classification_file_id)
         for entry in classification_data.get("matched_document_types", []):
             if entry.get("required_document_type", {}).get("document_type_name") == _ERLAUTERUNGSBERICHT_TYPE:
-                ids = [doc["document_id"] for doc in entry.get("assigned_documents", []) if doc.get("document_id")]
-                logger.info(f"Found {len(ids)} {_ERLAUTERUNGSBERICHT_TYPE} documents.")
-                return ids
+                assigned = [doc for doc in entry.get("assigned_documents", []) if doc.get("document_id")]
+                if not assigned:
+                    return []
+                best = max(assigned, key=lambda d: d.get("confidence", 0.0))
+                logger.info(
+                    f"Selected 1 of {len(assigned)} {_ERLAUTERUNGSBERICHT_TYPE} candidates "
+                    f"(highest confidence: {best.get('confidence', 'N/A')}, "
+                    f"document: {best.get('document_name', best['document_id'])}). "
+                    f"Remaining {len(assigned) - 1} documents will be treated as normal."
+                )
+                return [best["document_id"]]
         logger.info(f"No {_ERLAUTERUNGSBERICHT_TYPE} documents found.")
         return []
 

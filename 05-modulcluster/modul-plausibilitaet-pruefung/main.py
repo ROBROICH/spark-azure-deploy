@@ -19,33 +19,38 @@ import sys
 
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
+from temporal.workflows.plausibilitaet_pruefung import TASK_QUEUE as PLAUSIBILITAET_PRUEFUNG_TASK_QUEUE
 
-from src.activities.cluster_summarizer import build_clusters, summarize_cluster
-from src.activities.context_checker import check_conflict
+from src.activities.cluster_summarizer import build_clusters
+from src.activities.context_checker import build_chunk_contexts_batch
 from src.activities.dms_activities import (
     aggregate_and_upload_checkpoints,
     fetch_erlauterungsbericht_document_ids,
+    fetch_project_metadata,
     upload_temporal_checkpoint,
-)
-from src.activities.extraction_activities import (
-    extract_claims_from_row_batch,
-    extract_text_claims,
-    parse_table_structure,
 )
 from src.activities.qdrant_activities import (
     delete_document_from_qdrant,
-    embed_and_upload_claims,
     fetch_and_prepare_chunks,
     get_claim_ids,
     init_qdrant_collection,
+    upload_claims_to_qdrant,
 )
-from src.activities.risk_screener import build_screening_bundles_for_document, screen_claim_bundle
-from src.config.config import config
-from src.workflows.check_logic_wf.workflow import (
-    PlausibilityCheckOrchestratorWorkflow,
+from src.activities.risk_screener import (
+    build_screening_bundles_for_document,
+    fetch_screening_payloads_batch,
+)
+from src.workflows.check_logic_wf.screening_context_batch_workflow import (
+    PlausibilityScreeningContextBatchWorkflow,
+)
+from src.workflows.check_logic_wf.single_document_workflow import (
     PlausibilityCheckSingleDocumentWorkflow,
 )
+from src.workflows.check_logic_wf.workflow import (
+    PlausibilityCheckOrchestratorWorkflow,
+)
 from src.workflows.orchestrator_workflow import PlausibilityMainOrchestratorWorkflow
+from src.workflows.qdrant_wf.extraction_batch_workflow import ClaimExtractionBatchWorkflow
 from src.workflows.qdrant_wf.workflow import (
     ClaimExtractionOrchestratorWorkflow,
     ClaimExtractionSingleDocumentWorkflow,
@@ -58,40 +63,48 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-llm_activities = [
-    screen_claim_bundle,
-    check_conflict,
-    summarize_cluster,
-    extract_text_claims,
-    parse_table_structure,
-    extract_claims_from_row_batch,
-]
-
-non_llm_activities = [
+# All activities are non-LLM. LLM and embedding calls are dispatched as shared
+# ``llm_invoke``/``embedding_invoke`` activities and handled by the central
+# llm-client workers (auto-routed via task queue derived from model name).
+activities = [
     upload_temporal_checkpoint,
     aggregate_and_upload_checkpoints,
     build_screening_bundles_for_document,
+    fetch_screening_payloads_batch,
     build_clusters,
-    # Qdrant pipeline activities
+    build_chunk_contexts_batch,
+    fetch_project_metadata,
+    fetch_erlauterungsbericht_document_ids,
     get_claim_ids,
     init_qdrant_collection,
     delete_document_from_qdrant,
     fetch_and_prepare_chunks,
-    embed_and_upload_claims,
-    fetch_erlauterungsbericht_document_ids,
+    upload_claims_to_qdrant,
 ]
 
 workflows = [
     PlausibilityCheckOrchestratorWorkflow,
     PlausibilityCheckSingleDocumentWorkflow,
+    PlausibilityScreeningContextBatchWorkflow,
     ClaimExtractionOrchestratorWorkflow,
     ClaimExtractionSingleDocumentWorkflow,
+    ClaimExtractionBatchWorkflow,
     PlausibilityMainOrchestratorWorkflow,
 ]
 
 
-def _create_storage() -> S3PayloadStorage:
-    return S3PayloadStorage(
+async def main() -> None:
+    """Initialize and run the Temporal Worker for the plausibility module."""
+    target_host = ENV.TEMPORAL.HOST
+    task_queue = PLAUSIBILITAET_PRUEFUNG_TASK_QUEUE
+
+    logger.info("Initializing Temporal Worker Process...")
+    logger.info(f"Target Temporal Host: {target_host}")
+    logger.info(f"Task queue: {task_queue}")
+    logger.info(f"Registered Workflows: {len(workflows)}")
+    logger.info(f"Activities: {len(activities)}")
+
+    storage = S3PayloadStorage(
         bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
         endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
         access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
@@ -99,61 +112,17 @@ def _create_storage() -> S3PayloadStorage:
         region=ENV.TEMPORAL.S3_REGION,
     )
 
-
-async def main() -> None:
-    """
-    Initialize and run two Temporal Workers in parallel.
-
-    The main worker handles workflows and non-LLM activities on the base task queue.
-    The LLM worker handles LLM activities on a dedicated '{base}-llm' task queue
-    with limited concurrency to prevent overloading.
-    """
-    target_host = ENV.TEMPORAL.HOST
-    task_queue = ENV.TEMPORAL.TASK_QUEUE
-    llm_task_queue = ENV.TEMPORAL.TASK_QUEUE + config.LLM_TASK_QUEUE_SUFFIX
-
-    logger.info("Initializing Temporal Worker Process...")
-    logger.info(f"Target Temporal Host: {target_host}")
-    logger.info(f"Main task queue: {task_queue}")
-    logger.info(f"LLM task queue: {llm_task_queue}")
-    logger.info(f"Registered Workflows: {len(workflows)}")
-    logger.info(f"Non-LLM Activities: {len(non_llm_activities)}")
-    logger.info(f"LLM Activities: {len(llm_activities)}")
-    logger.info(
-        f"LLM max concurrent activities: {config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES}"
-    )
-
-    main_storage = _create_storage()
-    llm_storage = _create_storage()
-
     try:
-        async with asyncio.TaskGroup() as tg:
-            tg.create_task(
-                start_temporal_worker(
-                    host=target_host,
-                    workflows=workflows,
-                    activities=non_llm_activities,
-                    task_queue=task_queue,
-                    storage=main_storage,
-                )
-            )
-            tg.create_task(
-                start_temporal_worker(
-                    host=target_host,
-                    workflows=[],
-                    activities=llm_activities,
-                    task_queue=llm_task_queue,
-                    storage=llm_storage,
-                    max_concurrent_activities=config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES,
-                    max_task_queue_activities_per_second=ENV.TEMPORAL.LLM_MAX_PER_SECOND,
-                )
-            )
-    except ExceptionGroup as eg:
-        raise eg.exceptions[0] from eg
-    else:
-        logger.info("Temporal Workers stopped gracefully.")
+        await start_temporal_worker(
+            host=target_host,
+            workflows=workflows,
+            activities=activities,
+            task_queue=task_queue,
+            storage=storage,
+        )
     finally:
         shutdown_observability()
+        logger.info("Temporal Worker stopped.")
 
 
 if __name__ == "__main__":

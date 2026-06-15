@@ -1,0 +1,210 @@
+{
+  "aiSuggestionBadge": {
+    "label": "Vorschlag"
+  },
+  "importedProjectBadge": {
+    "label": "FPP",
+    "tooltip": "Dieses Verfahren wurde über das Fachplanungsportal importiert."
+  },
+  "languageSwitcher": {
+    "currentLanguage": "Aktuelle Sprache: {{language}}",
+    "selectedLanguage": "{{language}}, aktuell ausgewählt"
+  },
+  "nodeAction": {
+    "updateFailed": "Die Änderung konnte nicht gespeichert werden. Änderungen wurden zurückgesetzt."
+  },
+  "mutationError": {
+    "forbidden": "Ihre Berechtigungen sind für diese Aktion nicht ausreichend."
+  },
+  "PdfQuickView": {
+    "closePreview": "Vorschau schließen",
+    "documentNotFound": "Dokument nicht gefunden.",
+    "loading": "Lädt..."
+  },
+  "app": {
+    "loading": "Laden...",
+    "title": "SPARK Workflow"
+  },
+  "maintenancePage": {
+    "label": "Wartungsmodus",
+    "title": "Wir sind bald wieder da.",
+    "description": "Die Anwendung befindet sich derzeit im Wartungsmodus. Bitte versuchen Sie es später erneut."
+  },
+  "somethingWentWrong": {
+    "title": "Da ist etwas schiefgelaufen.",
+    "description": "Bitte laden Sie die Seite neu. Wenn das Problem weiterhin auftritt, versuchen Sie es später erneut.",
+    "reload": "Seite neu laden",
+    "dashboard": "Zum Dashboard"
+  },
+  "notFound": {
+    "description": "Die Seite konnte nicht gefunden werden.",
+    "dashboard": "Zum Dashboard"
+  },
+  "currentUserLoadError": {
+    "title": "Es gab ein Problem beim initialen Laden von SPARK.",
+    "description": "Bitte laden Sie die Seite neu. Wenn der Fehler weiterhin auftritt, kontaktieren Sie bitte Ihren Systemadministrator.",
+    "reload": "Seite neu laden"
+  },
+  "sessionExpiredDialog": {
+    "title": "Ihre Anmeldung ist abgelaufen",
+    "description": "Ihre Sitzung ist abgelaufen. Bitte laden Sie die Seite neu und melden Sie sich erneut an.",
+    "reload": "Erneut anmelden"
+  },
+  "breadcrumbs": {
+    "reviewProcess": "Prüfungsprozess",
+    "projects": "Verfahren",
+    "projectOverview": "{{name}} – Zur Verfahrensübersicht"
+  },
+  "safeMarkdown": {
+    "externalUrlTooltip": "Externer Link. Die Inhalte wurden nicht geprüft."
+  },
+  "splitButton": {
+    "checked": "Geprüft",
+    "unchecked": "Prüfen"
+  },
+  "secondaryDisplay": {
+    "fallbackTitle": "Zweitanzeige"
+  },
+  "common": {
+    "accept": "Übernehmen",
+    "cancel": "Abbrechen",
+    "characters": "Zeichen",
+    "download": "Herunterladen",
+    "edit": "Bearbeiten",
+    "less": "weniger",
+    "more": "mehr",
+    "noData": "Keine Daten vorhanden.",
+    "noEntriesYet": "Die Liste enthält noch keine Einträge.",
+    "open": "Offen",
+    "resetFilter": "Filter zurücksetzen",
+    "save": "Speichern",
+    "search": "Suchen"
+  },
+  "navigation": {
+    "authTest": "Auth Test",
+    "designSystem": "Design System",
+    "home": "Home",
+    "projects": "Verfahren"
+  },
+  "projectNavbar": {
+    "actionsMenuLabel": "Weitere Aktionen",
+    "deleteCancel": "Abbrechen",
+    "deleteConfirm": "Löschen",
+    "deleteProject": "Verfahren löschen",
+    "deleteProjectConfirmDescription": "Möchten Sie „{{projectName}}“ wirklich löschen? Diese Aktion ist dauerhaft und kann nicht rückgängig gemacht werden.",
+    "deleteProjectConfirmTitle": "Verfahren löschen?",
+    "deleteProjectSuccess": "Das Verfahren „{{projectName}}“ wurde gelöscht.",
+    "deleteProjectError": "Das Verfahren konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    "favoriteProject": "Verfahren als Favorit markieren",
+    "unfavoriteProject": "Favorit entfernen",
+    "favoriteLimitReached": "Maximal {{count}} Favoriten möglich",
+    "goToProject": "Zum Verfahren",
+    "stepSelectLabel": "Prozessschritt auswählen",
+    "stepSelectNavAriaLabel": "Prozessschritt-Navigation",
+    "headerAriaLabel": "Verfahrensnavigation",
+    "backLabel": "Zurück",
+    "startProcess": "Prüfprozess starten",
+    "startProcessCancel": "Abbrechen",
+    "startProcessConfirm": "Verarbeitung starten",
+    "startProcessConfirmDescription": "Mit dem Start der Verarbeitung beginnt die KI-gestützte formale Vollständigkeitsprüfung der vorliegenden Unterlagen. Dieser Vorgang kann mehrere Stunden in Anspruch nehmen. Während der Verarbeitung sind keine Änderungen am Verfahren möglich.\n\nHinweis: Wird aktuell bereits ein Verfahren durch die KI verarbeitet, starten Sie dieses Verfahren bitte erst nach Abschluss der laufenden Verarbeitung.",
+    "startProcessConfirmTitle": "KI-Verarbeitung der Unterlagen starten",
+    "startProcessDisabledBySystemLoad": "Der Prüfprozess kann erst gestartet werden, wenn die Systemlast wieder unter {{threshold}} % liegt.",
+    "startProcessError": "Der Workflow konnte nicht gestartet werden. Bitte erneut versuchen.",
+    "startProcessSuccess": "Die KI-Verarbeitung wurde erfolgreich gestartet.",
+    "startProcessRequiresMultipleFiles": "Zum Starten des Prüfprozesses muss mindestens eine Datei hochgeladen worden sein.",
+    "steps": {
+      "projectOverview": "Verfahrensübersicht",
+      "formalCompletenessCheck": "Formale Vollständigkeitsprüfung",
+      "legalReview": "Rechtliche Prüfung und Beschlusserstellung",
+      "materialCompletenessCheck": "Materielle Vollständigkeitsprüfung",
+      "ewms": "Behörden- und Öffentlichkeitsbeteiligung"
+    },
+    "titles": {
+      "ewms": "Behörden- und Öffentlichkeitsbeteiligung",
+      "fvp": "Formale Vollständigkeitsprüfung",
+      "mvp": "Materielle Vollständigkeitsprüfung",
+      "overview": "Übersicht: {{projectName}}",
+      "pp": "Plausibilitätsprüfung",
+      "rpb": "Rechtliche Prüfung und Beschlusserstellung"
+    }
+  },
+  "searchInput": {
+    "deleteSearch": "Suche löschen"
+  },
+  "dialog": {
+    "closeAriaLabel": "Schließen"
+  },
+  "toast": {
+    "closeAriaLabel": "Schließen"
+  },
+  "sidebar": {
+    "home": "Dashboard",
+    "projects": "Verfahrensübersicht",
+    "settings": "Einstellungen",
+    "collapse": "Einklappen",
+    "collapseProject": "{{name}} einklappen",
+    "collapseSidebar": "Seitenleiste einklappen",
+    "closeMobileMenu": "Menü schließen",
+    "expand": "Ausklappen",
+    "expandProject": "{{name}} ausklappen",
+    "expandSidebar": "Seitenleiste ausklappen",
+    "close": "Schließen",
+    "open": "Ausklappen",
+    "performance": "Leistungsindikatoren",
+    "accessibility": "Barrierefreiheit",
+    "currentProject": "Ausgewähltes Verfahren",
+    "favorites": "Favoriten",
+    "deadlineLabel": "Frist",
+    "processSteps": "Prozessschritte",
+    "aiAgents_one": "{{count}} Agent",
+    "aiAgents_other": "{{count}} Agenten",
+    "changelog": "Changelog",
+    "changelogAriaLabelWithVersion": "Changelog, Version {{version}}",
+    "mainNavAriaLabel": "Hauptnavigation",
+    "openMobileMenu": "Menü öffnen",
+    "roleSwitcher": {
+      "ariaCurrent": "Frontend-Rolle {{frontendRole}}, Keycloak-Rolle {{keycloakRole}}",
+      "triggerLabel": "FE {{frontendRole}} / KC {{keycloakRole}}",
+      "frontendRole": "Frontend-Rolle",
+      "keycloakRole": "Keycloak-Rolle",
+      "frontendRoleTooltipLabel": "Frontend-Rolle erklären",
+      "frontendRoleTooltip": "Ändert nur die Rolle, die das Frontend für UI-Checks verwendet. Damit können Sie prüfen, ob Schaltflächen und Ansichten im Client korrekt ein- oder ausgeblendet werden, ohne die Keycloak-Rolle zu ändern.",
+      "keycloakRoleTooltipLabel": "Keycloak-Rolle erklären",
+      "keycloakRoleTooltip": "Ändert die Rolle im Identity-Service und damit die Berechtigungen, die Backend-Endpunkte sehen. Damit können Sie testen, ob serverseitige Autorisierung greift, auch wenn die Frontend-Rolle davon abweicht.",
+      "keycloakUnavailable": "Keycloak-Wechsel ist nur in Testing und Staging verfügbar.",
+      "useKeycloakRole": "Keycloak-Rolle verwenden ({{role}})",
+      "roleMismatch": "Frontend und Keycloak unterscheiden sich.",
+      "keycloakRoleSwitchConfirm": "Sie werden abgemeldet, damit die Keycloak-Rolle {{role}} dauerhaft für Ihre Sitzung übernommen wird. Nach der erneuten Anmeldung ist die Änderung aktiv. Fortfahren?",
+      "keycloakRoleUpdateSuccess": "Keycloak-Rolle wurde aktualisiert.",
+      "keycloakRoleUpdateError": "Keycloak-Rolle konnte nicht aktualisiert werden.",
+      "roles": {
+        "admin": "Admin",
+        "user": "User"
+      }
+    },
+    "systemLoad": {
+      "label": "Systemlast",
+      "buttonAria": "Systemlast aktualisieren, aktuell {{load}}",
+      "title": "Systemlast",
+      "loading": "Systemlast wird geladen...",
+      "error": "Systemlast ist nicht verfügbar.",
+      "unavailableValue": "k. A.",
+      "runningWorkflows": "Workflows",
+      "currentComplexity": "Aktuell",
+      "maxComplexity": "Maximum",
+      "breakdown": "Aufschlüsselung",
+      "runningCount": "Anzahl",
+      "complexityWeight": "Gewicht",
+      "totalComplexity": "Summe",
+      "noBreakdown": "Keine laufenden Workflows."
+    }
+  },
+  "upcomingDeadline": {
+    "today": "Fristende heute",
+    "tomorrow": "Fristende morgen",
+    "inDays": "Fristende in {{count}} Tagen"
+  },
+  "SwimlaneTabs": {
+    "defaultAriaLabel": "Bereichsnavigation"
+  }
+}

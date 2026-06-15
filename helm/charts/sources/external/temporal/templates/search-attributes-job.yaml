@@ -1,0 +1,61 @@
+{{- if .Values.searchAttributesJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "temporal.searchAttributesJobName" . }}
+  namespace: {{ include "temporal.namespace" . }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/component: search-attributes-setup
+  annotations:
+    # Runs after the server is installed/upgraded and cleans up on success.
+    # The server readiness loop in the script ensures the job does not race
+    # the Temporal frontend startup.
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "10"
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      {{- with .Values.searchAttributesJob.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      restartPolicy: OnFailure
+      containers:
+        - name: register-search-attributes
+          image: "{{ .Values.searchAttributesJob.image.repository }}:{{ .Values.searchAttributesJob.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TEMPORAL_ADDRESS
+              value: {{ .Values.searchAttributesJob.temporalAddress | default (printf "%s-temporal%s-frontend.%s.svc.cluster.local:7233" .Release.Name (include "temporal.stageSuffix" .) .Release.Namespace) | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              until temporal operator cluster health | grep -q SERVING; do
+                echo "Waiting for Temporal server to become healthy..."
+                sleep 2
+              done
+              echo "Temporal server is healthy."
+
+              until temporal operator search-attribute list --namespace default >/dev/null 2>&1; do
+                echo "Waiting for default namespace cache to refresh..."
+                sleep 2
+              done
+              echo "Default namespace is reachable."
+
+              temporal operator search-attribute create \
+                --namespace default --name ProjectId --type Keyword \
+                || echo "Search attribute ProjectId already exists."
+
+              temporal operator search-attribute create \
+                --namespace default --name ProjectVersion --type Int \
+                || echo "Search attribute ProjectVersion already exists."
+
+              echo "Project search attributes registered successfully."
+{{- end }}

@@ -2,18 +2,14 @@
 """
 Temporal workflow for Schwerpunktthema extraction.
 
-Processes chunks in concurrent batches. Rate limiting is handled by the
-shared process-level semaphore in concurrency.py, so all batches safely
-compete for the same LLM concurrency slots.
+Processes chunks in concurrent batches. LLM calls are dispatched to the
+shared LLM worker via Temporal activities.
 """
 
 import asyncio
-from typing import Any
-from uuid import uuid4
 
 from pydantic import BaseModel
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
 
 from src.activities.schwerpunkt_extraction import (
     ProcessSchwerpunktBatchInput,
@@ -24,10 +20,14 @@ from src.schemas import Chunk
 
 
 class SchwerpunktWorkflowInput(BaseModel):
+    """Input for the Schwerpunkt topic classification workflow."""
+
     chunks: list[Chunk]
 
 
 class SchwerpunktWorkflowOutput(BaseModel):
+    """Output of the Schwerpunkt topic classification workflow."""
+
     chunks: list[Chunk]
     added_metadata: bool
 
@@ -35,40 +35,18 @@ class SchwerpunktWorkflowOutput(BaseModel):
 schwerpunkt_workflow_id = "schwerpunkt-workflow"
 
 
-async def start_schwerpunkt(client: Client, input: SchwerpunktWorkflowInput) -> WorkflowHandle[Any, Any]:
-    from src.env import ENV
-
-    return await client.start_workflow(
-        schwerpunkt_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
-async def execute_schwerpunkt(client: Client, input: SchwerpunktWorkflowInput) -> SchwerpunktWorkflowOutput:
-    from src.env import ENV
-
-    return await client.execute_workflow(
-        schwerpunkt_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=ENV.TEMPORAL_TASK_QUEUE,
-    )
-
-
 @workflow.defn(name=schwerpunkt_workflow_id)
 class SchwerpunktWorkflow:
     """
     Workflow for extracting Schwerpunktthema metadata from document chunks.
 
-    Processes chunks in concurrent batches. Rate limiting is handled by the
-    shared process-level semaphore in concurrency.py, so all batches safely
-    compete for the same LLM concurrency slots.
+    Processes chunks in concurrent batches. LLM calls are dispatched to the
+    shared LLM worker via Temporal activities.
     """
 
     @workflow.run
     async def run(self, input: SchwerpunktWorkflowInput) -> SchwerpunktWorkflowOutput:
+        """Classify document chunks by topic in batches."""
         cfg = snapshot_config()
 
         if not cfg.ENABLE_SCHWERPUNKTTHEMA_EXTRACTION:

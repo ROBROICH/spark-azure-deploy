@@ -154,6 +154,22 @@ class UnassignedDocumentAnalysisParams(BaseModel):
     reasoning_history: list[str]
 
 
+class SingleDocumentMatchInput(BaseModel):
+    """Input for the per-document matching child workflow."""
+
+    dms_doc: DMSDocument
+    document_group: str | None = None
+    candidates: list[DocumentTypeDefinition]
+
+
+class SingleDocumentMatchOutput(BaseModel):
+    """Output of the per-document matching child workflow."""
+
+    assigned_document_type: DocumentTypeDefinition | None = None
+    reasoning: str | None = None
+    confidence: float | None = None
+
+
 class UnassignedDocumentReason(BaseModel):
     """
     The final diagnosis of why a document could not be categorized,

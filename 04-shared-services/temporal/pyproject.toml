@@ -2,21 +2,37 @@
 name = "temporal"
 version = "0.1.0"
 description = "Add your description here"
-authors = []
+authors = [{ name = "Engineering Team", email = "dev@local" }]
 requires-python = ">=3.13, <3.14"
 dependencies = [
     "python-ulid>=3.1.0",
     "event-logging",
+    "audit-client",
+    "internal-auth",
     "aioboto3>=14.0.0",
     "types-aioboto3[s3]>=14.0.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.39.1",
     "opentelemetry-sdk>=1.39.1",
     "opentelemetry-api>=1.39.1",
-    "temporalio[opentelemetry]>=1.24.0",
+    "pydantic>=2.10.6,<3.0.0",
+    "temporalio[opentelemetry]>=1.27.0,<2.0.0",
+    "httpx>=0.28.1,<0.29.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.1.0,<2",
 ]
 
 [tool.uv.sources]
 event-logging = { workspace = true }
+audit-client = { workspace = true }
+internal-auth = { workspace = true }
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["src/temporal/tests"]
 
 [tool.hatch.build.targets.sdist]
 include = ["src/temporal"]
@@ -53,3 +69,7 @@ deprecated = "error"
 redundant-cast = "error"
 unnecessary-comparison = "error"
 
+[[tool.uv.index]]
+name = "private-registry"
+url = "https://europe-west4-python.pkg.dev/<gcp-project>/spark-workflow-python-package-repo/simple/"
+explicit = true

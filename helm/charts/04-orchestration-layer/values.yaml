@@ -1,0 +1,45 @@
+# =============================================================================
+# 04-orchestration-layer — Workflow Orchestration Layer
+# =============================================================================
+# Deploys the Temporal workflow engine that drives all long-running,
+# multi-step processes in the SPARK Workflow application.
+#
+# Components managed by this layer (via sources/external/temporal):
+#   frontend          — gRPC endpoint (port 7233) for workflow SDK clients
+#   internal-frontend — Dedicated internal gRPC endpoint (port 7236) for
+#                       cluster-internal service-to-service communication
+#   history           — Workflow history and persistence management
+#   matching          — Task queue matching and routing
+#   worker            — Internal workflow task executor
+#   web               — Temporal Web UI for monitoring and administration
+#   admintools        — tctl CLI pod for manual intervention
+#   search-attributes — Post-install Job registering custom search attributes
+#
+# The Temporal frontend is reachable at:
+#   {release}-temporal-frontend.{namespace}.svc.cluster.local:7233
+# The internal-frontend (for service-layer workers) at:
+#   {release}-temporal-internal-frontend.{namespace}.svc.cluster.local:7236
+#
+# All configuration keys under `temporal:` are forwarded to the Temporal
+# source chart at sources/external/temporal.
+# =============================================================================
+
+global:
+  stage:
+    name: ""
+  labels:
+    "spark-workflow.layer/name": orchestration-layer
+
+# Temporal workflow engine (server, web UI, admin tools, search-attribute init).
+temporal:
+  enabled: true
+  labels:
+    "spark-workflow.layer/name": orchestration-layer
+    "spark-workflow.group/name": orchestration
+  # Pass spark-workflow labels through to every upstream Temporal resource.
+  # The upstream temporalio/temporal chart appends .Values.additionalLabels
+  # to all resource and pod labels via its resourceLabels helper.
+  temporal:
+    additionalLabels:
+      spark-workflow.layer/name: orchestration-layer
+      spark-workflow.group/name: orchestration

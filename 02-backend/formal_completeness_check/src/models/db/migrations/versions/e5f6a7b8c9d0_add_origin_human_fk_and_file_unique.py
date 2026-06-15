@@ -34,8 +34,7 @@ def upgrade() -> None:
 
     # Fix 2: partial unique index on document(project_id, file_id) where file_id IS NOT NULL
     op.execute(
-        "CREATE UNIQUE INDEX uq_document_project_file_id "
-        "ON document(project_id, file_id) WHERE file_id IS NOT NULL"
+        "CREATE UNIQUE INDEX uq_document_project_file_id ON document(project_id, file_id) WHERE file_id IS NOT NULL"
     )
 
     # Fix 1: single-column FK human_required_document_type_id → document_type.id with SET NULL
@@ -59,8 +58,6 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.drop_constraint("chk_document_type_origin", "document_type", type_="check")
-    op.drop_constraint(
-        "fk_document_human_required_document_type", "document", type_="foreignkey"
-    )
+    op.drop_constraint("fk_document_human_required_document_type", "document", type_="foreignkey")
     op.drop_index("uq_document_project_file_id", table_name="document")
     op.drop_column("document_type", "origin")

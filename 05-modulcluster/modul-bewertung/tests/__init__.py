@@ -1,0 +1,1 @@
+"""Tests for the modul-bewertung assessment workflow."""

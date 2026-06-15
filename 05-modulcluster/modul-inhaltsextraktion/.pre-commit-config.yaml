@@ -1,0 +1,32 @@
+files: ^05-modulcluster/modul-inhaltsextraktion
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-ast
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-json
+      - id: check-yaml
+      - id: debug-statements
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+
+  - repo: local
+    hooks:
+      - id: ruff
+        name: ruff
+        entry: bash -c 'cd 05-modulcluster/modul-inhaltsextraktion && uv run ruff check --fix'
+        language: system
+        types: [python]
+        always_run: true
+        pass_filenames: true
+
+      - id: ruff-format
+        name: ruff-format
+        entry: bash -c 'cd 05-modulcluster/modul-inhaltsextraktion && uv run ruff format'
+        language: system
+        types: [python]
+        always_run: true
+        pass_filenames: true

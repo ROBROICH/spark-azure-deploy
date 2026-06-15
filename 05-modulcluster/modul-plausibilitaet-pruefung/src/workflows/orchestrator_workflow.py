@@ -1,11 +1,13 @@
+"""Top-level Temporal workflow for claim extraction and plausibility checking."""
+
+from datetime import timedelta
+
 from temporalio import workflow
 
 from src.dms.schemas import DMSFileResponse
 from src.workflows.check_logic_wf.workflow import PlausibilityCheckOrchestratorWorkflow
 from src.workflows.input_schemas import OrchestratorInputSchema
 from src.workflows.qdrant_wf.workflow import ClaimExtractionOrchestratorWorkflow
-
-PLAUSIBILITY_MAIN_ORCHESTRATOR_WORKFLOW_ID = "plausibility-main-orchestrator"
 
 
 @workflow.defn
@@ -19,14 +21,16 @@ class PlausibilityMainOrchestratorWorkflow:
             ClaimExtractionOrchestratorWorkflow.run,
             arg=workflow_input,
             task_queue=workflow.info().task_queue,
-            id=f"{workflow.info().workflow_id}/qdrant_builder",
+            id=f"{workflow.info().workflow_id}-qdrant_builder",
+            task_timeout=timedelta(seconds=60),
         )
 
         check_logic_result = await workflow.execute_child_workflow(
             PlausibilityCheckOrchestratorWorkflow.run,
             arg=workflow_input,
             task_queue=workflow.info().task_queue,
-            id=f"{workflow.info().workflow_id}/check_logic",
+            id=f"{workflow.info().workflow_id}-check_logic",
+            task_timeout=timedelta(seconds=60),
         )
 
         return check_logic_result

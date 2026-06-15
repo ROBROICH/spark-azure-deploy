@@ -1,4 +1,3 @@
-# ruff: noqa: E501
 """Defines the System and User Prompts for the LLM-based Classification Workflow.
 
 These prompts guide the LLM in three specific tasks:
@@ -497,7 +496,7 @@ Erstelle für einen gegebenen Dokumententitel (`entry_title`) und dessen Kategor
 2.  **Prüfung der Referenzliste (Priorität 1):**
     * Vergleiche den Input (Titel & Kategorie) mit der bereitgestellten "Liste typischer Elemente" (JSON im User Prompt).
     * Suche nach semantischen Treffern (z.B. "Kapitel 19.1 Bodenschutz" entspricht "Bodenschutzkonzept").
-    * **Bei einem Treffer:** Nutze die `document_type_description` aus der Referenzliste als Basis. Erweitere sie zwingend um spezifische Details aus dem aktuellen Titel (z.B. "Hier speziell für den Abschnitt Musterstadt" oder "Speziell Anlage 1") und integriere die Bedingungen aus Schritt 1.
+    * **Bei einem Treffer:** Nutze die `document_type_description` aus der Referenzliste als Basis. Erweitere sie zwingend um spezifische Details aus dem aktuellen Titel (z.B. "Hier speziell für den Abschnitt Stadtname" oder "Speziell Anlage 1") und integriere die Bedingungen aus Schritt 1.
 
 3.  **Ableitung bei neuen Typen (Priorität 2):**
     * Wenn der Titel **nicht** in der Referenzliste steht, erstelle eine neue Beschreibung (unter Berücksichtigung von Schritt 1).

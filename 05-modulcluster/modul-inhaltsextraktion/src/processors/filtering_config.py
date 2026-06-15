@@ -3,7 +3,7 @@
 Centralized filtering configuration for header/footer detection.
 
 This module provides a single source of truth for all filtering-related
-constants and helper functions used by both filter.py and docling_provider.py.
+constants and helper functions used by filter.py.
 
 Configuration can be adjusted via environment variables:
 - FILTER__HEADER_ZONE_RATIO: Percentage of page height for header zone (default: 0.12)
@@ -24,7 +24,7 @@ FOOTER_ZONE_RATIO = get_config().FILTER_FOOTER_ZONE_RATIO  # Default: 0.18 (18% 
 
 # Image similarity settings for recurring element detection
 IMAGE_HASH_SIZE = get_config().FILTER_IMAGE_HASH_SIZE  # Default: 8
-IMAGE_SIMILARITY_THRESHOLD = get_config().FILTER_IMAGE_SIMILARITY_THRESHOLD  # Default: 5
+IMAGE_SIMILARITY_THRESHOLD = get_config().FILTER_IMAGE_SIMILARITY_THRESHOLD  # Default: 8
 
 # Labels that indicate header/footer content (used by Docling provider)
 # Include both underscore and hyphen versions for compatibility

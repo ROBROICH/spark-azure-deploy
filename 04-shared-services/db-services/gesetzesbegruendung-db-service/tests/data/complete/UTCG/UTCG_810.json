@@ -1,0 +1,43 @@
+{
+  "aktualisiert": "2026-05-15T12:00:00+02:00",
+  "autoren_anzahl": 0,
+  "datum": "2026-05-15",
+  "dokumentart": "Drucksache",
+  "dokumentnummer": "810/26",
+  "drucksachetyp": "Gesetzentwurf",
+  "fundstelle": {
+    "datum": "2026-05-15",
+    "dokumentart": "Drucksache",
+    "dokumentnummer": "810/26",
+    "drucksachetyp": "Gesetzentwurf",
+    "herausgeber": "BR",
+    "id": "810",
+    "pdf_url": "file://synthetic/810.pdf",
+    "urheber": [
+      "Bundesregierung"
+    ]
+  },
+  "herausgeber": "BR",
+  "id": "810",
+  "pdf_hash": "0000000000000000000000000000032a",
+  "text": "## Bundesrat\n\n## Gesetzentwurf der Bundesregierung\n\nEntwurf eines Gesetzes zu der Zweiten Änderung des Übereinkommens vom 15. Mai 2026 über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)\n\n## A. Problem und Ziel\n\nDie bestehende Fassung des Übereinkommens erfasst verteilte Spark-Workflows nur unzureichend. Ziel des Gesetzes ist es, die völkerrechtlichen Voraussetzungen für eine grenzüberschreitende Unittestcoverageprüfung zu schaffen und die innerstaatliche Anwendung sicherzustellen.\n\n## 2. Vollzugsaufwand\n\nFür die Verwaltung entsteht ein geringfügiger zusätzlicher Vollzugsaufwand durch die Führung des Testfallregisters und die Erstellung gemeinsamer Prüfberichte. Der Aufwand wird im Rahmen der vorhandenen Personal- und Sachmittel aufgefangen; zusätzliche Stellen sind nicht erforderlich. Den Vertragsparteien entstehen keine über den bisherigen Rahmen hinausgehenden laufenden Kosten.",
+  "titel": "Entwurf eines Gesetzes zu der Zweiten Änderung des Übereinkommens vom 15. Mai 2026 über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)",
+  "typ": "Dokument",
+  "urheber": [
+    {
+      "bezeichnung": "BRg",
+      "einbringer": false,
+      "rolle": "undefiniert",
+      "titel": "Bundesregierung"
+    }
+  ],
+  "vorgangsbezug": [
+    {
+      "id": "600",
+      "titel": "Zweite Änderung des Übereinkommens über die Unittestcoverageprüfung im grenzüberschreitenden Rahmen (Zweites Spark-Workflow-Vertragsgesetz)",
+      "vorgangstyp": "Gesetzgebung"
+    }
+  ],
+  "vorgangsbezug_anzahl": 1,
+  "wahlperiode": 21
+}

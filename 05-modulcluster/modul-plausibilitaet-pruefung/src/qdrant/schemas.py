@@ -1,9 +1,13 @@
+"""Payload models exchanged with Qdrant and LLM prompt preparation."""
+
 from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class ClaimEntities(BaseModel):
+    """Structured semantic dimensions previously extracted for a claim."""
+
     space_factor: str
     reference_object: str
     reference_attribute: str
@@ -11,10 +15,14 @@ class ClaimEntities(BaseModel):
 
 
 class ClaimEvidence(BaseModel):
+    """Verbatim source quotes that support an extracted claim."""
+
     claim_quotes: list[str] | None = None
 
 
 class ClaimMetadata(BaseModel):
+    """Claim identity and text content nested inside the Qdrant payload."""
+
     claim_id: str = Field(description="Identifier of the claim")
     claim_content: str = Field(description="Content of the claim as free text")
     evidence: ClaimEvidence = Field(description="Sentences from the chunk supporting the claim")
@@ -35,18 +43,26 @@ class ClaimPayload(BaseModel):
 
     @property
     def claim_id(self) -> str:
+        """Expose the nested claim identifier as a top-level convenience property."""
+
         return self.claim_metadata.claim_id
 
     @property
     def claim_text(self) -> str:
+        """Expose the nested claim content used by screening prompts."""
+
         return self.claim_metadata.claim_content
 
     @property
     def evidence_sentences(self) -> list[str]:
+        """Return supporting quotes as an empty list when evidence is absent."""
+
         return self.claim_metadata.evidence.claim_quotes or []
 
 
 class ChunkPayload(BaseModel):
+    """Document chunk payload as stored by the upstream extraction pipeline."""
+
     project_id: str
     document_id: str
     title: str
@@ -96,14 +112,3 @@ class ClaimContext(BaseModel):
     chunk_id: str
     claim_text: str
     chunk_text: str
-
-
-class ParentChunkPayload(BaseModel):
-    project_id: str
-    document_id: str
-    chunk_id: str
-    page_content: str
-    page_numbers: list[int] = Field(default_factory=list)
-    title: str
-
-

@@ -1,0 +1,14 @@
+{{- if .Values.operator.enabled }}
+# update-graph ConfigMap tells the operator which image repository to use
+# when the SpiceDBCluster channel-based auto-upgrade selects a new version.
+# Source: repo/03-infrastructure-resources/tooling/spicedb-operator/k8s/overlays/production/update-graph.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: update-graph
+  namespace: {{ .Values.operator.namespace }}
+  labels:
+    {{- include "spicedb.labels" . | nindent 4 }}
+data:
+  imageName: {{ .Values.operator.updateGraph.spicedbImageName | quote }}
+{{- end }}

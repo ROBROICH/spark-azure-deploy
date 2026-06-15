@@ -1,9 +1,15 @@
 """HTTP client for docling-serve API communication.
 
-Prefers the async endpoint (/v1/convert/file/async) which processes conversions
-in a background worker, keeping docling-serve's health endpoint responsive.
-Falls back to the sync endpoint (/v1/convert/file) if the async endpoint is
-not available (HTTP 404/405).
+Provides three public methods:
+- convert_document: Monolithic submit+poll+fetch with sync fallback (legacy).
+- submit_document: Async-only submit, returns task_id. Raises on failure.
+- poll_and_fetch_result: Poll a submitted task, then fetch the result.
+
+The async endpoint (/v1/convert/file/async) processes conversions in a
+background worker, keeping docling-serve's health endpoint responsive.
+convert_document falls back to the sync endpoint (/v1/convert/file) if
+the async endpoint is not available (HTTP 404/405); the new split methods
+require the async endpoint and raise on 404/405.
 """
 
 import asyncio
@@ -15,12 +21,14 @@ from typing import Any
 import httpx
 
 from src.config import get_config
+from src.utils.keycloak_token import get_keycloak_token_provider
 
 logger = logging.getLogger(__name__)
 
 POLL_INTERVAL_SECONDS = 3
 MAX_NETWORK_ERRORS = 20
 MAX_SUBMIT_RETRIES = 3
+MAX_FETCH_RETRIES = 3
 SUBMIT_RETRY_DELAY = 10
 _RETRYABLE_STATUS_CODES = {502, 503, 504}
 
@@ -30,12 +38,28 @@ _RETRYABLE_STATUS_CODES = {502, 503, 504}
 _SHORT_TIMEOUT = httpx.Timeout(90.0, connect=30.0)
 
 
+class DoclingTaskLostError(RuntimeError):
+    """Raised when a docling task_id returns 404 — pod likely restarted."""
+
+    def __init__(self, task_id: str) -> None:
+        self.task_id = task_id
+        super().__init__(f"docling-serve task lost — pod likely restarted (task_id={task_id})")
+
+
 class DoclingApiClient:
     """Handles HTTP communication with docling-serve API."""
 
     def __init__(self, base_url: str, timeout: int) -> None:
         self.base_url = base_url
         self.timeout = timeout
+
+    async def _get_auth_headers(self) -> dict[str, str]:
+        """Get authorization headers if Keycloak is configured."""
+        token_provider = get_keycloak_token_provider()
+        if token_provider is None:
+            return {}
+        token = await token_provider.get_token()
+        return {"Authorization": f"Bearer {token}"}
 
     def _form_data(self) -> dict[str, Any]:
         """Shared form data for both sync and async endpoints."""
@@ -81,6 +105,7 @@ class DoclingApiClient:
         """
 
         def _log(msg: str) -> None:
+            """Log a message to both the module logger and the optional callback."""
             logger.info(msg)
             if log_fn:
                 log_fn(msg)
@@ -103,6 +128,62 @@ class DoclingApiClient:
             await self._poll_until_done(client, task_id, heartbeat_fn, _log)
 
             # Fetch result
+            return await self._fetch_result(client, task_id)
+
+    async def submit_document(
+        self,
+        pdf_bytes: bytes,
+        pdf_filename: str,
+        log_fn: Callable[[str], None] | None = None,
+        heartbeat_fn: Callable[[str], None] | None = None,
+    ) -> str:
+        """Submit a document for async conversion (does NOT poll).
+
+        Always uses the async endpoint. Requires docling-serve to support
+        the /v1/convert/file/async endpoint.
+
+        Raises:
+            RuntimeError: If all submit retries fail or async endpoint unavailable.
+        """
+        _log = log_fn or logger.info
+
+        # 120s keeps the upload well within the 2-minute heartbeat timeout.
+        upload_timeout = httpx.Timeout(120.0, connect=30.0)
+        async with httpx.AsyncClient(
+            timeout=upload_timeout,
+            limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
+        ) as client:
+            task_id = await self._submit_with_retries(client, pdf_bytes, pdf_filename, _log, heartbeat_fn)
+            if task_id is None:
+                raise RuntimeError(
+                    f"docling-serve async endpoint unavailable (404/405) for '{pdf_filename}'. "
+                    f"The async endpoint is required — ensure docling-serve supports /v1/convert/file/async."
+                )
+            return task_id
+
+    async def poll_and_fetch_result(
+        self,
+        task_id: str,
+        heartbeat_fn: Callable[[str], None] | None = None,
+        log_fn: Callable[[str], None] | None = None,
+    ) -> dict[str, Any]:
+        """Poll a previously submitted task until done, then fetch the result.
+
+        Raises:
+            DoclingTaskLostError: If the task returns 404 (pod restarted).
+            RuntimeError: For other failures (timeout, conversion error, fetch failure).
+        """
+        if not task_id:
+            raise ValueError("task_id must be a non-empty string")
+
+        _log = log_fn or logger.info
+
+        async_timeout = httpx.Timeout(300.0, connect=30.0)
+        async with httpx.AsyncClient(
+            timeout=async_timeout,
+            limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
+        ) as client:
+            await self._poll_until_done(client, task_id, heartbeat_fn, _log)
             return await self._fetch_result(client, task_id)
 
     # ------------------------------------------------------------------
@@ -171,6 +252,7 @@ class DoclingApiClient:
         """Submit a document for async conversion. Returns the task_id."""
         response = await client.post(
             f"{self.base_url}/v1/convert/file/async",
+            headers=await self._get_auth_headers(),
             files={"files": (pdf_filename, pdf_bytes, "application/pdf")},
             data=self._form_data(),
         )
@@ -210,6 +292,7 @@ class DoclingApiClient:
             try:
                 response = await client.get(
                     f"{self.base_url}/v1/status/poll/{task_id}",
+                    headers=await self._get_auth_headers(),
                     timeout=_SHORT_TIMEOUT,
                 )
             except httpx.TransportError as e:
@@ -240,7 +323,7 @@ class DoclingApiClient:
             consecutive_http_errors = 0
 
             if response.status_code == 404:
-                raise RuntimeError(f"docling-serve task lost — pod likely restarted (task_id={task_id})")
+                raise DoclingTaskLostError(task_id)
             response.raise_for_status()
 
             data = response.json()
@@ -268,19 +351,20 @@ class DoclingApiClient:
         """
         last_error: Exception | None = None
 
-        for attempt in range(1, MAX_SUBMIT_RETRIES + 1):
+        for attempt in range(1, MAX_FETCH_RETRIES + 1):
             try:
                 response = await client.get(
                     f"{self.base_url}/v1/result/{task_id}",
+                    headers=await self._get_auth_headers(),
                     timeout=_SHORT_TIMEOUT,
                 )
                 if response.status_code in _RETRYABLE_STATUS_CODES:
                     last_error = RuntimeError(f"HTTP {response.status_code}")
                     logger.warning(
-                        f"Fetch attempt {attempt}/{MAX_SUBMIT_RETRIES} "
+                        f"Fetch attempt {attempt}/{MAX_FETCH_RETRIES} "
                         f"got HTTP {response.status_code} for task {task_id}"
                     )
-                    if attempt < MAX_SUBMIT_RETRIES:
+                    if attempt < MAX_FETCH_RETRIES:
                         await asyncio.sleep(SUBMIT_RETRY_DELAY)
                     continue
                 response.raise_for_status()
@@ -288,13 +372,13 @@ class DoclingApiClient:
             except httpx.TransportError as e:
                 last_error = e
                 logger.warning(
-                    f"Fetch attempt {attempt}/{MAX_SUBMIT_RETRIES} failed for task {task_id}: {type(e).__name__}: {e}"
+                    f"Fetch attempt {attempt}/{MAX_FETCH_RETRIES} failed for task {task_id}: {type(e).__name__}: {e}"
                 )
-                if attempt < MAX_SUBMIT_RETRIES:
+                if attempt < MAX_FETCH_RETRIES:
                     await asyncio.sleep(SUBMIT_RETRY_DELAY)
 
         raise RuntimeError(
-            f"docling-serve fetch failed after {MAX_SUBMIT_RETRIES} attempts "
+            f"docling-serve fetch failed after {MAX_FETCH_RETRIES} attempts "
             f"(task_id={task_id}): {type(last_error).__name__}"
         )
 
@@ -318,12 +402,14 @@ class DoclingApiClient:
         timeout = httpx.Timeout(float(self.timeout), connect=30.0)
 
         async def _do_post() -> httpx.Response:
+            """Send the synchronous conversion request to docling-serve."""
             async with httpx.AsyncClient(
                 timeout=timeout,
                 limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
             ) as client:
                 response = await client.post(
                     f"{self.base_url}/v1/convert/file",
+                    headers=await self._get_auth_headers(),
                     files={"files": (pdf_filename, pdf_bytes, "application/pdf")},
                     data=self._form_data(),
                 )

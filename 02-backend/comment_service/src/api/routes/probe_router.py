@@ -24,8 +24,7 @@ probe_router = APIRouter(tags=["probes"])
     response_model=CheckResponse,
     response_model_exclude_unset=True,
 )
-def health_check():
-    """Simple health check endpoint."""
+def health_check() -> CheckResponse:
     return CheckResponse(status="ok")
 
 
@@ -36,10 +35,7 @@ def health_check():
 )
 async def readiness_check(
     db: AsyncSession = Depends(get_db_session),
-):
-    """
-    Readiness probe: verifies database connectivity.
-    """
+) -> JSONResponse | CheckResponse:
     if not app_state.startup_complete:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -49,7 +45,6 @@ async def readiness_check(
             ).model_dump(),
         )
 
-    # Database check
     try:
         await db.execute(text("SELECT 1"))
     except Exception as e:
@@ -75,11 +70,7 @@ async def readiness_check(
     response_model=CheckResponse,
     response_model_exclude_unset=True,
 )
-async def startup_check():
-    """Startup probe: signals when application initialization is complete.
-
-    Kubernetes will delay liveness/readiness probes until this succeeds.
-    """
+async def startup_check() -> JSONResponse | CheckResponse:
     if app_state.startup_complete:
         return CheckResponse(status="ok")
 

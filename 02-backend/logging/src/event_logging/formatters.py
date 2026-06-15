@@ -1,6 +1,6 @@
-from abc import ABC, abstractmethod
 import json
-from typing import Any
+from abc import ABC, abstractmethod
+from typing import Any, ClassVar
 
 
 class LogFormatter(ABC):
@@ -22,12 +22,12 @@ class JsonFormatter(LogFormatter):
 class PrettyFormatter(LogFormatter):
     """Human-readable format for local development with colors."""
 
-    COLORS = {
-        "debug": "\033[37m",    # White
-        "info": "\033[34m",     # Blue
-        "warn": "\033[33m",     # Yellow
-        "error": "\033[31m",    # Red
-        "fatal": "\033[1;31m",  # Bold Red
+    COLORS: ClassVar[dict[str, str]] = {
+        "debug": "\033[37m",
+        "info": "\033[34m",
+        "warn": "\033[33m",
+        "error": "\033[31m",
+        "fatal": "\033[1;31m",
     }
     RESET = "\033[0m"
 

@@ -1,0 +1,53 @@
+{
+  "pageTitle": "Redaction Agent",
+  "start": {
+    "warning": {
+      "title": "Test environment - Use fictitious data!",
+      "body": "This application is in a test and development environment and is not approved for processing real personal data. Please do not upload real personal or sensitive information. Instead, use generated test data for fictitious people."
+    },
+    "notes": {
+      "heading": "How it works:",
+      "categories": "The redaction agent automatically identifies selected categories of personal data: names of natural persons, postal addresses, telephone/fax numbers, email addresses, dates of birth, personal identifiers (e.g. customer, insurance, tax numbers), payment information, and named identifiable function holders at specific companies, authorities, or organizations.",
+      "images": "Personal data in embedded images is not redacted.",
+      "verification": "The results must always be verified by a human review before the redacted document is processed further or shared. The AI can miss or misclassify content."
+    }
+  },
+  "upload": {
+    "dropZoneTitle": "Upload document for redaction",
+    "dropZoneDescription": "Please select a file or drag it into the designated area to perform automated redaction of sensitive content.",
+    "formatHint": "Supported format: PDF up to 100 MB",
+    "chooseFile": "Choose file",
+    "removeFile": "Remove file",
+    "fileInputLabel": "Select PDF for redaction",
+    "pdfOnlyError": "Please upload a PDF file.",
+    "fileTooLargeError": "PDF files must not exceed 100 MB."
+  },
+  "processing": {
+    "heading": "Redaction in progress ...",
+    "description": "{{filename}} is being processed. Sensitive content is being automatically detected and redacted.",
+    "progressLabel": "Redaction progress",
+    "remainingTime": "Estimated time remaining: approx. {{count}} min",
+    "almostDone": "Redaction is taking longer than expected. The process is still running.",
+    "error": "Redaction could not be completed. Please try again.",
+    "cancel": "Cancel",
+    "highLoadLabel": "System load {{load}}",
+    "highLoadTooltip": "Processing may take longer during high system load because multiple AI workflows are running in parallel.",
+    "highLoadTooltipAriaLabel": "System load information"
+  },
+  "success": {
+    "heading": "File successfully redacted",
+    "description": "{{filename}} is ready for download.",
+    "redactedFilenameSuffix": "_redacted",
+    "download": "Download file",
+    "newFile": "Redact new file",
+    "confirmDialog": {
+      "title": "Redact new file",
+      "body": "If you continue, your current redacted document will be discarded and can no longer be downloaded.\n\nMake sure you have downloaded the file first.",
+      "cancel": "Cancel",
+      "confirm": "Continue"
+    },
+    "downloadError": "The redacted file could not be loaded. Please try again.",
+    "downloadPreparing": "Preparing download.",
+    "retryDownload": "Try again"
+  }
+}

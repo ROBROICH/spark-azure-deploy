@@ -1,0 +1,16 @@
+export {
+  buildProjectNodeIndex,
+  countDescendantsByType,
+  countNodesByType,
+  getChildNodes,
+  getDescendantIds,
+  getDescendantNodeRefs,
+  getDescendantNodeRefsByType,
+  getFirstDescendantNodeRefByType,
+  getNode,
+  getNodesByType,
+  getRootNodeIds,
+  hasDescendantByType,
+  hasNode,
+  type ProjectNodeIndex,
+} from './projectNodeIndex';

@@ -46,24 +46,24 @@ async def sliding_window(
 
     # Seed the initial window
     for _ in range(min(concurrency, len(items))):
-        task = asyncio.ensure_future(fn(items[next_i]))
-        in_flight[task] = items[next_i]
+        t = asyncio.ensure_future(fn(items[next_i]))
+        in_flight[t] = items[next_i]
         next_i += 1
 
     # Drain: as each task completes, backfill from remaining items
     while in_flight:
         done, _ = await workflow.wait(in_flight.keys(), return_when=asyncio.FIRST_COMPLETED)
-        for completed in done:
-            item = in_flight.pop(completed)
+        for t in done:
+            item = in_flight.pop(t)
             try:
-                ok.append(completed.result())
+                ok.append(t.result())
             except Exception:
                 failed.append(item)
 
             # Backfill
             if next_i < len(items):
-                new_task = asyncio.ensure_future(fn(items[next_i]))
-                in_flight[new_task] = items[next_i]
+                nt = asyncio.ensure_future(fn(items[next_i]))
+                in_flight[nt] = items[next_i]
                 next_i += 1
 
     return ok, failed

@@ -12,7 +12,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
 
-from src.exceptions.exceptions import NotFoundError, OperationFailedError
+from src.exceptions.exceptions import NotFoundError
 from src.utils.logger import logger
 
 
@@ -26,7 +26,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     """Register global exception handlers so routes can stay lean."""
 
     @app.exception_handler(NotFoundError)
-    async def handle_not_found_error(request: Request, exc: NotFoundError):
+    async def handle_not_found_error(request: Request, exc: NotFoundError) -> JSONResponse:
         logger.warn(
             action=EventAction.READ,
             outcome=EventOutcome.FAILURE,
@@ -40,7 +40,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(FileNotFoundError)
-    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError):
+    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError) -> JSONResponse:
         logger.warn(
             action=EventAction.READ,
             outcome=EventOutcome.FAILURE,
@@ -54,7 +54,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(IntegrityError)
-    async def handle_integrity_error(request: Request, exc: IntegrityError):
+    async def handle_integrity_error(request: Request, exc: IntegrityError) -> JSONResponse:
         logger.error(
             action=EventAction.WRITE,
             outcome=EventOutcome.FAILURE,
@@ -64,15 +64,11 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(
             status_code=status.HTTP_409_CONFLICT,
-            content={
-                "detail": _detail_from_exception(
-                    exc, "Resource conflict during database operation"
-                )
-            },
+            content={"detail": _detail_from_exception(exc, "Resource conflict during database operation")},
         )
 
     @app.exception_handler(ValueError)
-    async def handle_value_error(request: Request, exc: ValueError):
+    async def handle_value_error(request: Request, exc: ValueError) -> JSONResponse:
         logger.warn(
             action=EventAction.VALIDATE,
             outcome=EventOutcome.FAILURE,
@@ -85,26 +81,8 @@ def register_exception_handlers(app: FastAPI) -> None:
             content={"detail": _detail_from_exception(exc, "Bad request")},
         )
 
-    @app.exception_handler(OperationFailedError)
-    async def handle_operation_failed_error(
-        request: Request, exc: OperationFailedError
-    ):
-        logger.error(
-            action=EventAction.ACCESS,
-            outcome=EventOutcome.FAILURE,
-            category=EventCategory.API,
-            default_event=LogEventDefault.GENERAL,
-            message=f"OperationFailedError on {request.url.path}: {exc}",
-        )
-        return JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={
-                "detail": _detail_from_exception(exc, "Operation failed unexpectedly")
-            },
-        )
-
     @app.exception_handler(Exception)
-    async def handle_generic_exception(request: Request, exc: Exception):
+    async def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
         logger.error(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,

@@ -1,0 +1,213 @@
+{
+  "MvpPage": {
+    "sectionAriaLabel": "MVP review view",
+    "documentsGroupAriaLabel": "Documents and findings",
+    "primaryGroupAriaLabel": "Documents and legal basis"
+  },
+  "BackButtonBar": {
+    "backAriaLabel": "Back to overview",
+    "progress": "{{done}} of {{total}} norms checked",
+    "toggleLaneOrderAriaLabel": "Change the order of documents and legal basis",
+    "toggleLaneOrderFallback": "View",
+    "documentsFirst": "Documents first",
+    "rechtsgrundlageFirst": "Legal basis first"
+  },
+  "DocumentsPanel": {
+    "tabs": {
+      "dokumente": "Documents",
+      "fundstellen": "Findings"
+    },
+    "panelAriaLabel": "Left panel"
+  },
+  "DocumentsTabContent": {
+    "documentsRootLabel": "Documents",
+    "documentsGesichtet": "{{done}} of {{total}} documents viewed",
+    "documentsGesichtetTooltip": "Check off documents you have already viewed in the list. This progress is only stored visibly for you."
+  },
+  "DocumentItem": {
+    "aiSupportLabel": "AI support",
+    "aiSupportDescription": "This document contains AI findings.",
+    "aiSupportDescriptionForNorm": "This document contains AI references for the selected norm {{norm}}.",
+    "sichten": "View",
+    "gesichtet": "Viewed"
+  },
+  "FundstellenTabContent": {
+    "keinDokument": "No document",
+    "referencesTitle": "AI references",
+    "infoAriaLabel": "Information about AI references",
+    "emptyStateCta": "Select a document, a norm, or both to display matching AI references.",
+    "noResults": "No AI references were found for this selection.",
+    "missingTitlePlaceholder": "Cover page / table / image",
+    "removeSelectionAriaLabel": "Remove selection: {{label}}",
+    "externalDocumentAriaLabel": "Document outside the topic",
+    "externalDocumentTooltip": "This document is not part of the current topic, but it contains AI references for the selected norm.",
+    "externalNormAriaLabel": "Norm outside the legal basis",
+    "externalNormTooltip": "This norm is not part of the current legal basis, but it contains AI references in the selected document.",
+    "empty": {
+      "line1": "AI-generated references are shown here when a document or a norm is selected.",
+      "line2": "The AI scans the documents for text passages that are substantively relevant to the respective legal-basis norms and presents them as references.",
+      "line3": "Select a document, a norm, or both to display matching AI references."
+    },
+    "selectedDocument": {
+      "line1End": " is selected.",
+      "line2": "AI references for all norms in this topic are shown.",
+      "line3": "Select a norm as well to narrow the displayed references to that norm."
+    },
+    "selectedNorm": {
+      "line1End": " is selected.",
+      "line2": "AI references from all related documents are shown.",
+      "line3": "Select a document as well to show only references from that document."
+    },
+    "selectedDocumentAndNorm": {
+      "line1Between": " and ",
+      "line1End": " are selected.",
+      "line2Start": "AI references are shown that relate to ",
+      "line2Middle": " and are contained in ",
+      "line2End": "."
+    }
+  },
+  "FundstellenNormGroupCard": {
+    "externalTooltip": "This norm is not part of the current legal basis, but it contains AI references in the selected document.",
+    "refresh": "Refresh",
+    "outdated": "Outdated",
+    "outdatedTooltipTitle": "AI result outdated",
+    "outdatedTooltipDescription": "The document version has changed. Refresh the AI result to account for the new state.",
+    "outdatedTooltipInstruction": "Click refresh to update the AI results.",
+    "outdatedTooltipClose": "Close notice",
+    "showVersions": "Show versions",
+    "fundstelleAriaLabel": "{{title}}, page {{page}}",
+    "pageNumber": "p. {{page}}",
+    "showMore": "Show {{count}} more",
+    "showLess": "Show less"
+  },
+  "FundstellenDocumentGroupCard": {
+    "externalTooltip": "This document is not part of the current topic, but it contains AI references for the selected norm.",
+    "outdated": "Outdated",
+    "outdatedTooltipTitle": "AI result outdated",
+    "outdatedTooltipDescription": "The document version has changed. Refresh the AI result to account for the new state.",
+    "outdatedTooltipClose": "Close notice",
+    "showVersions": "Show versions",
+    "fundstelleAriaLabel": "{{title}}, page {{page}}",
+    "pageNumber": "p. {{page}}",
+    "showMore": "Show {{count}} more",
+    "showLess": "Show less"
+  },
+  "FundstellenSelectedReferenceCard": {
+    "pageNumber": "p. {{page}}"
+  },
+  "FundstellenOutdatedTrigger": {
+    "title": "AI references outdated",
+    "body": "The document version has changed. Refresh the AI references to account for the new state.",
+    "refresh": "Refresh",
+    "refreshLoading": "Refresh running",
+    "showVersions": "Show versions"
+  },
+  "NormCardItem": {
+    "moreActions": "More actions",
+    "nachfordern": "Request more",
+    "addComment": "Add comment",
+    "normTextAnzeigen": "Show norm text",
+    "normEntfernen": "Remove norm",
+    "normTextAriaLabel": "Show norm text: {{paragraphRef}} {{title}}",
+    "normSelectionAriaLabel": "Select norm: {{paragraphRef}} {{title}}",
+    "aiSupportLabel": "AI support",
+    "aiSupportDescription": "This norm has AI supported references.",
+    "aiSupportDescriptionForDocument": "The selected document {{document}} contains AI references for this norm.",
+    "manualNormTooltip": "This norm was added manually.",
+    "loadingTooltip": "This norm is currently being loaded by AI.",
+    "startAiAnalysis": "Start AI",
+    "startAiAnalysisLoading": "AI running",
+    "updateAiAnalysis": "Update",
+    "startAiAnalysisMissingTbmTooltip": "This norm has no legal criteria.",
+    "startAiAnalysisError": "The AI analysis could not be started.",
+    "pruefen": "Review",
+    "erneutPruefen": "Review again",
+    "geprueft": "Reviewed"
+  },
+  "NormTextView": {
+    "backAriaLabel": "Back to legal basis list",
+    "normTextRegionAriaLabel": "Norm text",
+    "pruefen": "Review",
+    "geprueft": "Reviewed"
+  },
+  "AiRefresh": {
+    "startAiAnalysisError": "The AI refresh could not be started."
+  },
+  "RechtsgrundlagePanel": {
+    "title": "Legal basis",
+    "normenGeprueft": "{{done}} of {{total}} norms reviewed"
+  },
+  "FundstellenFeedbackDialog": {
+    "title": "Feedback",
+    "ratingQuestion": "Are you satisfied or dissatisfied with the AI result?",
+    "bewertung": "Rating",
+    "zufrieden": "Satisfied",
+    "unzufrieden": "Dissatisfied",
+    "qualityQuestion": "How do you rate the AI result?",
+    "quality": {
+      "ergebnisKorrekt": "Result is correct",
+      "ergebnisTeilweiseKorrekt": "Result is partially correct",
+      "sinnvollerAnhaltspunkt": "Provides a useful starting point",
+      "beschleunigtWeiterarbeit": "Speeds up further work",
+      "inhaltHilfreich": "Content is helpful"
+    },
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Feedback content",
+    "feedbackVisibilityNote": "Others can see the feedback.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "thumbsUpAriaLabel": "Give positive feedback",
+    "thumbsDownAriaLabel": "Give negative feedback"
+  },
+  "FeedbackDialog": {
+    "title": "Feedback",
+    "ratingQuestion": "Are you satisfied or dissatisfied with the AI result?",
+    "zufrieden": "Satisfied",
+    "unzufrieden": "Dissatisfied",
+    "qualityQuestion": "How do you rate the AI result?",
+    "reason": {
+      "RESULT_CORRECT": "Result is correct",
+      "RESULT_PARTIAL": "Result is partially correct",
+      "USEFUL_HINT": "Provides a useful starting point",
+      "ACCELERATES_WORK": "Speeds up further work",
+      "CONTENT_HELPFUL": "Content is helpful",
+      "RESULT_NOT_CORRECT": "Result is incorrect",
+      "WRONG_CONTEXT": "Refers to another context",
+      "QUESTION_MISMATCH": "Does not match the question",
+      "TOO_GENERAL": "Content is too general",
+      "TOO_SPECIFIC": "Content is too specific"
+    },
+    "feedbackLabel": "Feedback",
+    "feedbackPlaceholder": "Feedback content",
+    "feedbackVisibilityNote": "Others can see the feedback.",
+    "cancel": "Cancel",
+    "save": "Save",
+    "reasonRequired": "Please select a reason or quality option.",
+    "textMaxLength": "Feedback must be at most {{max}} characters.",
+    "loadingDescription": "Feedback dialog is loading.",
+    "delete": "Delete feedback",
+    "confirmDelete": "Confirm?",
+    "errors": {
+      "saveFailed": "Feedback could not be saved.",
+      "deleteFailed": "Feedback could not be deleted."
+    }
+  },
+  "RechtsgrundlageDialog": {
+    "title": "Edit legal basis",
+    "description": "The legal bases contain “starting norms” according to the authority-specific configuration that may be relevant to the current topic. Review them in relation to the matter at hand and edit or add further norms as needed.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "selectedCount": "{{count}} selected",
+    "groupCheckboxSelectAriaLabel": "Select all norms in {{lawGroup}}",
+    "groupCheckboxDeselectAriaLabel": "Deselect all norms in {{lawGroup}}",
+    "groupCheckboxSelectHint": "Activating also selects {{count}} related norms.",
+    "groupCheckboxDeselectHint": "Deactivating also deselects {{count}} related norms.",
+    "normCheckboxSelectAriaLabel": "Select {{norm}}",
+    "normCheckboxDeselectAriaLabel": "Deselect {{norm}}",
+    "openAriaLabel": "Edit legal basis",
+    "errors": {
+      "missingLawReference": "At least one selected norm cannot be saved without a linked law.",
+      "saveFailed": "The changes could not be saved."
+    }
+  }
+}

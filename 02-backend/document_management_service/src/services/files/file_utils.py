@@ -1,4 +1,6 @@
+import csv
 from collections.abc import Sequence
+from io import StringIO
 from pathlib import Path
 
 import puremagic
@@ -42,8 +44,7 @@ def validate_mime_type_allowed(
     if mime_type not in allowed_types:
         allowed_list = list(allowed_types)
         raise FileInvalidFileTypeError(
-            f"MIME type '{mime_type}' is not supported. "
-            f"Allowed types: {', '.join(sorted(allowed_list))}"
+            f"MIME type '{mime_type}' is not supported. Allowed types: {', '.join(sorted(allowed_list))}"
         )
     return mime_type
 
@@ -70,16 +71,50 @@ def validate_file_type_by_extension(
     if extension not in allowed_extensions:
         allowed_list = list(allowed_extensions.keys())
         raise FileInvalidFileExtensionError(
-            f"File type '{extension}' is not supported. "
-            f"Allowed types: {', '.join(sorted(allowed_list))}"
+            f"File type '{extension}' is not supported. Allowed types: {', '.join(sorted(allowed_list))}"
         )
 
     return allowed_extensions[extension]
 
 
+def _validate_csv_content(content: bytes) -> None:
+    """
+    Validate that raw bytes are plausible CSV content.
+
+    CSV has no magic bytes, so content sniffing cannot identify it. Instead
+    the bytes are checked structurally: non-empty, no NUL bytes, valid UTF-8
+    (BOM tolerated), and a non-empty header row.
+
+    Args:
+        content: Raw file bytes.
+
+    Raises:
+        FileInvalidFileTypeError: If the content is not plausible CSV.
+    """
+    if not content:
+        raise FileInvalidFileTypeError("CSV file is empty and is not allowed.")
+
+    if b"\x00" in content:
+        raise FileInvalidFileTypeError("CSV file appears to contain binary data and is not allowed.")
+
+    try:
+        text = content.decode("utf-8-sig")
+    except UnicodeDecodeError as exc:
+        raise FileInvalidFileTypeError("CSV file must be valid UTF-8 text.") from exc
+
+    try:
+        first_row = next(csv.reader(StringIO(text)))
+    except StopIteration as exc:
+        raise FileInvalidFileTypeError("CSV file is empty and is not allowed.") from exc
+
+    if not any(cell.strip() for cell in first_row):
+        raise FileInvalidFileTypeError("CSV file must contain a non-empty header row.")
+
+
 def validate_file_by_content_bytes(
     content: bytes,
     allowed_mime_types: Sequence[str] | set[str],
+    expected_mime_type: str | None = None,
 ) -> None:
     """
     Validate file type directly from raw bytes.
@@ -87,6 +122,7 @@ def validate_file_by_content_bytes(
     Args:
         content: Raw file bytes.
         allowed_mime_types: Set/list of allowed MIME types.
+        expected_mime_type: Optional MIME type inferred from the file extension.
 
     Raises:
         FileInvalidFileTypeError: If the detected file type is not allowed.
@@ -103,24 +139,24 @@ def validate_file_by_content_bytes(
             raw = content[len(bom) :]
             break
     if raw[:2] == b"#!":
-        raise FileInvalidFileTypeError(
-            "File appears to be a script (starts with #!) and is not allowed."
-        )
+        raise FileInvalidFileTypeError("File appears to be a script (starts with #!) and is not allowed.")
+
+    if expected_mime_type == "text/csv" and "text/csv" in mime_types:
+        _validate_csv_content(content)
+        return
 
     try:
         detected_mime_type = puremagic.from_string(
             string=content,
             mime=True,
         )
-    except Exception as e:
+    except (puremagic.PureError, ValueError) as e:
         raise FileInvalidFileTypeError(
-            f"File type could not be determined and is not allowed. "
-            f"Allowed types: {', '.join(sorted(mime_types))}"
+            f"File type could not be determined and is not allowed. Allowed types: {', '.join(sorted(mime_types))}"
         ) from e
 
     # Validate
     if detected_mime_type not in mime_types:
         raise FileInvalidFileTypeError(
-            f"File type '{detected_mime_type}' is not allowed. "
-            f"Allowed types: {', '.join(sorted(mime_types))}"
+            f"File type '{detected_mime_type}' is not allowed. Allowed types: {', '.join(sorted(mime_types))}"
         )

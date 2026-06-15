@@ -1,0 +1,4 @@
+interface:
+  display_name: "FE With Nodes"
+  short_description: "Wire node-backed frontend features cleanly."
+  default_prompt: "Use this skill when wiring backend nodes into frontend UI."

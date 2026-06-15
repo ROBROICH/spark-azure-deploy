@@ -1,9 +1,5 @@
 # src/workflows/schwerpunkt/prompt.py
-"""Prompts for the Schwerpunkt extraction workflow.
-
-Note: All examples in this file use entirely fictional names, locations, and data.
-They do not refer to any real infrastructure project, company, or municipality.
-"""
+"""Prompts for the Schwerpunkt extraction workflow."""
 
 # --- Shared prompt sections ---
 
@@ -62,12 +58,12 @@ Mit Beschluss der Ratsversammlung vom 30.10.2019 wurde für die Gemeinde X der K
 
 **Bekannte Kapitelüberschriften im Dokument:**
 "2 Vorhabenbegründung und Planrechtfertigung",
-"2.1 Nordwind Infrastruktur GmbH als Vorhabenträgerin",
+"2.1 Energie GmbH als Vorhabenträgerin",
 "2.2 Vorhabenbegründung",
 "2.3 Planrechtfertigung",
-"2.3.1 Regionale Energieversorgung durch erneuerbare Energien",
-"2.3.2 Netzanbindung und Einspeisung ins Verbundnetz",
-"2.3.3 Trassenplanung der Erdkabelverbindung",
+"2.3.1 Regionale Energieversorgung durch Offshore-Windkraft",
+"2.3.2 Netzanbindung und Einspeisung in das Übertragungsnetz",
+"2.3.3 Trassenplanung der Seekabelverbindung",
 "2.4 Verfahrensstand verbundener Vorhaben",
 "2.5 Klimaschutz"
 
@@ -88,7 +84,7 @@ Die Bundesregierung legte mit der Änderung des Klimaschutzgesetzes einen wichti
 **Bekannte Kapitelüberschriften im Dokument:**
 
 
-**Text:** "Die vorliegende Planung wurde durch die Mitarbeiter der Nordwind Infrastruktur GmbH erstellt."
+**Text:** "Die vorliegende Planung wurde durch die Mitarbeiter der Energie GmbH erstellt."
 
 **Antwort:**
 {{
@@ -103,22 +99,22 @@ Die Bundesregierung legte mit der Änderung des Klimaschutzgesetzes einen wichti
 
 **Bekannte Kapitelüberschriften im Dokument:**
 "2 Vorhabenbegründung und Planrechtfertigung",
-"2.1 Nordwind Infrastruktur GmbH als Vorhabenträgerin",
+"2.1 Energie GmbH als Vorhabenträgerin",
 "2.2 Vorhabenbegründung",
 "2.3 Planrechtfertigung",
-"2.3.1 Regionale Energieversorgung durch erneuerbare Energien",
-"2.3.2 Netzanbindung und Einspeisung ins Verbundnetz",
-"2.3.3 Trassenplanung der Erdkabelverbindung",
+"2.3.1 Regionale Energieversorgung durch Offshore-Windkraft",
+"2.3.2 Netzanbindung und Einspeisung in das Übertragungsnetz",
+"2.3.3 Trassenplanung der Seekabelverbindung",
 "2.4 Verfahrensstand verbundener Vorhaben",
 "2.5 Klimaschutz"
 
 **Text:** "# Vorhabenbegründung und Planrechtfertigung 12
-2.1 Nordwind Infrastruktur GmbH als Vorhabenträgerin 12
+2.1 Energie GmbH als Vorhabenträgerin 12
 2.2 Vorhabenbegründung 15
 2.3 Planrechtfertigung 18
-2.3.1 Regionale Energieversorgung durch erneuerbare Energien 18
-2.3.2 Netzanbindung und Einspeisung ins Verbundnetz 20
-2.3.3 Trassenplanung der Erdkabelverbindung 22
+2.3.1 Regionale Energieversorgung durch Offshore-Windkraft 18
+2.3.2 Netzanbindung und Einspeisung in das Übertragungsnetz 20
+2.3.3 Trassenplanung der Seekabelverbindung 22
 2.4 Verfahrensstand verbundener Vorhaben 24
 2.5 Klimaschutz 25"
 
@@ -153,7 +149,7 @@ Die Bundesregierung legte mit der Änderung des Klimaschutzgesetzes einen wichti
 
 **Bekannte Kapitelüberschriften im Dokument:**
 "2 Vorhabenbegründung und Planrechtfertigung",
-"2.1 Nordwind Infrastruktur GmbH als Vorhabenträgerin",
+"2.1 Energie GmbH als Vorhabenträgerin",
 "2.2 Vorhabenbegründung",
 "2.3 Planrechtfertigung"
 

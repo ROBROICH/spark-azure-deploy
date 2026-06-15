@@ -1,4 +1,3 @@
-ARG INCLUDE_DEPENDENCIES=prod
 ARG BASE_IMAGE_DEV=python:3.13-slim
 ARG BASE_IMAGE=python:3.13-slim
 
@@ -30,8 +29,7 @@ ENV UV_PROJECT_ENVIRONMENT=/app/.venv \
     UV_LINK_MODE=copy \
     UV_FROZEN=1
 
-# -------------------------------------------------------------
-FROM builder AS deps-prod
+FROM builder AS deps
 
 WORKDIR /src
 
@@ -40,23 +38,10 @@ COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --no-install-workspace --all-extras --no-dev --package 2-inhaltsextraktion-und-suche
 
-FROM deps-prod AS deps-dev
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-install-workspace --only-group dev --inexact
-
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --no-install-workspace --all-extras --inexact --package 2-inhaltsextraktion-und-suche -v
-
-# -------------------------------------------------------------
-FROM deps-${INCLUDE_DEPENDENCIES} AS selected-deps
-
-WORKDIR /src
-
 COPY . .
 
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --all-extras --inexact --package 2-inhaltsextraktion-und-suche
+    uv sync --all-extras --no-dev --inexact --package 2-inhaltsextraktion-und-suche
 
 FROM ${BASE_IMAGE} AS final
 
@@ -66,17 +51,11 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" \
     SKIP_DOTENV=true
 
-
-
-COPY --from=selected-deps /app/.venv /app/.venv
-
+COPY --from=deps /app/.venv /app/.venv
 # pre-cache tiktoken encoding
-ENV TIKTOKEN_CACHE_DIR=/tmp/tiktoken_cache
 RUN ["python", "-c", "import tiktoken; tiktoken.get_encoding('cl100k_base')"]
-
+RUN ["python", "-c", "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('protectai/deberta-v3-base-prompt-injection-v2', revision='e6535ca4ce3ba852083e75ec585d7c8aeb4be4c5')"]
+RUN ["python", "-c", "from transformers import AutoTokenizer; AutoTokenizer.from_pretrained('openai/gpt-oss-120b', revision='8c0580383cb1e6a9157669336ade6797a024cd9a')"]
 COPY . .
-
-# UID 65532 -> non-root, this also works with distroless images
-USER 65532
-
+ENV TRANSFORMERS_OFFLINE=1
 CMD ["python", "05-modulcluster/modul-inhaltsextraktion/main.py"]

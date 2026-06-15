@@ -9,12 +9,30 @@
 !**/pyproject.toml
 
 
+# Workspace dependency sources (built from source via workspace = true)
+!02-backend/logging/src/**
+!04-shared-services/authentification/src/**
+!04-shared-services/node-crud
 .venv/**
 
 # Workspace and used shared libraries
 !02-backend/logging
+!04-shared-services/audit-client
+!04-shared-services/internal-auth/**
+!04-shared-services/temporal
+!04-shared-services/alembic-utils
+!04-shared-services/authentification
 
 # Allow module code
 !02-backend/project_logic_service/src/**
 !02-backend/project_logic_service/alembic.ini
 !02-backend/project_logic_service/README.md
+
+# Re-ignore Python junk everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

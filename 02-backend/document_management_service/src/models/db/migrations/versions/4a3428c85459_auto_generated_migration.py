@@ -16,7 +16,8 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
-    op.execute("ALTER TYPE filetypeenum ADD VALUE IF NOT EXISTS 'ZIP'")
+    with op.get_context().autocommit_block():
+        op.execute("ALTER TYPE filetypeenum ADD VALUE IF NOT EXISTS 'ZIP'")
 
 
 def downgrade() -> None:

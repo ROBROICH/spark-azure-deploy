@@ -1,12 +1,16 @@
-"""Hardcoded application config for manual tuning (dont use ENV. here)."""
+"""Application config for manual tuning."""
 
 from dataclasses import dataclass
 
 from temporalio import workflow
 
+from src.env import ENV
+
 
 @dataclass(frozen=True)
 class Config:
+    """Frozen application configuration for processing, temporal, and model settings."""
+
     # Feature flags
     ENABLE_CACHING: bool = False
     ENABLE_SCHWERPUNKTTHEMA_EXTRACTION: bool = True
@@ -21,7 +25,6 @@ class Config:
 
     # Concurrency
     MAX_CONCURRENT_DMS_IMAGE_UPLOADS: int = 5
-    LLM_STRUCTURED_OUTPUT_TEMPERATURE: float = 0.1
     SCHWERPUNKT_BATCH_SIZE: int = 15
     SCHWERPUNKT_WORKFLOW_BATCH_SIZE: int = 15
     SCHWERPUNKT_CLASSIFICATION_BATCH_SIZE: int = 5
@@ -55,6 +58,9 @@ class Config:
     )
     CHUNKING_MAX_CHARACTERS: int = 2000
     PARENT_CHUNK_MAX_CHARACTERS: int = 30000
+    EWMS_CHUNK_MAX_TOKENS: int = 1500
+    EWMS_CHUNK_TOKENIZER_NAME: str = "openai/gpt-oss-120b"
+    EWMS_CHUNK_TOKENIZER_REVISION: str = "8c0580383cb1e6a9157669336ade6797a024cd9a"
     CHUNK_OVERLAP: int = 0
     PDF_SIZE_THRESHOLD_MB: int = 150
     PDF_PAGE_CHUNK_SIZE: int = 50
@@ -77,7 +83,7 @@ class Config:
     RASTER_FALLBACK_JPEG_QUALITY: int = 90
 
     # Business logic
-    SKIP_DOCUMENTS_BY_KEYWORDS: bool = True
+    SKIP_DOCUMENTS_BY_KEYWORDS: bool = False
     SKIPPED_DOCUMENT_KEYWORDS: tuple[str, ...] = (
         "Planfeststellungsbeschluss",
         "Planfeststellungsbesch",
@@ -107,8 +113,9 @@ class Config:
     FILTER_IMAGE_SIMILARITY_THRESHOLD: int = 8
 
     # Docling settings
-    DOCLING_TIMEOUT: int = 1800
-    DOCLING_OCR_ENGINE: str = "easyocr"
+    DOCLING_TIMEOUT: int = 3600  # 60 minutes (docling-serve max raised to 3600)
+    DOCLING_MAX_RESUBMIT_ATTEMPTS: int = 3
+    DOCLING_OCR_ENGINE: str = ENV.DOCLING_OCR_ENGINE
     DOCLING_OCR_LANG: tuple[str, ...] = ("de", "en")
     DOCLING_IMAGES_SCALE: float = 2.0
     DOCLING_TABLE_AS_HTML: bool = True
@@ -120,7 +127,9 @@ class Config:
     # Temporal workflow settings
     TEMPORAL_PROCESS_DOCUMENTS_SEQUENTIALLY: bool = True
     TEMPORAL_VLM_CHILD_WORKFLOW_BATCH_SIZE: int = 20
-    EXTRACTION_CHUNK_CONCURRENCY: int = 3
+    EXTRACTION_CHUNK_CONCURRENCY: int = ENV.EXTRACTION_CHUNK_CONCURRENCY
+    HYBRID_EXTRACTION_DOCLING_CONCURRENCY: int = ENV.HYBRID_EXTRACTION_DOCLING_CONCURRENCY
+    HYBRID_EXTRACTION_OCR_CONCURRENCY: int = ENV.HYBRID_EXTRACTION_OCR_CONCURRENCY
     TEMPORAL_EXTRACTION_ACTIVITY_MAX_ATTEMPTS: int = 2
     TEMPORAL_LLM_ACTIVITY_MAX_ATTEMPTS: int = 5
     TEMPORAL_VLM_ACTIVITY_MAX_ATTEMPTS: int = 5
@@ -128,7 +137,7 @@ class Config:
     TEMPORAL_PROCESSING_ACTIVITY_MAX_ATTEMPTS: int = 2
     TEMPORAL_EXTERNAL_SERVICE_MAX_ATTEMPTS: int = 1
     TEMPORAL_PREPROCESSING_ACTIVITY_MAX_ATTEMPTS: int = 10
-    TEMPORAL_QDRANT_ACTIVITY_MAX_ATTEMPTS: int = 3
+    TEMPORAL_QDRANT_ACTIVITY_MAX_ATTEMPTS: int = 30
 
     # VLM failure tolerance (fraction of elements allowed to fail)
     VLM_FAILURE_TOLERANCE: float = 0.2
@@ -137,30 +146,45 @@ class Config:
     HALLUCINATION_MAX_LENGTH: int = 100000
     HALLUCINATION_TRUNCATE_LENGTH: int = 10000
 
-    # Document retry loop (ProcessDocumentsWorkflow)
-    DOCUMENT_RETRY_MAX_ATTEMPTS: int = 5
-    DOCUMENT_RETRY_DELAY_SECONDS: int = 30
-    DOCUMENT_FAILURE_RATE_THRESHOLD: float = 0.15  # 15% of docs, minimum 2
-    DOCUMENT_FAILURE_MIN_ALLOWED: int = 2
-
     # Qdrant indexing
     QDRANT_PARALLEL_DOCS_SIZE: int = 10
     QDRANT_UPLOAD_BATCH_SIZE: int = 100
+
+    # LightOnOCR
+    LIGHT_ON_OCR_MAX_COMPLETION_TOKENS: int = 4096
+    LIGHT_ON_OCR_TEMPERATURE: float = 0
+    LIGHT_ON_OCR_TOP_P: float = 0.9
+    LIGHT_ON_OCR_FREQUENCY_PENALTY: float = 0.4
+    LIGHT_ON_OCR_PRESENCE_PENALTY: float = 0.0
+    LIGHT_ON_OCR_MODEL: str = "ionos/lightonocr-2-1b"
+
+    # OCR Rotation of images
+    OCR_ROTATION_THRESHOLD: float = 0.05
+    OCR_FLIP_THRESHOLD: float = 0.05
+
+    # Prompt Injection Detection
+    # Also change the loaded tokenizer in the Dockerfile if you change this model
+    INJECTION_MODEL: str = "protectai/deberta-v3-base-prompt-injection-v2"
+    INJECTION_MODEL_REVISION: str = "e6535ca4ce3ba852083e75ec585d7c8aeb4be4c5"
+    INJECTION_LABEL: str = "INJECTION"
+    INJECTION_TOKEN_LOWER_BOUND_RATIO: float = 0.85
+    INJECTION_CHUNK_CLASSIFICATION_BATCH_SIZE = 10
+    INJECTION_CHUNK_CLASSIFICATION_CONCURRENCY: int = 10
+    # Two tokens are added Automatically [CLS] and [SEP]
+    INJECTION_CHUNK_CLASSIFICATION_MAX_TOKENS: int = 510
+    INJECTION_CHUNK_CLASSIFICATION_STRIDE: int = 64
+    INJECTION_LLM_SCAN_MAX_TOKENS: int = 4000
+    INJECTION_LLM_SCAN_STRIDE: int = 256
+    INJECTION_THRESHOLD: float = 0.9
+    INJECTION_REQUEST_TIMEOUT: int = 120
+    INJECTION_START_TO_CLOSE: int = 180
+    INJECTION_MAX_ATTEMPTS: int = 5
 
 
 CONFIG_MEMO_KEY = "config_snapshot"
 
 
-def _build_default() -> Config:
-    from src.env import ENV
-
-    return Config(
-        DOCLING_OCR_ENGINE=ENV.DOCLING_OCR_ENGINE,
-        EXTRACTION_CHUNK_CONCURRENCY=ENV.EXTRACTION_CHUNK_CONCURRENCY,
-    )
-
-
-_default = _build_default()
+_default = Config()
 
 
 def snapshot_config() -> Config:
@@ -199,11 +223,4 @@ def get_config() -> Config:
 
 def get_docling_url() -> str:
     """Build docling-serve API URL from protocol, host, and port."""
-    from src.env import ENV
-
     return f"{ENV.DOCLING_PROTOCOL}://{ENV.DOCLING_HOST}:{ENV.DOCLING_PORT}"
-
-
-def is_docling_provider() -> bool:
-    """Check if the current extraction provider is Docling. Always True."""
-    return True

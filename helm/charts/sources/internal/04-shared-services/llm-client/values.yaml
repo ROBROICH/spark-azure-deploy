@@ -1,0 +1,208 @@
+# =============================================================================
+# llm-client
+# Thin proxy/client for the LiteLLM gateway; provides a uniform API for LLM calls across all backend services.
+# =============================================================================
+
+# Desired pod replicas when autoscaling.enabled is false.
+
+replicaCount: 3
+
+# Container image. If tag is empty, Chart.appVersion is used.
+image:
+  repository: "<container-registry>/llm-client"
+  tag: "<image-tag>"
+  pullPolicy: Always
+
+# Pull secrets for private registries (list).
+
+# imagePullSecrets:          # Uncomment and set your registry pull secret name.
+#   - name: <registry-pull-secret>
+imagePullSecrets: []
+
+# Override chart name used in labels.
+
+nameOverride: ''
+
+# Override fully qualified resource name.
+
+fullnameOverride: ''
+
+# Namespace override. Empty → uses the release namespace (-n flag).
+
+namespaceOverride: ''
+
+# Stage suffix for resource names (e.g. "dev" → resource-dev). Propagated from global.stage.name; set explicitly for standalone installs.
+
+stage:
+  name: ''
+
+# Classification labels applied to all resources.
+# app.kubernetes.io/component: workload category (frontend | backend | agent)
+# environment: propagated from global.labels.environment; set explicitly only for standalone installs.
+
+labels:
+  app.kubernetes.io/component: agent
+
+# Container ports (list).
+
+containerPorts: []
+
+# ServiceAccount for the pod (map).
+serviceAccount:
+  create: false
+  automount: false
+  annotations: {}
+  name: ''
+
+# Extra annotations on the pod template (map).
+
+# Extra annotations on the Deployment/resource metadata (map).
+annotations: {}
+
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). Pod selectors are set by the
+# chart templates using Kubernetes recommended labels (app.kubernetes.io/name,
+# app.kubernetes.io/instance) and must not be overridden here.
+
+podLabels: {}
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Service exposure (map). Selector is set by templates (app.kubernetes.io/name + instance).
+service:
+  enabled: false
+  type: ClusterIP
+  port: 80
+  ports: []
+  selector: {}
+
+# Ingress (map). Set enabled: true to render.
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  hosts: []
+  tls: []
+
+# CPU/memory requests and limits (map). Use {} when unset.
+
+resources:
+  limits:
+    cpu: 300m
+    memory: 768Mi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+# Base environment variables injected into the container (list of EnvVar objects).
+# These apply in every stage. Do not set variables to empty string — omit them
+# or use a placeholder (<postgresdb-host>, …) until the real value is known.
+# Variables from global.env are merged before this list; this list takes
+# precedence on name collisions.
+env:
+- name: ENV
+  value: production
+# ── Task queue (required when ENV != dev) ──────────────────────────────────
+# The model-name PREFIX used by callers selects the Temporal task queue:
+#   self-hosted/* -> llm-custom        hf/*      -> llm-huggingface
+# ONE llm-client release serves ONE queue. Deploy one instance per queue your
+# model names route to — a workflow whose model routes to a queue without a
+# worker hangs forever (the LLM activity stays Scheduled). Simplest setup:
+# serve every model under a self-hosted/* alias and run only this default.
+- name: QUEUE_NAME
+  value: llm-custom
+- name: QUEUE_MAX_CONCURRENT
+  value: "50"
+- name: QUEUE_MAX_PER_SECOND
+  value: "2"
+- name: LITELLM_BASE_URL
+  value: <litellm-api-url>
+- name: LITELLM_MASTER_KEY
+  valueFrom:
+    secretKeyRef:
+      key: LITELLM_MASTER_KEY
+      name: litellm-proxy-credentials
+- name: OTEL_ENDPOINT
+  value: <otel-collector-host>
+- name: OTEL_SERVICE_NAME
+  value: llm-client
+- name: TEMPORAL_HOST
+  value: '{{ printf "%s-temporal%s-frontend.%s.svc.cluster.local:7233" .Release.Name (include "llm-client.stageSuffix" .) .Release.Namespace }}'
+- name: TEMPORAL_S3_ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      key: TEMPORAL_S3_ACCESS_KEY_ID
+      name: temporal-s3-secrets
+- name: TEMPORAL_S3_BUCKET_NAME
+  value: '<temporal-payloads-bucket>'
+- name: TEMPORAL_S3_ENDPOINT_URL
+  value: <https-endpoint-url>
+- name: TEMPORAL_S3_REGION
+  value: <s3-region>
+- name: TEMPORAL_S3_SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      key: TEMPORAL_S3_SECRET_ACCESS_KEY
+      name: temporal-s3-secrets
+
+# Additional environment variables merged after env (list of EnvVar objects).
+# Use for stage-specific values: image-specific settings, feature flags, or
+# values that differ between dev / test / prod. This list takes precedence
+# over global.extraEnv on name collisions.
+#
+# In-cluster HTTP peer URLs use a Helm printf template so the address follows
+# the release name, stage suffix, and namespace automatically.
+#
+extraEnv: []
+
+# Startup probe (map). Use {} when unset.
+
+startupProbe: {}
+
+# Liveness probe (map). Use {} when unset.
+
+livenessProbe: {}
+
+# Readiness probe (map). Use {} when unset.
+
+readinessProbe: {}
+
+# HorizontalPodAutoscaler (map).
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Pod volumes (list).
+
+volumes: []
+
+# Container volume mounts (list).
+
+volumeMounts: []
+
+# Node selector (map).
+
+nodeSelector: {}
+
+# Pod tolerations (list).
+
+tolerations: []
+
+# Pod affinity rules (map).
+
+affinity: {}

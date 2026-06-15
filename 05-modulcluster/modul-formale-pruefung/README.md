@@ -1,6 +1,6 @@
-# Modul Formale Vollständigkeitsprüfung (Module Formal Completeness Check)
+# Modul formale Vollständigkeitsprüfung (Module Formal Completeness Check)
 
-The *Modul Formale Vollständigkeitsprüfung* automates the Formal Completeness Check to ensure all required documents are present and correctly classified. The check is performed through two complementary tracks:
+The *Modul formale Vollständigkeitsprüfung* automates the Formal Completeness Check to ensure all required documents are present and correctly classified. The check is performed through two complementary tracks:
 
 1. **LLM Document Matching:** Maps uploaded files against a predefined set of required document types to track the existence of documents for each mandatory category.
 2. **Inhaltsverzeichnis (TOC) Matching:** Automatically detects, parses, and matches files against the project-specific Table of Contents (TOC) to identify inconsistencies or missing documents.
@@ -33,23 +33,24 @@ Multi-stage pipeline to identify the global Table of Contents (TOC) using textua
 
 Combines TOC detection and LLM matching into one workflow: Uses the TOC-derived document descriptions to classify all required documents and validates coverage against the expected submission structure.
 
-## System Architecture
+## Architecture
 
 ### Overview
 
-The *Modul Formale Vollständigkeitsprüfung* runs as asynchronous Temporal workflows, triggered by the *Agent Orchestration Service*.
-It requires prior text extraction via the *Modul Inhaltsextraktion*. Results are stored in the *Dienst formale Vollständigkeitsprüfungsmodul* for frontend display.
+The **Modul formale Vollständigkeitsprüfung** runs as asynchronous Temporal workflows, triggered by the **Dienst Agentenorchestrierung**.
+It requires prior text extraction via the **Modul Inhaltsextraktion**. Results are stored in the **Dienst formale Vollständigkeitsprüfung** for frontend display.
 
-### Workflow
+### Workflow Overview
+
 ```mermaid
 sequenceDiagram
     autonumber
-    participant DMS as Document Management Service
-    participant AOS as Agent Orchestration Service
+    participant DMS as Dienst Dokumentenmanagementsystem
+    participant AOS as Dienst Agentenorchestrierung
     participant Temporal as Temporal Service
     participant ExtractionAgent as Modul Inhaltsextraktion
-    participant FVPAgent as Modul Formale Vollständigkeitsprüfung
-    participant FVPService as Dienst formale Vollständigkeitsprüfungsmodul
+    participant FVPAgent as Modul formale Vollständigkeitsprüfung
+    participant FVPService as Dienst formale Vollständigkeitsprüfung
 
     Note over DMS,FVPService: Phase 1: Inhaltsextraktion Workflow
     activate AOS
@@ -89,28 +90,47 @@ sequenceDiagram
 
 ### Dependencies
 
-| Service | Link | Purpose |
-|---------|------|---------|
-| Modul Inhaltsextraktion | [module-inhaltsextraktion](../modul-inhaltsextraktion/README.md) | Preprocessed text extraction data. *Full run on ~200 docs takes several hours.* |
-| Document Management Service | [document_management_service](../../02-backend/document_management_service/README.md) | Document and extraction result storage |
-| Agent Orchestration Service | [agent_orchestration_service](../../02-backend/agent_orchestration_service/README.md) | Workflow entry point (triggered by frontend) |
-| Temporal | [temporal](../../04-shared-services/temporal/README.md) | Asynchronous workflow orchestration |
-| Dienst formale Vollständigkeitsprüfungsmodul | [formal_completeness_check](../../02-backend/formal_completeness_check/README.md) | Result persistence and frontend API |
-| LiteLLM Proxy | [litellm-proxy](../../04-shared-services/basiskomponenten/litellm-proxy/README.md) | Unified OpenAI-compatible LLM gateway |
+| Service | Purpose |
+|---------|---------|
+| **Modul Inhaltsextraktion** | Preprocessed text extraction data. *Full run on ~200 docs takes several hours.* |
+| **Dienst Dokumentenmanagementsystem** | Document and extraction result storage |
+| **Dienst Agentenorchestrierung** | Workflow entry point (triggered by frontend) |
+| **Temporal** | Asynchronous workflow orchestration |
+| **Dienst formale Vollständigkeitsprüfung** | Result persistence and frontend API |
+| **LLM-Proxy** | Unified OpenAI-compatible LLM gateway |
 
 ## Getting Started
 
 ### Prerequisites
 
-- [uv](https://docs.astral.sh/uv/)
+- `uv` package manager
 - Shared platform services from the [root README](../../README.md#dependencies) when running locally
 
-### Configuration
+### Environment Variables
 
-1. **Environment Variables**: Create `.env` based on `.env.local`. Configure API keys, LLM settings, and service endpoints.
-2. **Windows (Critical)**: Set `PYTHONUTF8=1` before running workflows, otherwise Umlaute / UTF-8 handling degrades classification performance.
+Create `.env` based on `.env.local`. Configure API keys, LLM settings, and service endpoints.
 
-### Running the Application
+> **Windows (Critical):** Set `PYTHONUTF8=1` before running workflows, otherwise Umlaute / UTF-8 handling degrades classification performance.
+
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `LITELLM_MODEL` | LLM model identifier (routed via LiteLLM-Proxy) | — | yes |
+| `LITELLM_BASE_URL` | LiteLLM-Proxy base URL *(deployment-set)* | — | yes |
+| `LITELLM_MASTER_KEY` | LiteLLM-Proxy API key — secret, sourced from k8s `litellm-proxy-credentials` *(deployment-set)* | — | yes |
+| `TEMPORAL_HOST` | Temporal server address | — | yes |
+| `TEMPORAL_LLM_MAX_PER_SECOND` | Token-bucket rate limit for LLM activities | — | yes |
+| `TEMPORAL_S3_BUCKET_NAME` | S3 bucket for large payload storage | — | yes |
+| `TEMPORAL_S3_ENDPOINT_URL` | S3 endpoint URL | — | yes |
+| `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | — | yes |
+| `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | — | yes |
+| `TEMPORAL_S3_REGION` | S3 region | — | yes |
+| `DMS_BASE_URL` | Document Management Service base URL | — | yes |
+| `OTEL_SERVICE_NAME` | OpenTelemetry service name | — | yes |
+| `OTEL_ENDPOINT` | OpenTelemetry collector endpoint | — | yes |
+
+The worker task queue is fixed by the shared Temporal workflow contract.
+
+### Running the Module
 
 #### In Development
 
@@ -128,7 +148,7 @@ sequenceDiagram
    
 3. **Register the Temporal workers**:
    ```bash
-   PYTHONPATH=. python main.py
+   PYTHONPATH=. uv run main.py
    ```
    Restart after code changes.
 
@@ -154,7 +174,7 @@ sequenceDiagram
          }
       ],
       "document_ids": null,
-      "external_preprocessing": false
+      "diplan_preprocessing": false
    }
    ```
 
@@ -194,7 +214,7 @@ Trigger workflows programmatically via backend orchestration or via the Temporal
 
 ## Monitoring
 
-- **Temporal UI:** Monitor workflow executions, activity retries, and execution history at [http://localhost:8080](http://localhost:8080).
+- **Temporal UI:** Monitor workflow executions, activity retries, and execution history at [http://localhost:8233](http://localhost:8233).
 - Monitor the upstream workflows of *Modul Inhaltsextraktion* and the DMS data, as their failure can cause FVP workflows to fail.
 
 ## Troubleshooting
@@ -223,14 +243,14 @@ Ensure the worker is registered on the correct task queue (`formale-pruefung`) a
 <details>
 <summary>Workflows Failing Immediately</summary>
 
-Verify that the required extraction data exists in the DMS. The *Modul Formale Vollständigkeitsprüfung* requires the process of *Modul Inhaltsextraktion* to complete successfully first, which can take multiple hours for a full application.
+Verify that the required extraction data exists in the DMS. The *Modul formale Vollständigkeitsprüfung* requires the process of *Modul Inhaltsextraktion* to complete successfully first, which can take multiple hours for a full application.
 
 </details>
 
 <details>
 <summary>LLM API Rate Limits (429 Errors)</summary>
 
-Check your LLM provider quotas and deployment configuration. Consider adjusting rate limits in the LiteLLM proxy.
+Check your LLM provider quotas and deployment configuration. Consider adjusting rate limits in the LiteLLM-Proxy.
 
 </details>
 

@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from authentification.dependencies import require_role
+from authentification.enums import OidcRoles
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -7,14 +9,16 @@ from src.models.db.database import get_db_session
 from src.models.schemas.process_step_schemas import ProcessStepResponse
 from src.services.process_steps import process_step_service
 
-router = APIRouter(prefix="/process-steps", tags=["ProcessSteps"])
+router = APIRouter(
+    prefix="/process-steps",
+    tags=["ProcessSteps"],
+    dependencies=[Depends(require_role(allowed_roles=[OidcRoles.ADMIN, OidcRoles.USER, OidcRoles.SERVICE]))],
+)
 
 
 @router.get("", response_model=list[ProcessStepResponse])
 async def list_process_steps(
-    project_type_id: UUID | None = Query(
-        None, description="Optional filter for process steps by project type"
-    ),
+    project_type_id: UUID | None = Query(None, description="Optional filter for process steps by project type"),
     db: AsyncSession = Depends(get_db_session),
 ):
     """Retrieve a list of all ProcessSteps, filtered by project_type_id.
@@ -46,6 +50,4 @@ async def get_process_step(
     Returns:
         ProcessStepResponse: The matching process step record
     """
-    return await process_step_service.get_process_step(
-        db=db, process_step_id=process_step_id
-    )
+    return await process_step_service.get_process_step(db=db, process_step_id=process_step_id)

@@ -8,6 +8,10 @@ class PlausibilityOrchestratorInput(BaseModel):
 
     project_id: str = Field(..., description="ID of the project associated with this workflow run.")
     document_ids: list[str] = Field(..., description="IDs of the documents to be processed.")
+    erlaeuterungsbericht_document_ids: list[str] = Field(
+        default_factory=list,
+        description="Current Erläuterungsbericht DMS document IDs from persisted FCS state.",
+    )
     classification_file_id: str | None = Field(
         None, description="DMS file ID for the classification output JSON, required for Qdrant workflow."
     )

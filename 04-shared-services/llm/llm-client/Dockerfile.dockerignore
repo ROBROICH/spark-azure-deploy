@@ -1,0 +1,30 @@
+# Ignore everything by default
+**
+
+# Root workspace files
+!pyproject.toml
+!uv.lock
+
+# All pyproject.toml files for dependency resolution
+!**/pyproject.toml
+.venv/**
+
+# Workspace and used shared libraries
+!02-backend/logging
+!04-shared-services/audit-client
+!04-shared-services/temporal
+!04-shared-services/authentification
+!04-shared-services/internal-auth
+
+# Allow module code
+!04-shared-services/llm/llm-client/README.md
+!04-shared-services/llm/llm-client/src/**
+
+# Re-ignore Python junk everywhere
+**/__pycache__/
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/

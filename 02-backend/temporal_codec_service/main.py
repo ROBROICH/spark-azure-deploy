@@ -1,14 +1,13 @@
 import os
-from typing import Awaitable, Callable, Iterable, List
+from collections.abc import Awaitable, Callable, Iterable
 
 import uvicorn
+from env import ENV
 from fastapi import FastAPI, HTTPException, Request, Response, status
 from google.protobuf import json_format
 from temporal.payload_codec import LargePayloadCodec
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporalio.api.common.v1 import Payload, Payloads
-
-from env import ENV
 
 app = FastAPI(title="Temporal Payload Codec Service")
 
@@ -31,7 +30,7 @@ def _cors_headers(request: Request) -> dict[str, str]:
 
 
 async def _apply_codec(
-    fn: Callable[[Iterable[Payload]], Awaitable[List[Payload]]],
+    fn: Callable[[Iterable[Payload]], Awaitable[list[Payload]]],
     request: Request,
 ) -> Response:
     if request.method == "OPTIONS":

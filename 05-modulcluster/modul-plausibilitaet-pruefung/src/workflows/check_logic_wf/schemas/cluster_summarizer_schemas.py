@@ -8,6 +8,8 @@ class InconsistencyPair(BaseModel):
 
     chunk_a_id: str = Field(description="Chunk ID for one side of the contradiction.")
     chunk_b_id: str = Field(description="Chunk ID for the opposite side.")
+    chunk_a_document_id: str = Field(description="Raw source document ID for chunk A (Qdrant `source_file_id`).")
+    chunk_b_document_id: str = Field(description="Raw source document ID for chunk B (Qdrant `source_file_id`).")
     claim_a_id: str = Field(description="Claim ID for one side of the contradiction.")
     claim_b_id: str = Field(description="Claim ID for the opposite side.")
 
@@ -30,6 +32,11 @@ class InconsistencyPair(BaseModel):
         description="Representative page number for chunk B.",
     )
 
+    rating: int = Field(
+        ge=0,
+        le=100,
+        description="Final context-checker rating for this inconsistency pair.",
+    )
     title: str = Field(description="Short contradiction label.")
     explanation: str = Field(description="Context-checker explanation for this edge.")
 
@@ -64,14 +71,13 @@ class InconsistencyGraph(BaseModel):
 
 
 class InconsistencyCluster(BaseModel):
-    """One connected component of inconsistency edges plus summarizer config."""
+    """One connected component of inconsistency edges to summarize."""
 
     edges: list[InconsistencyPair] = Field(description="Contradiction edges belonging to this cluster.")
-    document_id: str = Field(description="Document ID shared by all edges in this cluster.")
 
 
 class InconsistencyClusters(BaseModel):
-    """Collection of connected inconsistency clusters for one document."""
+    """Collection of connected inconsistency clusters for one workflow-scoped input document."""
 
     clusters: list[InconsistencyCluster] = Field(description="Connected components to summarize.")
 
@@ -81,36 +87,33 @@ class NodeStance(BaseModel):
 
     node_idx: int = Field(description="Local node index this stance belongs to.")
     stance_text: str = Field(
-        max_length=400,
         description="Short neutral description of what this content states.",
     )
 
 
-class NodeExcerpt(BaseModel):
-    """A verbatim excerpt for one node in a contradiction cluster."""
-
-    node_idx: int = Field(description="Local node index this excerpt belongs to.")
-    excerpt: str = Field(
-        max_length=500,
-        description="Verbatim excerpt from the source text for this node.",
-    )
-
-
-class InconsistencySummary(BaseModel):
-    """LLM summary for one inconsistency cluster."""
+class InconsistencySummaryLLMResponse(BaseModel):
+    """Schema sent to the LLM as output_format — only fields the LLM should generate."""
 
     cluster_title: str = Field(
-        max_length=150,
         description="Short headline for the contradiction cluster.",
     )
     cluster_explanation: str = Field(
-        max_length=800,
         description="Consolidated explanation of the contradiction across stances.",
     )
     stances: list[NodeStance] = Field(
         description="List of node stances representing distinct positions found in the cluster."
     )
-    content_excerpts: list[NodeExcerpt] = Field(description="List of node excerpts preserved for traceability.")
+
+
+class InconsistencySummary(InconsistencySummaryLLMResponse):
+    """Full model with post-processing fields populated by workflow code after LLM call."""
+
+    rating: int | None = Field(
+        default=None,
+        ge=0,
+        le=100,
+        description="Representative contradiction rating for this summarized cluster.",
+    )
     occurrences: list[Occurrence] = Field(
         default_factory=list,
         description="Resolved occurrences enriched with document and page metadata.",

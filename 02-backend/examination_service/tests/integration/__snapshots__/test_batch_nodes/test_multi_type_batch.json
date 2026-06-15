@@ -1,0 +1,31 @@
+{
+  "results": [
+    {
+      "created_at": "<TIMESTAMP>",
+      "frontend_parent_ids": [],
+      "id": "<GESETZ>",
+      "is_deleted": false,
+      "jurabk": "MG",
+      "name": "Multi Gesetz",
+      "node_type": "gesetz",
+      "project_id": "<PROJECT>",
+      "update_type": "automated",
+      "updated_at": "<TIMESTAMP>"
+    },
+    {
+      "created_at": "<TIMESTAMP>",
+      "frontend_parent_ids": [],
+      "gesetz_id": "<GESETZ>",
+      "id": "<NORM>",
+      "is_deleted": false,
+      "node_type": "norm",
+      "paragraph_nr": "\u00a7 1",
+      "paragraph_titel": null,
+      "project_id": "<PROJECT>",
+      "regelungsgegenstand": null,
+      "text": "Norm text",
+      "update_type": "automated",
+      "updated_at": "<TIMESTAMP>"
+    }
+  ]
+}

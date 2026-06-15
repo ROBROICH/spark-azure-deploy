@@ -1,3 +1,5 @@
+"""PDF format conversion activities."""
+
 from datetime import timedelta
 from pathlib import Path
 
@@ -14,6 +16,8 @@ from src.utils.dms_utils import (
 
 
 class ConvertToPdfIfNeededInput(BaseModel):
+    """Input for the convert_to_pdf_if_needed activity."""
+
     file_info: DmsFileInfo
 
 

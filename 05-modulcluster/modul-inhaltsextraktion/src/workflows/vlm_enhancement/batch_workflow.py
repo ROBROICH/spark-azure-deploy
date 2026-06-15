@@ -13,7 +13,10 @@ vlm_batch_processing_workflow_id = "vlm-batch-processing"
 
 @workflow.defn(name=vlm_batch_processing_workflow_id)
 class VLMProcessingWorkflow:
+    """Batch VLM processing orchestration workflow."""
+
     @workflow.run
     async def run(self, input: VLMProcessingWorkflowInput) -> VLMProcessingWorkflowOutput:
+        """Orchestrate two-phase VLM processing for visual elements."""
         results = await process_vlm_batches(vlm_inputs=input.vlm_inputs)
         return VLMProcessingWorkflowOutput(vlm_results=results)

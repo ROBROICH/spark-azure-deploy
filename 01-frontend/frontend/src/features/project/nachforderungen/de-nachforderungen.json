@@ -1,0 +1,82 @@
+{
+  "RequestListPanel": {
+    "addDocument": "Nachforderung hinzufügen",
+    "checkboxAriaLabel": "{{title}} in Nachforderungsschreiben einschließen",
+    "close": "Schließen",
+    "emptyState": "Keine Nachforderungen.",
+    "itemCountBadge_one": "{{count}} Nachforderung",
+    "itemCountBadge_other": "{{count}} Nachforderungen",
+    "title": "Nachforderungsliste",
+    "priority": {
+      "must": "Muss",
+      "should": "Soll"
+    },
+    "actions": {
+      "editAria": "Nachforderung bearbeiten",
+      "removeAria": "Nachforderung entfernen"
+    },
+    "form": {
+      "createTitle": "Nachforderung hinzufügen",
+      "priorityLabel": "Priorität*",
+      "titleLabel": "Nachforderung*",
+      "titlePlaceholder": "Bezeichnung der Nachforderung",
+      "reasonLabel": "Begründung*",
+      "reasonPlaceholder": "Begründung zur Nachforderung",
+      "save": "Speichern",
+      "cancel": "Abbrechen",
+      "validation": {
+        "titleRequired": "Bezeichnung der Nachforderung ist erforderlich.",
+        "titleMaxLength": "Die Nachforderung darf maximal {{max}} Zeichen lang sein.",
+        "reasonRequired": "Begründung ist erforderlich.",
+        "reasonMaxLength": "Die Begründung darf maximal {{max}} Zeichen lang sein."
+      },
+      "saveError": "Die Nachforderung konnte nicht gespeichert werden.",
+      "duplicateSourceError": "Zu diesem Element existiert bereits eine Nachforderung. Bitte bearbeiten Sie die bestehende Nachforderung oder legen Sie über „Nachforderung hinzufügen“ eine neue Nachforderung an."
+    },
+    "deleteDialog": {
+      "title": "Nachforderungsgegenstand löschen",
+      "description": "Möchten Sie den Nachforderungsgegenstand wirklich aus der Nachforderungsliste löschen?",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen",
+      "error": "Die Nachforderung konnte nicht gelöscht werden."
+    },
+    "exportShort": "Exportieren",
+    "loadingAria": "Nachforderungen werden geladen",
+    "loadError": "Die Nachforderungsliste konnte nicht geladen werden.",
+    "retry": "Erneut versuchen"
+  },
+  "SupplementaryRequestLetter": {
+    "downloadPdf": "Als PDF exportieren",
+    "downloadWord": "Als Word exportieren",
+    "emptyState": "Wählen Sie Nachforderungen aus der Liste aus, um das Schreiben zu erstellen.",
+    "export": {
+      "filename": "Nachforderungsschreiben",
+      "pdfTitle": "Nachforderungsschreiben"
+    },
+    "letter": {
+      "reasonLabel": "Begründung:"
+    },
+    "title": "Nachforderungsschreiben",
+    "toolbar": {
+      "bold": "Fett",
+      "bulletList": "Aufzählung",
+      "heading1": "Überschrift 1",
+      "heading2": "Überschrift 2",
+      "heading3": "Überschrift 3",
+      "italic": "Kursiv",
+      "orderedList": "Nummerierte Liste",
+      "paragraph": "Absatz",
+      "underline": "Unterstrichen"
+    }
+  },
+  "page": {
+    "lanes": {
+      "list": "Nachforderungsliste",
+      "letter": "Nachforderungsschreiben"
+    }
+  },
+  "toolbar": {
+    "back": "Zurück",
+    "title": "Nachforderungsschreiben"
+  }
+}

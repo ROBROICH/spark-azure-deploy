@@ -9,6 +9,7 @@ from event_logging.enums import (
 )
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
+from node_crud import register_node_crud_handlers
 from sqlalchemy.exc import IntegrityError
 from tenacity import RetryError
 
@@ -21,15 +22,28 @@ def _detail_from_exception(exc: Exception, fallback: str) -> str:
     return message if message else fallback
 
 
-def _detail_from_integrity_error(_exc: IntegrityError) -> str:
-    return "Resource conflict during database operation"
+def _detail_from_integrity_error(exc: IntegrityError) -> str:
+    message = str(exc).strip()
+    return message if message else "Resource conflict during database operation"
+
+
+def _upstream_error_response(upstream: int) -> JSONResponse:
+    if upstream == status.HTTP_404_NOT_FOUND:
+        return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": "Resource not found"})
+    if status.HTTP_400_BAD_REQUEST <= upstream < status.HTTP_500_INTERNAL_SERVER_ERROR:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"detail": "Bad request"})
+    return JSONResponse(
+        status_code=status.HTTP_502_BAD_GATEWAY,
+        content={"detail": "Service temporarily unavailable"},
+    )
 
 
 def register_exception_handlers(app: FastAPI) -> None:
     """Register global exception handlers so routes can stay lean."""
+    register_node_crud_handlers(app, logger)
 
     @app.exception_handler(NotFoundError)
-    async def handle_not_found_error(request: Request, exc: NotFoundError):
+    async def handle_not_found_error(request: Request, exc: NotFoundError) -> JSONResponse:
         logger.warn(
             action=EventAction.READ,
             outcome=EventOutcome.FAILURE,
@@ -43,7 +57,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(FileNotFoundError)
-    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError):
+    async def handle_file_not_found_error(request: Request, exc: FileNotFoundError) -> JSONResponse:
         logger.warn(
             action=EventAction.READ,
             outcome=EventOutcome.FAILURE,
@@ -57,7 +71,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(IntegrityError)
-    async def handle_integrity_error(request: Request, exc: IntegrityError):
+    async def handle_integrity_error(request: Request, exc: IntegrityError) -> JSONResponse:
         logger.error(
             action=EventAction.WRITE,
             outcome=EventOutcome.FAILURE,
@@ -71,7 +85,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(ValueError)
-    async def handle_value_error(request: Request, exc: ValueError):
+    async def handle_value_error(request: Request, exc: ValueError) -> JSONResponse:
         logger.warn(
             action=EventAction.VALIDATE,
             outcome=EventOutcome.FAILURE,
@@ -85,7 +99,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(ForbiddenError)
-    async def handle_forbidden_error(request: Request, exc: ForbiddenError):
+    async def handle_forbidden_error(request: Request, exc: ForbiddenError) -> JSONResponse:
         logger.warn(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,
@@ -99,7 +113,7 @@ def register_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(httpx.HTTPStatusError)
-    async def handle_http_status_error(request: Request, exc: httpx.HTTPStatusError):
+    async def handle_http_status_error(request: Request, exc: httpx.HTTPStatusError) -> JSONResponse:
         upstream = exc.response.status_code
         logger.error(
             action=EventAction.ACCESS,
@@ -108,14 +122,10 @@ def register_exception_handlers(app: FastAPI) -> None:
             default_event=LogEventDefault.GENERAL,
             message=f"External service error on {request.url.path}: upstream returned {upstream}",
         )
-        if upstream == 404:
-            return JSONResponse(status_code=404, content={"detail": "Resource not found"})
-        if 400 <= upstream < 500:
-            return JSONResponse(status_code=400, content={"detail": "Bad request"})
-        return JSONResponse(status_code=502, content={"detail": "Service temporarily unavailable"})
+        return _upstream_error_response(upstream)
 
     @app.exception_handler(RetryError)
-    async def handle_retry_error(request: Request, exc: RetryError):
+    async def handle_retry_error(request: Request, exc: RetryError) -> JSONResponse:
         cause = exc.__cause__
         if isinstance(cause, httpx.HTTPStatusError):
             upstream = cause.response.status_code
@@ -124,13 +134,10 @@ def register_exception_handlers(app: FastAPI) -> None:
                 outcome=EventOutcome.FAILURE,
                 category=EventCategory.API,
                 default_event=LogEventDefault.GENERAL,
-                message=f"External service error after retries on {request.url.path}: upstream returned {upstream}",
+                message=(f"External service error after retries on {request.url.path}: upstream returned {upstream}"),
             )
-            if upstream == 404:
-                return JSONResponse(status_code=404, content={"detail": "Resource not found"})
-            if 400 <= upstream < 500:
-                return JSONResponse(status_code=400, content={"detail": "Bad request"})
-            return JSONResponse(status_code=502, content={"detail": "Service temporarily unavailable"})
+            return _upstream_error_response(upstream)
+
         logger.error(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,
@@ -138,10 +145,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             default_event=LogEventDefault.GENERAL,
             message=f"Retry exhausted on {request.url.path}: {exc}",
         )
-        return JSONResponse(status_code=502, content={"detail": "Service temporarily unavailable"})
+        return JSONResponse(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            content={"detail": "Service temporarily unavailable"},
+        )
 
     @app.exception_handler(httpx.RequestError)
-    async def handle_request_error(request: Request, exc: httpx.RequestError):
+    async def handle_request_error(request: Request, exc: httpx.RequestError) -> JSONResponse:
         logger.error(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,
@@ -149,10 +159,13 @@ def register_exception_handlers(app: FastAPI) -> None:
             default_event=LogEventDefault.GENERAL,
             message=f"External service connection error on {request.url.path}: {type(exc).__name__}",
         )
-        return JSONResponse(status_code=502, content={"detail": "Service temporarily unavailable"})
+        return JSONResponse(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            content={"detail": "Service temporarily unavailable"},
+        )
 
     @app.exception_handler(Exception)
-    async def handle_generic_exception(request: Request, _exc: Exception):
+    async def handle_generic_exception(request: Request, _exc: Exception) -> JSONResponse:
         logger.error(
             action=EventAction.ACCESS,
             outcome=EventOutcome.FAILURE,
@@ -161,4 +174,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             message=f"Unhandled exception on {request.url.path}",
             error_message=traceback.format_exc(),
         )
-        return JSONResponse(status_code=500, content={"detail": "Internal server error"})
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": "Internal server error"},
+        )

@@ -1,6 +1,8 @@
 from collections.abc import Sequence
+from typing import Any
 from uuid import UUID
 
+from audit_client import ChangeType, record_audit_entry
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,12 +17,14 @@ from src.models.schemas.deadline_schemas import (
 async def create_deadline(
     db: AsyncSession,
     deadline_data: CreateDeadlineRequest,
+    audit_context: dict[str, Any] | None = None,
 ) -> Deadline:
     """Create a new deadline for a given project.
 
     Args:
         db: Async SQLAlchemy session
         deadline_data: Deadline creation data including project ID
+        audit_context: Optional audit context for tracking changes
 
     Returns:
         The created deadline instance
@@ -34,6 +38,18 @@ async def create_deadline(
     )
 
     db.add(deadline)
+    await db.flush()
+
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=deadline.project_id,
+            entity_type="deadline",
+            change_type=ChangeType.CREATE,
+            entity_id=deadline.id,
+            **audit_context,
+        )
+
     await db.commit()
     await db.refresh(deadline)
     return deadline
@@ -62,12 +78,15 @@ async def get_deadline(db: AsyncSession, deadline_id: UUID) -> Deadline:
 async def list_deadlines(
     db: AsyncSession,
     project_id: UUID | None = None,
+    assigned_project_ids: list[UUID] | None = None,
 ) -> Sequence[Deadline]:
     """List deadlines, optionally filtered by project.
 
     Args:
         db: Async SQLAlchemy session
         project_id: If provided, return only deadlines for this project
+        assigned_project_ids: If provided, restrict results to these project IDs
+            (from auth). If None, no auth filter is applied.
 
     Returns:
         List of deadline instances, ordered by end date
@@ -75,6 +94,10 @@ async def list_deadlines(
     query = select(Deadline)
     if project_id is not None:
         query = query.where(Deadline.project_id == project_id)
+
+    if assigned_project_ids is not None:
+        query = query.where(Deadline.project_id.in_(assigned_project_ids))
+
     query = query.order_by(Deadline.end_at.asc())
     result = await db.execute(query)
     return result.scalars().all()
@@ -84,6 +107,7 @@ async def update_deadline(
     db: AsyncSession,
     deadline_id: UUID,
     deadline_data: UpdateDeadlineRequest,
+    audit_context: dict[str, Any] | None = None,
 ) -> Deadline:
     """Update an existing deadline.
 
@@ -91,6 +115,7 @@ async def update_deadline(
         db: Async SQLAlchemy session
         deadline_id: UUID of the deadline to update
         deadline_data: Data to update the deadline with
+        audit_context: Optional audit context for tracking changes
 
     Returns:
         The updated deadline
@@ -104,6 +129,16 @@ async def update_deadline(
     for key, value in update_data.items():
         setattr(deadline, key, value)
 
+    if audit_context is not None and update_data:
+        await record_audit_entry(
+            db,
+            project_id=deadline.project_id,
+            entity_type="deadline",
+            change_type=ChangeType.UPDATE,
+            entity_id=deadline.id,
+            **audit_context,
+        )
+
     await db.commit()
     await db.refresh(deadline)
     return deadline
@@ -112,12 +147,14 @@ async def update_deadline(
 async def delete_deadline(
     db: AsyncSession,
     deadline_id: UUID,
+    audit_context: dict[str, Any] | None = None,
 ) -> Deadline:
     """Delete a deadline.
 
     Args:
         db: Async SQLAlchemy session
         deadline_id: UUID of the deadline to delete
+        audit_context: Optional audit context for tracking changes
 
     Returns:
         The deleted deadline instance
@@ -126,6 +163,16 @@ async def delete_deadline(
         DeadlineNotFoundError: If deadline not found
     """
     deadline = await get_deadline(db=db, deadline_id=deadline_id)
+
+    if audit_context is not None:
+        await record_audit_entry(
+            db,
+            project_id=deadline.project_id,
+            entity_type="deadline",
+            change_type=ChangeType.DELETE,
+            entity_id=deadline.id,
+            **audit_context,
+        )
 
     await db.delete(deadline)
     await db.commit()

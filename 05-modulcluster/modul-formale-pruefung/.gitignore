@@ -1,0 +1,9 @@
+notebooks
+src/notebooks
+.venv
+
+evaluation/results
+
+.env
+.env.*
+!.env.local

@@ -1,6 +1,27 @@
-# Event Logging Library
+# Event-Logging-Library (Event Logging Library)
 
 A shared Python library providing ECS-compatible structured JSON logging for FastAPI services. Covers HTTP request/response logging, database operation logging, and manual business event logging.
+
+> **Note**: This is an in-process library, not a deployed service. It has no `k8s/` overlay and no `.env.example`. The variables below are read by `LoggingSettings` in consuming services; they should be set on the consuming service's deployment, not here.
+
+## Core Features
+
+- **HTTP logging:** Captures request and response metadata through FastAPI middleware.
+- **Database logging:** Logs SQLAlchemy query, transaction, and rollback events.
+- **Manual event logging:** Provides typed business event logging helpers.
+
+## Architecture
+
+### Overview
+
+**Event-Logging-Library** is a workspace package consumed by backend services. It is configured in the consuming service and does not run as a separate deployment.
+
+## Getting Started
+
+### Prerequisites
+
+- A consuming FastAPI service
+- `fastapi` and `starlette` installed in the consuming service when using middleware
 
 ## Installation
 
@@ -62,10 +83,15 @@ logger.info(
 )
 ```
 
-## Configuration
+### Running the Service
+
+This package is an in-process library and has no standalone entry point. It runs inside consuming FastAPI services — no separate startup step is required.
+
+### Environment Variables
 
 Configure via environment variables (`EVENT_LOGGING_...`) or `LoggingSettings`:
 
-| Variable                    | Description        | Default  |
-| --------------------------- | ------------------ | -------- |
-| `EVENT_LOGGING_ECS_VERSION` | ECS schema version | `8.11.0` |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `EVENT_LOGGING_ECS_VERSION` | ECS schema version (prefix `EVENT_LOGGING_` reflects the `LoggingSettings` config) | `8.11.0` | no |
+| `ENV` | Environment name (`development`, `production`); enables pretty-print log formatting in development | `production` | no |

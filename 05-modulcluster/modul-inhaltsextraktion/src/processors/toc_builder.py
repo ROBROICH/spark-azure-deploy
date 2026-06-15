@@ -143,7 +143,6 @@ def resolve_toc_path(
         top_level_parent = path[0]
         main_chunk.metadata["all_subchapters"] = [top_level_parent] + get_all_descendants(top_level_parent, toc)
         return main_chunk.metadata["toc_path"], main_chunk.metadata["all_subchapters"]
-    else:
-        main_chunk.metadata["toc_path"] = last_valid_path
-        main_chunk.metadata["all_subchapters"] = last_valid_unterkapitel
-        return last_valid_path, last_valid_unterkapitel
+    main_chunk.metadata["toc_path"] = last_valid_path
+    main_chunk.metadata["all_subchapters"] = last_valid_unterkapitel
+    return last_valid_path, last_valid_unterkapitel

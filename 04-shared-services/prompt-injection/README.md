@@ -1,55 +1,60 @@
-# Prompt Injection Defense
+# Prompt-Injection-Defense-Library (Prompt Injection Defense Library)
 
-A zero-dependency Python library providing centralized prompt injection defense utilities. Wraps system prompts with anti-injection preambles and sanitizes user inputs before they reach the LLM.
+This is a shared Python module providing functionality to prevent prompt injection attempts. It is used to wrap the system prompts with anti-injection preambles and sanitizes untrusted input before it reaches the LLM.
 
-## Overview
+## Core Features
 
-The *Prompt Injection Defense* library provides:
+- **System Prompt Wrapping:** Surrounds a prompt with a DE/EN/VLM preamble (`wrap_system_prompt`), added before and after so the instruction frame survives long contexts.
+- **Input Sanitization:** Recursively strips injection markers and invisible Unicode from any input via `sanitize_external_data`. Covers tokenizer/control tokens, role-spoofing headers, and their URL/Base64/Hex variants.
+- **External Data Tagging:** Wraps untrusted text in `EXTERNAL_DATA` tags marked with a reserved char `¤` that is stripped from all input, so the tags cannot be forged or closed early to break out.
+- **HTML Pre-Filter:** `sanitize_html` reduces HTML to structure-preserving text and masks URLs and e-mails.
 
-- **System prompt wrapping**: Prepending and appending anti-injection preambles (DE/EN/VLM variants)
-- **Input sanitization**: Stripping known prompt injection markers from arbitrary input dicts
-- **Invisible character removal**: Detecting and removing steganographic Unicode payloads (categories Cf, Co, Cn)
 
-## Installation
+## Architecture
+
+### Overview
+
+Prompt injection is the attempt to smuggle attacker-controlled instructions into a model through untrusted data such as documents, web pages, or user text. This module is a stateless pre-filter that strips known attack markers and isolates external data before it reaches the model.
+
+| Function | Description |
+|----------|-------------|
+| `wrap_system_prompt(prompt, lang="de")` | Prepend and append preamble. `lang` in `{"de", "en", "vlm_de"}`. |
+| `sanitize_external_data(value)` | Recursively sanitize str, dict, list, tuple, set, or Pydantic models. |
+| `sanitize_and_wrap_external_data(value)` | Sanitize a string and wrap it in `EXTERNAL_DATA` tags. |
+| `render_prompt(template, **kwargs)` | Render a first-party Jinja2 template with sanitized context. |
+| `render_prompt_format(template, **kwargs)` | Same, via `str.format`. |
+| `sanitize_html(html)` | HTML to text, URLs and e-mails masked. |
+
+Note: `template` must never come from an external source, otherwise resource-exhaustion attacks become possible.
+
+## Getting Started
+
+### Prerequisites
+
+- Python `>=3.13, <3.14`
+- `uv` package manager
+
+### Installation
 
 ```bash
 uv pip install prompt-injection
 ```
 
-## Usage
+### Environment Variables
 
-### Wrapping System Prompts
+No environment variables required. The module is configured entirely through function arguments.
 
-```python
-from prompt_injection.prompt_defense import wrap_system_prompt
+### Running the Module / Service
 
-# German preamble (default)
-safe_prompt = wrap_system_prompt("Analysiere das Dokument.", lang="de")
-
-# English preamble
-safe_prompt = wrap_system_prompt("Analyze the document.", lang="en")
-
-# VLM variant (for image-based inputs)
-safe_prompt = wrap_system_prompt("Beschreibe das Bild.", lang="de", vlm=True)
-```
-
-### Sanitizing User Inputs
+#### In Development
 
 ```python
-from prompt_injection.prompt_defense import sanitize_external_data
+from prompt_injection.prompt_defense import wrap_system_prompt, sanitize_external_data
 
-clean = sanitize_external_data({"text": user_provided_text})
+system_prompt = wrap_system_prompt("Analysiere das Dokument.", lang="de")
+clean = sanitize_external_data({"text": user_text})
 ```
 
-## Detected Injection Patterns
+#### In Production
 
-The sanitizer strips the following patterns from input text:
-
-| Pattern                    | Target                                        |
-| -------------------------- | --------------------------------------------- |
-| `<\|word\|>`              | ChatML, Llama 3, Cohere special tokens        |
-| `[INST]` / `[/INST]`      | Llama 2 instruction markers                   |
-| `<<SYS>>` / `<</SYS>>`   | Llama 2 system tags                           |
-| `<start_of_turn>` / `<end_of_turn>` | Gemini turn markers               |
-| `### System:` / `### Assistant:` / … | Role-spoofing lines (case-insensitive) |
-| Invisible Unicode          | Categories Cf (format), Co (private use), Cn (unassigned) |
+Import and use the module in your service code. No separate deployment required.

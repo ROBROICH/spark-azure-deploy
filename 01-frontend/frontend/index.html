@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
+    <meta name="theme-color" content="#000000" />
+    <script>
+      window.__APP_CONFIG__ = {
+        VITE_API_BASE_URL: '__VITE_API_BASE_URL__',
+        VITE_APP_BASE_PATH: '__VITE_APP_BASE_PATH__',
+        VITE_TEMPORAL_UI_BASE_URL: '__VITE_TEMPORAL_UI_BASE_URL__',
+        VITE_ALLOWED_DOWNLOAD_ORIGINS: '__VITE_ALLOWED_DOWNLOAD_ORIGINS__',
+        VITE_ALLOWED_UPLOAD_ORIGINS: '__VITE_ALLOWED_UPLOAD_ORIGINS__',
+        VITE_SENTRY_DSN: '__VITE_SENTRY_DSN__',
+        VITE_SENTRY_ENVIRONMENT: '__VITE_SENTRY_ENVIRONMENT__',
+        VITE_ENABLE_EWMS_FEATURE: '__VITE_ENABLE_EWMS_FEATURE__',
+        VITE_ENABLE_AUTH_REDIRECT_RETRY:
+          '__VITE_ENABLE_AUTH_REDIRECT_RETRY__',
+        VITE_ENABLE_MAINTENANCE_MODE: '__VITE_ENABLE_MAINTENANCE_MODE__',
+        VITE_SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE:
+          '__VITE_SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE__',
+        VITE_ENABLE_DOCUMENT_VERSIONING_FEATURE:
+          '__VITE_ENABLE_DOCUMENT_VERSIONING_FEATURE__',
+        VITE_DANGEROUS_ENABLE_ROLE_SWITCHER:
+          '__VITE_DANGEROUS_ENABLE_ROLE_SWITCHER__',
+        ALLOW_DEV_MODE: '__ALLOW_DEV_MODE__',
+      };
+    </script>
+    <title>SPARK Workflow | Dashboard</title>
+  </head>
+  <body>
+    <div id="app" style="height: 100vh"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,88 @@
+{
+  "StepBar": {
+    "plausibilityCheck": "Plausibility Check"
+  },
+  "common": {
+    "document": "Document",
+    "page": "Page",
+    "loading": "Loading...",
+    "documentNotFound": "Document not found"
+  },
+  "status": {
+    "open": "Open",
+    "ignored": "Irrelevant",
+    "resolved": "Resolved",
+    "onRequestList": "On request list"
+  },
+  "NoticeCards": {
+    "openHints": "Open hints",
+    "onRequestListHints": "Hints on request list",
+    "ignoredHints": "Ignored hints",
+    "countOf": "{{count}} of {{total}}"
+  },
+  "redesign": {
+    "backToDocuments": "Back to formal completeness check",
+    "formalCompletenessCheck": "Formal completeness check",
+    "hintsTitle": "Hints ({{count}})",
+    "progress": "{{processed}} of {{total}} contradictory statements checked",
+    "referenceId": "CS-{{index}}",
+    "rowTitle": "Contradictory statement",
+    "status": {
+      "open": "Open",
+      "ignored": "Irrelevant",
+      "resolved": "Done",
+      "requested": "Requested"
+    },
+    "stepTitle": "Plausibility check",
+    "summary": {
+      "open": "Open",
+      "requested": "Requested",
+      "irrelevant": "Irrelevant"
+    }
+  },
+  "ContradictionsList": {
+    "title": "Hints",
+    "infoLabel": "Information about the hints",
+    "info": "What does the AI do?\n\nThe AI checks the documents for contradictions. The plausibility check evaluates text-based content only. Content from figures, plans, or tables is currently not analyzed systematically.\n\nContradictions are checked within each individual document. In addition, each individual document is compared against the explanatory report whenever the AI has identified a document as the explanatory report. Contradictions between two documents of which neither is identified as the explanatory report are not checked.\n\nThe professional assessment of the displayed hints and the decision on how to proceed always remain with the users.",
+    "emptyState": {
+      "noResults": "No hints found",
+      "noResultsDescription": "Try adjusting your search criteria.",
+      "noHints": "No hints available",
+      "noHintsDescription": "No contradictions were detected in the documents."
+    }
+  },
+  "ContradictionsToolbar": {
+    "status": "Status",
+    "documents": "Documents",
+    "decreaseRating": "Decrease sensitivity",
+    "increaseRating": "Increase sensitivity",
+    "rating": "Sensitivity",
+    "ratingValue": "from {{value}}",
+    "ratingInfoLabel": "Sensitivity information",
+    "ratingInfo": "Use the slider to define the sensitivity threshold from which hints are shown. You can choose between “low sensitivity” (left) and “high sensitivity” (right).\n\nLow sensitivity: Shows all available contradictions. This may also include less contradictory hints.\n\nHigh sensitivity: Shows only hints for more contradictory text passages. This may potentially hide contradictions considered relevant.\n\nImportant: All hints remain available and must be reviewed. Hints that have already been processed are marked accordingly.",
+    "clearFilter": "Clear filter",
+    "clearStatusFilter": "Clear status filter",
+    "clearDocumentFilter": "Clear document filter",
+    "searchPlaceholder": "Search by keyword ..."
+  },
+  "ContradictionCardExpanded": {
+    "affectedTextPassages": "Affected text passages ({{count}})"
+  },
+  "ComparisonTable": {
+    "textPassageIndexed": "Text passage {{index}}",
+    "leftOccurrence": "Left text passage",
+    "rightOccurrence": "Right text passage",
+    "document": "Document",
+    "location": "Location",
+    "wording": "Wording"
+  },
+  "ContradictionActions": {
+    "editAs": "Process hint as",
+    "ignoreHint": "Mark as irrelevant",
+    "stopIgnoringHint": "Mark as relevant",
+    "addToRequestList": "Add to request list",
+    "addComment": "Add comment",
+    "commentTitlePrefix": "Contradiction:",
+    "saveError": "Could not save the change."
+  }
+}

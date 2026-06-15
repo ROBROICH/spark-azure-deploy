@@ -1,0 +1,22 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "feedback-service.fullname" . }}
+  namespace: {{ include "feedback-service.namespace" . }}
+  labels:
+    {{- include "feedback-service.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    {{- range .Values.service.ports }}
+    - port: {{ .port }}
+      targetPort: {{ .targetPort }}
+      protocol: {{ .protocol | default "TCP" }}
+      {{- if .name }}
+      name: {{ .name }}
+      {{- end }}
+    {{- end }}
+  selector:
+    {{- include "feedback-service.selectorLabels" . | nindent 4 }}
+{{- end }}

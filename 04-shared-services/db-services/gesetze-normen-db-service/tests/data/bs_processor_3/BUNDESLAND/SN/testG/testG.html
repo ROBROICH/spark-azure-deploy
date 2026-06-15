@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<!--
+  Synthetic detail page for the shared parser test "testG"
+  (Gesetz zum testen von Gesetzen).
+
+  Mirrors the real source HTML dialect. Structural snippets are taken from real
+  downloads in cached/bs_processor_3/SN/ (cited inline per scenario):
+    * law A  -> <sup class="satzzahl"> sentence markers, <dl class="cf"> numbered list
+    * law B  -> sub-paragraph (§ 3a), <footer class="fussnoten"> footnote
+    * law C  -> header/metadata layout, sidebar boxes
+    * law D  -> nav TOC
+  Scenarios with no real equivalent (dash list — confirmed absent from
+  the cache; deeply nested list with shared suffix; post-list endtext) are
+  marked "synthetic data, no example found".
+
+  NOTE: real source sub-lists are NOT nested <dl>s. They are flat: an empty
+  <dt>, a <dd class="td_2">a)</dd> marker and a <dd class="last"> body (see
+  law B § 3a Abs. 3). The shared parse_absatz_blocks util does not yet
+  understand that shape, so the nested-list scenario below uses the nested-<dl>
+  form the util does parse. See the flagged bug for the real-shape handling.
+-->
+<html lang="de-DE">
+<head>
+<meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<!-- metadata: <title> trailing token -> jurabk abbreviation -->
+<title>
+Testportal Landesrecht
+- Gesetz zum testen von Gesetzen – SächsTestG
+</title>
+</head>
+<body id="portal">
+<div data-controller="testportal-init" id="wrapper">
+<div class="content-wrapper">
+<div class="" id="content">
+<div class="law_show" data-controller="law-version">
+<!-- metadata: <h1 class="mbottom_s_i"> -> kurzue (short title) -->
+<h1 class="mbottom_s_i">Testgesetz</h1><p>Vollzitat: Testgesetz vom 1. Januar 2000 (SächsGVBl. S.&nbsp;1), das zuletzt durch Artikel 1 des Gesetzes vom 12. August 2025 (SächsGVBl. S.&nbsp;189) geändert worden ist</p>
+<article class="spalte1-b1 spalte2-b1 spalte3-b2" id="lesetext" data-bundesgesetze="inline" data-link-manuell="ja">
+    <!-- header[data-link='ef']: full title -> langue (parenthetical stripped); "Vom ..." -> ausfertigung_datum -->
+    <header data-anchor="1000" data-level="1" data-link="ef" id="ef" title="deutsche Fassung">
+    <h3 class="centre">Gesetz zum testen von Gesetzen
+      <br> (Testgesetz – SächsTestG) </h3>
+    <p class="centre"><b>Vom 1. Januar 2000</b></p>
+    <h4 class="centre rechtsbereinigt">Rechtsbereinigt mit Stand vom 1. Januar 2000</h4>
+    <p>Der Sächsische Landtag hat das folgende Gesetz beschlossen:</p>
+  </header>
+  <div class="sections">
+    <!-- section heading (data-link not ^p\d): must NOT be parsed as a norm -->
+    <!-- Gliederungsabschnitt -->
+    <section data-anchor="1" data-level="1" title="1. Teil Allgemeine Vorschriften" data-link="vwv1" id="vwv1">
+      <h4 class="centre">1. Teil<br>
+        Allgemeine Vorschriften</h4>
+    </section>
+
+    <!-- § 1: plain grammatical sentences, period-split into Sätze -->
+    <section data-anchor="2" data-level="1" title="§ 1  Grammatikalische Sätze" data-link="p1" id="p1">
+      <h4 class="centre"> § 1
+        <br> Grammatikalische Sätze </h4>
+      <!-- <sup class="satzzahl"> sentence markers stripped before period-split.
+           Real shape: § 6 Abs. 1 jlr p6 -->
+      <p>(1) <sup class="satzzahl">1</sup>Ein einfacher Satz mit Interpunktion. <sup class="satzzahl">2</sup>Ein zweiter Satz ohne Markierungen. <sup class="satzzahl">3</sup>§ 1 Absatz 1 enthält 3 Sätze.</p>
+      <p>(2) Ein zweiter grammatikalischer Absatz mit einem Satz und einigen Sonderfällen (z.B. 01. Januar 2000, e. V., a. n. g., Art. 2 4. BImSchV, 1 BA, BGBl. I S. 1440, CAS-Nr. 72-54-8; EU-Nr. 200-783-0).</p>
+      <!-- trailing <a class="fussnote_link"> stripped before sentence-split.
+           Real shape: footnote markers -->
+      <p>(3) Römische Ziffern in Abkürzungen wie BGBl. I unterbrechen nicht einen Satz. Das deutsche "Die" beginnt mit einem römischen Zahlbuchstaben, sollte aber keinen Satz unterbrechen.<a title="§ 1 Abs. 3 Beispiel-Fußnote" class="fussnote_link" href="#FNID_1"><sup>1</sup></a></p>
+    </section>
+
+    <!-- § 2: Sätze with enumeration markers -->
+    <section data-anchor="3" data-level="1" title="§ 2  Sätze mit Markierungen" data-link="p2" id="p2">
+      <h4 class="centre"> § 2
+        <br> Sätze mit Markierungen </h4>
+
+      <!-- Abs. 1: numbered list (unique markers) -->
+      <!-- Real shape: § 1 jlr p1 <dl class="cf"> <dt>1.</dt><dd>... -->
+      <p>(1) Dieser Satz</p>
+      <dl class="cf">
+        <dt class="td_1">1.</dt>
+        <dd class="last">ist verschachtelt und</dd>
+        <dt class="td_1">2.</dt>
+        <dd class="last">bietet eindeutige Markierungen.</dd>
+      </dl>
+
+      <!-- Abs. 2: dash list (ambiguous markers -> disambiguated "1. –", "2. –") -->
+      <!-- synthetic data, no example found -->
+      <p>(2) Dieser Satz</p>
+      <dl class="cf">
+        <dt class="td_1">–</dt>
+        <dd class="last">ist verschachtelt, aber</dd>
+        <dt class="td_1">–</dt>
+        <dd class="last">bietet keine eindeutigen Markierungen.</dd>
+      </dl>
+
+      <!-- Abs. 3: deeply nested list with shared suffix + trailing continuation sentence -->
+      <!-- synthetic data: the real source nests via flat <dd class="td_2"> markers
+           (cf. § 3a Abs. 3), which the shared util mishandles;
+           nested-<dl> form used here so the scenario is parseable -->
+      <p>(3) Dieser Satz wird aufgeteilt in:</p>
+      <dl class="cf">
+        <dt class="td_1">1.</dt>
+        <dd class="last">eine einzelne verschachtelte Ebene,</dd>
+        <dt class="td_1">2.</dt>
+        <dd class="last">
+          <p>eine tiefer verschachtelte mit,</p>
+          <dl class="cf">
+            <dt class="td_1">a)</dt>
+            <dd class="last">Teil a,</dd>
+            <dt class="td_1">b)</dt>
+            <dd class="last">Teil b,</dd>
+          </dl>
+          <p>(und gemeinsamer Endtext).</p>
+        </dd>
+      </dl>
+      <p>Dieser Satz ist nicht enthalten.</p>
+
+      <!-- Abs. 4: list followed by shared endtext, then a continuation sentence -->
+      <!-- synthetic data, no example found -->
+      <p>(4) Vorspann</p>
+      <dl class="cf">
+        <dt class="td_1">1.</dt>
+        <dd class="last">erster Punkt</dd>
+        <dt class="td_1">2.</dt>
+        <dd class="last">zweiter Punkt</dd>
+      </dl>
+      <p>und endtext. Eine weitere Bemerkung.</p>
+    </section>
+
+    <!-- § 3: real source flat sub-list — empty <dt> + <dd class="td_2"> marker
+         + <dd class="last"> body, normalised into nested markers ["1","a"].
+         Real shape: § 3a Abs. 3 jlr p3a -->
+    <section data-anchor="4" data-level="1" title="§ 3  Verschachtelte Aufzählung" data-link="p3" id="p3">
+      <h4 class="centre"> § 3
+        <br> Verschachtelte Aufzählung </h4>
+      <p>(1) Diese Aufzählung hat</p>
+      <dl class="cf">
+        <dt class="td_1">1.</dt>
+        <dd class="last">eine erste Ebene,</dd>
+        <dt class="td_1"> </dt>
+        <dd class="td_2">a)</dd>
+        <dd class="last">mit Unterpunkt a,</dd>
+        <dt class="td_1"> </dt>
+        <dd class="td_2">b)</dd>
+        <dd class="last">mit Unterpunkt b,</dd>
+        <dt class="td_1">2.</dt>
+        <dd class="last">eine zweite Ebene.</dd>
+      </dl>
+    </section>
+  </div>
+
+<!-- footnotes: <footer class="fussnoten"> -> attached to its norm via the
+     fussnote_link href. -->
+<footer title="Fußnoten" class="fussnoten" data-level="1"><dl>
+<dt>1</dt>
+<dd id="FNID_1">§ 1 Abs. 3 geändert durch Beispielgesetz vom 1. Januar 2000 (SächsGVBl. S. 1)</dd>
+</dl></footer></article>
+</div>
+
+<div class="fixfloat"></div>
+</div>
+<div id="quickbar">
+<!-- sidebar box: Fundstelle -->
+<div class="box">
+<h3>Fundstelle und systematische Gliederungsnummer</h3>
+<p>
+SächsGVBl. 2000 Nr. 1, S. 1
+<br>
+Fsn-Nr.: 100-1
+</p>
+</div>
+
+<!-- sidebar box: Gültigkeitszeitraum -> Standangabe -->
+<div class="box">
+<h3>Gültigkeitszeitraum</h3>
+<p>
+Fassung gültig ab:  1. Januar 2000
+</p>
+</div>
+</div>
+</div>
+</div>
+</body>
+</html>

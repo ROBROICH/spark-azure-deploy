@@ -1,0 +1,23 @@
+<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="deutsch-title deutsch-desc">
+  <title id="deutsch-title">Deutsch</title>
+  <desc id="deutsch-desc">Rundes Symbol mit Deutschlandflagge fuer die deutsche Sprache</desc>
+  <g clip-path="url(#clip0_3806_87050)">
+    <path
+      d="M15.5024 5.21648C14.372 2.17011 11.4397 -0.000922203 7.99997 -0.000922203C4.56026 -0.000922203 1.62791 2.17011 0.497568 5.21648L7.99997 5.91211L15.5024 5.21648Z"
+      fill="black"
+    />
+    <path
+      d="M7.99997 16C11.4397 16 14.372 13.829 15.5024 10.7826L7.99997 10.087L0.497568 10.7826C1.62791 13.829 4.56026 16 7.99997 16Z"
+      fill="#FFDA44"
+    />
+    <path
+      d="M15.5024 10.7832C15.824 9.91655 16 8.97917 16 8.00061C16 7.02205 15.824 6.08467 15.5024 5.21802H0.497562C0.176 6.08467 0 7.02205 0 8.00061C0 8.97917 0.176001 9.91655 0.497594 10.7832H15.5024Z"
+      fill="#D80027"
+    />
+  </g>
+  <defs>
+    <clipPath id="clip0_3806_87050">
+      <rect width="16" height="16" fill="white" transform="matrix(-1 0 0 -1 16 16)" />
+    </clipPath>
+  </defs>
+</svg>
