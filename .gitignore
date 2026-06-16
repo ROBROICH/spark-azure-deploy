@@ -24,6 +24,7 @@ coverage.json
 .DS_Store
 *.pdf
 *.PDF
+!docs/Technischer_Produktsteckbrief_GER_v1.pdf
 
 node_modules
 .pnpm
