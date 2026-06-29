@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":jura-db-service"
+      image_suffix: "jura-db-service"
+      artifact_name: "spark-workflow-jura-db-service-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/04-shared-services/db-services/jura-db-service/Dockerfile"
