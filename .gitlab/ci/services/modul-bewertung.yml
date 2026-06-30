@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":modul-bewertung"
+      image_suffix: "modul-bewertung"
+      artifact_name: "spark-workflow-modul-bewertung-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-bewertung/Dockerfile"

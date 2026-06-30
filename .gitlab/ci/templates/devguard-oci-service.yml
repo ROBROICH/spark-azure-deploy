@@ -1,0 +1,114 @@
+spec:
+  inputs:
+    job_suffix:
+      type: string
+    image_suffix:
+      type: string
+    artifact_name:
+      type: string
+    context:
+      type: string
+    dockerfile:
+      type: string
+---
+include:
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/generate-tag.yml"
+    inputs:
+      stage: "oci-image"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image_suffix: "$[[ inputs.image_suffix ]]"
+      devguard_artifact_name: "$[[ inputs.artifact_name ]]"
+      architecture: "amd64"
+      upstream_version: "0"
+      image_path: "$CI_REGISTRY_IMAGE"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/build-oci-image.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_token: "$DEVGUARD_TOKEN"
+      stage: "oci-image"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image: "image.tar"
+      image_tag: "$IMAGE_TAG"
+      build_args: "--context $[[ inputs.context ]] --dockerfile $[[ inputs.dockerfile ]]"
+      needs:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+      dependencies:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/container-scanning.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_token: "$DEVGUARD_TOKEN"
+      devguard_web_ui: "https://devguard.opencode.de"
+      devguard_artifact_name: "$[[ inputs.artifact_name ]]"
+      stage: "oci-image"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image_tar_path: "image.tar"
+      ignore_external_references: "true"
+      ignore_upstream_attestations: "true"
+      needs:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
+      dependencies:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/push-oci-image.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_token: "$DEVGUARD_TOKEN"
+      stage: "oci-image"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image: "image.tar"
+      image_tag: "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-amd64"
+      needs:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:container_scanning$[[ inputs.job_suffix ]]"
+      dependencies:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:container_scanning$[[ inputs.job_suffix ]]"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/sign-oci-image.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_token: "$DEVGUARD_TOKEN"
+      stage: "attestation"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image: "$IMAGE_TAG"
+      needs:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
+      dependencies:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/attest.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_token: "$DEVGUARD_TOKEN"
+      devguard_artifact_name: "$[[ inputs.artifact_name ]]"
+      stage: "attestation"
+      job_suffix: "$[[ inputs.job_suffix ]]"
+      image: "$IMAGE_TAG"
+      needs:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:container_scanning$[[ inputs.job_suffix ]]"
+      attestations:
+        - source: "$DEVGUARD_API_URL/api/v1/organizations/$DEVGUARD_ASSET_NAME/refs/COMMIT_REF/artifacts/ARTIFACT_NAME/sbom.json/"
+          predicate_type: "https://cyclonedx.org/bom"
+        - source: "$DEVGUARD_API_URL/api/v1/organizations/$DEVGUARD_ASSET_NAME/refs/COMMIT_REF/artifacts/ARTIFACT_NAME/vex.json/"
+          predicate_type: "https://cyclonedx.org/vex"
+        - source: "$DEVGUARD_API_URL/api/v1/organizations/$DEVGUARD_ASSET_NAME/refs/COMMIT_REF/sarif.json/"
+          predicate_type: "https://www.schemastore.org/schemas/json/sarif-2.1.0.json"
+        - source: "build.provenance.json"
+          predicate_type: "https://slsa.dev/provenance/v1"

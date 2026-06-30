@@ -1,12 +1,519 @@
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == "main" && ($CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "web")'
+    - when: never
+
 stages:
   - test
-  - oci-image
-  - attestation
+  - service-pipelines
+
+variables:
+  DEVGUARD_WEB_UI: "https://devguard.opencode.de"
 
 include:
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.4.0/templates/full.yml"
-    inputs:
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/secret-scanning.yml"
+    inputs: &devguard-test-inputs
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_token: "$DEVGUARD_TOKEN"
       devguard_api_url: "$DEVGUARD_API_URL"
-      devguard_web_ui: "https://devguard.opencode.de"
+      devguard_web_ui: "$DEVGUARD_WEB_UI"
+      stage: "test"
+
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/static-application-security-testing.yml"
+    inputs:
+      <<: *devguard-test-inputs
+      stage: "test"
+
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/infrastructure-as-code-scanning.yml"
+    inputs:
+      <<: *devguard-test-inputs
+      stage: "test"
+
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/software-composition-analysis.yml"
+    inputs:
+      <<: *devguard-test-inputs
+      stage: "test"
+
+.service-child-pipeline:
+  stage: service-pipelines
+
+frontend:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/frontend.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [01-frontend/frontend/**/*, .gitlab/ci/services/frontend.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+administrative-file-draft:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/administrative-file-draft.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/administrative_file_draft/**/*, .gitlab/ci/services/administrative-file-draft.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+agent-orchestration-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/agent-orchestration-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/agent_orchestration_service/**/*, .gitlab/ci/services/agent-orchestration-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+comment-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/comment-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/comment_service/**/*, .gitlab/ci/services/comment-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+document-management-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/document-management-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/document_management_service/**/*, .gitlab/ci/services/document-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+examination-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/examination-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/examination_service/**/*, .gitlab/ci/services/examination-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+feedback-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/feedback-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/feedback_service/**/*, .gitlab/ci/services/feedback-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+formal-completeness-check:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/formal-completeness-check.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/formal_completeness_check/**/*, .gitlab/ci/services/formal-completeness-check.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+fpp-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/fpp-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/fpp_service/**/*, .gitlab/ci/services/fpp-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+identity-management-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/identity-management-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/identity_management_service/**/*, .gitlab/ci/services/identity-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+objections-management-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/objections-management-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/objections_management_service/**/*, .gitlab/ci/services/objections-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+plausibility-notes:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/plausibility-notes.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/plausibility_notes/**/*, .gitlab/ci/services/plausibility-notes.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+project-logic-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/project-logic-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/project_logic_service/**/*, .gitlab/ci/services/project-logic-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+protocol-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/protocol-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/protocol_service/**/*, .gitlab/ci/services/protocol-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+supplementary-requests-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/supplementary-requests-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/supplementary_requests_service/**/*, .gitlab/ci/services/supplementary-requests-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+temporal-job-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/temporal-job-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [02-backend/temporal_job_service/**/*, .gitlab/ci/services/temporal-job-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+rechtsaenderungs-monitoring:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/rechtsaenderungs-monitoring.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [04-shared-services/basiskomponenten/rechtsaenderungs-monitoring/**/*, .gitlab/ci/services/rechtsaenderungs-monitoring.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+gesetze-normen-db-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/gesetze-normen-db-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [04-shared-services/db-services/gesetze-normen-db-service/**/*, .gitlab/ci/services/gesetze-normen-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+gesetzesbegruendung-db-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/gesetzesbegruendung-db-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [04-shared-services/db-services/gesetzesbegruendung-db-service/**/*, .gitlab/ci/services/gesetzesbegruendung-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+jura-db-service:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/jura-db-service.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [04-shared-services/db-services/jura-db-service/**/*, .gitlab/ci/services/jura-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+llm-client:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/llm-client.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [04-shared-services/llm/llm-client/**/*, .gitlab/ci/services/llm-client.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-anonymisierung:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-anonymisierung.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-anonymisierung/**/*, .gitlab/ci/services/modul-anonymisierung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-bewertung:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-bewertung.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-bewertung/**/*, .gitlab/ci/services/modul-bewertung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-einwendungsmanagement:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-einwendungsmanagement.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-einwendungsmanagement/**/*, .gitlab/ci/services/modul-einwendungsmanagement.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-formale-pruefung:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-formale-pruefung.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-formale-pruefung/**/*, .gitlab/ci/services/modul-formale-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-inhaltsextraktion:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-inhaltsextraktion.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-inhaltsextraktion/**/*, .gitlab/ci/services/modul-inhaltsextraktion.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-plausibilitaet-pruefung:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-plausibilitaet-pruefung.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-plausibilitaet-pruefung/**/*, .gitlab/ci/services/modul-plausibilitaet-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-rechtsmethodik:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-rechtsmethodik.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-rechtsmethodik/**/*, .gitlab/ci/services/modul-rechtsmethodik.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-risikohinweiser:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-risikohinweiser.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-risikohinweiser/**/*, .gitlab/ci/services/modul-risikohinweiser.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never
+
+modul-suche-und-zuordnung:
+  extends: .service-child-pipeline
+  trigger:
+    include:
+      - local: ".gitlab/ci/services/modul-suche-und-zuordnung.yml"
+    strategy: depend
+    forward: { yaml_variables: true, pipeline_variables: true }
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - changes: [05-modulcluster/modul-suche-und-zuordnung/**/*, .gitlab/ci/services/modul-suche-und-zuordnung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+      when: always
+    - when: never

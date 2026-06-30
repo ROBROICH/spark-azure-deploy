@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":formal-completeness-check"
+      image_suffix: "formal-completeness-check"
+      artifact_name: "spark-workflow-formal-completeness-check-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/02-backend/formal_completeness_check/Dockerfile"

@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":protocol-service"
+      image_suffix: "protocol-service"
+      artifact_name: "spark-workflow-protocol-service-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/02-backend/protocol_service/Dockerfile"
