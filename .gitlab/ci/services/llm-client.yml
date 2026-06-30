@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":llm-client"
+      image_suffix: "llm-client"
+      artifact_name: "spark-workflow-llm-client-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/04-shared-services/llm/llm-client/Dockerfile"

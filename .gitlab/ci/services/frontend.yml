@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":frontend"
+      image_suffix: "frontend"
+      artifact_name: "spark-workflow-frontend-main-amd64"
+      context: "$CI_PROJECT_DIR/01-frontend/frontend/."
+      dockerfile: "$CI_PROJECT_DIR/01-frontend/frontend/Dockerfile"

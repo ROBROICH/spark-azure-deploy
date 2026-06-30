@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":rechtsaenderungs-monitoring"
+      image_suffix: "rechtsaenderungs-monitoring"
+      artifact_name: "spark-workflow-rechtsaenderungs-monitoring-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/04-shared-services/basiskomponenten/rechtsaenderungs-monitoring/Dockerfile"

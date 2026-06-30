@@ -1,0 +1,12 @@
+stages:
+  - oci-image
+  - attestation
+
+include:
+  - local: ".gitlab/ci/templates/devguard-oci-service.yml"
+    inputs:
+      job_suffix: ":feedback-service"
+      image_suffix: "feedback-service"
+      artifact_name: "spark-workflow-feedback-service-main-amd64"
+      context: "$CI_PROJECT_DIR/."
+      dockerfile: "$CI_PROJECT_DIR/02-backend/feedback_service/Dockerfile"
