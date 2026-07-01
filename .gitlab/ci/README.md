@@ -106,7 +106,7 @@ The DevGuard lifecycle wrapper did not reliably propagate custom artifact names 
 The artifact names intentionally avoid `/` characters, for example:
 
 ```text
-spark-sandbox-frontend-main-amd64
+spark-workflow-frontend-main-amd64
 ```
 
 This avoids encoded-slash routing issues when DevGuard artifact names are used in API paths.
