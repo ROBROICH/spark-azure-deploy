@@ -6,7 +6,16 @@ workflow:
 
 stages:
   - test
-  - service-pipelines
+  - service-pipelines-1
+  - service-pipelines-2
+  - service-pipelines-3
+  - service-pipelines-4
+  - service-pipelines-5
+  - service-pipelines-6
+  - service-pipelines-7
+  - service-pipelines-8
+  - service-pipelines-9
+  - service-pipelines-10
 
 variables:
   DEVGUARD_WEB_UI: "https://devguard.opencode.de"
@@ -35,11 +44,8 @@ include:
       <<: *devguard-test-inputs
       stage: "test"
 
-.service-child-pipeline:
-  stage: service-pipelines
-
 frontend:
-  extends: .service-child-pipeline
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/frontend.yml"
@@ -55,7 +61,7 @@ frontend:
     - when: never
 
 administrative-file-draft:
-  extends: .service-child-pipeline
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/administrative-file-draft.yml"
@@ -71,7 +77,7 @@ administrative-file-draft:
     - when: never
 
 agent-orchestration-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/agent-orchestration-service.yml"
@@ -87,7 +93,7 @@ agent-orchestration-service:
     - when: never
 
 comment-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/comment-service.yml"
@@ -103,7 +109,7 @@ comment-service:
     - when: never
 
 document-management-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/document-management-service.yml"
@@ -119,7 +125,7 @@ document-management-service:
     - when: never
 
 examination-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/examination-service.yml"
@@ -135,7 +141,7 @@ examination-service:
     - when: never
 
 feedback-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/feedback-service.yml"
@@ -151,7 +157,7 @@ feedback-service:
     - when: never
 
 formal-completeness-check:
-  extends: .service-child-pipeline
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/formal-completeness-check.yml"
@@ -167,7 +173,7 @@ formal-completeness-check:
     - when: never
 
 fpp-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/fpp-service.yml"
@@ -183,7 +189,7 @@ fpp-service:
     - when: never
 
 identity-management-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/identity-management-service.yml"
@@ -199,7 +205,7 @@ identity-management-service:
     - when: never
 
 objections-management-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/objections-management-service.yml"
@@ -215,7 +221,7 @@ objections-management-service:
     - when: never
 
 plausibility-notes:
-  extends: .service-child-pipeline
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/plausibility-notes.yml"
@@ -231,7 +237,7 @@ plausibility-notes:
     - when: never
 
 project-logic-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/project-logic-service.yml"
@@ -247,7 +253,7 @@ project-logic-service:
     - when: never
 
 protocol-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/protocol-service.yml"
@@ -263,7 +269,7 @@ protocol-service:
     - when: never
 
 supplementary-requests-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/supplementary-requests-service.yml"
@@ -279,7 +285,7 @@ supplementary-requests-service:
     - when: never
 
 temporal-job-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/temporal-job-service.yml"
@@ -295,7 +301,7 @@ temporal-job-service:
     - when: never
 
 rechtsaenderungs-monitoring:
-  extends: .service-child-pipeline
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/rechtsaenderungs-monitoring.yml"
@@ -311,7 +317,7 @@ rechtsaenderungs-monitoring:
     - when: never
 
 gesetze-normen-db-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetze-normen-db-service.yml"
@@ -327,7 +333,7 @@ gesetze-normen-db-service:
     - when: never
 
 gesetzesbegruendung-db-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-7
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetzesbegruendung-db-service.yml"
@@ -343,7 +349,7 @@ gesetzesbegruendung-db-service:
     - when: never
 
 jura-db-service:
-  extends: .service-child-pipeline
+  stage: service-pipelines-7
   trigger:
     include:
       - local: ".gitlab/ci/services/jura-db-service.yml"
@@ -359,7 +365,7 @@ jura-db-service:
     - when: never
 
 llm-client:
-  extends: .service-child-pipeline
+  stage: service-pipelines-7
   trigger:
     include:
       - local: ".gitlab/ci/services/llm-client.yml"
@@ -375,7 +381,7 @@ llm-client:
     - when: never
 
 modul-anonymisierung:
-  extends: .service-child-pipeline
+  stage: service-pipelines-8
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-anonymisierung.yml"
@@ -391,7 +397,7 @@ modul-anonymisierung:
     - when: never
 
 modul-bewertung:
-  extends: .service-child-pipeline
+  stage: service-pipelines-8
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-bewertung.yml"
@@ -407,7 +413,7 @@ modul-bewertung:
     - when: never
 
 modul-einwendungsmanagement:
-  extends: .service-child-pipeline
+  stage: service-pipelines-8
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-einwendungsmanagement.yml"
@@ -423,7 +429,7 @@ modul-einwendungsmanagement:
     - when: never
 
 modul-formale-pruefung:
-  extends: .service-child-pipeline
+  stage: service-pipelines-9
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-formale-pruefung.yml"
@@ -439,7 +445,7 @@ modul-formale-pruefung:
     - when: never
 
 modul-inhaltsextraktion:
-  extends: .service-child-pipeline
+  stage: service-pipelines-9
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-inhaltsextraktion.yml"
@@ -455,7 +461,7 @@ modul-inhaltsextraktion:
     - when: never
 
 modul-plausibilitaet-pruefung:
-  extends: .service-child-pipeline
+  stage: service-pipelines-9
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-plausibilitaet-pruefung.yml"
@@ -471,7 +477,7 @@ modul-plausibilitaet-pruefung:
     - when: never
 
 modul-rechtsmethodik:
-  extends: .service-child-pipeline
+  stage: service-pipelines-10
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-rechtsmethodik.yml"
@@ -487,7 +493,7 @@ modul-rechtsmethodik:
     - when: never
 
 modul-risikohinweiser:
-  extends: .service-child-pipeline
+  stage: service-pipelines-10
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-risikohinweiser.yml"
@@ -503,7 +509,7 @@ modul-risikohinweiser:
     - when: never
 
 modul-suche-und-zuordnung:
-  extends: .service-child-pipeline
+  stage: service-pipelines-10
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-suche-und-zuordnung.yml"
