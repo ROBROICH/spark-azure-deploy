@@ -94,7 +94,7 @@ include:
     inputs:
       job_suffix: ":frontend"
       image_suffix: "frontend"
-      artifact_name: "spark-sandbox-frontend-main-amd64"
+      artifact_name: "spark-workflow-frontend-main-amd64"
       context: "$CI_PROJECT_DIR/01-frontend/frontend/."
       dockerfile: "$CI_PROJECT_DIR/01-frontend/frontend/Dockerfile"
 ```
