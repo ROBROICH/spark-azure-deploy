@@ -2,14 +2,44 @@
 
 This project uses DevGuard-powered GitLab CI for repository security checks and OCI image build, scan, push, sign, and attestation.
 
-## Current Design
+## Background
 
-The pipeline is split into two top-level stages:
+The previous pipeline used the DevGuard `full.yml` component as a single, broad pipeline:
 
 ```yaml
 stages:
   - test
-  - service-pipelines
+  - oci-image
+  - attestation
+
+include:
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.4.0/templates/full.yml"
+    inputs:
+      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
+      devguard_token: "$DEVGUARD_TOKEN"
+      devguard_api_url: "$DEVGUARD_API_URL"
+      devguard_web_ui: "https://devguard.opencode.de"
+```
+
+That approach was compact, but it did not work well for this repository because it built too broadly and did not give enough control over artifact naming and per-service execution.
+
+## Current Design
+
+The pipeline is split into one repository test stage and ten batched service pipeline stages:
+
+```yaml
+stages:
+  - test
+  - service-pipelines-1
+  - service-pipelines-2
+  - service-pipelines-3
+  - service-pipelines-4
+  - service-pipelines-5
+  - service-pipelines-6
+  - service-pipelines-7
+  - service-pipelines-8
+  - service-pipelines-9
+  - service-pipelines-10
 ```
 
 The `test` stage runs DevGuard repository checks:
@@ -19,7 +49,7 @@ The `test` stage runs DevGuard repository checks:
 - Infrastructure-as-code scanning
 - Software composition analysis
 
-The `service-pipelines` stage contains one child pipeline trigger per deployable service. Each service has its own child pipeline file in:
+The `service-pipelines-*` stages contain child pipeline triggers for deployable services. Each batch contains at most three service triggers, which limits service child-pipeline fan-out and reduces runner timeouts. Each service has its own child pipeline file in:
 
 ```text
 .gitlab/ci/services/
@@ -76,26 +106,83 @@ The DevGuard lifecycle wrapper did not reliably propagate custom artifact names 
 The artifact names intentionally avoid `/` characters, for example:
 
 ```text
-spark-sandbox-frontend-main-amd64
+spark-workflow-frontend-main-amd64
 ```
 
 This avoids encoded-slash routing issues when DevGuard artifact names are used in API paths.
 
+## Build And Push Flow
+
+The service template intentionally uses a local `devguard:build_oci_image...` job instead of the upstream DevGuard `build-oci-image.yml` component.
+
+The upstream component supports pushing images directly with `push_image: "true"`, but it still declares `image.tar` as a GitLab artifact. Large service images can exceed the GitLab artifact upload limit and fail with:
+
+```text
+413 Request Entity Too Large
+```
+
+To avoid that, the local build job mirrors the DevGuard build behavior but changes the artifact flow:
+
+- Kaniko builds the image.
+- Kaniko pushes the image directly to GitLab Container Registry.
+- The job resolves the pushed image digest with `crane digest`.
+- The job uploads only small artifacts:
+  - `image-digest.txt`
+  - `build.provenance.json`
+  - `variables.env`
+
+The pipeline no longer uploads `image.tar` to GitLab artifacts.
+
+This changes the flow from:
+
+```text
+build image.tar -> upload image.tar -> scan image.tar -> push image
+```
+
+to:
+
+```text
+build and push image -> scan image from registry
+```
+
+The build job still records DevGuard in-toto/SLSA provenance by wrapping the Kaniko build with:
+
+```bash
+/devguard-scanner intoto start --step=build ...
+/devguard-scanner intoto stop --step=build --products=image-digest.txt --generateSlsaProvenance ...
+```
+
+The generated `build.provenance.json` is later attached by the attestation job.
+
 ## Image Tag Handling
 
-Build jobs use the generated DevGuard image tag:
+Build jobs push images directly to the GitLab container registry with a branch-and-commit-specific image tag:
 
 ```yaml
-image_tag: "$IMAGE_TAG"
+$CI_REGISTRY_IMAGE/<image-suffix>:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64
 ```
 
-Push jobs use an explicit plain tag:
+For example:
+
+```text
+registry.gitlab.com/.../frontend:main-a12b68f6c9e4d7b1f3a2c5e8d9f0a1b2c3d4e5f6-amd64
+```
+
+The build job exports a digest-qualified `IMAGE_TAG` in `variables.env`, for example:
+
+```text
+registry.gitlab.com/.../frontend:main-a12b68f6c9e4d7b1f3a2c5e8d9f0a1b2c3d4e5f6-amd64@sha256:...
+```
+
+Container scanning reads the pushed image back from the registry instead of scanning an uploaded `image.tar` artifact. This avoids GitLab artifact size limits for large service images.
+
+The registry tag is also used by the sign job:
 
 ```yaml
-image_tag: "$CI_REGISTRY_IMAGE/<image-suffix>:$CI_COMMIT_REF_SLUG-amd64"
+image: "$CI_REGISTRY_IMAGE/<image-suffix>:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
 ```
 
-This ensures the registry tag exists before the sign job runs. Without this, signing can fail with `MANIFEST_UNKNOWN` because the pushed image may only be addressable by digest.
+This keeps image tags from being overwritten on every `main` build and ensures the registry tag exists before signing. Without pushing a plain tag, signing can fail with `MANIFEST_UNKNOWN` because the pushed image may only be addressable by digest.
 
 ## Per-Service Execution
 
@@ -129,3 +216,15 @@ For pushes or web pipelines on `main`:
 For tags:
 
 - All service image pipelines run.
+
+## Compatibility Files
+
+The previous grouped child pipeline files remain as thin compatibility shims:
+
+- `.gitlab/ci/frontend.yml`
+- `.gitlab/ci/backend-a.yml`
+- `.gitlab/ci/backend-b.yml`
+- `.gitlab/ci/shared-services.yml`
+- `.gitlab/ci/modulcluster.yml`
+
+The parent pipeline no longer uses them directly, but keeping them avoids breaking external references while the per-service structure is adopted.

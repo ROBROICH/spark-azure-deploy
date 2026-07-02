@@ -22,21 +22,6 @@ include:
       upstream_version: "0"
       image_path: "$CI_REGISTRY_IMAGE"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/build-oci-image.yml"
-    inputs:
-      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
-      devguard_api_url: "$DEVGUARD_API_URL"
-      devguard_token: "$DEVGUARD_TOKEN"
-      stage: "oci-image"
-      job_suffix: "$[[ inputs.job_suffix ]]"
-      image: "image.tar"
-      image_tag: "$IMAGE_TAG"
-      build_args: "--context $[[ inputs.context ]] --dockerfile $[[ inputs.dockerfile ]]"
-      needs:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-      dependencies:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/container-scanning.yml"
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
@@ -46,7 +31,8 @@ include:
       devguard_artifact_name: "$[[ inputs.artifact_name ]]"
       stage: "oci-image"
       job_suffix: "$[[ inputs.job_suffix ]]"
-      image_tar_path: "image.tar"
+      image_tag: "$IMAGE_TAG"
+      fetch_image_from_registry: "true"
       ignore_external_references: "true"
       ignore_upstream_attestations: "true"
       needs:
@@ -56,24 +42,6 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/push-oci-image.yml"
-    inputs:
-      devguard_asset_name: "$DEVGUARD_ASSET_NAME"
-      devguard_api_url: "$DEVGUARD_API_URL"
-      devguard_token: "$DEVGUARD_TOKEN"
-      stage: "oci-image"
-      job_suffix: "$[[ inputs.job_suffix ]]"
-      image: "image.tar"
-      image_tag: "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-amd64"
-      needs:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
-        - "devguard:container_scanning$[[ inputs.job_suffix ]]"
-      dependencies:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
-        - "devguard:container_scanning$[[ inputs.job_suffix ]]"
-
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/sign-oci-image.yml"
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
@@ -81,13 +49,13 @@ include:
       devguard_token: "$DEVGUARD_TOKEN"
       stage: "attestation"
       job_suffix: "$[[ inputs.job_suffix ]]"
-      image: "$IMAGE_TAG"
+      image: "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
       needs:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
       dependencies:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/attest.yml"
     inputs:
@@ -100,7 +68,6 @@ include:
       image: "$IMAGE_TAG"
       needs:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-        - "devguard:push_oci_image$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
         - "devguard:container_scanning$[[ inputs.job_suffix ]]"
       attestations:
@@ -112,3 +79,37 @@ include:
           predicate_type: "https://www.schemastore.org/schemas/json/sarif-2.1.0.json"
         - source: "build.provenance.json"
           predicate_type: "https://slsa.dev/provenance/v1"
+
+devguard:build_oci_image$[[ inputs.job_suffix ]]:
+  stage: "oci-image"
+  needs:
+    - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+  dependencies:
+    - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+  variables:
+    GIT_STRATEGY: fetch
+  image:
+    name: registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.27.3-devguard-scanner-v1.3.1@sha256:2966ade3c7d565ae56c48cfa50d5df6e36a5371f4173606eb4de57558186433d
+    pull_policy: always
+    entrypoint:
+      - ""
+  before_script:
+    - echo "Uses Kaniko to build Docker images securely without requiring privileged access. Images are pushed directly to the registry to avoid GitLab artifact size limits for large image tarballs."
+    - /devguard-scanner intoto start --step=build --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA"
+  script:
+    - IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
+    - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --destination "$IMAGE_REF"
+    - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - /crane digest "$IMAGE_REF" > image-digest.txt
+    - echo "Running DevGuard Intoto Build...stopping..."
+    - /devguard-scanner intoto stop --step=build --products=image-digest.txt --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA" --generateSlsaProvenance --defaultRef="$CI_DEFAULT_BRANCH" --ref="$CI_COMMIT_REF_NAME" --isTag="$(if [ "$CI_COMMIT_TAG" != "" ]; then echo "true"; else echo "false"; fi)"
+    - echo "IMAGE_TAG=$IMAGE_REF@$(cat image-digest.txt)" > variables.env
+  artifacts:
+    paths:
+      - image-digest.txt
+      - build.provenance.json
+      - variables.env
+    reports:
+      dotenv: variables.env
+    when: on_success
