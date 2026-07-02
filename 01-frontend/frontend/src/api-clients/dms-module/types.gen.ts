@@ -2228,7 +2228,7 @@ export type SetFileDiffV2FilesFileIdDiffPostResponses = {
 
 export type SetFileDiffV2FilesFileIdDiffPostResponse = SetFileDiffV2FilesFileIdDiffPostResponses[keyof SetFileDiffV2FilesFileIdDiffPostResponses];
 
-export type CancelUploadProcessV2FilesFileIdCancelGetData = {
+export type CancelUploadProcessV2FilesFileIdCancelPostData = {
     body?: never;
     headers?: {
         /**
@@ -2246,16 +2246,16 @@ export type CancelUploadProcessV2FilesFileIdCancelGetData = {
     url: '/v2/files/{file_id}/cancel';
 };
 
-export type CancelUploadProcessV2FilesFileIdCancelGetErrors = {
+export type CancelUploadProcessV2FilesFileIdCancelPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type CancelUploadProcessV2FilesFileIdCancelGetError = CancelUploadProcessV2FilesFileIdCancelGetErrors[keyof CancelUploadProcessV2FilesFileIdCancelGetErrors];
+export type CancelUploadProcessV2FilesFileIdCancelPostError = CancelUploadProcessV2FilesFileIdCancelPostErrors[keyof CancelUploadProcessV2FilesFileIdCancelPostErrors];
 
-export type CancelUploadProcessV2FilesFileIdCancelGetResponses = {
+export type CancelUploadProcessV2FilesFileIdCancelPostResponses = {
     /**
      * Successful Response
      */
