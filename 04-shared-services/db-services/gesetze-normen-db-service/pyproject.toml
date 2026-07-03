@@ -29,6 +29,7 @@ dev = [
     "pytest-cov>=6.2.1,<7",
     "pytest-xdist>=3.8.0,<4",
     "pytest-asyncio>=1.3.0",
+    "pytest-env>=1.1.5,<2",
     "pytest-postgresql>=8.0.0,<9",
     "respx>=0.22.0",
     "interrogate>=1.7.0,<2",
@@ -62,6 +63,9 @@ norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
 postgresql_dbname = "gesetze-normen"
 postgresql_port = "15432"
 postgresql_password = "postgres"
+env = [
+    "D:DB_PORT=15432",
+]
 
 [tool.coverage.report]
 # Regexes for lines to exclude from consideration

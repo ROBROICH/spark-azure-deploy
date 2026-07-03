@@ -10,10 +10,10 @@ import {
 import { TooltipWrapper } from '../tooltip/TooltipWrapper';
 
 const AI_BUTTON_SIZE_CLASSES = {
-  xs: 'h-6 rounded-[4px] px-2 text-[11px] leading-[14px]',
-  sm: 'h-8 rounded-lg px-3 text-[11px] leading-[14px]',
+  xs: 'h-6 rounded-[4px] py-1 pl-1 pr-2 text-[11px] leading-[14px]',
+  sm: 'h-8 rounded-lg py-1 pl-1 pr-2 text-[11px] leading-[14px]',
   md: 'h-9 rounded-lg px-3 text-sm',
-  default: 'h-9 rounded-lg px-3 py-[9px] text-[11px] leading-[14px]',
+  default: 'h-9 rounded-lg py-2 pl-2 pr-3 text-[11px] leading-[14px]',
   lg: 'h-11 rounded-lg px-4 text-base',
 } as const;
 
@@ -109,27 +109,26 @@ export function AiButton(props: AiButtonProps) {
   };
 
   const isEffectivelyLoading = isLoading || isTemporarilyLocked;
-  const isEffectivelyDisabled = isDisabled || isLoading || isTemporarilyLocked;
-  const tooltipContent = isEffectivelyDisabled
-    ? disabledTooltip
-    : enabledTooltip;
+  // Uses aria-disabled instead of native disabled to preserve contrast and tab order.
+  const isInoperable = isDisabled || isEffectivelyLoading;
+  const tooltipContent = isInoperable ? disabledTooltip : enabledTooltip;
   const button = (
     <span className="inline-flex">
       <button
         type={type}
-        disabled={isEffectivelyDisabled}
+        aria-disabled={isInoperable || undefined}
         aria-label={label}
         aria-busy={isEffectivelyLoading}
         className={cn(
-          'focus-ring inline-flex cursor-pointer items-center justify-center gap-1 border border-transparent font-medium tracking-[0.22px] whitespace-nowrap disabled:pointer-events-none',
+          'focus-ring inline-flex cursor-pointer items-center justify-center gap-1 border border-transparent font-medium tracking-[0.22px] whitespace-nowrap',
           'shadow-[0px_4px_16px_0px_rgba(2,6,23,0.1),0px_2px_4px_0px_rgba(2,6,23,0.1),inset_0px_-4px_8px_0px_rgba(2,6,23,0.05)]',
           AI_BUTTON_SIZE_CLASSES[size],
-          isEffectivelyDisabled ? 'cursor-default' : 'cursor-pointer',
+          isInoperable ? 'cursor-default' : 'cursor-pointer',
           className,
         )}
         style={{ ...style, background: AI_SPARKLES_CHIP_BACKGROUND }}
         onPointerEnter={(event) => {
-          if (!isEffectivelyDisabled) {
+          if (!isInoperable) {
             AI_HOVER_PROPS.onPointerEnter(event);
           }
           onPointerEnter?.(event);
@@ -139,7 +138,7 @@ export function AiButton(props: AiButtonProps) {
           onPointerLeave?.(event);
         }}
         onFocus={(event) => {
-          if (!isEffectivelyDisabled) {
+          if (!isInoperable) {
             AI_HOVER_PROPS.onFocus(event);
           }
           onFocus?.(event);
@@ -163,27 +162,21 @@ export function AiButton(props: AiButtonProps) {
           <LoaderCircle
             className={cn('animate-spin', AI_BUTTON_ICON_SIZE_CLASSES[size])}
             style={{
-              color: isEffectivelyDisabled
-                ? 'var(--effect-gradient-ai-text-icon-disabled)'
-                : 'var(--effect-gradient-ai-text-icon-primary)',
+              color: 'var(--effect-gradient-ai-text-icon-primary)',
             }}
             aria-hidden="true"
           />
         ) : (
           <AiSparklesIcon
             className={AI_BUTTON_ICON_SIZE_CLASSES[size]}
-            disabled={isEffectivelyDisabled}
+            disabled={false}
           />
         )}
         <span
           className="bg-clip-text text-transparent"
           style={{
-            backgroundImage: isEffectivelyDisabled
-              ? 'none'
-              : 'linear-gradient(180deg, var(--effect-gradient-ai-text-icon-primary) 0%, var(--effect-gradient-ai-text-icon-secondary) 100%)',
-            color: isEffectivelyDisabled
-              ? 'var(--effect-gradient-ai-text-icon-disabled)'
-              : undefined,
+            backgroundImage:
+              'linear-gradient(180deg, var(--effect-gradient-ai-text-icon-primary) 0%, var(--effect-gradient-ai-text-icon-secondary) 100%)',
           }}
         >
           {toNonBreakingLabel(label)}

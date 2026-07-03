@@ -14,6 +14,7 @@ import {
   SiteNavbar,
 } from '@/features/app-shell/navigation/SiteNavbar';
 import { Button } from '@/features/ui/button/Button';
+import { AppRouteDocumentTitle } from '@/features/document-title/app-route-title/AppRouteDocumentTitle';
 import { PdfPopoutProvider } from '@/features/project/pdf-popout/PdfPopoutShellContext';
 import { PdfPopoutWindow } from '@/features/project/pdf-popout/popout/PdfPopoutWindow';
 import {
@@ -72,6 +73,7 @@ const AppShell = () => {
 
   return (
     <CurrentUserProvider>
+      <AppRouteDocumentTitle />
       <PdfPopoutProvider>
         <TooltipProvider>
           <SidebarProvider className="h-svh">

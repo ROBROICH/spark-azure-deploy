@@ -61,7 +61,7 @@ def strip_artifacts(text: str) -> str:
     text = re.sub(rf"\\(?:{tag_alt})\s*\{{([^}}]*)\}}", r"\1", text)
     # Removes Latex tags
     text = re.sub(rf"\\(?:{tag_alt})\b\s?", "", text)
-    text = re.sub(r"\n{2,}\s*Note:[^\n]*\s*\Z", "", text, flags=re.IGNORECASE)
+    text = re.sub(r"\n{2,}\s*\*{0,2}Note\*{0,2}:\*{0,2}.*\Z", "", text, flags=re.IGNORECASE | re.DOTALL)
     return text.strip()
 
 

@@ -75,7 +75,7 @@
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@babel/core": "^7.29.0",
+    "@babel/core": "^7.29.6",
     "@hey-api/openapi-ts": "0.97.3",
     "@rolldown/plugin-babel": "^0.2.2",
     "@tanstack/eslint-config": "^0.4.0",
@@ -105,6 +105,6 @@
     "tailwindcss": "^4.0.6",
     "tw-animate-css": "^1.3.6",
     "typescript": "^6.0.2",
-    "vite": "^8.0.14"
+    "vite": "^8.0.16"
   }
 }

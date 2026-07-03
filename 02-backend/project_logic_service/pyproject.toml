@@ -65,6 +65,36 @@ testpaths = [
     "tests"
 ]
 asyncio_mode = "auto"
+env = [
+    # Force pure-Python psycopg so PGlite integration tests don't segfault
+    # when psycopg-binary is installed via uv sync --all-packages.
+    "PSYCOPG_IMPL=python",
+    "D:AUTH_MODE=disabled",
+    "D:DATABASE_URL=postgresql+asyncpg://test:test@localhost:5432/test_db",
+    "D:DB_USER=test",
+    "D:DB_PASSWORD=test",
+    "D:DB_HOST=localhost",
+    "D:DB_PORT=5432",
+    "D:DB_NAME=test_db",
+    "D:TEMPORAL_JOB_SERVICE_URL=http://localhost:18011",
+    "D:OTEL_SERVICE_NAME=project_logic_service",
+    "D:OTEL_ENDPOINT=http://localhost:4317",
+    "D:TEMPORAL__HOST=localhost:7233",
+    "D:TEMPORAL__TASK_QUEUE=project_logic_service",
+    "D:TEMPORAL__NAMESPACE=default",
+    "D:TEMPORAL__S3_BUCKET_NAME=temporal-payloads",
+    "D:TEMPORAL__S3_ENDPOINT_URL=http://localhost:9000",
+    "D:TEMPORAL__S3_ACCESS_KEY_ID=test",
+    "D:TEMPORAL__S3_SECRET_ACCESS_KEY=test",
+    "D:TEMPORAL__S3_REGION=eu-west-1",
+    "D:API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL=http://localhost:18010",
+    "D:API__OBJECTIONS_BASE_URL=http://localhost:18006",
+    "D:API__PLS_BASE_URL=http://localhost:18000",
+    "D:API__DMS_BASE_URL=http://localhost:18001",
+    "D:API__FCS_BASE_URL=http://localhost:18002",
+    "D:API__PLAUSIBILITY_BASE_URL=http://localhost:18005",
+    "D:API__EXAMINATION_BASE_URL=http://localhost:18009",
+]
 
 [tool.coverage.run]
 source = ["src"]

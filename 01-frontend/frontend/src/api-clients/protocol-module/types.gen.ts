@@ -220,12 +220,6 @@ export type MetricsMetricsGetResponses = {
 
 export type GetProjectHistoryProjectsProjectIdHistoryGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -307,12 +301,6 @@ export type GetProjectHistoryProjectsProjectIdHistoryGetResponse = GetProjectHis
 
 export type ExportProjectHistoryProjectsProjectIdHistoryExportGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

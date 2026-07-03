@@ -1,12 +1,11 @@
 from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal, cast
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx
 from audit_client import ChangeType, record_audit_entry
 from audit_client.workflow import workflow_actor_context_from_request_kwargs
-from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -48,8 +47,8 @@ from src.services.storage_provider.storage_provider_base_service import (
     BaseStorageProviderService,
 )
 from src.utils.exceptions import (
-    WorkflowInRunningStateError,
     WorkflowInPendingStateError,
+    WorkflowInRunningStateError,
     WorkflowRequiresApprovalError,
 )
 from src.utils.logger import logger
@@ -61,6 +60,14 @@ INTERNAL_FILE_TYPES: tuple[FileTypeEnum, ...] = (
     FileTypeEnum.REDACTED_DOCUMENT,
     FileTypeEnum.ERWIDERUNGS_EXPORT,
 )
+UPSTREAM_BODY_LOG_LIMIT = 2_000
+
+
+def _project_version_conflict_message(correlation_id: str) -> str:
+    return (
+        "Project version cannot be modified while version creation is locked. "
+        f"Retry after the current version operation completes. correlation_id={correlation_id}"
+    )
 
 
 class FileService:
@@ -165,7 +172,7 @@ class FileService:
 
     async def _get_latest_project_version(self, project_id: UUID) -> int:
         url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/latest-version"
-        async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
             response.raise_for_status()
             body = response.json()
@@ -176,11 +183,22 @@ class FileService:
 
     async def _validate_project_write_version(self, project_id: UUID, project_version: int) -> int:
         url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/version-lock/validate-write"
-        async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(url, json={"project_version": project_version})
             if response.status_code == http_status.HTTP_409_CONFLICT:
-                detail = response.json().get("detail", response.text)
-                raise ProjectVersionLockedError(str(project_id), detail)
+                correlation_id = str(uuid4())
+                logger.warn(
+                    action=EventAction.VALIDATE,
+                    outcome=EventOutcome.FAILURE,
+                    category=EventCategory.FILE,
+                    project_id=str(project_id),
+                    message=(
+                        "Project write-version validation rejected by upstream "
+                        f"(status={response.status_code}, correlation_id={correlation_id}, "
+                        f"body={response.text[:UPSTREAM_BODY_LOG_LIMIT]!r})"
+                    ),
+                )
+                raise ProjectVersionLockedError(str(project_id), _project_version_conflict_message(correlation_id))
             response.raise_for_status()
             body = response.json()
         latest_version = body.get("latest_version", body.get("latestVersion"))
@@ -1547,6 +1565,7 @@ class FileService:
         include_deleted: bool = False,
         project_version: int | None = None,
         expiration_minutes: int = 4 * 60,
+        internal: bool = False,
     ) -> tuple[File, str]:
         """
         Generate a signed URL to download a file from storage.
@@ -1557,6 +1576,8 @@ class FileService:
             include_deleted (bool): If True, allows to download soft deleted files
             expiration_minutes (int): The expiration time in minutes
                 for the download URL.
+            internal (bool): If True, sign the URL against the internal storage
+                endpoint so server-side callers (Temporal workers) can reach it.
 
         Returns:
             tuple[File, str]: Returns a tuple containing
@@ -1599,6 +1620,7 @@ class FileService:
                 mime_type=file.mime_type,
                 inline=inline,
                 expiration_minutes=expiration_minutes,
+                internal=internal,
             )
             logger.info(
                 action=EventAction.DOWNLOAD,

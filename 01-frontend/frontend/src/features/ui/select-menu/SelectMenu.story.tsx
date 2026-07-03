@@ -157,9 +157,11 @@ function OccurrenceOverflowDemo() {
 function FormSelectDemo() {
   const [value, setValue] = useState('bundesfernstrasse');
   const [invalid, setInvalid] = useState(false);
+  const labelId = 'form-select-demo-label';
   return (
     <div className="flex w-64 flex-col gap-2">
       <label
+        id={labelId}
         htmlFor="form-select-demo"
         className="text-sm font-medium text-slate-300"
       >
@@ -172,6 +174,7 @@ function FormSelectDemo() {
         id="form-select-demo"
         invalid={invalid}
         placeholder="Typ auswählen"
+        ariaLabelledBy={labelId}
         triggerClassName="w-full"
       />
       <button

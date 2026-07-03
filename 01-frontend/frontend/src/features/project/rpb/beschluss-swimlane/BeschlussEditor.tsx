@@ -232,10 +232,26 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
         role: 'textbox',
         'aria-label': t('beschluss.editorAriaLabel'),
         'aria-multiline': 'true',
+        tabindex: '0',
       },
       handleClick: (view, position) => {
         setActiveOutlineNodeIdAtPosition(view.state.doc, position, true);
         return false;
+      },
+      handleDOMEvents: {
+        focus: (view) => {
+          requestAnimationFrame(() => {
+            if (
+              view.dom.ownerDocument.activeElement !== view.dom ||
+              !view.dom.matches(':focus-visible')
+            ) {
+              return;
+            }
+
+            view.focus();
+          });
+          return false;
+        },
       },
     },
     onSelectionUpdate: ({ editor: editorInstance }) => {

@@ -1,0 +1,14 @@
+# Force LF line endings for all text files
+* text=auto eol=lf
+
+# Explicitly set common file types
+*.yaml text eol=lf
+*.yml text eol=lf
+*.json text eol=lf
+*.sh text eol=lf
+*.py text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+
+# Important so it doesnt fast-forward some stuff and leaves a broken file
+uv.lock merge=always-conflict

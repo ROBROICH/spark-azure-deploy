@@ -8,6 +8,7 @@ import {
   type ApplicantStepValues,
 } from '@/features/project/data/project-details-form/projectForm.schema';
 import { ApplicantInputField } from './ApplicantFormStepFields';
+import { focusFirstInvalidFormControl } from './focusFirstInvalidFormControl';
 
 export type { ApplicantStepValues };
 
@@ -43,6 +44,9 @@ export function ApplicantFormStep(
     },
     onSubmit: ({ value }) => {
       handleStepSubmit(value);
+    },
+    onSubmitInvalid: () => {
+      focusFirstInvalidFormControl(formRef);
     },
   });
 

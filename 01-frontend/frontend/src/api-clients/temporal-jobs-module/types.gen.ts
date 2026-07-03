@@ -384,12 +384,6 @@ export type WorkflowsBase = {
 
 export type GetWorkflowsTemporalWorkflowsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query: {
         /**
@@ -432,12 +426,6 @@ export type GetWorkflowsTemporalWorkflowsGetResponse = GetWorkflowsTemporalWorkf
 
 export type GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -483,12 +471,6 @@ export type GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetResponse = GetW
 
 export type GetWorkflowTemporalWorkflowsWorkflowIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Workflow Id
@@ -521,12 +503,6 @@ export type GetWorkflowTemporalWorkflowsWorkflowIdGetResponse = GetWorkflowTempo
 
 export type GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Workflow Id
@@ -559,25 +535,10 @@ export type GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetR
 
 export type GetSystemLoadTemporalLoadGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/temporal/load';
 };
-
-export type GetSystemLoadTemporalLoadGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetSystemLoadTemporalLoadGetError = GetSystemLoadTemporalLoadGetErrors[keyof GetSystemLoadTemporalLoadGetErrors];
 
 export type GetSystemLoadTemporalLoadGetResponses = {
     /**
@@ -638,12 +599,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type StatusInternalWorkflowsStatusPostData = {
     body: StatusRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/internal/workflows/status';

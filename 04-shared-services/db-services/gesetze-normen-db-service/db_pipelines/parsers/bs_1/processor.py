@@ -193,10 +193,6 @@ class BsProcessor1(BaseProcessor):
                 if "Inhaltsübersicht" in elem_text:
                     collecting = "skip_toc"
                     continue
-                # If no Inhaltsübersicht, start collecting after title block
-                if elem.name == "p" and elem.find("strong") and "Inhaltsübersicht" in elem_text:
-                    collecting = "skip_toc"
-                    continue
                 # No TOC found yet — collect preamble content (e.g. "Der Landtag...")
                 if elem.name in ("p", "ol") and not elem.find("strong"):
                     text = elem.get_text(" ", strip=True)

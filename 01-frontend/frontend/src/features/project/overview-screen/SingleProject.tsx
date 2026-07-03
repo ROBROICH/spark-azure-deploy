@@ -20,14 +20,14 @@ export const SingleProject = () => {
 
   return (
     <DocumentsUploadProvider>
-      <div className="flex w-full max-w-container-sm min-w-0 flex-1 flex-col gap-10 overflow-x-clip p-8">
+      <main className="flex w-full max-w-container-sm min-w-0 flex-1 flex-col gap-10 overflow-x-clip p-8">
         <ProjectOverviewNavbarSection verfahrenId={verfahrenId} />
         <ProjectMasterDataSection />
         <DeadlinesCard />
         <TeamCard />
 
         <ReadOnlyDocumentsCard />
-      </div>
+      </main>
       <DocumentsUpdateDialog />
       <DocumentsUploadToast />
     </DocumentsUploadProvider>

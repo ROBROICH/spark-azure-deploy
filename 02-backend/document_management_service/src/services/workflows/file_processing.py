@@ -401,7 +401,7 @@ class FileProcessingWorkflow:
                 zip_path=workflow_input.zip_path,
                 file_type=workflow_input.file_type,
             ),
-            start_to_close_timeout=timedelta(minutes=10),
+            start_to_close_timeout=timedelta(minutes=20),
             retry_policy=ZIP_PROCESSING_RETRY_POLICY,
         )
 

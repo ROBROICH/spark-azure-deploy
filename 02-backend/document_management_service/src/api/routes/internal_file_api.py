@@ -13,6 +13,7 @@ from src.config.settings import settings
 from src.models.db.workflow_enum import ZipApprovalStatus
 from src.models.schemas.approval_schema import FileDiffResponse
 from src.models.schemas.file_schema import (
+    FileDownloadResponse,
     FileResponse,
     FileUploadUrlResponse,
     UploadRequest,
@@ -89,6 +90,31 @@ async def internal_generate_upload_url(
     """Generate signed upload URL — internal, accepts all file types."""
     url, mime_type = await service.generate_upload_url(file_data=file_data, project_version=project_version)
     return FileUploadUrlResponse(upload_url=url, mime_type=mime_type)
+
+
+@router.get("/{file_id}/generate-download-url", response_model=FileDownloadResponse)
+async def internal_generate_download_url(
+    file_id: UUID,
+    project_version: Annotated[int | None, Query()] = None,
+    inline: Annotated[bool, Query()] = False,
+    include_deleted: Annotated[bool, Query(alias="includeDeleted")] = False,
+    service: FileService = Depends(get_file_service),
+):
+    """Generate a signed download URL for service-to-service use.
+
+    Signs against the internal storage endpoint (S3_ENDPOINT_URL) so server-side
+    callers can reach it, unlike the public route which targets the browser-facing
+    host, which is unreachable from backend workers when internal and external
+    storage endpoints differ.
+    """
+    _, url = await service.generate_download_url(
+        file_id=file_id,
+        inline=inline,
+        include_deleted=include_deleted,
+        project_version=project_version,
+        internal=True,
+    )
+    return FileDownloadResponse(download_url=url)
 
 
 @router.get("/{project_id}/zips/{zip_file_id}/diff", response_model=FileDiffResponse | None)

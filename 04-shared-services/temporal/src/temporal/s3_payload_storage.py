@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-from types_aiobotocore_s3.client import S3Client
-from aiobotocore.session import ClientCreatorContext
 import asyncio
 import uuid
 from typing import Any
 
 import aioboto3
 from aiobotocore.config import AioConfig
+from aiobotocore.session import ClientCreatorContext
 from botocore.exceptions import ClientError
 from event_logging import EventLogger, LoggingSettings
 from event_logging.enums import EventAction, EventCategory, EventOutcome
 from event_logging.settings import Environment
+from types_aiobotocore_s3.client import S3Client
 
 PAYLOAD_PATH_PREFIX = "payloads"
 
@@ -87,11 +87,19 @@ class S3PayloadStorage:
         self._bucket_exists = True
 
     async def put(self, payload_data: bytes) -> str:
+        key: str = f"{PAYLOAD_PATH_PREFIX}/{uuid.uuid4()}"
+        return await self.put_bytes(key=key, payload_data=payload_data)
+
+    async def put_bytes(
+        self,
+        key: str,
+        payload_data: bytes,
+        content_type: str = "application/octet-stream",
+    ) -> str:
         log_base: dict[str, Any] = {
             "category": EventCategory.FILE,
             "action": EventAction.UPLOAD,
         }
-        key: str = f"{PAYLOAD_PATH_PREFIX}/{uuid.uuid4()}"
         try:
             s3 = await self._get_client()
             await self._ensure_bucket(s3)
@@ -99,7 +107,7 @@ class S3PayloadStorage:
                 Bucket=self.bucket_name,
                 Key=key,
                 Body=payload_data,
-                ContentType="application/octet-stream",
+                ContentType=content_type,
             )
 
             self.logger.info(

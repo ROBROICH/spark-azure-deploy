@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetAllIdentitiesUsersGetData, GetAllIdentitiesUsersGetErrors, GetAllIdentitiesUsersGetResponses, GetIdentityMeGetData, GetIdentityMeGetErrors, GetIdentityMeGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetErrors, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetErrors, ReadinessCheckReadyGetResponses, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostData, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostErrors, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostResponses, StartupCheckStartupGetData, StartupCheckStartupGetErrors, StartupCheckStartupGetResponses, UpdateUserRolesMeRolesPostData, UpdateUserRolesMeRolesPostErrors, UpdateUserRolesMeRolesPostResponses } from './types.gen';
+import type { GetAllIdentitiesUsersGetData, GetAllIdentitiesUsersGetErrors, GetAllIdentitiesUsersGetResponses, GetIdentityMeGetData, GetIdentityMeGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetErrors, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetErrors, ReadinessCheckReadyGetResponses, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostData, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostErrors, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostResponses, StartupCheckStartupGetData, StartupCheckStartupGetErrors, StartupCheckStartupGetResponses, UpdateUserRolesMeRolesPostData, UpdateUserRolesMeRolesPostErrors, UpdateUserRolesMeRolesPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -33,7 +33,7 @@ export const metricsMetricsGet = <ThrowOnError extends boolean = false>(options?
  * Requires a valid Bearer token. No external calls are made — all fields
  * are read directly from the token payload.
  */
-export const getIdentityMeGet = <ThrowOnError extends boolean = false>(options?: Options<GetIdentityMeGetData, ThrowOnError>) => (options?.client ?? client).get<GetIdentityMeGetResponses, GetIdentityMeGetErrors, ThrowOnError>({
+export const getIdentityMeGet = <ThrowOnError extends boolean = false>(options?: Options<GetIdentityMeGetData, ThrowOnError>) => (options?.client ?? client).get<GetIdentityMeGetResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/me',
     ...options

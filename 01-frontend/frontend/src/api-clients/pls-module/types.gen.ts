@@ -2075,12 +2075,6 @@ export type MetricsMetricsGetResponses = {
 
 export type ListTopicsTopicsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -2127,12 +2121,6 @@ export type ListTopicsTopicsGetResponse = ListTopicsTopicsGetResponses[keyof Lis
 
 export type CreateTopicTopicsPostData = {
     body: CreateTopicRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/topics';
@@ -2158,12 +2146,6 @@ export type CreateTopicTopicsPostResponse = CreateTopicTopicsPostResponses[keyof
 
 export type DeleteTopicTopicsTopicIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Topic Id
@@ -2194,12 +2176,6 @@ export type DeleteTopicTopicsTopicIdDeleteResponse = DeleteTopicTopicsTopicIdDel
 
 export type GetTopicTopicsTopicIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Topic Id
@@ -2237,12 +2213,6 @@ export type GetTopicTopicsTopicIdGetResponse = GetTopicTopicsTopicIdGetResponses
 
 export type UpdateTopicTopicsTopicIdPatchData = {
     body: UpdateTopicRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Topic Id
@@ -2278,12 +2248,6 @@ export type GetTopicsBatchTopicsBatchPostData = {
      * Array of topic UUIDs to fetch
      */
     body: Array<string>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -2324,12 +2288,6 @@ export type GetTopicsBatchTopicsBatchPostResponse = GetTopicsBatchTopicsBatchPos
 
 export type GetTopicNormsTopicsTopicIdNormsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Topic Id
@@ -2369,12 +2327,6 @@ export type GetTopicNormsTopicsTopicIdNormsGetResponse = GetTopicNormsTopicsTopi
 
 export type ListDeadlinesDeadlinesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -2409,12 +2361,6 @@ export type ListDeadlinesDeadlinesGetResponse = ListDeadlinesDeadlinesGetRespons
 
 export type CreateDeadlineDeadlinesPostData = {
     body: CreateDeadlineRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/deadlines';
@@ -2440,12 +2386,6 @@ export type CreateDeadlineDeadlinesPostResponse = CreateDeadlineDeadlinesPostRes
 
 export type DeleteDeadlineDeadlinesDeadlineIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Deadline Id
@@ -2476,12 +2416,6 @@ export type DeleteDeadlineDeadlinesDeadlineIdDeleteResponse = DeleteDeadlineDead
 
 export type GetDeadlineDeadlinesDeadlineIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Deadline Id
@@ -2512,12 +2446,6 @@ export type GetDeadlineDeadlinesDeadlineIdGetResponse = GetDeadlineDeadlinesDead
 
 export type UpdateDeadlineDeadlinesDeadlineIdPatchData = {
     body: UpdateDeadlineRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Deadline Id
@@ -2548,25 +2476,10 @@ export type UpdateDeadlineDeadlinesDeadlineIdPatchResponse = UpdateDeadlineDeadl
 
 export type ListProjectStatusesProjectStatusesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/project-statuses';
 };
-
-export type ListProjectStatusesProjectStatusesGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type ListProjectStatusesProjectStatusesGetError = ListProjectStatusesProjectStatusesGetErrors[keyof ListProjectStatusesProjectStatusesGetErrors];
 
 export type ListProjectStatusesProjectStatusesGetResponses = {
     /**
@@ -2581,12 +2494,6 @@ export type ListProjectStatusesProjectStatusesGetResponse = ListProjectStatusesP
 
 export type ListProcessStepsProcessStepsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -2621,12 +2528,6 @@ export type ListProcessStepsProcessStepsGetResponse = ListProcessStepsProcessSte
 
 export type GetProcessStepProcessStepsProcessStepIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Process Step Id
@@ -2657,12 +2558,6 @@ export type GetProcessStepProcessStepsProcessStepIdGetResponse = GetProcessStepP
 
 export type DeleteProjectTypesProjectTypesDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query: {
         /**
@@ -2695,25 +2590,10 @@ export type DeleteProjectTypesProjectTypesDeleteResponse = DeleteProjectTypesPro
 
 export type ListProjectTypesProjectTypesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/project-types';
 };
-
-export type ListProjectTypesProjectTypesGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type ListProjectTypesProjectTypesGetError = ListProjectTypesProjectTypesGetErrors[keyof ListProjectTypesProjectTypesGetErrors];
 
 export type ListProjectTypesProjectTypesGetResponses = {
     /**
@@ -2731,12 +2611,6 @@ export type UpdateProjectTypesProjectTypesPatchData = {
      * Payload
      */
     body: Array<UpdateProjectTypeRequest>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/project-types';
@@ -2767,12 +2641,6 @@ export type CreateProjectTypesProjectTypesPostData = {
      * Payload
      */
     body: Array<CreateProjectTypeRequest>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/project-types';
@@ -2800,12 +2668,6 @@ export type CreateProjectTypesProjectTypesPostResponse = CreateProjectTypesProje
 
 export type ListProjectsProjectsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -2846,12 +2708,6 @@ export type ListProjectsProjectsGetResponse = ListProjectsProjectsGetResponses[k
 
 export type CreateProjectProjectsPostData = {
     body: CreateProjectRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/projects';
@@ -2877,12 +2733,6 @@ export type CreateProjectProjectsPostResponse = CreateProjectProjectsPostRespons
 
 export type DeleteProjectProjectsProjectIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2913,12 +2763,6 @@ export type DeleteProjectProjectsProjectIdDeleteResponse = DeleteProjectProjects
 
 export type GetProjectProjectsProjectIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2949,12 +2793,6 @@ export type GetProjectProjectsProjectIdGetResponse = GetProjectProjectsProjectId
 
 export type UpdateProjectProjectsProjectIdPatchData = {
     body: UpdateProjectRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2985,12 +2823,6 @@ export type UpdateProjectProjectsProjectIdPatchResponse = UpdateProjectProjectsP
 
 export type UpdateProjectStatusProjectsProjectIdStatusPatchData = {
     body: UpdateProjectStatusRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3021,12 +2853,6 @@ export type UpdateProjectStatusProjectsProjectIdStatusPatchResponse = UpdateProj
 
 export type StartProjectInitializationProjectsProjectIdInitializePostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3057,12 +2883,6 @@ export type StartProjectInitializationProjectsProjectIdInitializePostResponse = 
 
 export type GetLatestVersionProjectsProjectIdLatestVersionGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3093,12 +2913,6 @@ export type GetLatestVersionProjectsProjectIdLatestVersionGetResponse = GetLates
 
 export type ValidateVersionLockProjectsProjectIdVersionLockValidatePostData = {
     body: VersionLockValidationRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3129,12 +2943,6 @@ export type ValidateVersionLockProjectsProjectIdVersionLockValidatePostResponse 
 
 export type ValidateWriteVersionProjectsProjectIdVersionLockValidateWritePostData = {
     body: WriteVersionValidationRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3213,12 +3021,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3256,12 +3058,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3299,12 +3095,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3342,12 +3132,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -3378,12 +3162,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

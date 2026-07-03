@@ -1,8 +1,12 @@
+import { getLegalBasisNormsLegalBasisNormsGetOptions } from '@/api-clients/examination-module/@tanstack/react-query.gen';
 import { useDescendants } from '@/db/nodes/hooks/useDescendants';
 import { useDescendantNodes } from '@/db/nodes/hooks/useDescendantNodes';
 import { useGraph } from '@/db/nodes/hooks/useGraph';
 import { useNodes } from '@/db/nodes/hooks/useNodes';
 import type { NodePayloadByType, NodeRefByType } from '@/db/nodes/types';
+import { useProject } from '@/features/project/data/collections/projects.collection';
+import { federalStateCodeByGermanState } from '@/features/project/data/project-details-form/federalStates';
+import { useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { isTopicNormLinkedToTopicId } from '../../topicNormLinks';
 import {
@@ -24,7 +28,7 @@ export const useLightweightRechtsgrundlageData = () => {
   return createTopicNormData(activeTopicNorms);
 };
 
-type AvailableRechtsgrundlageNodeType = 'topic_norm' | 'gesetz' | 'norm';
+type AvailableRechtsgrundlageNodeType = 'topic_norm' | 'norm';
 type AvailableRechtsgrundlageNode =
   NodePayloadByType<AvailableRechtsgrundlageNodeType>;
 
@@ -58,19 +62,18 @@ const collectTopicNormRefsFromNormParents = (
  * dialog is open so the default right-panel render does not pay that cost.
  */
 export const useAvailableRechtsgrundlageData = () => {
-  const { topicName } = route.useParams();
+  const { topicName, verfahrenId } = route.useParams();
+  const { data: project, isLoading: isProjectLoading } =
+    useProject(verfahrenId);
   const { getNodesByType } = useGraph();
   const topicRef = { id: topicName, node_type: 'topic' as const };
   const summaryTopicNormRefs = useDescendants('topic_norm', topicRef);
-  const corpusRefs: NodeRefByType<'gesetz' | 'norm'>[] = [
-    ...getNodesByType('gesetz'),
-    ...getNodesByType('norm'),
-  ];
+  const corpusRefs: NodeRefByType<'norm'>[] = getNodesByType('norm');
   const { data: corpusNodes } = useNodes(corpusRefs);
-  const gesetze = corpusNodes.filter(
-    isAvailableRechtsgrundlageNodeType('gesetz'),
-  );
   const normen = corpusNodes.filter(isAvailableRechtsgrundlageNodeType('norm'));
+  const { data: legalBasisNorms } = useSuspenseQuery(
+    getLegalBasisNormsLegalBasisNormsGetOptions(),
+  );
 
   const topicNormRefs = collectTopicNormRefsFromNormParents(
     summaryTopicNormRefs,
@@ -80,10 +83,17 @@ export const useAvailableRechtsgrundlageData = () => {
   const topicNorms = topicNormCandidates.filter((topicNorm) =>
     isTopicNormLinkedToTopicId(topicNorm, topicName),
   );
+  const projectBundeslandCode = project?.state
+    ? federalStateCodeByGermanState[project.state]
+    : null;
 
-  return createAvailableRechtsgrundlageData(
-    normen,
-    gesetze,
-    new Map(topicNorms.map((topicNorm) => [topicNorm.id, topicNorm])),
-  );
+  return {
+    ...createAvailableRechtsgrundlageData(
+      legalBasisNorms,
+      normen,
+      new Map(topicNorms.map((topicNorm) => [topicNorm.id, topicNorm])),
+      projectBundeslandCode,
+    ),
+    isProjectLoading,
+  };
 };

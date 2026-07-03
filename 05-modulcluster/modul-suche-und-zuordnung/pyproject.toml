@@ -10,7 +10,6 @@ dependencies = [
     "pydantic-settings>=2.10.1,<3.0.0",
     # HTTP Clients
     "httpx>=0.28.1,<0.29",
-    "internal-auth",
     # Vector DB
     "qdrant-client>=1.15.1,<2",
     # LLM / NLP
@@ -45,7 +44,6 @@ package = false
 
 [tool.uv.sources]
 temporal = { workspace = true }
-internal-auth = { workspace = true }
 prompt-injection = { workspace = true }
 
 [tool.pytest.ini_options]

@@ -51,6 +51,10 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             retries={"max_attempts": 3},
             request_checksum_calculation="WHEN_REQUIRED",
             response_checksum_validation="WHEN_REQUIRED",
+            # Force path-style (host/bucket/key). With a non-localhost public endpoint boto3's
+            # default "auto" mode emits virtual-host URLs (bucket.host/key); MinIO and
+            # port-prefixed reverse proxies only serve path-style, so pin it for presigned URLs.
+            s3={"addressing_style": "path"},
         )
         self.private_kwargs = {
             "aws_access_key_id": access_key,
@@ -454,6 +458,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         expiration_minutes: int = 15,
         mime_type: str | None = None,
         inline: bool = False,
+        internal: bool = False,
     ) -> str:
         """Generate a presigned URL for download.
 
@@ -462,6 +467,9 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             expiration_minutes: URL validity duration in minutes.
             mime_type: Optional Content-Type for response.
             inline: If True, use inline disposition instead of attachment.
+            internal: If True, sign with the internal endpoint (S3_ENDPOINT_URL) so
+                server-side callers can reach it; otherwise sign with the public
+                browser-facing endpoint (S3_EXTERNAL_URL).
 
         Returns:
             Presigned GET URL.
@@ -483,7 +491,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         if mime_type:
             params["ResponseContentType"] = mime_type
 
-        return await self._public_client.generate_presigned_url(
+        client = self._private_client if internal else self._public_client
+        return await client.generate_presigned_url(
             "get_object",
             Params=params,
             ExpiresIn=expiration_minutes * 60,

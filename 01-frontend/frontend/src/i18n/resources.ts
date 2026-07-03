@@ -2,6 +2,8 @@ import deAccessibility from '@/features/app-info/accessibility/de-accessibility.
 import enAccessibility from '@/features/app-info/accessibility/en-accessibility.json';
 import deChangelog from '@/features/app-info/changelog/de-changelog.json';
 import enChangelog from '@/features/app-info/changelog/en-changelog.json';
+import deDocumentTitle from '@/features/document-title/de-document-title.json';
+import enDocumentTitle from '@/features/document-title/en-document-title.json';
 import deFeedbackDialog from '@/features/feedback/de-feedback.json';
 import enFeedbackDialog from '@/features/feedback/en-feedback.json';
 import deCreateProjectForm from '@/features/main-page/create-project-form/de-create-project-form.json';
@@ -40,6 +42,7 @@ import enShared from '@/features/shared/en-shared.json';
 export const resources = {
   de: {
     shared: deShared,
+    DocumentTitle: deDocumentTitle,
     CreateProjectForm: deCreateProjectForm,
     Dashboard: deDashboard,
     FormalCompletenessCheck: deFormalCompletenessCheck,
@@ -61,6 +64,7 @@ export const resources = {
   },
   en: {
     shared: enShared,
+    DocumentTitle: enDocumentTitle,
     CreateProjectForm: enCreateProjectForm,
     Dashboard: enDashboard,
     FormalCompletenessCheck: enFormalCompletenessCheck,

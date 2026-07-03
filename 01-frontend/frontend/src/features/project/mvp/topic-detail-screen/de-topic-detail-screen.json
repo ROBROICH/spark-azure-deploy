@@ -198,12 +198,8 @@
     "save": "Speichern",
     "cancel": "Abbrechen",
     "selectedCount": "{{count}} ausgewählt",
-    "groupCheckboxSelectAriaLabel": "Alle Normen in {{lawGroup}} auswählen",
-    "groupCheckboxDeselectAriaLabel": "Auswahl aller Normen in {{lawGroup}} aufheben",
     "groupCheckboxSelectHint": "Aktivierung wählt auch {{count}} zugehörige Normen aus.",
     "groupCheckboxDeselectHint": "Deaktivierung hebt die Auswahl von {{count}} zugehörigen Normen auf.",
-    "normCheckboxSelectAriaLabel": "{{norm}} auswählen",
-    "normCheckboxDeselectAriaLabel": "Auswahl von {{norm}} aufheben",
     "openAriaLabel": "Rechtsgrundlage bearbeiten",
     "errors": {
       "missingLawReference": "Mindestens eine ausgewählte Norm kann ohne zugeordnetes Gesetz nicht gespeichert werden.",

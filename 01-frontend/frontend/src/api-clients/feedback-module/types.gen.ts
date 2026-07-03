@@ -454,12 +454,6 @@ export type MetricsMetricsGetResponses = {
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -497,12 +491,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -540,12 +528,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -583,12 +565,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -619,12 +595,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

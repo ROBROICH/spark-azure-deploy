@@ -21,7 +21,14 @@ from src.models.schemas.topic_schemas import CreateTopicRequest, TopicResponse
 # Set test DATABASE_URL before importing settings to avoid validation error
 DATABASE_URL = "postgresql+asyncpg://test:test@localhost:5432/test_db"
 os.environ["DATABASE_URL"] = DATABASE_URL
+os.environ.setdefault("DB_USER", "test")
+os.environ.setdefault("DB_PASSWORD", "test")
+os.environ.setdefault("DB_HOST", "localhost")
+os.environ.setdefault("DB_PORT", "5432")
+os.environ.setdefault("DB_NAME", "test_db")
 os.environ["AUTH_MODE"] = "disabled"
+os.environ.setdefault("TEMPORAL__S3_ACCESS_KEY_ID", "test")
+os.environ.setdefault("TEMPORAL__S3_SECRET_ACCESS_KEY", "test")
 
 from uuid import UUID  # noqa: E402
 

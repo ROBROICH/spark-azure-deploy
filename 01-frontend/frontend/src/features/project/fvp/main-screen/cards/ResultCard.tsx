@@ -139,23 +139,27 @@ export const ResultCard = (props: ResultCardProps) => {
                 return (
                   <li
                     key={hint.id}
-                    className={cn(
-                      'flex h-8 shrink-0 items-center gap-2 rounded-lg bg-neutral-white p-1 ring-[0.5px] ring-slate-400 ring-inset',
-                      isIrrelevant && 'opacity-50',
-                    )}
+                    className="flex h-8 shrink-0 items-center gap-2 rounded-lg bg-neutral-white p-1 ring-[0.5px] ring-slate-400 ring-inset"
                   >
-                    <FvpAiBadge />
-                    <span className="flex-1 truncate text-xs leading-4 font-medium tracking-[0.02em] text-slate-600">
-                      {hint.label}
-                    </span>
-                    {showBadge && hint.status && hint.status !== 'open' ? (
-                      <StatusBadge
-                        variant={STATUS_BADGE_VARIANT[hint.status]}
-                        size="sm"
-                      >
-                        {t(statusLabelKey, hint.statusLabelOptions)}
-                      </StatusBadge>
-                    ) : null}
+                    <div
+                      className={cn(
+                        'flex min-w-0 flex-1 items-center gap-2',
+                        isIrrelevant && 'opacity-50',
+                      )}
+                    >
+                      <FvpAiBadge />
+                      <span className="flex-1 truncate text-xs leading-4 font-medium tracking-[0.02em] text-slate-600">
+                        {hint.label}
+                      </span>
+                      {showBadge && hint.status && hint.status !== 'open' ? (
+                        <StatusBadge
+                          variant={STATUS_BADGE_VARIANT[hint.status]}
+                          size="sm"
+                        >
+                          {t(statusLabelKey, hint.statusLabelOptions)}
+                        </StatusBadge>
+                      ) : null}
+                    </div>
                     {hint.actions && hint.actions.length > 0 ? (
                       <ActionMenu>
                         <ActionMenuTrigger asChild>

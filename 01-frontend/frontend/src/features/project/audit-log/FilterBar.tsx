@@ -43,6 +43,10 @@ const AUDIT_LOG_SERVICE_OPTIONS = [
   'objections_management',
 ] as const;
 
+const FILTER_BAR_TIME_PERIODS_LABEL_ID = 'filter-bar-time-periods-label';
+const FILTER_BAR_SOURCE_LABEL_ID = 'filter-bar-source-label';
+const FILTER_BAR_SERVICE_LABEL_ID = 'filter-bar-service-label';
+
 const AUDIT_LOG_TIME_PERIOD_LABEL_KEYS = {
   '0': 'today',
   '1': 'yesterday',
@@ -143,7 +147,10 @@ export const FilterBar = () => {
     <div className="border-b border-neutral-200 pb-4">
       <div className="grid grid-cols-3 gap-4">
         <div className="flex min-w-0 flex-col gap-2">
-          <Label htmlFor="filter-bar-time-periods">
+          <Label
+            id={FILTER_BAR_TIME_PERIODS_LABEL_ID}
+            htmlFor="filter-bar-time-periods"
+          >
             {t('filterBar.timePeriods.label')}
           </Label>
           <SelectMenu
@@ -151,12 +158,13 @@ export const FilterBar = () => {
             items={timePeriodItems}
             value={protocolTimePeriods || 'all'}
             onChange={handleTimePeriodChange}
+            ariaLabelledBy={FILTER_BAR_TIME_PERIODS_LABEL_ID}
             triggerClassName="w-full"
           />
         </div>
 
         <div className="flex min-w-0 flex-col gap-2">
-          <Label htmlFor="filter-bar-source">
+          <Label id={FILTER_BAR_SOURCE_LABEL_ID} htmlFor="filter-bar-source">
             {t('filterBar.source.label')}
           </Label>
           <SelectMenu
@@ -164,12 +172,13 @@ export const FilterBar = () => {
             items={sourceItems}
             value={protocolSource || 'all'}
             onChange={handleSourceChange}
+            ariaLabelledBy={FILTER_BAR_SOURCE_LABEL_ID}
             triggerClassName="w-full"
           />
         </div>
 
         <div className="flex min-w-0 flex-col gap-2">
-          <Label htmlFor="filter-bar-service">
+          <Label id={FILTER_BAR_SERVICE_LABEL_ID} htmlFor="filter-bar-service">
             {t('filterBar.service.label')}
           </Label>
           <SelectMenu
@@ -181,6 +190,7 @@ export const FilterBar = () => {
                 protocolService: value === 'all' ? undefined : value,
               })
             }
+            ariaLabelledBy={FILTER_BAR_SERVICE_LABEL_ID}
             triggerClassName="w-full"
           />
         </div>

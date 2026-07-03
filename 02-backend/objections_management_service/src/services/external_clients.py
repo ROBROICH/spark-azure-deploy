@@ -5,7 +5,6 @@ from http import HTTPStatus
 from uuid import UUID
 
 import httpx
-from authentification.internal_api_key import internal_api_key_headers
 from node_crud.exceptions import ProjectVersionLockedError
 from pydantic import AliasChoices, BaseModel, Field
 
@@ -62,7 +61,7 @@ class DocumentManagementClient:
             "createNewVersion": True,
         }
 
-        service_headers = internal_api_key_headers()
+        service_headers = {}
 
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             upload_url_response = await self._request(
@@ -95,7 +94,7 @@ class DocumentManagementClient:
             return UUID(confirm_response.json()["id"])
 
     async def get_file(self, file_id: UUID, *, project_version: int) -> DmsFileMetadata:
-        async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await self._request(
                 client.get(
                     f"{self.base_url}/v2/files/{file_id}",
@@ -115,7 +114,7 @@ class DocumentManagementClient:
         page = 1
         page_size = 500
 
-        async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             while True:
                 response = await self._request(
                     client.get(
@@ -136,12 +135,14 @@ class DocumentManagementClient:
                 page += 1
 
     async def download_file(self, file_id: UUID, *, project_version: int) -> bytes:
-        service_headers = internal_api_key_headers()
+        service_headers = {}
 
         async with httpx.AsyncClient(timeout=self.timeout, follow_redirects=False) as client:
+            # Internal route: signed against the internal storage endpoint so this server-side
+            # caller can reach it (the public route signs the browser-facing host).
             download_url_response = await self._request(
                 client.get(
-                    f"{self.base_url}/v2/files/{file_id}/generate-download-url",
+                    f"{self.base_url}/v2/internal/files/{file_id}/generate-download-url",
                     params={"project_version": project_version},
                     headers=service_headers,
                 )
@@ -188,7 +189,7 @@ class ProjectLogicClient:
         self.timeout = timeout or settings.EXTERNAL_SERVICE_TIMEOUT_SECONDS
 
     async def get_latest_project_version(self, project_id: UUID) -> int:
-        async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await DocumentManagementClient._request(
                 client.get(f"{self.base_url}/projects/{project_id}/latest-version"),
                 service_name="project-logic-service",
@@ -200,7 +201,7 @@ class ProjectLogicClient:
         return int(latest_version)
 
     async def get_project_name(self, project_id: UUID) -> str:
-        async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await DocumentManagementClient._request(
                 client.get(f"{self.base_url}/projects/{project_id}"),
                 service_name="project-logic-service",
@@ -212,7 +213,7 @@ class ProjectLogicClient:
 
     async def validate_project_write_version(self, project_id: UUID, project_version: int) -> int:
         try:
-            async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 response = await client.post(
                     f"{self.base_url}/projects/{project_id}/version-lock/validate-write",
                     json={"project_version": project_version},
@@ -241,7 +242,7 @@ class ProjectLogicClient:
         if not topic_ids:
             return {}
 
-        async with httpx.AsyncClient(timeout=self.timeout, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
             response = await DocumentManagementClient._request(
                 client.post(
                     f"{self.base_url}/topics/batch",

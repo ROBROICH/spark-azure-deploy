@@ -1938,12 +1938,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type GetTemplateProjectIdTemplateDocumentTypesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1981,12 +1975,6 @@ export type GetTemplateProjectIdTemplateDocumentTypesGetResponse = GetTemplatePr
 
 export type GetFormalCompletenessResultsProjectIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2022,12 +2010,6 @@ export type GetFormalCompletenessResultsProjectIdGetResponse = GetFormalComplete
 
 export type GetRequiredDocumentTypesProjectIdRequiredDocumentTypesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2063,12 +2045,6 @@ export type GetRequiredDocumentTypesProjectIdRequiredDocumentTypesGetResponse = 
 
 export type CreateRequiredDocumentTypeProjectIdRequiredDocumentTypesPostData = {
     body: CreateRequiredDocumentTypeRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2099,12 +2075,6 @@ export type CreateRequiredDocumentTypeProjectIdRequiredDocumentTypesPostResponse
 
 export type InitializeRequiredDocumentTypesProjectIdRequiredDocumentTypesInitializePostData = {
     body: InitializeRequiredDocumentTypesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2140,12 +2110,6 @@ export type InitializeRequiredDocumentTypesProjectIdRequiredDocumentTypesInitial
 
 export type DeleteRequiredDocumentTypeProjectIdRequiredDocumentTypesDocumentTypeIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2180,12 +2144,6 @@ export type DeleteRequiredDocumentTypeProjectIdRequiredDocumentTypesDocumentType
 
 export type PatchRequiredDocTypeProjectIdRequiredDocumentTypesDocumentTypeIdPatchData = {
     body: PatchRequiredDocumentTypeRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2220,12 +2178,6 @@ export type PatchRequiredDocTypeProjectIdRequiredDocumentTypesDocumentTypeIdPatc
 
 export type GetDocAssignmentsProjectIdDocumentAssignmentsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2261,12 +2213,6 @@ export type GetDocAssignmentsProjectIdDocumentAssignmentsGetResponse = GetDocAss
 
 export type PatchDocumentProjectIdDocumentsFileIdPatchData = {
     body: PatchDocumentByFileIdRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2301,12 +2247,6 @@ export type PatchDocumentProjectIdDocumentsFileIdPatchResponse = PatchDocumentPr
 
 export type JobDoneProjectIdResultsPostData = {
     body: JobDoneRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2342,12 +2282,6 @@ export type JobDoneProjectIdResultsPostResponse = JobDoneProjectIdResultsPostRes
 
 export type GetProjectTocNotesProjectIdTocNotesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2381,12 +2315,6 @@ export type CreateProjectTocNotesProjectIdTocNotesPostData = {
      * Payload
      */
     body: Array<CreateTableContentNoteRequest>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2419,12 +2347,6 @@ export type CreateProjectTocNotesProjectIdTocNotesPostResponse = CreateProjectTo
 
 export type TocJobDoneProjectIdTocNotesResultsPostData = {
     body: TocJobDoneRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2460,12 +2382,6 @@ export type TocJobDoneProjectIdTocNotesResultsPostResponse = TocJobDoneProjectId
 
 export type UpdateProjectTocNoteResolvedProjectIdTocNotesNoteIdPatchData = {
     body: UpdateResolvedRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2500,12 +2416,6 @@ export type UpdateProjectTocNoteResolvedProjectIdTocNotesNoteIdPatchResponse = U
 
 export type DeleteAllTemplateDataProjectTypeIdTemplateCategoriesDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Type Id
@@ -2536,12 +2446,6 @@ export type DeleteAllTemplateDataProjectTypeIdTemplateCategoriesDeleteResponse =
 
 export type ListTemplateCategoriesProjectTypeIdTemplateCategoriesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Type Id
@@ -2577,12 +2481,6 @@ export type CreateCategoriesProjectTypeIdTemplateCategoriesPostData = {
      * Payload
      */
     body: Array<CreateTemplateCategoryRequest>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Type Id
@@ -2615,12 +2513,6 @@ export type CreateCategoriesProjectTypeIdTemplateCategoriesPostResponse = Create
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2658,12 +2550,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2701,12 +2587,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2744,12 +2624,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2780,12 +2654,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

@@ -162,12 +162,6 @@ export type MetricsMetricsGetResponses = {
 
 export type GetCommentsProjectsProjectIdCommentsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -217,12 +211,6 @@ export type GetCommentsProjectsProjectIdCommentsGetResponse = GetCommentsProject
 
 export type CreateCommentProjectsProjectIdCommentsPostData = {
     body: CreateCommentRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -253,12 +241,6 @@ export type CreateCommentProjectsProjectIdCommentsPostResponse = CreateCommentPr
 
 export type DeleteCommentProjectsProjectIdCommentsCommentIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -293,12 +275,6 @@ export type DeleteCommentProjectsProjectIdCommentsCommentIdDeleteResponse = Dele
 
 export type UpdateCommentProjectsProjectIdCommentsCommentIdPatchData = {
     body: UpdateCommentRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

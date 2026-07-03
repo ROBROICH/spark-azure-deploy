@@ -67,7 +67,7 @@ async def build_screening_bundles_for_document(
         },
         {
             "k_neighbors": config.RISK_SCREENING.K_TOTAL_COMPARISON_CLAIMS + k_overfetch,
-            "same_doc_claims_only": True,
+            "same_doc_claims_only": False,
             "exclude_local_claims": True,
         },
     ]

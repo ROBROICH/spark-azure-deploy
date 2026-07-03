@@ -127,6 +127,15 @@ export default defineConfig(({ command }) => {
   const appBasePath = normalizeAppBasePath(env.VITE_APP_BASE_PATH);
   const appBasePathWithTrailingSlash = `${appBasePath}/`;
 
+  // Vite blocks requests whose Host header it does not recognise. Behind an authenticating
+  // reverse proxy the forwarded Host is the proxy's public domain, so allow it via
+  // VITE_DEV_ALLOWED_HOSTS (comma-separated; a leading dot matches all subdomains of a
+  // domain). localhost and IP hosts are always allowed.
+  const devAllowedHosts = (env.VITE_DEV_ALLOWED_HOSTS || '')
+    .split(',')
+    .map((host) => host.trim())
+    .filter(Boolean);
+
   return {
     base: appBasePathWithTrailingSlash,
     build:
@@ -148,12 +157,14 @@ export default defineConfig(({ command }) => {
       command === 'build'
         ? undefined
         : {
+            allowedHosts: devAllowedHosts,
             proxy: createApiProxyConfig(apiMode, apiProxyServices),
           },
     preview:
       command === 'build'
         ? undefined
         : {
+            allowedHosts: devAllowedHosts,
             proxy: createApiProxyConfig(apiMode, apiProxyServices),
           },
     envPrefix: ['VITE_', 'ALLOW_DEV_MODE'],

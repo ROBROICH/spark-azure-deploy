@@ -38,16 +38,42 @@ class StatusInfo(TypedDict):
 
 class JobServiceService:
     @staticmethod
+    def _search_attribute_value(search_attributes: Any, key: str) -> Any | None:
+        if not search_attributes:
+            return None
+
+        if isinstance(search_attributes, dict):
+            value = search_attributes.get(key)
+            if isinstance(value, list):
+                return value[0] if value else None
+            return value
+
+        for pair in search_attributes:
+            if pair.key.name == key:
+                return pair.value
+
+        return None
+
+    @staticmethod
     def _project_id_from_search_attributes(search_attributes: Any) -> str | None:
-        if search_attributes and "ProjectId" in search_attributes:
-            return search_attributes["ProjectId"][0]
+        value = JobServiceService._search_attribute_value(search_attributes, "ProjectId")
+        if value is not None:
+            return str(value)
         return None
 
     @staticmethod
     def _project_version_from_search_attributes(search_attributes: Any) -> int | None:
-        if search_attributes and "ProjectVersion" in search_attributes:
-            return search_attributes["ProjectVersion"][0]
+        value = JobServiceService._search_attribute_value(search_attributes, "ProjectVersion")
+        if value is not None:
+            return int(value)
         return None
+
+    @staticmethod
+    async def get_workflow_project_id(workflow_id: str, temporal_client: Client) -> str | None:
+        """Resolve the project id that owns a workflow from Temporal search attributes."""
+        handle = temporal_client.get_workflow_handle(workflow_id=workflow_id)
+        description = await handle.describe()
+        return JobServiceService._project_id_from_search_attributes(description.search_attributes)
 
     @staticmethod
     async def _get_immediate_children(

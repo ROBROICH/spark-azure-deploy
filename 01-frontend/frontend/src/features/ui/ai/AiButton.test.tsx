@@ -28,14 +28,14 @@ describe('AiButton', () => {
     fireEvent.click(button);
 
     expect(onClick).toHaveBeenCalledTimes(1);
-    expect(button).toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveAttribute('aria-busy', 'true');
 
     act(() => {
       vi.advanceTimersByTime(5_000);
     });
 
-    expect(button).toBeEnabled();
+    expect(button).not.toHaveAttribute('aria-disabled');
     expect(button).toHaveAttribute('aria-busy', 'false');
 
     fireEvent.click(button);
@@ -43,7 +43,7 @@ describe('AiButton', () => {
     expect(onClick).toHaveBeenCalledTimes(2);
   });
 
-  it('marks externally disabled buttons as unavailable without busy state', () => {
+  it('marks externally disabled buttons as aria-disabled without busy state', () => {
     const onClick = vi.fn();
 
     render(
@@ -53,7 +53,8 @@ describe('AiButton', () => {
     const button = screen.getByRole('button', {
       name: 'KI-Analyse starten',
     });
-    expect(button).toBeDisabled();
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveAttribute('aria-busy', 'false');
 
     fireEvent.click(button);
@@ -61,14 +62,15 @@ describe('AiButton', () => {
     expect(onClick).not.toHaveBeenCalled();
   });
 
-  it('marks loading buttons as disabled and busy', () => {
+  it('marks loading buttons as aria-disabled and busy', () => {
     render(<AiButton isLoading label="KI-Analyse starten" />);
 
     const button = screen.getByRole('button', {
       name: 'KI-Analyse starten',
     });
 
-    expect(button).toBeDisabled();
+    expect(button).not.toBeDisabled();
+    expect(button).toHaveAttribute('aria-disabled', 'true');
     expect(button).toHaveAttribute('aria-busy', 'true');
   });
 

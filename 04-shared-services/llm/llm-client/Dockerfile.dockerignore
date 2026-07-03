@@ -14,7 +14,6 @@
 !04-shared-services/audit-client
 !04-shared-services/temporal
 !04-shared-services/authentification
-!04-shared-services/internal-auth
 
 # Allow module code
 !04-shared-services/llm/llm-client/README.md
