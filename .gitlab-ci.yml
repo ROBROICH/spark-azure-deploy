@@ -27,6 +27,7 @@ include:
       devguard_token: "$DEVGUARD_TOKEN"
       devguard_api_url: "$DEVGUARD_API_URL"
       devguard_web_ui: "$DEVGUARD_WEB_UI"
+      pull_policy: "if-not-present"
       stage: "test"
 
   - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/static-application-security-testing.yml"
