@@ -2,7 +2,6 @@ from uuid import UUID
 
 import httpx
 from audit_client import merge_audit_headers
-from authentification.internal_api_key import internal_api_key_headers, merge_internal_api_key_header
 from temporalio import activity
 
 from src.config.settings import settings
@@ -20,8 +19,8 @@ async def initialize_fcs_required_document_types(
 ) -> None:
     """Initializes the FCS required-document baseline for a project version."""
     url = f"{settings.API.FCS_BASE_URL.rstrip('/')}/{project_id}/required-document-types/initialize"
-    headers = merge_internal_api_key_header(merge_audit_headers(None))
-    async with httpx.AsyncClient(timeout=settings.API.TIMEOUT, headers=internal_api_key_headers()) as client:
+    headers = merge_audit_headers(None)
+    async with httpx.AsyncClient(timeout=settings.API.TIMEOUT) as client:
         response = await client.post(
             url,
             params={"project_version": project_version},

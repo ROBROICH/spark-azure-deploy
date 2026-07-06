@@ -96,6 +96,43 @@ async def test_get_latest_project_version_accepts_camel_case_response(db_session
 
 
 @pytest.mark.asyncio
+async def test_validate_project_write_version_sanitizes_upstream_conflict(db_session):
+    upstream_body = "internal lock owner=user@example.test token=secret"
+
+    class Response:
+        status_code = 409
+        text = upstream_body
+
+        def raise_for_status(self):
+            return None
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, _url, json):
+            return Response()
+
+    service = FileService(
+        db=db_session,
+        storage_provider_service=MockStorageProviderService(),
+    )
+
+    with patch("src.services.files.file_service.httpx.AsyncClient", return_value=Client()):
+        with pytest.raises(ProjectVersionLockedError) as exc_info:
+            await service._validate_project_write_version(uuid4(), 3)
+
+    message = str(exc_info.value)
+    assert "Project version cannot be modified" in message
+    assert "correlation_id=" in message
+    assert "internal lock owner" not in message
+    assert "secret" not in message
+
+
+@pytest.mark.asyncio
 async def test_confirm_upload_success(service):
     project_id = uuid4()
     upload_request = ProjectDocumentUpload(
@@ -1482,9 +1519,9 @@ async def _add_downloadable_file(
     project_id = uuid4()
     file_id = uuid4()
     bucket_path = f"{project_id}/v1/download.pdf"
-    service.storage_provider_service._documents[
-        service.storage_provider_service._get_blob_name(bucket_path)
-    ] = b"mock_content"
+    service.storage_provider_service._documents[service.storage_provider_service._get_blob_name(bucket_path)] = (
+        b"mock_content"
+    )
     file = File(
         id=file_id,
         type=FileTypeEnum.DOCUMENT,

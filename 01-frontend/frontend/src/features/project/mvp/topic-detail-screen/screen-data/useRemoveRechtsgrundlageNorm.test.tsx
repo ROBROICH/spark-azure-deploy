@@ -7,13 +7,11 @@ import { useRemoveRechtsgrundlageNorm } from './useRemoveRechtsgrundlageNorm';
 
 const {
   deleteNodeMock,
-  insertMock,
   saveNormSelectionChangesMock,
   transactMock,
   updateMock,
 } = vi.hoisted(() => ({
   deleteNodeMock: vi.fn(),
-  insertMock: vi.fn(),
   saveNormSelectionChangesMock: vi.fn(),
   transactMock: vi.fn(),
   updateMock: vi.fn(),
@@ -21,14 +19,17 @@ const {
 
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({
-    useParams: () => ({ topicName: 'topic-1' }),
+    useParams: () => ({ topicName: 'topic-1', verfahrenId: 'project-1' }),
   }),
+}));
+
+vi.mock('@/features/project/versioning/projectVersioning', () => ({
+  useProjectRouteVersion: () => 7,
 }));
 
 vi.mock('@/db/nodes/hooks/useAction', () => ({
   useAction: () => ({
     delete: deleteNodeMock,
-    insert: insertMock,
     transact: transactMock,
     update: updateMock,
   }),
@@ -117,7 +118,6 @@ const topicNorm = {
 describe('useRemoveRechtsgrundlageNorm', () => {
   beforeEach(() => {
     deleteNodeMock.mockReset();
-    insertMock.mockReset();
     saveNormSelectionChangesMock.mockReset();
     saveNormSelectionChangesMock.mockResolvedValue(true);
     transactMock.mockReset();
@@ -171,15 +171,28 @@ describe('useRemoveRechtsgrundlageNorm', () => {
       availableNormEntries: [
         {
           gesetz,
+          legalBasis: {
+            jurabk: 'BNatSchG',
+            paragraph_nr: '44',
+          },
           norm,
+          projectNorm: norm,
+          selectionKey: 'bnatschg::44',
           topicNorm,
+          topicNormLinks: [
+            {
+              norm,
+              topicNorm,
+            },
+          ],
           topicNorms: [topicNorm],
         },
       ],
-      draftModes: { 'norm-1': 'remove' },
+      draftModes: { 'bnatschg::44': 'remove' },
+      projectId: 'project-1',
+      projectVersion: 7,
       topicId: 'topic-1',
       transact: transactMock,
-      insert: insertMock,
       update: updateMock,
       deleteNode: deleteNodeMock,
     });

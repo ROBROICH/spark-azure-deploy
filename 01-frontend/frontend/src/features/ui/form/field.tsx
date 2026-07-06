@@ -160,10 +160,11 @@ function FieldDescription(props: React.ComponentProps<'p'>) {
 
 function FieldError(
   props: React.ComponentProps<'div'> & {
+    announce?: boolean;
     errors?: ({ message?: string } | undefined)[];
   },
 ) {
-  const { className, children, errors, ...rest } = props;
+  const { announce = true, className, children, errors, role, ...rest } = props;
   let content = children;
 
   if (!content && errors?.length) {
@@ -190,7 +191,7 @@ function FieldError(
 
   return (
     <div
-      role="alert"
+      role={announce ? (role ?? 'alert') : role}
       data-slot="field-error"
       className={cn('text-sm font-normal text-error-900', className)}
       {...rest}

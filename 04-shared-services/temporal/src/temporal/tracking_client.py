@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import Any
 
 import httpx
-from internal_auth import internal_api_key_headers
 from pydantic import BaseModel
 
 logger = logging.getLogger("temporal.tracking_client")
@@ -29,7 +28,6 @@ class TrackingClient:
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._client = httpx.AsyncClient(
-            headers=internal_api_key_headers(),
             timeout=timeout,
             transport=httpx.AsyncHTTPTransport(retries=2)
         )

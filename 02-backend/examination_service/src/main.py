@@ -12,6 +12,7 @@ from starlette.middleware.gzip import GZipMiddleware
 
 from src.api.middlewares.cors import add_cors
 from src.api.middlewares.security_headers import SecurityHeadersMiddleware
+from src.api.routes.legal_basis import router as legal_basis_router
 from src.api.routes.norm_deconstruction import router as norm_deconstruction_router
 from src.api.routes.probes_routes import probe_router
 from src.config.settings import settings
@@ -54,5 +55,6 @@ app.include_router(
     ),
     dependencies=[Depends(audit_actor_dependency)],
 )
+app.include_router(legal_basis_router, dependencies=[Depends(audit_actor_dependency)])
 app.include_router(norm_deconstruction_router, dependencies=[Depends(audit_actor_dependency)])
 app.include_router(probe_router)

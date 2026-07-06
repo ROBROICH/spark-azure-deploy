@@ -6,6 +6,7 @@ from event_logging.enums import EventAction, EventCategory, EventOutcome, LogEve
 from event_logging.middleware import EventLoggingMiddleware
 from fastapi import FastAPI, Request
 from fastapi.testclient import TestClient
+from starlette import status
 
 
 @pytest.fixture
@@ -46,7 +47,7 @@ def mock_logger():
 
 def test_middleware_skips_healthz_endpoint(client, mock_logger):
     response = client.get("/healthz")
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json() == {"status": "ok"}
 
     # Logger should NOT have been called
@@ -54,9 +55,9 @@ def test_middleware_skips_healthz_endpoint(client, mock_logger):
 
 
 def test_middleware_logs_successful_get_with_path_param(client, mock_logger):
-    response = client.get("/users/123?project_id=proj-abc-456")
+    response = client.get("/users/123?project_id=proj-abc-456&access_token=secret-token")
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
     assert response.json()["user_id"] == "123"
 
     mock_logger.info.assert_called_once()
@@ -69,6 +70,8 @@ def test_middleware_logs_successful_get_with_path_param(client, mock_logger):
     assert call_args["default_event"] == LogEventDefault.API_REQUEST
     assert "GET 200" in call_args["message"]
     assert "/users/123" in call_args["message"]
+    assert "access_token" not in call_args["message"]
+    assert "secret-token" not in call_args["message"]
     assert call_args["project_id"] == "proj-abc-456"
     assert call_args["source_ip"] == "testclient"
     assert isinstance(call_args["event_duration"], int)
@@ -80,7 +83,7 @@ def test_middleware_logs_post_request(client, mock_logger):
 
     response = client.post("/items", json=payload)
 
-    assert response.status_code == 200
+    assert response.status_code == status.HTTP_200_OK
 
     mock_logger.info.assert_called_once()
     call_args = mock_logger.info.call_args[1]
@@ -109,10 +112,24 @@ def test_middleware_marks_4xx_as_failure(client, mock_logger):
     # Create a 404 route that doesn't exist
     response = client.get("/this-route-does-not-exist")
 
-    assert response.status_code == 404
+    assert response.status_code == status.HTTP_404_NOT_FOUND
 
     mock_logger.info.assert_called_once()
     call_args = mock_logger.info.call_args[1]
 
     assert call_args["outcome"] == EventOutcome.FAILURE
     assert "GET 404" in call_args["message"]
+
+
+def test_middleware_does_not_log_raw_query_string(client, mock_logger):
+    response = client.get("/users/123?token=secret-token&email=user@example.test")
+
+    assert response.status_code == status.HTTP_200_OK
+
+    mock_logger.info.assert_called_once()
+    message = mock_logger.info.call_args[1]["message"]
+
+    assert message == "GET 200: /users/123 executed."
+    assert "token=" not in message
+    assert "secret-token" not in message
+    assert "user@example.test" not in message

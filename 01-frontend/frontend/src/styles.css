@@ -577,6 +577,10 @@
     @apply focus-visible:ring-2 focus-visible:ring-focus-outline focus-visible:ring-offset-2 focus-visible:outline-none;
   }
 
+  .focus-ring[aria-invalid='true']:focus {
+    @apply ring-2 ring-focus-outline ring-offset-2 outline-none;
+  }
+
   /* Focus-within variant for wrapper elements around visually hidden controls. */
   .focus-ring-within {
     @apply focus-within:ring-2 focus-within:ring-focus-outline focus-within:ring-offset-2 focus-within:outline-none;

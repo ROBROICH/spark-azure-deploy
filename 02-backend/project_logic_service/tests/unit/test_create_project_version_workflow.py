@@ -9,6 +9,7 @@ from temporal.workflows.project_versioning.types import CreateProjectVersionInpu
 
 from src.models.db.workflow_enum import WorkflowStatusEnum
 from src.services.workflows import create_project_version as workflow_module
+from src.services.workflows.project_version_copy_plan import build_project_version_copy_plan_payload_from_rows
 
 PROJECT_ID = UUID("00000000-0000-0000-0000-00000000f001")
 ZIP_FILE_ID = UUID("00000000-0000-0000-0000-00000000f002")
@@ -158,9 +159,16 @@ async def test_approved_zip_path_fans_out_to_generated_copy_endpoints_then_dms_c
                 "changed": [{"file_id": str(CHANGED_FILE_ID), "filename": "changed.pdf"}],
                 "renamed": [],
             }
-        if activity_name == workflow_module.LIST_SERVICE_NODES:
-            _, service_name, _, _ = args
-            return rows_by_service.get(service_name, [])
+        if activity_name == workflow_module.BUILD_PROJECT_VERSION_COPY_PLAN:
+            service_endpoints, project_id, source_version, file_diff_payload = args
+            assert service_endpoints == ENDPOINT_ROWS
+            assert project_id == PROJECT_ID
+            assert source_version == 1
+            return build_project_version_copy_plan_payload_from_rows(
+                rows_by_service=rows_by_service,
+                file_diff=workflow_module.FileDiffSummary.model_validate(file_diff_payload),
+                topic_norm_payload_rows=[],
+            )
         if activity_name == workflow_module.COPY_SERVICE_VERSION_NODES:
             return {"copied": len(args[5])}
         if activity_name == workflow_module.COMMIT_DMS_ZIP_DIFF:
@@ -261,7 +269,9 @@ async def test_approved_zip_path_fans_out_to_generated_copy_endpoints_then_dms_c
             (PROJECT_ID, 1, ["create-project-version-test", "file-processing-root"]),
         )
     )
-    first_list_index = next(index for index, (name, _) in enumerate(calls) if name == "list_service_nodes")
+    plan_index = next(
+        index for index, (name, _) in enumerate(calls) if name == workflow_module.BUILD_PROJECT_VERSION_COPY_PLAN
+    )
     approved_status_index = next(
         index
         for index, (name, args) in enumerate(calls)
@@ -279,7 +289,7 @@ async def test_approved_zip_path_fans_out_to_generated_copy_endpoints_then_dms_c
     assert fvp_start_contexts == [ProjectContext(project_id=str(PROJECT_ID), project_version=EXPECTED_NEW_VERSION)]
     assert ("update_project_status", (PROJECT_ID, "IN_PROGRESS")) not in calls
 
-    assert cancel_index < first_list_index
+    assert cancel_index < plan_index
     assert (
         root_commit_index
         < first_generated_commit_index
@@ -377,8 +387,8 @@ async def test_failure_after_project_root_copy_undoes_generated_cleanup_before_r
                 "changed": [],
                 "renamed": [],
             }
-        if activity_name == workflow_module.LIST_SERVICE_NODES:
-            return []
+        if activity_name == workflow_module.BUILD_PROJECT_VERSION_COPY_PLAN:
+            return {"survivors_per_service": {}, "deleted_file_ids": [], "deleted_keys_count": 0}
         if activity_name == workflow_module.COPY_SERVICE_VERSION_NODES:
             return {"copied": 0}
         if activity_name == workflow_module.COMMIT_DMS_ZIP_DIFF:

@@ -3,8 +3,8 @@
 import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanstack/react-query';
 
 import { client } from '../client.gen';
-import { batchGetProjectIdBatchNodesPost, copyVersionNodesProjectIdCopyVersionPost, getNormDeconstructionsNormDeconstructionsGet, healthCheckHealthzGet, listNodesProjectIdNodesGet, metricsMetricsGet, type Options, readinessCheckReadyGet, startupCheckStartupGet, undoVersionProjectIdUndoVersionPost, updateNodesProjectIdUpdatePost, upsertNormDeconstructionsNormDeconstructionsPost } from '../sdk.gen';
-import type { BatchGetProjectIdBatchNodesPostData, BatchGetProjectIdBatchNodesPostError, BatchGetProjectIdBatchNodesPostResponse, CopyVersionNodesProjectIdCopyVersionPostData, CopyVersionNodesProjectIdCopyVersionPostError, CopyVersionNodesProjectIdCopyVersionPostResponse, GetNormDeconstructionsNormDeconstructionsGetData, GetNormDeconstructionsNormDeconstructionsGetError, GetNormDeconstructionsNormDeconstructionsGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, ListNodesProjectIdNodesGetData, ListNodesProjectIdNodesGetError, ListNodesProjectIdNodesGetResponse, MetricsMetricsGetData, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, StartupCheckStartupGetData, StartupCheckStartupGetResponse, UndoVersionProjectIdUndoVersionPostData, UndoVersionProjectIdUndoVersionPostError, UndoVersionProjectIdUndoVersionPostResponse, UpdateNodesProjectIdUpdatePostData, UpdateNodesProjectIdUpdatePostError, UpdateNodesProjectIdUpdatePostResponse, UpsertNormDeconstructionsNormDeconstructionsPostData, UpsertNormDeconstructionsNormDeconstructionsPostError, UpsertNormDeconstructionsNormDeconstructionsPostResponse } from '../types.gen';
+import { addLegalBasisNormsToProject, batchGetProjectIdBatchNodesPost, copyVersionNodesProjectIdCopyVersionPost, getLegalBasisNormsLegalBasisNormsGet, getNormDeconstructionsNormDeconstructionsGet, healthCheckHealthzGet, listNodesProjectIdNodesGet, metricsMetricsGet, type Options, readinessCheckReadyGet, startupCheckStartupGet, undoVersionProjectIdUndoVersionPost, updateNodesProjectIdUpdatePost, upsertNormDeconstructionsNormDeconstructionsPost } from '../sdk.gen';
+import type { AddLegalBasisNormsToProjectData, AddLegalBasisNormsToProjectError, AddLegalBasisNormsToProjectResponse, BatchGetProjectIdBatchNodesPostData, BatchGetProjectIdBatchNodesPostError, BatchGetProjectIdBatchNodesPostResponse, CopyVersionNodesProjectIdCopyVersionPostData, CopyVersionNodesProjectIdCopyVersionPostError, CopyVersionNodesProjectIdCopyVersionPostResponse, GetLegalBasisNormsLegalBasisNormsGetData, GetLegalBasisNormsLegalBasisNormsGetError, GetLegalBasisNormsLegalBasisNormsGetResponse, GetNormDeconstructionsNormDeconstructionsGetData, GetNormDeconstructionsNormDeconstructionsGetError, GetNormDeconstructionsNormDeconstructionsGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, ListNodesProjectIdNodesGetData, ListNodesProjectIdNodesGetError, ListNodesProjectIdNodesGetResponse, MetricsMetricsGetData, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, StartupCheckStartupGetData, StartupCheckStartupGetResponse, UndoVersionProjectIdUndoVersionPostData, UndoVersionProjectIdUndoVersionPostError, UndoVersionProjectIdUndoVersionPostResponse, UpdateNodesProjectIdUpdatePostData, UpdateNodesProjectIdUpdatePostError, UpdateNodesProjectIdUpdatePostResponse, UpsertNormDeconstructionsNormDeconstructionsPostData, UpsertNormDeconstructionsNormDeconstructionsPostError, UpsertNormDeconstructionsNormDeconstructionsPostResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -135,6 +135,41 @@ export const undoVersionProjectIdUndoVersionPostMutation = (options?: Partial<Op
     const mutationOptions: UseMutationOptions<UndoVersionProjectIdUndoVersionPostResponse, UndoVersionProjectIdUndoVersionPostError, Options<UndoVersionProjectIdUndoVersionPostData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await undoVersionProjectIdUndoVersionPost({
+                ...options,
+                ...fnOptions,
+                throwOnError: true
+            });
+            return data;
+        }
+    };
+    return mutationOptions;
+};
+
+export const getLegalBasisNormsLegalBasisNormsGetQueryKey = (options?: Options<GetLegalBasisNormsLegalBasisNormsGetData>) => createQueryKey('getLegalBasisNormsLegalBasisNormsGet', options);
+
+/**
+ * Get Legal Basis Norms
+ */
+export const getLegalBasisNormsLegalBasisNormsGetOptions = (options?: Options<GetLegalBasisNormsLegalBasisNormsGetData>) => queryOptions<GetLegalBasisNormsLegalBasisNormsGetResponse, GetLegalBasisNormsLegalBasisNormsGetError, GetLegalBasisNormsLegalBasisNormsGetResponse, ReturnType<typeof getLegalBasisNormsLegalBasisNormsGetQueryKey>>({
+    queryFn: async ({ queryKey, signal }) => {
+        const { data } = await getLegalBasisNormsLegalBasisNormsGet({
+            ...options,
+            ...queryKey[0],
+            signal,
+            throwOnError: true
+        });
+        return data;
+    },
+    queryKey: getLegalBasisNormsLegalBasisNormsGetQueryKey(options)
+});
+
+/**
+ * Add law database norms to a project topic
+ */
+export const addLegalBasisNormsToProjectMutation = (options?: Partial<Options<AddLegalBasisNormsToProjectData>>): UseMutationOptions<AddLegalBasisNormsToProjectResponse, AddLegalBasisNormsToProjectError, Options<AddLegalBasisNormsToProjectData>> => {
+    const mutationOptions: UseMutationOptions<AddLegalBasisNormsToProjectResponse, AddLegalBasisNormsToProjectError, Options<AddLegalBasisNormsToProjectData>> = {
+        mutationFn: async (fnOptions) => {
+            const { data } = await addLegalBasisNormsToProject({
                 ...options,
                 ...fnOptions,
                 throwOnError: true

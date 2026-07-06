@@ -4,7 +4,6 @@ import tempfile
 from typing import Any
 
 import httpx
-from internal_auth import internal_api_key_headers
 from temporal.project_context import current_project_context
 from temporal.workflows.formale_pruefung import DMSFileResponse
 
@@ -49,7 +48,7 @@ class DMSClient:
         """
         self.base_url = ENV.DMS_BASE_URL.rstrip("/")
         self.timeout = timeout
-        self.headers = {"Content-Type": "application/json", **internal_api_key_headers()}
+        self.headers = {"Content-Type": "application/json"}
 
     async def _request(self, method: str, path: str, **kwargs) -> Any:
         """
@@ -144,9 +143,11 @@ class DMSClient:
         Returns:
             str: The signed URL used to download the file.
         """
+        # Internal route: the URL is signed against the internal storage endpoint so this
+        # service-side caller can reach it (the public route signs the browser-facing host).
         data = await self._request(
             "GET",
-            f"/v2/files/{file_id}/generate-download-url",
+            f"/v2/internal/files/{file_id}/generate-download-url",
             params=_with_project_version_params(),
         )
         return data["downloadUrl"]

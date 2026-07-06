@@ -14,7 +14,6 @@
 !04-shared-services/audit-client/**
 !04-shared-services/temporal/**
 !04-shared-services/authentification/**
-!04-shared-services/internal-auth/**
 !02-backend/logging/**
 
 # Allow module code

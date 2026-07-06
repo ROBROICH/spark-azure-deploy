@@ -285,12 +285,6 @@ export type MetricsMetricsGetResponses = {
 
 export type OrchestrateWorkflowWorkflowsDiplanPostData = {
     body: DiPlanWorkflowRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/diplan';
@@ -316,12 +310,6 @@ export type OrchestrateWorkflowWorkflowsDiplanPostResponse = OrchestrateWorkflow
 
 export type AnonymizePdfWorkflowsAnonymisierungPostData = {
     body: BodyAnonymizePdfWorkflowsAnonymisierungPost;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/anonymisierung';
@@ -347,12 +335,6 @@ export type AnonymizePdfWorkflowsAnonymisierungPostResponse = AnonymizePdfWorkfl
 
 export type OrchestrateFppDownloadWorkflowWorkflowsFppDownloadPostData = {
     body: FppDownloadWorkflowArgs;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/fpp-download';
@@ -378,12 +360,6 @@ export type OrchestrateFppDownloadWorkflowWorkflowsFppDownloadPostResponse = Orc
 
 export type OrchestrateFvpWorkflowWorkflowsFormalePruefungPostData = {
     body: FvpWorkflowRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/formale-pruefung';
@@ -409,12 +385,6 @@ export type OrchestrateFvpWorkflowWorkflowsFormalePruefungPostResponse = Orchest
 
 export type StartSuzNormWorkflowWorkflowsSuzNormIdPostData = {
     body: SucheZuordnungNormRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Norm Id
@@ -445,12 +415,6 @@ export type StartSuzNormWorkflowWorkflowsSuzNormIdPostResponse = StartSuzNormWor
 
 export type StartBatchMvpWorkflowWorkflowsMvpPostData = {
     body: BatchMvpRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/mvp';
@@ -476,12 +440,6 @@ export type StartBatchMvpWorkflowWorkflowsMvpPostResponse = StartBatchMvpWorkflo
 
 export type StartBewertungWorkflowWorkflowsBewertungPostData = {
     body: BewertungRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/bewertung';
@@ -507,12 +465,6 @@ export type StartBewertungWorkflowWorkflowsBewertungPostResponse = StartBewertun
 
 export type StartRisikohinweiseWorkflowWorkflowsRisikohinweisePostData = {
     body: RisikohinweiseRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/workflows/risikohinweise';
@@ -538,12 +490,6 @@ export type StartRisikohinweiseWorkflowWorkflowsRisikohinweisePostResponse = Sta
 
 export type CancelWorkflowWorkflowsCancelWorkflowIdPostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Workflow Id

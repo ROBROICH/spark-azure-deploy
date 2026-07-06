@@ -13,7 +13,6 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
-from internal_auth import merge_internal_api_key_header
 from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
@@ -118,7 +117,7 @@ async def _fetch_rule_based(input: FetchRuleBasedInput) -> list[list[dict[str, A
     url = f"{ENV.FCS.BASE_URL}/{input.project_id}"
     async with httpx.AsyncClient(timeout=ENV.FCS.TIMEOUT) as client:
         try:
-            response = await client.get(url, headers=merge_internal_api_key_header({"accept": "application/json"}))
+            response = await client.get(url, headers={"accept": "application/json"})
             response.raise_for_status()
             doc_type_result_json = response.json()
         except httpx.TimeoutException as e:

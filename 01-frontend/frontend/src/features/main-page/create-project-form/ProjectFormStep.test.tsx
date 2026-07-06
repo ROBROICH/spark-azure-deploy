@@ -13,8 +13,22 @@ import {
   type ProjectStepValues,
 } from '@/features/project/data/project-details-form/projectForm.schema';
 
+const translations: Record<string, string> = {
+  'required.entryDate': 'Entry date is required.',
+  'required.federalState': 'Federal state is required.',
+  'required.internalProjectNumber': 'File reference number is required.',
+  'required.projectName': 'Project name is required.',
+  'required.projectType': 'Type is required.',
+  'step1.aktenzeichen': 'File reference number',
+  'step1.antrageingang': 'Entry date',
+  'step1.federalState': 'Federal state',
+  'step1.projectName': 'Project name',
+  'step1.selectType': 'Select type',
+  'step1.type': 'Type',
+};
+
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({ t: (key: string) => translations[key] ?? key }),
 }));
 
 afterEach(() => {
@@ -37,7 +51,30 @@ const emptyValues: ProjectStepValues = {
   internalProjectNumber: '',
 };
 
+const allEmptyValues: ProjectStepValues = {
+  name: '',
+  projectTypeId: '',
+  federalState: '',
+  entryDate: '',
+  internalProjectNumber: '',
+};
+
+const missingProjectTypeValues: ProjectStepValues = {
+  ...validValues,
+  projectTypeId: '',
+};
+
 const projectTypes = [{ id: 'type-1', name: 'Type A' }];
+
+function getProjectForm(container: HTMLElement): HTMLFormElement {
+  const form = container.querySelector<HTMLFormElement>(
+    '#add-project-step1-form',
+  );
+  if (!form) {
+    throw new Error('Expected project form to be rendered.');
+  }
+  return form;
+}
 
 describe('ProjectFormStep validation timing', () => {
   it('limits the project name input to the shared max length', () => {
@@ -49,7 +86,7 @@ describe('ProjectFormStep validation timing', () => {
       />,
     );
 
-    expect(screen.getByLabelText(/step1\.projectName/)).toHaveAttribute(
+    expect(screen.getByLabelText(/Project name/)).toHaveAttribute(
       'maxLength',
       String(PROJECT_NAME_MAX_LENGTH),
     );
@@ -64,9 +101,11 @@ describe('ProjectFormStep validation timing', () => {
       />,
     );
 
-    fireEvent.blur(screen.getByLabelText(/step1\.antrageingang/));
+    fireEvent.blur(screen.getByLabelText(/Entry date/));
 
-    expect(screen.queryByText('fieldRequired')).not.toBeInTheDocument();
+    expect(
+      screen.queryByText('Entry date is required.'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows submit errors and clears the corrected date field on change', async () => {
@@ -78,10 +117,9 @@ describe('ProjectFormStep validation timing', () => {
       />,
     );
 
-    const form = container.querySelector('#add-project-step1-form');
-    fireEvent.submit(form as HTMLFormElement);
+    fireEvent.submit(getProjectForm(container));
 
-    const entryDate = screen.getByLabelText(/step1\.antrageingang/);
+    const entryDate = screen.getByLabelText(/Entry date/);
     await waitFor(() => {
       expect(entryDate).toHaveAttribute('aria-invalid', 'true');
     });
@@ -91,6 +129,82 @@ describe('ProjectFormStep validation timing', () => {
     await waitFor(() => {
       expect(entryDate).toHaveAttribute('aria-invalid', 'false');
     });
+  });
+
+  it('focuses the first invalid field and shows field-specific required errors', async () => {
+    const { container } = render(
+      <ProjectFormStep
+        defaultValues={allEmptyValues}
+        projectTypes={projectTypes}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.submit(getProjectForm(container));
+
+    const projectName = screen.getByLabelText(/Project name/);
+    await waitFor(() => {
+      expect(projectName).toHaveFocus();
+    });
+
+    expect(screen.getByText('Project name is required.')).toBeInTheDocument();
+    expect(screen.getByText('Type is required.')).toBeInTheDocument();
+    expect(screen.getByText('Federal state is required.')).toBeInTheDocument();
+    expect(screen.getByText('Entry date is required.')).toBeInTheDocument();
+    expect(
+      screen.getByText('File reference number is required.'),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps an unchanged focused field linked to its error without a local alert', async () => {
+    const { container } = render(
+      <ProjectFormStep
+        defaultValues={allEmptyValues}
+        projectTypes={projectTypes}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.submit(getProjectForm(container));
+
+    const projectName = screen.getByLabelText(/Project name/);
+    const projectNameError = await screen.findByText(
+      'Project name is required.',
+    );
+
+    fireEvent.focus(projectName);
+    fireEvent.blur(projectName);
+
+    expect(projectNameError).toBeInTheDocument();
+    expect(projectNameError).not.toHaveAttribute('role');
+    expect(projectName).toHaveAttribute(
+      'aria-describedby',
+      projectNameError.id,
+    );
+  });
+
+  it('focuses the invalid project type select when it is the first invalid control', async () => {
+    const { container } = render(
+      <ProjectFormStep
+        defaultValues={missingProjectTypeValues}
+        projectTypes={projectTypes}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.submit(getProjectForm(container));
+
+    const projectType = screen.getByRole('combobox', { name: /Type/ });
+    await waitFor(() => {
+      expect(projectType).toHaveFocus();
+    });
+
+    const projectTypeError = screen.getByText('Type is required.');
+    expect(projectTypeError).not.toHaveAttribute('role');
+    expect(projectType).toHaveAttribute(
+      'aria-describedby',
+      projectTypeError.id,
+    );
   });
 });
 
@@ -109,8 +223,7 @@ describe('ProjectFormStep duplicate-check gate', () => {
 
     // Native submit (e.g. Enter) bypasses the disabled footer button, so the
     // gate must be enforced inside the form's submit path.
-    const form = container.querySelector('#add-project-step1-form');
-    fireEvent.submit(form as HTMLFormElement);
+    fireEvent.submit(getProjectForm(container));
 
     expect(onSubmit).not.toHaveBeenCalled();
   });
@@ -148,8 +261,7 @@ describe('ProjectFormStep duplicate-check gate', () => {
       />,
     );
 
-    const form = container.querySelector('#add-project-step1-form');
-    fireEvent.submit(form as HTMLFormElement);
+    fireEvent.submit(getProjectForm(container));
 
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledTimes(1);

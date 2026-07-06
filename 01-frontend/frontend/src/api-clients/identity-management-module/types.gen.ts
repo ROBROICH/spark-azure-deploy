@@ -173,25 +173,10 @@ export type MetricsMetricsGetResponses = {
 
 export type GetIdentityMeGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/me';
 };
-
-export type GetIdentityMeGetErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type GetIdentityMeGetError = GetIdentityMeGetErrors[keyof GetIdentityMeGetErrors];
 
 export type GetIdentityMeGetResponses = {
     /**
@@ -204,12 +189,6 @@ export type GetIdentityMeGetResponse = GetIdentityMeGetResponses[keyof GetIdenti
 
 export type GetAllIdentitiesUsersGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -240,12 +219,6 @@ export type GetAllIdentitiesUsersGetResponse = GetAllIdentitiesUsersGetResponses
 
 export type UpdateUserRolesMeRolesPostData = {
     body: UpdateRolesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/me/roles';
@@ -271,12 +244,6 @@ export type UpdateUserRolesMeRolesPostResponse = UpdateUserRolesMeRolesPostRespo
 
 export type ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostData = {
     body: ProjectAssignmentsRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

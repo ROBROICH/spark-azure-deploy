@@ -19,6 +19,7 @@ import {
 import { TeamMemberTopicAssignmentField } from './TeamMemberTopicAssignmentField';
 
 const ADD_TEAM_MEMBER_FORM_ID = 'add-team-member-form';
+const ADD_TEAM_MEMBER_ROLE_LABEL_ID = `${ADD_TEAM_MEMBER_FORM_ID}-role-label`;
 
 const createAddTeamMemberSchema = (
   getMessage: (key: string) => string,
@@ -137,7 +138,12 @@ export function AddTeamMemberDialog(props: AddTeamMemberDialogProps) {
           }}
         </form.Field>
         <form.Field name="role">
-          {(field) => <TeamMemberRoleField field={field} />}
+          {(field) => (
+            <TeamMemberRoleField
+              field={field}
+              labelId={ADD_TEAM_MEMBER_ROLE_LABEL_ID}
+            />
+          )}
         </form.Field>
         <form.Field name="topicIds">
           {(field) => (

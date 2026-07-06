@@ -4,8 +4,8 @@ from collections.abc import AsyncIterable
 from dataclasses import dataclass
 
 import httpx
-from fastapi import status
 from event_logging.enums import EventAction, EventCategory, EventOutcome
+from fastapi import status
 
 from src.config.settings import ClamAVSettings
 from src.utils.exceptions import VirusScanUnavailableError
@@ -89,6 +89,9 @@ def _parse_response(response: httpx.Response) -> VirusScanResult:
     - HTTP 200 + {"status": "FOUND", "message": "..."} → virus detected
     - HTTP 406 + {"status": "FOUND", ...} → virus detected (alt. response)
     - HTTP 502/504 → scanner error
+
+    Security: Fails closed — only explicit "OK" status is treated as clean.
+    Any ambiguous or unexpected response raises VirusScanUnavailableError.
     """
     if response.status_code in (200, 406):
         try:
@@ -101,11 +104,23 @@ def _parse_response(response: httpx.Response) -> VirusScanResult:
                 f"Virus scanner returned unparseable response (HTTP {response.status_code}): {response.text[:200]}"
             ) from exc
 
-        if data.get("status") == "FOUND" or response.status_code == status.HTTP_406_NOT_ACCEPTABLE:
+        # Extract status field (case-insensitive for robustness)
+        scan_status = data.get("status", "").upper()
+
+        # Virus detected
+        if scan_status == "FOUND" or response.status_code == status.HTTP_406_NOT_ACCEPTABLE:
             threat_name = data.get("message") or data.get("viruses", [None])[0]
             return VirusScanResult(is_clean=False, threat_name=threat_name)
 
-        return VirusScanResult(is_clean=True)
+        # Explicitly clean - only accept "OK" status
+        if scan_status == "OK":
+            return VirusScanResult(is_clean=True)
+
+        # Any other status (ERROR, UNKNOWN, empty, etc.) → fail closed
+        raise VirusScanUnavailableError(
+            f"Virus scanner returned unexpected status '{data.get('status')}' "
+            f"(HTTP {response.status_code}): {response.text[:200]}"
+        )
 
     raise VirusScanUnavailableError(
         f"Virus scanner returned unexpected status {response.status_code}: {response.text[:200]}"

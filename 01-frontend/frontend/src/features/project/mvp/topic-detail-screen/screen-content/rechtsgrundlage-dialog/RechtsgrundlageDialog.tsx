@@ -3,6 +3,8 @@ import { Skeleton, skeletonListProps } from '@/features/ui/skeleton/Skeleton';
 import { toast } from '@/features/ui/toast/Toast';
 import * as Sentry from '@sentry/react';
 import { Button } from '@/features/ui/button/Button';
+import { useProjectRouteVersion } from '@/features/project/versioning/projectVersioning';
+import { experimentalRouteRemount } from '@/integrations/router/routeRemount';
 import {
   Dialog,
   DialogContent,
@@ -12,7 +14,7 @@ import {
 } from '@/features/ui/dialog/Dialog';
 import { useAction } from '@/db/nodes/hooks/useAction';
 import { getRouteApi } from '@tanstack/react-router';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAvailableRechtsgrundlageData } from '../../screen-data/useRechtsgrundlageData';
 import { LawGroupRow } from './LawGroupRow';
@@ -23,8 +25,6 @@ import {
 } from './saveNormSelectionChanges';
 
 const topicRoute = getRouteApi('/verfahren/$verfahrenId/mvp/$topicName/');
-const projectRoute = getRouteApi('/verfahren/$verfahrenId');
-const NODE_SUMMARIES_REFETCH_DELAY_MS = 3000;
 
 type RechtsgrundlageDialogProps = {
   canMutateTopic: boolean;
@@ -67,7 +67,6 @@ const RechtsgrundlageDialogContentSkeleton = () => {
 type ResolvedRechtsgrundlageDialogContentProps = {
   canMutateTopic: boolean;
   isSaving: boolean;
-  onDidPersistChanges: () => void;
   onOpenChange: (open: boolean) => void;
   setIsSaving: (isSaving: boolean) => void;
 };
@@ -83,20 +82,20 @@ type ResolvedRechtsgrundlageDialogContentProps = {
 const ResolvedRechtsgrundlageDialogContent = (
   props: ResolvedRechtsgrundlageDialogContentProps,
 ) => {
-  const {
-    canMutateTopic,
-    isSaving,
-    onDidPersistChanges,
-    onOpenChange,
-    setIsSaving,
-  } = props;
-  const { topicName } = topicRoute.useParams();
-  const { transact, insert, update, delete: deleteNode } = useAction();
+  const { canMutateTopic, isSaving, onOpenChange, setIsSaving } = props;
+  const { topicName, verfahrenId } = topicRoute.useParams();
+  const projectVersion = useProjectRouteVersion();
+  const { transact, update, delete: deleteNode } = useAction();
+  const rechtsgrundlageData = useAvailableRechtsgrundlageData();
   const { availableLawGroups, availableNormEntries, selectedNormIds } =
-    useAvailableRechtsgrundlageData();
+    rechtsgrundlageData;
   const { t } = useTranslation('MvpRedesign');
   // eslint-disable-next-line no-restricted-syntax -- draft add/remove modes are local to the dialog until persisted
   const [draftModes, setDraftModes] = useState<NormSelectionDraftModes>({});
+
+  if (rechtsgrundlageData.isProjectLoading) {
+    return <RechtsgrundlageDialogContentSkeleton />;
+  }
 
   const getNormSelectionMode = (
     normId: string,
@@ -149,7 +148,7 @@ const ResolvedRechtsgrundlageDialogContent = (
     const groupNormIds =
       availableLawGroups
         .find((lawGroup) => lawGroup.id === lawGroupId)
-        ?.norms.map((norm) => norm.norm.id) ?? [];
+        ?.norms.map((norm) => norm.selectionKey) ?? [];
 
     if (groupNormIds.length === 0) {
       return;
@@ -187,24 +186,16 @@ const ResolvedRechtsgrundlageDialogContent = (
       return;
     }
 
-    const hasInvalidLawSelection = availableNormEntries.some((normEntry) => {
-      return draftModes[normEntry.norm.id] === 'add' && !normEntry.gesetz;
-    });
-
-    if (hasInvalidLawSelection) {
-      toast.error(t('RechtsgrundlageDialog.errors.missingLawReference'));
-      return;
-    }
-
     setIsSaving(true);
 
     try {
       const didPersist = await saveNormSelectionChanges({
         availableNormEntries,
         draftModes,
+        projectId: verfahrenId,
+        projectVersion,
         topicId: topicName,
         transact,
-        insert,
         update,
         deleteNode,
       });
@@ -215,8 +206,8 @@ const ResolvedRechtsgrundlageDialogContent = (
         return;
       }
 
-      onDidPersistChanges();
       onOpenChange(false);
+      await experimentalRouteRemount(verfahrenId);
       setIsSaving(false);
     } catch (error) {
       Sentry.captureException(error);
@@ -281,37 +272,9 @@ const ResolvedRechtsgrundlageDialogContent = (
  */
 export const RechtsgrundlageDialog = (props: RechtsgrundlageDialogProps) => {
   const { canMutateTopic, onOpenChange, open } = props;
-  const { refetchNodeSummaries } = projectRoute.useLoaderData();
   const { t } = useTranslation('MvpRedesign');
   // eslint-disable-next-line no-restricted-syntax -- save progress is local to this dialog while persistence is in flight
   const [isSaving, setIsSaving] = useState(false);
-  const delayedRefetchTimeoutRef = useRef<number | null>(null);
-
-  // eslint-disable-next-line no-restricted-syntax -- owns and clears delayed summary refetches for this page-mounted dialog shell.
-  useEffect(() => {
-    return () => {
-      if (delayedRefetchTimeoutRef.current === null) {
-        return;
-      }
-
-      window.clearTimeout(delayedRefetchTimeoutRef.current);
-      delayedRefetchTimeoutRef.current = null;
-    };
-  }, []);
-
-  const scheduleNodeSummariesRefetch = () => {
-    if (delayedRefetchTimeoutRef.current !== null) {
-      window.clearTimeout(delayedRefetchTimeoutRef.current);
-    }
-
-    delayedRefetchTimeoutRef.current = window.setTimeout(() => {
-      delayedRefetchTimeoutRef.current = null;
-      void Promise.resolve(refetchNodeSummaries()).catch((error) => {
-        Sentry.captureException(error);
-        toast.error(t('RechtsgrundlageDialog.errors.saveFailed'));
-      });
-    }, NODE_SUMMARIES_REFETCH_DELAY_MS);
-  };
 
   const handleOpenChange = (nextOpen: boolean) => {
     if (isSaving && !nextOpen) {
@@ -339,7 +302,6 @@ export const RechtsgrundlageDialog = (props: RechtsgrundlageDialogProps) => {
           <ResolvedRechtsgrundlageDialogContent
             canMutateTopic={canMutateTopic}
             isSaving={isSaving}
-            onDidPersistChanges={scheduleNodeSummariesRefetch}
             onOpenChange={onOpenChange}
             setIsSaving={setIsSaving}
           />

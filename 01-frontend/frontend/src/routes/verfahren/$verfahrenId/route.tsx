@@ -1,4 +1,5 @@
 import { ProjectGraphProvider } from '@/db/nodes/ProjectGraphProvider';
+import { ProjectRouteDocumentTitle } from '@/features/document-title/project-route-title/ProjectRouteDocumentTitle';
 import { PdfPopoutWorkspaceProvider } from '@/features/project/pdf-popout/PdfPopoutWorkspaceContext';
 import { PdfPopoutWorkspaceWindow } from '@/features/project/pdf-popout/popout/PdfPopoutWorkspaceWindow';
 import { actionSidebarSearchSchema } from '@/features/project/action-sidebar/sidebarSearchParams';
@@ -18,7 +19,7 @@ const route = getRouteApi('/verfahren/$verfahrenId');
 
 function ProjectRouteLayoutWithProviders() {
   const { verfahrenId } = route.useParams();
-  const { db, projectVersion } = route.useLoaderData();
+  const { db, projectName, projectVersion } = route.useLoaderData();
 
   return (
     <Suspense fallback={<ProjectRouteSkeleton />}>
@@ -28,6 +29,7 @@ function ProjectRouteLayoutWithProviders() {
             loaderProjectVersion={projectVersion}
             projectId={verfahrenId}
           />
+          <ProjectRouteDocumentTitle projectName={projectName} />
           <ProjectRunningWorkflowsWatcher />
           <ProjectRouteLayout />
           <PdfPopoutWorkspaceWindow />

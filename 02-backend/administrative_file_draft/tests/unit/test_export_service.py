@@ -248,7 +248,7 @@ async def test_fetch_project_export_metadata_maps_request_error_to_502(monkeypat
         async def get(self, url):
             raise httpx.RequestError("boom")
 
-    monkeypatch.setattr(export_service.httpx, "AsyncClient", lambda timeout, headers: _FailingAsyncClient())
+    monkeypatch.setattr(export_service.httpx, "AsyncClient", lambda timeout: _FailingAsyncClient())
 
     with pytest.raises(HTTPException) as exc_info:
         await export_service._fetch_project_export_metadata(uuid4())

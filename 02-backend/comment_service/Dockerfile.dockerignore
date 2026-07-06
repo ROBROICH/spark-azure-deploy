@@ -12,7 +12,6 @@
 # Workspace and used shared libraries
 !02-backend/logging
 !04-shared-services/audit-client
-!04-shared-services/internal-auth
 !04-shared-services/alembic-utils
 !04-shared-services/authentification
 !02-backend/comment_service/src/**

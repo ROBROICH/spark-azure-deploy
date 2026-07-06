@@ -4,7 +4,7 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 
 import { client } from '../client.gen';
 import { createScheduleTemporalSchedulePost, deleteScheduleTemporalScheduleDelete, getPendingPendingUpdatesGet, healthCheckHealthzGet, metricsMetricsGet, type Options, pauseScheduleTemporalSchedulePausePost, readinessCheckReadyGet, startupCheckStartupGet, updateScheduleTemporalSchedulePut } from '../sdk.gen';
-import type { CreateScheduleTemporalSchedulePostData, CreateScheduleTemporalSchedulePostError, DeleteScheduleTemporalScheduleDeleteData, DeleteScheduleTemporalScheduleDeleteError, DeleteScheduleTemporalScheduleDeleteResponse, GetPendingPendingUpdatesGetData, GetPendingPendingUpdatesGetError, GetPendingPendingUpdatesGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, MetricsMetricsGetData, PauseScheduleTemporalSchedulePausePostData, PauseScheduleTemporalSchedulePausePostError, PauseScheduleTemporalSchedulePausePostResponse, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, StartupCheckStartupGetData, StartupCheckStartupGetResponse, UpdateScheduleTemporalSchedulePutData, UpdateScheduleTemporalSchedulePutError, UpdateScheduleTemporalSchedulePutResponse } from '../types.gen';
+import type { CreateScheduleTemporalSchedulePostData, CreateScheduleTemporalSchedulePostError, DeleteScheduleTemporalScheduleDeleteData, DeleteScheduleTemporalScheduleDeleteResponse, GetPendingPendingUpdatesGetData, GetPendingPendingUpdatesGetError, GetPendingPendingUpdatesGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, MetricsMetricsGetData, PauseScheduleTemporalSchedulePausePostData, PauseScheduleTemporalSchedulePausePostError, PauseScheduleTemporalSchedulePausePostResponse, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, StartupCheckStartupGetData, StartupCheckStartupGetResponse, UpdateScheduleTemporalSchedulePutData, UpdateScheduleTemporalSchedulePutError, UpdateScheduleTemporalSchedulePutResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -145,8 +145,8 @@ export const getPendingPendingUpdatesGetOptions = (options?: Options<GetPendingP
 /**
  * Delete Schedule
  */
-export const deleteScheduleTemporalScheduleDeleteMutation = (options?: Partial<Options<DeleteScheduleTemporalScheduleDeleteData>>): UseMutationOptions<DeleteScheduleTemporalScheduleDeleteResponse, DeleteScheduleTemporalScheduleDeleteError, Options<DeleteScheduleTemporalScheduleDeleteData>> => {
-    const mutationOptions: UseMutationOptions<DeleteScheduleTemporalScheduleDeleteResponse, DeleteScheduleTemporalScheduleDeleteError, Options<DeleteScheduleTemporalScheduleDeleteData>> = {
+export const deleteScheduleTemporalScheduleDeleteMutation = (options?: Partial<Options<DeleteScheduleTemporalScheduleDeleteData>>): UseMutationOptions<DeleteScheduleTemporalScheduleDeleteResponse, DefaultError, Options<DeleteScheduleTemporalScheduleDeleteData>> => {
+    const mutationOptions: UseMutationOptions<DeleteScheduleTemporalScheduleDeleteResponse, DefaultError, Options<DeleteScheduleTemporalScheduleDeleteData>> = {
         mutationFn: async (fnOptions) => {
             const { data } = await deleteScheduleTemporalScheduleDelete({
                 ...options,

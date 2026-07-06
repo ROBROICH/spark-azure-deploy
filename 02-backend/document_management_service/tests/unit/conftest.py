@@ -191,6 +191,7 @@ class MockStorageProviderService(BaseStorageProviderService):
         expiration_minutes: int = 15,
         mime_type: str | None = None,
         inline: bool = False,
+        internal: bool = False,
     ) -> str:
         if not await self.document_exists(document_name):
             raise FileNotFoundError(f"Document '{document_name}' not found")

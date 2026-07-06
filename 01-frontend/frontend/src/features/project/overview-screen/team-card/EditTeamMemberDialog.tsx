@@ -18,6 +18,7 @@ import {
 import { TeamMemberTopicAssignmentField } from './TeamMemberTopicAssignmentField';
 
 const EDIT_TEAM_MEMBER_FORM_ID = 'edit-team-member-form';
+const EDIT_TEAM_MEMBER_ROLE_LABEL_ID = `${EDIT_TEAM_MEMBER_FORM_ID}-role-label`;
 
 const createEditTeamMemberSchema = (
   getMessage: (key: string) => string,
@@ -99,7 +100,12 @@ export function EditTeamMemberDialog(props: EditTeamMemberDialogProps) {
           <Input id="team-member-name" value={member.name} disabled readOnly />
         </Field>
         <form.Field name="role">
-          {(field) => <TeamMemberRoleField field={field} />}
+          {(field) => (
+            <TeamMemberRoleField
+              field={field}
+              labelId={EDIT_TEAM_MEMBER_ROLE_LABEL_ID}
+            />
+          )}
         </form.Field>
         <form.Field name="topicIds">
           {(field) => (

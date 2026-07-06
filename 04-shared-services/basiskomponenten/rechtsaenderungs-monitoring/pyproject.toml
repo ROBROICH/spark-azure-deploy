@@ -21,6 +21,7 @@ dev = [
     "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.1.0,<2",
     "pytest-cov>=6.2.1,<7",
+    "pytest-env>=1.1.5,<2",
     "pytest-xdist>=3.8.0,<4",
     "pytest-postgresql>=8.0.0,<9",
     "asgi-lifespan>=2.1.0,<3",
@@ -48,9 +49,14 @@ addopts = "-m 'not integration' -p no:warnings -v --ignore=./db-data"
 testpaths = ["tests"]
 norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
 postgresql_dbname = "rechtsaenderungsmonitoring-db"
-postgresql_port = "15432"
+postgresql_port = "15434"
 postgresql_password = "postgres"
 asyncio_mode = "auto"
+env = [
+    "D:DB_PORT=15434",
+    "D:TEMPORAL_S3_ACCESS_KEY_ID=test",
+    "D:TEMPORAL_S3_SECRET_ACCESS_KEY=test",
+]
 
 [tool.coverage.report]
 exclude_also = [
@@ -91,4 +97,3 @@ missing-source-for-stubs = "error"
 deprecated = "error"
 redundant-cast = "error"
 unnecessary-comparison = "error"
-

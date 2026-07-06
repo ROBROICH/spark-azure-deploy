@@ -766,12 +766,6 @@ normenermittlung:
     port: 80
     ports: []
   env:
-    # Internal service-to-service API key for calls into the backend services.
-    - name: AUTH_INTERNAL_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: norm-tbm-spec-module-service-auth
-          key: token
     - name: TEMPORAL_HOST
       value: '{{ printf "%s-temporal%s-frontend.%s.svc.cluster.local:7233" .Release.Name (include "temporal-worker.stageSuffix" .) .Release.Namespace }}'
     - name: TEMPORAL_S3_BUCKET_NAME

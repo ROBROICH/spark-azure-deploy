@@ -18,6 +18,13 @@ from event_logging.enums import (
 )
 from event_logging.event_logger import EventLogger
 
+TRACEPARENT_PARTS = 4
+TRACEPARENT_VERSION_LENGTH = 2
+TRACE_ID_LENGTH = 32
+PARENT_ID_LENGTH = 16
+TRACE_FLAGS_LENGTH = 2
+HTTP_CLIENT_ERROR_MIN_STATUS = 400
+
 
 class EventLoggingMiddleware(BaseHTTPMiddleware):
     """
@@ -88,17 +95,17 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
         if not traceparent:
             return None
         parts = traceparent.split("-")
-        if len(parts) != 4:
+        if len(parts) != TRACEPARENT_PARTS:
             return None
         version, trace_id, parent_id, trace_flags = parts[0], parts[1], parts[2], parts[3]
         if (
-            len(version) != 2
+            len(version) != TRACEPARENT_VERSION_LENGTH
             or version == "ff"
-            or len(trace_id) != 32
-            or trace_id == "0" * 32
-            or len(parent_id) != 16
-            or parent_id == "0" * 16
-            or len(trace_flags) != 2
+            or len(trace_id) != TRACE_ID_LENGTH
+            or trace_id == "0" * TRACE_ID_LENGTH
+            or len(parent_id) != PARENT_ID_LENGTH
+            or parent_id == "0" * PARENT_ID_LENGTH
+            or len(trace_flags) != TRACE_FLAGS_LENGTH
         ):
             return None
         try:
@@ -127,7 +134,7 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
 
         try:
             response = await call_next(request)
-            if response.status_code >= 400:
+            if response.status_code >= HTTP_CLIENT_ERROR_MIN_STATUS:
                 outcome = EventOutcome.FAILURE
         except Exception as e:
             outcome = EventOutcome.FAILURE
@@ -148,7 +155,7 @@ class EventLoggingMiddleware(BaseHTTPMiddleware):
                 outcome=outcome,
                 category=EventCategory.API,
                 default_event=LogEventDefault.API_REQUEST,
-                message=f"{request.method} {response.status_code if response else ''}: {request.url.path} {request.url.query if request.url.query else ''}  executed.",
+                message=f"{request.method} {response.status_code if response else ''}: {request.url.path} executed.",
                 event_duration=duration_ns,
                 event_code=response.status_code if response else None,
                 url_path=request.url.path,

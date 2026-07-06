@@ -9,7 +9,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from internal_auth import internal_api_key_headers
 
 import src.Activities.law_db_activities as law_db_module
 from src.Activities.law_db_activities import (
@@ -48,8 +47,7 @@ class TestQueryTopKDR:
         mock_client.post.assert_called_once_with(
             law_db_module._DKE_URL,
             json=inp.model_dump(),
-            headers=internal_api_key_headers(),
-        )
+            )
 
     async def test_http_error_propagates(self) -> None:
         mock_response = MagicMock()
@@ -97,8 +95,7 @@ class TestQueryKResultsUT:
         mock_client.post.assert_called_once_with(
             law_db_module._UT_URL,
             json=inp.model_dump(),
-            headers=internal_api_key_headers(),
-        )
+            )
 
     async def test_http_error_propagates(self) -> None:
         mock_response = MagicMock()

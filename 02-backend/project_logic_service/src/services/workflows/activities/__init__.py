@@ -23,6 +23,7 @@ from src.services.workflows.activities.project_root_version import (
     copy_project_root_version,
     undo_project_root_version,
 )
+from src.services.workflows.activities.project_version_copy_plan import build_project_version_copy_plan
 from src.services.workflows.activities.update_project_status import update_project_status
 from src.services.workflows.activities.version_locks import (
     acquire_project_version_lock,
@@ -40,6 +41,7 @@ activities: list[Callable] = [
     get_project_internal_status,
     list_service_nodes,
     batch_get_service_nodes,
+    build_project_version_copy_plan,
     cancel_project_version_workflows,
     copy_service_version_nodes,
     undo_service_version,

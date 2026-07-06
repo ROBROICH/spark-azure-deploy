@@ -1,14 +1,38 @@
 """Route tests for the temporal job service API."""
 
+from datetime import UTC, datetime
 from uuid import UUID, uuid4
 
 import pytest
+from authentification.dependencies import get_auth_client, get_current_user, get_verifier
+from authentification.enums import AuthMode, OidcRoles
+from authentification.models import OidcUserInfo
 from fastapi import FastAPI, status
 from fastapi.testclient import TestClient
 
 from src.api.routes import job_service as job_service_route
-from src.models.schemas.job_service_schemas import GetWorkflowsByTypeResponse
+from src.models.schemas.job_service_schemas import GetWorkflowResponse, GetWorkflowsByTypeResponse
 from src.temporal.client import get_temporal_client
+
+
+class FakeVerifier:
+    auth_mode = AuthMode.STRICT
+    requires_user = True
+
+
+class FakeAuthClient:
+    def __init__(self, allowed: bool) -> None:
+        self.allowed = allowed
+        self.checks: list[dict[str, object]] = []
+
+    async def check_permission(self, **kwargs: object) -> bool:
+        self.checks.append(kwargs)
+        return self.allowed
+
+
+class FailingTemporalDescriptionClient:
+    def get_workflow_handle(self, workflow_id: str):
+        raise AssertionError("bypass roles should not require ProjectId lookup")
 
 
 @pytest.fixture
@@ -133,3 +157,39 @@ def test_get_workflows_by_type_rejects_invalid_workflow_type_before_service_call
     assert called is False
     assert response.json()["detail"][0]["loc"] == ["query", "workflow_type"]
     assert response.json()["detail"][0]["type"] == "string_pattern_mismatch"
+
+
+@pytest.mark.parametrize("role", [OidcRoles.ADMIN, OidcRoles.USER, OidcRoles.SERVICE])
+def test_get_workflow_bypass_roles_do_not_require_project_id(
+    role: OidcRoles,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app = FastAPI()
+    app.include_router(job_service_route.router)
+    fake_auth_client = FakeAuthClient(allowed=False)
+    app.dependency_overrides[get_temporal_client] = lambda: FailingTemporalDescriptionClient()
+    app.dependency_overrides[get_verifier] = lambda: FakeVerifier()
+    app.dependency_overrides[get_current_user] = lambda: OidcUserInfo(
+        sub="00000000-0000-0000-0000-000000000001",
+        realm_roles=[role],
+    )
+    app.dependency_overrides[get_auth_client] = lambda: fake_auth_client
+
+    async def fake_get_workflow(**_: object) -> GetWorkflowResponse:
+        return GetWorkflowResponse(
+            workflow_id="wf-1",
+            workflow_type="LegacyWorkflow",
+            workflow_start_time=datetime(2026, 4, 15, 9, 0, tzinfo=UTC),
+            workflow_close_time=None,
+            status="running",
+            result=None,
+            children=[],
+        )
+
+    monkeypatch.setattr(job_service_route.service, "get_workflow", fake_get_workflow)
+
+    with TestClient(app) as test_client:
+        response = test_client.get("/temporal/workflows/wf-1")
+
+    assert response.status_code == status.HTTP_200_OK
+    assert fake_auth_client.checks == []

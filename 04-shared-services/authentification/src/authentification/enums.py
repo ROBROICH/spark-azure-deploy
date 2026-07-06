@@ -11,9 +11,6 @@ class AuthMode(StrEnum):
     # verify first, fall back to unverified decode for dry-run only
     OPTIONAL_VERIFY_DRY_RUN = "optional_verify_dry_run"
 
-    # token optional, but verified if present
-    OPTIONAL_VERIFY = "optional_verify"
-
     # token required and verified
     STRICT = "strict"
 

@@ -1,6 +1,5 @@
 import { Root, Indicator } from '@radix-ui/react-checkbox';
 import {
-  Accordion,
   AccordionChevron,
   AccordionContent,
   AccordionItem,
@@ -19,8 +18,8 @@ import { CHECKBOX_CLASS_NAME } from './checkboxStyles';
 type LawGroupRowProps = {
   lawGroup: AvailableNormLawGroup;
   norms: AvailableNormEntry[];
-  isNormSelected: (normId: string) => boolean;
-  onToggleNorm: (normId: string) => void;
+  isNormSelected: (selectionKey: string) => boolean;
+  onToggleNorm: (selectionKey: string) => void;
   onToggleGroup: (lawGroupId: string) => void;
 };
 
@@ -39,7 +38,7 @@ export const LawGroupRow = (props: LawGroupRowProps) => {
   const { t } = useTranslation('MvpRedesign');
 
   const checkedCount = norms.filter((norm) =>
-    isNormSelected(norm.norm.id),
+    isNormSelected(norm.selectionKey),
   ).length;
   const allChecked = checkedCount === norms.length && norms.length > 0;
   const isIndeterminate = checkedCount > 0 && !allChecked;
@@ -57,17 +56,13 @@ export const LawGroupRow = (props: LawGroupRowProps) => {
         })
       : undefined;
   const lawGroupLabel = lawGroup.gesetz?.jurabk ?? lawGroup.id;
-  const checkboxLabel = allChecked
-    ? t('RechtsgrundlageDialog.groupCheckboxDeselectAriaLabel', {
-        lawGroup: lawGroupLabel,
-      })
-    : t('RechtsgrundlageDialog.groupCheckboxSelectAriaLabel', {
-        lawGroup: lawGroupLabel,
-      });
   const selectedCountAnnouncement =
     checkedCount > 0
       ? t('RechtsgrundlageDialog.selectedCount', { count: checkedCount })
       : '';
+  const ariaDescribedBy = cascadeHint
+    ? `${selectedCountLiveId} ${cascadeHintId}`
+    : selectedCountLiveId;
 
   return (
     <AccordionItem value={lawGroup.id}>
@@ -107,8 +102,8 @@ export const LawGroupRow = (props: LawGroupRowProps) => {
         <Root
           checked={checkedState}
           onCheckedChange={() => onToggleGroup(lawGroup.id)}
-          aria-label={checkboxLabel}
-          aria-describedby={cascadeHint ? cascadeHintId : undefined}
+          aria-label={lawGroupLabel}
+          aria-describedby={ariaDescribedBy}
           className={CHECKBOX_CLASS_NAME}
         >
           <Indicator className="grid place-content-center text-current">
@@ -122,16 +117,16 @@ export const LawGroupRow = (props: LawGroupRowProps) => {
       </div>
 
       <AccordionContent className="pt-2 pl-4">
-        <Accordion className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           {norms.map((norm) => (
             <NormRow
-              key={norm.norm.id}
+              key={norm.selectionKey}
               norm={norm}
-              checked={isNormSelected(norm.norm.id)}
+              checked={isNormSelected(norm.selectionKey)}
               onToggle={onToggleNorm}
             />
           ))}
-        </Accordion>
+        </div>
       </AccordionContent>
     </AccordionItem>
   );

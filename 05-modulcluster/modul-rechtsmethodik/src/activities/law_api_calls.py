@@ -4,7 +4,6 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
-from internal_auth import internal_api_key_headers
 from pydantic import BaseModel, ConfigDict
 from temporal.workflows.rechtsmethodik.types import Absatz
 from temporalio import activity, workflow
@@ -126,7 +125,7 @@ class TechnischeNormOutput(BaseModel):
 async def _post_and_validate_list(url: str, payload: dict[str, Any]) -> list[dict[str, Any]]:
     """POST JSON payload to a URL and return the response as a list, raising on non-list responses."""
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.post(url, json=payload, headers=internal_api_key_headers())
+        response = await client.post(url, json=payload)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list):
@@ -144,7 +143,7 @@ async def _fetch_documents(activity_input: FetchDocumentsInput | None = None) ->
         params["bundesland"] = activity_input.bundesland
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list) or not data:
@@ -166,7 +165,7 @@ async def _fetch_document_by_search_term(activity_input: FetchDocumentBySearchTe
         params["bundesland"] = activity_input.bundesland
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list):
@@ -190,7 +189,7 @@ async def _fetch_document_by_jurabk(activity_input: FetchDocumentByJurabkInput) 
         params["bundesland"] = activity_input.bundesland
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, dict) or not data:
@@ -217,7 +216,7 @@ async def _fetch_absaetze(activity_input: FetchAbsaetzeInput) -> list[dict[str, 
         params["bundesland"] = activity_input.bundesland
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         if response.status_code == httpx.codes.NOT_FOUND:
             return []
         response.raise_for_status()
@@ -243,7 +242,7 @@ async def _fetch_norm(activity_input: FetchNormInput) -> list[dict[str, Any]]:
         if activity_input.bundesland is not None:
             params["bundesland"] = activity_input.bundesland
 
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list):
@@ -355,7 +354,7 @@ async def _ld_table_get_definitions_by_jurabk_titel(
         params["titel"] = activity_input.titel
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, params=params, headers=internal_api_key_headers())
+        response = await client.get(url, params=params)
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list):
@@ -386,7 +385,7 @@ async def _tn_table_get_by_dokument(dokument: str) -> TechnischeNormOutput | Non
     url = ENV.LAW_DATABASE.TECHNISCHE_NORMEN_DOKUMENT_URL.format(dokument=quote(dokument, safe=""))
 
     async with httpx.AsyncClient(timeout=10.0) as client:
-        response = await client.get(url, headers=internal_api_key_headers())
+        response = await client.get(url)
         if response.status_code == httpx.codes.NOT_FOUND:
             return None
         response.raise_for_status()

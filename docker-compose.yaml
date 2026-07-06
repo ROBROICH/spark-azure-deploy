@@ -132,6 +132,20 @@ services:
         mc mb -p "local/$$QUARANTINE_BUCKET_NAME" || true
         tail -f /dev/null
 
+  minio-proxy:
+    # Host-restoring reverse proxy in front of MinIO for presigned URLs. An authenticating
+    # reverse proxy may rewrite the inbound Host (real host -> X-Forwarded-Host), which would make
+    # MinIO reject SigV4 presigned URLs with 403 SignatureDoesNotMatch. This sidecar restores
+    # Host from X-Forwarded-Host before MinIO validates the signature. See
+    # docker/minio-proxy/nginx.conf. Reached only over the compose network (via oauth2-proxy).
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      minio:
+        condition: service_healthy
+    volumes:
+      - ./docker/minio-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
+
   qdrant:
     image: qdrant/qdrant:v1.17.1
     restart: unless-stopped
@@ -219,10 +233,15 @@ services:
       - --http-port=9090
     environment:
       KC_DB: dev-file
-      KC_HOSTNAME: localhost
-      KC_HOSTNAME_PORT: 9090
+      # Public base URL of Keycloak as the browser reaches it: http://localhost:9090 locally,
+      # https://9090-$WEB_HOST behind a reverse proxy. This drives the token `iss`, so it must
+      # match OAUTH2_PROXY_OIDC_ISSUER_URL. STRICT=false still lets internal callers (oauth2-proxy
+      # token redeem, the bootstrap container) reach Keycloak on the docker network at keycloak:9090.
+      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
+      # Honour X-Forwarded-* from the TLS-terminating reverse proxy (no-op locally).
+      KC_PROXY_HEADERS: xforwarded
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
       KC_FEATURES: token-exchange
@@ -252,6 +271,8 @@ services:
       LOCAL_USER_PASSWORD: ${LOCAL_USER_PASSWORD}
       LOCAL_USER_FIRST_NAME: ${LOCAL_USER_FIRST_NAME}
       LOCAL_USER_LAST_NAME: ${LOCAL_USER_LAST_NAME}
+      # Used to register the OIDC client's redirectUris / webOrigins (see bootstrap.sh).
+      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:3000}
     restart: on-failure
     volumes:
       - ./docker/keycloak/bootstrap.sh:/bootstrap.sh:ro
@@ -267,23 +288,35 @@ services:
         condition: service_completed_successfully
     environment:
       OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
-      # The frontend dev server runs on the host via process-compose.
-      OAUTH2_PROXY_UPSTREAMS: http://host.docker.internal:3002
+      # Default upstream is the frontend dev server (runs on the host via process-compose).
+      # The extra /dms-local/ route serves MinIO same-origin so browser uploads/downloads avoid
+      # cross-origin CORS preflight, which an authenticating reverse proxy blocks. MinIO uses
+      # path-style addressing and SigV4 signs the Host header. An authenticating reverse proxy may
+      # rewrite the inbound Host (the real host is moved to X-Forwarded-Host) before oauth2-proxy
+      # sees it; PASS_HOST_HEADER would then forward that wrong Host to MinIO and presigned URLs
+      # fail with 403 SignatureDoesNotMatch. So /dms-local/* is routed through the minio-proxy
+      # sidecar, which restores Host from X-Forwarded-Host before MinIO validates the signature.
+      # Longest-prefix wins, so /dms-local/* goes to minio-proxy and everything else to the
+      # frontend. Add one route per additional browser-facing bucket.
+      OAUTH2_PROXY_UPSTREAMS: http://host.docker.internal:3002,http://minio-proxy:9000/dms-local/
+      # Trust X-Forwarded-* from the reverse proxy (no-op on plain localhost).
+      OAUTH2_PROXY_REVERSE_PROXY: "true"
       OAUTH2_PROXY_PROVIDER: keycloak-oidc
       OAUTH2_PROXY_CLIENT_ID: local-client
       OAUTH2_PROXY_CLIENT_SECRET: ${LOCAL_KEYCLOAK_CLIENT_SECRET}
       OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
-      OAUTH2_PROXY_COOKIE_SECURE: "false"
+      # true under HTTPS (behind a reverse proxy), false for plain-http localhost.
+      OAUTH2_PROXY_COOKIE_SECURE: ${OAUTH2_PROXY_COOKIE_SECURE:-false}
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
-      OAUTH2_PROXY_REDIRECT_URL: http://localhost:3000/oauth2/callback
+      OAUTH2_PROXY_REDIRECT_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:3000}/oauth2/callback
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
       OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
-      # The browser reaches Keycloak via localhost:9090, this container via
-      # keycloak:9090. OIDC discovery cannot express that split, so the
-      # endpoints are set explicitly.
+      # Browser-facing (front-channel) Keycloak URLs use the public host; the back-channel
+      # (redeem/jwks/profile) stays on the docker network and never traverses the reverse
+      # proxy. OIDC discovery cannot express that split, so the endpoints are set explicitly.
       OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
-      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:9090/realms/local
-      OAUTH2_PROXY_LOGIN_URL: http://localhost:9090/realms/local/protocol/openid-connect/auth
+      OAUTH2_PROXY_OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}/realms/local
+      OAUTH2_PROXY_LOGIN_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}/realms/local/protocol/openid-connect/auth
       OAUTH2_PROXY_REDEEM_URL: http://keycloak:9090/realms/local/protocol/openid-connect/token
       OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:9090/realms/local/protocol/openid-connect/certs
       OAUTH2_PROXY_PROFILE_URL: http://keycloak:9090/realms/local/protocol/openid-connect/userinfo

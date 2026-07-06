@@ -6,7 +6,6 @@ from uuid import UUID
 
 import httpx
 from audit_client import ChangeType, record_audit_entry
-from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -179,7 +178,9 @@ async def update_toc_note_resolved_status(
 )
 async def _fetch_toc_results(file_id: UUID, project_version: int | None = None) -> TocResults:
     """Fetch TOC results from DMS using a single HTTP client for both requests."""
-    download_url_endpoint = f"{settings.DOCUMENT_MANAGEMENT_SERVICE_URL}/v2/files/{file_id}/generate-download-url"
+    # Internal route: signed against the internal storage endpoint so this server-side caller can
+    # reach it (the public route signs the browser-facing host, unreachable from the backend).
+    download_url_endpoint = f"{settings.DOCUMENT_MANAGEMENT_SERVICE_URL}/v2/internal/files/{file_id}/generate-download-url"
     params = {"project_version": project_version} if project_version is not None else None
 
     logger.info(
@@ -191,7 +192,7 @@ async def _fetch_toc_results(file_id: UUID, project_version: int | None = None) 
     )
 
     async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
-        response = await client.get(download_url_endpoint, params=params, headers=internal_api_key_headers())
+        response = await client.get(download_url_endpoint, params=params)
         response.raise_for_status()
         download_info = FileDownloadResponse.model_validate(response.json())
 

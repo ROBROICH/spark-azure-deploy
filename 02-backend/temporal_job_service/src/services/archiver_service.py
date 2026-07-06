@@ -70,7 +70,25 @@ class HistoryArchiver:
             # Compress first, then encrypt: ciphertext is incompressible.
             body = await asyncio.to_thread(self._fernet.encrypt, body)
 
-        return await self._s3.put(body)
+        key = self._archive_key(
+            workflow_id=workflow_id,
+            run_id=run_id,
+            workflow_type=workflow_type,
+            project_id=project_id,
+        )
+        content_type = "application/octet-stream" if self._fernet is not None else "application/gzip"
+        return await self._s3.put_bytes(key=key, payload_data=body, content_type=content_type)
+
+    def _archive_key(
+        self,
+        *,
+        workflow_id: str,
+        run_id: str,
+        workflow_type: str,
+        project_id: str | None,
+    ) -> str:
+        project_segment = project_id or "unknown"
+        return f"{self._prefix}/{project_segment}/{workflow_type}/{workflow_id}/{run_id}.json.gz"
 
     async def _resolve_event_payloads(self, event: Any) -> None:
         for payload in _iter_payloads(event):

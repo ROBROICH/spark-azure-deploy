@@ -118,6 +118,8 @@ resources:
 env:
   - name: PROJECT_LOGIC_SERVICE_URL
     value: '{{ printf "http://%s-project-logic-service%s.%s.svc.cluster.local" .Release.Name (include "examination-service.stageSuffix" .) .Release.Namespace }}'
+  - name: LAW_DATABASE_BASE_URL
+    value: '{{ printf "http://%s-gesetze-normen-db-service%s.%s.svc.cluster.local:8000" .Release.Name (include "examination-service.stageSuffix" .) .Release.Namespace }}'
   - name: BACKEND_CORS_ORIGINS
     value: <cors-origins>
   - name: SERVICE_NAME

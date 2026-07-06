@@ -1073,12 +1073,6 @@ export type MetricsMetricsGetResponses = {
 
 export type GetRisksRisksProjectIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1111,12 +1105,6 @@ export type GetRisksRisksProjectIdGetResponse = GetRisksRisksProjectIdGetRespons
 
 export type CreateRisksRisksProjectIdPostData = {
     body: CreateRisksRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1149,12 +1137,6 @@ export type CreateRisksRisksProjectIdPostResponse = CreateRisksRisksProjectIdPos
 
 export type UpdateRiskRisksRiskIdPatchData = {
     body: UpdateRiskRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Risk Id
@@ -1185,12 +1167,6 @@ export type UpdateRiskRisksRiskIdPatchResponse = UpdateRiskRisksRiskIdPatchRespo
 
 export type ExportVaeDocxProjectIdExportDocxPostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1219,12 +1195,6 @@ export type ExportVaeDocxProjectIdExportDocxPostResponses = {
 
 export type ExportVaePdfProjectIdExportPdfPostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1301,12 +1271,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type ListTemplatesTemplatesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query: {
         /**
@@ -1339,12 +1303,6 @@ export type ListTemplatesTemplatesGetResponse = ListTemplatesTemplatesGetRespons
 
 export type CreateTemplateTemplatesPostData = {
     body: CreateTemplateRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/templates';
@@ -1370,12 +1328,6 @@ export type CreateTemplateTemplatesPostResponse = CreateTemplateTemplatesPostRes
 
 export type GetTemplateTemplatesTemplateIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Template Id
@@ -1406,12 +1358,6 @@ export type GetTemplateTemplatesTemplateIdGetResponse = GetTemplateTemplatesTemp
 
 export type ActivateTemplateTemplatesTemplateIdActivatePostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Template Id
@@ -1442,12 +1388,6 @@ export type ActivateTemplateTemplatesTemplateIdActivatePostResponse = ActivateTe
 
 export type GetNodesTemplatesTemplateIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Template Id
@@ -1479,12 +1419,6 @@ export type AddNodesTemplatesTemplateIdNodesPostData = {
      * Nodes
      */
     body: Array<TemplateNodeInput>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Template Id
@@ -1515,12 +1449,6 @@ export type AddNodesTemplatesTemplateIdNodesPostResponse = AddNodesTemplatesTemp
 
 export type AssignTemplateTemplatesProjectIdAssignTemplateProjectTypeIdPostData = {
     body: AssignTemplateRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1555,12 +1483,6 @@ export type AssignTemplateTemplatesProjectIdAssignTemplateProjectTypeIdPostRespo
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1598,12 +1520,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1641,12 +1557,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1684,12 +1594,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1720,12 +1624,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
