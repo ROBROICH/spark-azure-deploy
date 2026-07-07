@@ -36,6 +36,7 @@
 !/scripts/fetch-upstream.sh
 /docs/*
 !/docs/azure-demo.md
+!/docs/images/
 
 # Build artifacts / local state.
 seed-pack/
