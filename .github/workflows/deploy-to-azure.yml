@@ -1,0 +1,94 @@
+# Deploy the SPARK demo to YOUR Azure subscription — the "Deploy to Azure" button.
+#
+# Runs `azd up`: provisions the foundations (infra/main.bicep) and the
+# postprovision hook (scripts/azure/deploy-all.ps1), which stands up the full app
+# tier from the PUBLIC GHCR images and seeds the golden demo content.
+#
+# One-time setup in your fork (see README "Deploy to Azure"):
+#   Secrets:  AZURE_CLIENT_ID, AZURE_TENANT_ID, AZURE_SUBSCRIPTION_ID  (an app
+#             registration with an OIDC federated credential for this repo, and
+#             Contributor + a role that can assign Key Vault access on the target
+#             subscription), and SPARK_LLM_API_KEY (OpenAI or Azure OpenAI key).
+#   Variables (optional): SPARK_SEED_PACK_URL (golden seed pack .tar.gz).
+#   Prereq:   run the "build-and-publish" workflow once and set the GHCR packages
+#             to PUBLIC so this deployment can pull them without a login.
+name: deploy-to-azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment_name:
+        description: Environment name (drives Azure resource names)
+        required: true
+        default: spark-demo
+      location:
+        description: Azure region
+        default: westeurope
+      llm_base_url:
+        description: OpenAI-compatible endpoint (Azure OpenAI .../openai/v1/ or https://api.openai.com/v1)
+        default: https://api.openai.com/v1
+      text_model:
+        description: Chat model / Azure OpenAI deployment name
+        default: gpt-5.4-mini
+      embedding_model:
+        description: Embedding model (leave as-is unless you also re-seed)
+        default: text-embedding-3-small
+      image_tag:
+        description: GHCR image tag to deploy
+        default: '0.2'
+      budget_emails:
+        description: Comma-separated emails for the cost-budget alert
+        default: ''
+      allowed_ips:
+        description: Comma-separated client IP CIDRs allowed to reach the frontend (empty = open)
+        default: ''
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+
+      - name: Azure login (az CLI via OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Allow az to auto-install the containerapp extension
+        run: az config set extension.use_dynamic_install=yes_without_prompt
+
+      - uses: Azure/setup-azd@v2
+      - name: azd login (OIDC)
+        run: azd auth login --client-id "${{ secrets.AZURE_CLIENT_ID }}" --federated-credential-provider github --tenant-id "${{ secrets.AZURE_TENANT_ID }}"
+
+      - name: Provision + deploy (azd up)
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          AZURE_ENV_NAME: ${{ inputs.environment_name }}
+          AZURE_LOCATION: ${{ inputs.location }}
+          SPARK_PYTHON: python
+          SPARK_IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+          SPARK_IMAGE_TAG: ${{ inputs.image_tag }}
+          SPARK_DEPLOY_REGISTRY: 'false'
+          SPARK_LLM_BASE_URL: ${{ inputs.llm_base_url }}
+          SPARK_TEXT_MODEL: ${{ inputs.text_model }}
+          SPARK_EMBEDDING_MODEL: ${{ inputs.embedding_model }}
+          SPARK_LLM_API_KEY: ${{ secrets.SPARK_LLM_API_KEY }}
+          SPARK_BUDGET_EMAILS: ${{ inputs.budget_emails }}
+          SPARK_ALLOWED_IPS: ${{ inputs.allowed_ips }}
+          SPARK_SEED_PACK_URL: ${{ vars.SPARK_SEED_PACK_URL }}
+        run: |
+          set -euo pipefail
+          azd env new "$AZURE_ENV_NAME" --location "$AZURE_LOCATION" --subscription "$AZURE_SUBSCRIPTION_ID" --no-prompt || true
+          azd up --no-prompt

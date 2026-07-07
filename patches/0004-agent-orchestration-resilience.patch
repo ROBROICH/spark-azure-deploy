@@ -1,0 +1,94 @@
+diff --git a/02-backend/agent_orchestration_service/src/api/routes/probes_routes.py b/02-backend/agent_orchestration_service/src/api/routes/probes_routes.py
+index 2ddc2eb..c40a988 100644
+--- a/02-backend/agent_orchestration_service/src/api/routes/probes_routes.py
++++ b/02-backend/agent_orchestration_service/src/api/routes/probes_routes.py
+@@ -38,6 +38,15 @@ async def readiness_check() -> CheckResponse | JSONResponse:
+             ).model_dump(),
+         )
+ 
++    if not app_state.worker_alive:
++        return JSONResponse(
++            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
++            content=HealthStatus(
++                status="not ready",
++                reason="temporal worker not running",
++            ).model_dump(),
++        )
++
+     return CheckResponse(status="ok")
+ 
+ 
+diff --git a/02-backend/agent_orchestration_service/src/lifespan.py b/02-backend/agent_orchestration_service/src/lifespan.py
+index 4bef948..8e2ad14 100644
+--- a/02-backend/agent_orchestration_service/src/lifespan.py
++++ b/02-backend/agent_orchestration_service/src/lifespan.py
+@@ -1,4 +1,6 @@
+ import asyncio
++import logging
++import traceback
+ from concurrent.futures import ThreadPoolExecutor
+ from contextlib import asynccontextmanager
+ from typing import Any
+@@ -11,6 +13,22 @@ from src.config.settings import settings
+ from src.services.workflows import activities, workflows
+ from src.utils.app_state import app_state
+ 
++logger = logging.getLogger("agent_orchestration.lifespan")
++
++
++def _log_worker_exit(task: "asyncio.Task[Any]") -> None:
++    """Surface a silently-dying Temporal worker task (its exception is otherwise swallowed)."""
++    if task.cancelled():
++        return
++    exc = task.exception()
++    if exc is None:
++        return
++    app_state.worker_alive = False
++    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
++    logger.error("Temporal worker task exited unexpectedly:\n%s", tb)
++    # Guaranteed-visible fallback in ACA console logs (distinct marker for grepping).
++    print(f"[WORKER-DIED] Temporal worker task exited unexpectedly:\n{tb}", flush=True)
++
+ 
+ @asynccontextmanager
+ async def lifespan(app: FastAPI) -> Any:
+@@ -34,6 +52,7 @@ async def lifespan(app: FastAPI) -> Any:
+             activity_executor=ThreadPoolExecutor(max_workers=4),
+         )
+     )
++    temporal_worker_task.add_done_callback(_log_worker_exit)
+ 
+     # Wait for worker to be ready, but also detect early failures
+     done, _ = await asyncio.wait(
+diff --git a/02-backend/agent_orchestration_service/src/services/workflows/fvp.py b/02-backend/agent_orchestration_service/src/services/workflows/fvp.py
+index c2fc005..01ba59a 100644
+--- a/02-backend/agent_orchestration_service/src/services/workflows/fvp.py
++++ b/02-backend/agent_orchestration_service/src/services/workflows/fvp.py
+@@ -291,7 +291,7 @@ async def execute_fvp_workflow(input: FVPWorkflowArgs, project_id: str | None =
+         input=input,
+         task_queue=TASK_QUEUE,
+         project_id=project_id,
+-        id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,
++        id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE_FAILED_ONLY,
+     )
+ 
+ 
+@@ -307,5 +307,5 @@ async def start_fvp_workflow(
+         task_queue=TASK_QUEUE,
+         project_id=project_id,
+         project_version=project_version,
+-        id_reuse_policy=WorkflowIDReusePolicy.REJECT_DUPLICATE,
++        id_reuse_policy=WorkflowIDReusePolicy.ALLOW_DUPLICATE_FAILED_ONLY,
+     )
+diff --git a/02-backend/agent_orchestration_service/src/utils/app_state.py b/02-backend/agent_orchestration_service/src/utils/app_state.py
+index 060895d..d403b19 100644
+--- a/02-backend/agent_orchestration_service/src/utils/app_state.py
++++ b/02-backend/agent_orchestration_service/src/utils/app_state.py
+@@ -4,6 +4,7 @@
+ class AppState:
+     def __init__(self) -> None:
+         self.startup_complete = False
++        self.worker_alive = True
+ 
+ 
+ app_state = AppState()

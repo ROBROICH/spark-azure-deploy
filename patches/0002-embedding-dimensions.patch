@@ -1,0 +1,38 @@
+diff --git a/04-shared-services/db-services/shared/db_services_shared/llm/embeddings.py b/04-shared-services/db-services/shared/db_services_shared/llm/embeddings.py
+index a4676e6..74dbf32 100644
+--- a/04-shared-services/db-services/shared/db_services_shared/llm/embeddings.py
++++ b/04-shared-services/db-services/shared/db_services_shared/llm/embeddings.py
+@@ -40,12 +40,16 @@ class EmbeddingClient:
+                     headers = {
+                         "Authorization": f"Bearer {self.profile.apikey}",
+                     }
+-                    if dimensions is not None:
+-                        logger.warning("dimensions set, but ignoring for litelllm provider")
++                    # Request the configured embedding dimension (CHUNKING_DIMENSIONS) from the
++                    # provider. OpenAI text-embedding-3-* honour the ``dimensions`` parameter, and
++                    # the pgvector columns are VECTOR(1024); without this the API returns 1536-dim
++                    # vectors that fail to bind against the 1024-dim column (HTTP 500 on query).
++                    embedding_dimensions = dimensions if dimensions is not None else self.profile.dimensions
+                     self.model = OpenAIEmbeddings(
+                         openai_api_key=config.apikey,
+                         openai_api_base=config.url.encoded_string(),
+                         model=config.model,
++                        dimensions=embedding_dimensions,
+                         default_headers=headers.copy(),
+                         check_embedding_ctx_length=False,
+                         timeout=config.timeout,
+diff --git a/05-modulcluster/modul-inhaltsextraktion/.env.local b/05-modulcluster/modul-inhaltsextraktion/.env.local
+index c4c0038..b2e4a59 100644
+--- a/05-modulcluster/modul-inhaltsextraktion/.env.local
++++ b/05-modulcluster/modul-inhaltsextraktion/.env.local
+@@ -102,7 +102,9 @@ VLLM_MODEL="self-hosted/gemma-4-26b-a4b-it-maas"
+ # Qdrant / Embedding
+ # -----------------------------------------------------------------------------
+ QDRANT_BASE_URL="http://localhost:6333"
+-QDRANT_DENSE_VECTOR_SIZE=1024
++# Demo routes the `self-hosted/bge-m3` alias to OpenAI text-embedding-3-small,
++# which returns 1536-dim vectors (NOT bge-m3's native 1024). Must match.
++QDRANT_DENSE_VECTOR_SIZE=1536
+ EMBEDDING_MODEL="self-hosted/bge-m3"
+ QDRANT_COLLECTION_NAME="data"
+ 

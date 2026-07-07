@@ -1,0 +1,5894 @@
+{
+  "project-logic": [
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "project_logic"
+    },
+    {
+      "name": "SERVICE_NAME",
+      "value": "project-logic-service"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL",
+      "value": "http://administrative-file-draft"
+    },
+    {
+      "name": "API__OBJECTIONS_BASE_URL",
+      "value": "http://objections-management"
+    },
+    {
+      "name": "API__PLS_BASE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "API__DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "API__FCS_BASE_URL",
+      "value": "http://formal-completeness"
+    },
+    {
+      "name": "API__PLAUSIBILITY_BASE_URL",
+      "value": "http://plausibility-notes"
+    },
+    {
+      "name": "API__EXAMINATION_BASE_URL",
+      "value": "http://examination"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL__HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL__TASK_QUEUE",
+      "value": "project-logic-service"
+    },
+    {
+      "name": "TEMPORAL__NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL__S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL__S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL__S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "project_logic_service"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "API__TIMEOUT",
+      "value": "60"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL__S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL__S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "document-management": [
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "dms"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "SERVICE_NAME",
+      "value": "dms"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "dms"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": ""
+    },
+    {
+      "name": "DOC_STORE_PATH",
+      "value": "dms_data"
+    },
+    {
+      "name": "CHECKPOINT_RETENTION_PERIOD_DAYS",
+      "value": "60"
+    },
+    {
+      "name": "TEMPORAL__HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL__TASK_QUEUE",
+      "value": "dms"
+    },
+    {
+      "name": "TEMPORAL__PLS_TASK_QUEUE",
+      "value": "project-logic-service"
+    },
+    {
+      "name": "TEMPORAL__NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL__S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL__S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL__S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL__ENABLE_APPROVAL",
+      "value": "false"
+    },
+    {
+      "name": "BUCKET_NAME",
+      "value": "dms-local"
+    },
+    {
+      "name": "S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "MAX_ZIP_ENTRIES",
+      "value": "5000"
+    },
+    {
+      "name": "MAX_COMPRESSION_RATIO",
+      "value": "100"
+    },
+    {
+      "name": "MAX_ZIP_EXTRACTION_SIZE_GB",
+      "value": "10"
+    },
+    {
+      "name": "MAX_SINGLE_ENTRY_SIZE_MB",
+      "value": "1024"
+    },
+    {
+      "name": "CLAMAV__ENABLED",
+      "value": "false"
+    },
+    {
+      "name": "CLAMAV__BASE_URL",
+      "value": "http://localhost:6000"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "QUARANTINE_BUCKET_NAME",
+      "value": "quarantine-bucket"
+    },
+    {
+      "name": "QUARANTINE_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "CLAMAV__TIMEOUT_SECONDS",
+      "value": "600"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL__S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL__S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "formal-completeness": [
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "formal_completeness_check"
+    },
+    {
+      "name": "SERVICE_NAME",
+      "value": "formal-completeness-check"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_SERVICE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": ""
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "agent-orchestration": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "agent-orchestration-service"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": ""
+    },
+    {
+      "name": "TEMPORAL__HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL__TASK_QUEUE",
+      "value": "fvp-task-queue"
+    },
+    {
+      "name": "TEMPORAL__S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL__S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL__S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "API__PLS_BASE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "API__DIPLAN_BASE_URL",
+      "value": "http://diplan"
+    },
+    {
+      "name": "API__FVP_BASE_URL",
+      "value": "http://formal-completeness"
+    },
+    {
+      "name": "API__FPP_BASE_URL",
+      "value": "http://fpp"
+    },
+    {
+      "name": "API__DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "API__PLAUSIBILITY_NOTES_BASE_URL",
+      "value": "http://plausibility-notes"
+    },
+    {
+      "name": "API__EXAMINATION_SERVICE_BASE_URL",
+      "value": "http://examination"
+    },
+    {
+      "name": "API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL",
+      "value": "http://administrative-file-draft"
+    },
+    {
+      "name": "API__OBJECTIONS_SERVICE_BASE_URL",
+      "value": "http://objections-management"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "USE_TRANSFER_ENCODING_CHUNKED",
+      "value": "false"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "orchestrator"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "FPP__KEYCLOAK_TOKEN_URL",
+      "value": "http://localhost:9999/openid-connect/token"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "TEMPORAL__NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "API__TIMEOUT",
+      "value": "600"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL__S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL__S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "plausibility-notes": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "plausibility-notes"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "plausibility_notes"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_SERVICE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "objections-management": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "objections-management-service"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "objections_db"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_SERVICE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "EXTERNAL_SERVICE_TIMEOUT_SECONDS",
+      "value": "30.0"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "fpp": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "fpp-service"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "fpp"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "AGENT_ORCHESTRATION_BASE_URL",
+      "value": "http://agent-orchestration"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "DEFAULT_PROJECT_TYPE_ID",
+      "value": "00000000-0000-0000-0000-000000000000"
+    },
+    {
+      "name": "SYSTEM_USER_ID",
+      "value": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "ALLOWED_HTTP_METHODS",
+      "value": "[\"GET\",\"POST\",\"PATCH\",\"DELETE\",\"OPTIONS\"]"
+    },
+    {
+      "name": "FPP_ALLOWED_DOMAINS",
+      "value": "fpp.url"
+    },
+    {
+      "name": "FPP_BLOCK_PRIVATE_IPS",
+      "value": "true"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "comment": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "comment-service"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "comment_service_db"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "examination": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "examination-service"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "examination_service_db"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "administrative-file-draft": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "administrative-file-draft"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "administrative_file_draft"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "UNO_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "UNO_PORT",
+      "value": "2003"
+    },
+    {
+      "name": "UNO_PROTOCOL",
+      "value": "http"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": "[\"http://localhost:3000\"]"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "feedback": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "feedback-service"
+    },
+    {
+      "name": "CORS_ORIGINS",
+      "value": ""
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "feedback_db"
+    },
+    {
+      "name": "PROJECT_LOGIC_SERVICE_URL",
+      "value": "http://project-logic"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "supplementary-requests": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "supplementary-requests-service"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "supplementary_requests"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "SUPPLEMENTARY_REQUESTS_SERVICE_CORS_ORIGINS",
+      "value": "http://localhost:3000"
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "INFO"
+    },
+    {
+      "name": "BACKEND_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "temporal-job": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "temporal-job-service"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "MAX_SYSTEM_COMPLEXITY",
+      "value": "22584.5"
+    },
+    {
+      "name": "DEFAULT_WORKFLOW_COMPLEXITY_WEIGHT",
+      "value": "3"
+    },
+    {
+      "name": "DB__USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB__HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB__NAME",
+      "value": "temporal_job_service_db"
+    },
+    {
+      "name": "DB__PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL__HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL__TASK_QUEUE",
+      "value": "temporal-job-service"
+    },
+    {
+      "name": "TEMPORAL__S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL__S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL__S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL__S3_ARCHIVAL_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "temporal-job-service"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "TEMPORAL__NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "RECONCILER_ENABLED",
+      "value": "true"
+    },
+    {
+      "name": "RECONCILER_INTERVAL_SECONDS",
+      "value": "120"
+    },
+    {
+      "name": "RECONCILER_BATCH_SIZE",
+      "value": "500"
+    },
+    {
+      "name": "RECONCILER_BACKFILL_WINDOW_MINUTES",
+      "value": "30"
+    },
+    {
+      "name": "RECONCILER_PENDING_TIMEOUT_MINUTES",
+      "value": "1440"
+    },
+    {
+      "name": "ARCHIVAL_ENABLED",
+      "value": "true"
+    },
+    {
+      "name": "ARCHIVAL_CRON",
+      "value": "0 0 * * 0"
+    },
+    {
+      "name": "ARCHIVAL_BATCH_SIZE",
+      "value": "100"
+    },
+    {
+      "name": "ARCHIVAL_ACTIVITY_TIMEOUT_SECONDS",
+      "value": "300"
+    },
+    {
+      "name": "ARCHIVAL_S3_PREFIX",
+      "value": "temporal-history"
+    },
+    {
+      "name": "ARCHIVAL_WORKFLOW_ID",
+      "value": "WeeklyArchivalWorkflow"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "DB__PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL__S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL__S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "protocol": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "protocol-service"
+    },
+    {
+      "name": "PROTOCOL_SERVICE_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "DB_POOL_SIZE",
+      "value": "5"
+    },
+    {
+      "name": "DB_MAX_OVERFLOW",
+      "value": "5"
+    },
+    {
+      "name": "DB_POOL_PRE_PING",
+      "value": "true"
+    },
+    {
+      "name": "PROJECT_LOGIC_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "PROJECT_LOGIC_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "PROJECT_LOGIC_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "PROJECT_LOGIC_DB_NAME",
+      "value": "project_logic"
+    },
+    {
+      "name": "FORMAL_COMPLETENESS_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "FORMAL_COMPLETENESS_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "FORMAL_COMPLETENESS_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "FORMAL_COMPLETENESS_DB_NAME",
+      "value": "formal_completeness_check"
+    },
+    {
+      "name": "COMMENT_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "COMMENT_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "COMMENT_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "COMMENT_DB_NAME",
+      "value": "comment_service_db"
+    },
+    {
+      "name": "SUPPLEMENTARY_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "SUPPLEMENTARY_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "SUPPLEMENTARY_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "SUPPLEMENTARY_DB_NAME",
+      "value": "supplementary_requests"
+    },
+    {
+      "name": "PLAUSIBILITY_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "PLAUSIBILITY_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "PLAUSIBILITY_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "PLAUSIBILITY_DB_NAME",
+      "value": "plausibility_notes"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_DB_NAME",
+      "value": "dms"
+    },
+    {
+      "name": "ADMINISTRATIVE_DRAFT_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "ADMINISTRATIVE_DRAFT_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "ADMINISTRATIVE_DRAFT_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "ADMINISTRATIVE_DRAFT_DB_NAME",
+      "value": "administrative_file_draft"
+    },
+    {
+      "name": "EXAMINATION_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "EXAMINATION_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "EXAMINATION_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "EXAMINATION_DB_NAME",
+      "value": "examination_service_db"
+    },
+    {
+      "name": "OBJECTIONS_MANAGEMENT_DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "OBJECTIONS_MANAGEMENT_DB_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "OBJECTIONS_MANAGEMENT_DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "OBJECTIONS_MANAGEMENT_DB_NAME",
+      "value": "objections_db"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "PROJECT_LOGIC_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "FORMAL_COMPLETENESS_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "COMMENT_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "SUPPLEMENTARY_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "PLAUSIBILITY_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DOCUMENT_MANAGEMENT_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "ADMINISTRATIVE_DRAFT_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "EXAMINATION_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "OBJECTIONS_MANAGEMENT_DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "gesetze-normen-db": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "Gesetze & Normen DB / Paragraphensuche"
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "DEBUG"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "gesetze-normen"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "CACHE_DIR",
+      "value": "cached"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "gesetze-normen-db-worker"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_POOLSIZE",
+      "value": "10"
+    },
+    {
+      "name": "DB_MAXOVERFLOW",
+      "value": "5"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "gesetzesbegruendung-db": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "gesetzesbegruendung-db-service"
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "DEBUG"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "begruendungen-db"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "CACHE_DIR",
+      "value": "cached"
+    },
+    {
+      "name": "GESETZE_NORMEN_URL",
+      "value": "http://gesetze-normen-db"
+    },
+    {
+      "name": "CHUNKING_PROVIDER",
+      "value": "litellm"
+    },
+    {
+      "name": "CHUNKING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "CHUNKING_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "CHUNKING_SIZE",
+      "value": "2048"
+    },
+    {
+      "name": "CHUNKING_OVERLAP",
+      "value": "256"
+    },
+    {
+      "name": "DOCLING_HOST",
+      "value": "http://docling.test"
+    },
+    {
+      "name": "DOCLING_TIMEOUT",
+      "value": "600"
+    },
+    {
+      "name": "DOCLING_TOKEN_URL",
+      "value": "http://token-endpoint.test"
+    },
+    {
+      "name": "DOCLING_CLIENT_ID",
+      "value": "docling-consumer"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "http://temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "gesetze-normen-db-worker"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_POOLSIZE",
+      "value": "10"
+    },
+    {
+      "name": "DB_MAXOVERFLOW",
+      "value": "5"
+    },
+    {
+      "name": "CHUNKING_TIMEOUT",
+      "value": "5.0"
+    },
+    {
+      "name": "CHUNKING_DIMENSIONS",
+      "value": "1024"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "CHUNKING_APIKEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "jura-db": [
+    {
+      "name": "SERVICE_NAME",
+      "value": "jura-db-service"
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "INFO"
+    },
+    {
+      "name": "BACKEND_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "jura-db"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "CACHE_DIR",
+      "value": "cached"
+    },
+    {
+      "name": "GESETZE_NORMEN_URL",
+      "value": "http://gesetze-normen-db"
+    },
+    {
+      "name": "CHUNKING_PROVIDER",
+      "value": "litellm"
+    },
+    {
+      "name": "CHUNKING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "CHUNKING_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "CHUNKING_SIZE",
+      "value": "2048"
+    },
+    {
+      "name": "CHUNKING_OVERLAP",
+      "value": "256"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "http://temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "jura-db-worker"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "DB_POOLSIZE",
+      "value": "10"
+    },
+    {
+      "name": "DB_MAXOVERFLOW",
+      "value": "5"
+    },
+    {
+      "name": "CHUNKING_TIMEOUT",
+      "value": "5.0"
+    },
+    {
+      "name": "CHUNKING_DIMENSIONS",
+      "value": "1024"
+    },
+    {
+      "name": "RII_BASE_DOCUMENT_URL",
+      "value": "http://www.rechtsprechung-im-internet.de/jportal/docs/bsjrs"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "CHUNKING_APIKEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "identity-management": [
+    {
+      "name": "APP_PORT",
+      "value": "18013"
+    },
+    {
+      "name": "SERVICE_NAME",
+      "value": "identity-management-service"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "DB_NAME",
+      "value": "identity_management_db"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "IDENTITY_MANAGEMENT_SERVICE_CORS_ORIGINS",
+      "value": "http://localhost:3000,http://localhost:5173"
+    },
+    {
+      "name": "LOG_LEVEL",
+      "value": "INFO"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_PRIVILEGED_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_PRIVILEGED_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "AUTH_PRIVILEGED_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "llm-client": [
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_TASK_QUEUE",
+      "value": "llm"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "QUEUES",
+      "value": "[\n  {\"NAME\": \"llm-nvidia\",  \"MAX_CONCURRENT\": 3, \"MAX_PER_SECOND\": 5},\n  {\"NAME\": \"llm-ionos\",   \"MAX_CONCURRENT\": 8,  \"MAX_PER_SECOND\": 10},\n  {\"NAME\": \"llm-mistral\", \"MAX_CONCURRENT\": 8,  \"MAX_PER_SECOND\": 15},\n  {\"NAME\": \"llm-vertex\",  \"MAX_CONCURRENT\": 8,  \"MAX_PER_SECOND\": 20},\n  {\"NAME\": \"llm-huggingface\",  \"MAX_CONCURRENT\": 250,  \"MAX_PER_SECOND\": 50},\n  {\"NAME\": \"llm-custom\",  \"MAX_CONCURRENT\": 8,  \"MAX_PER_SECOND\": 20}\n]"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "llm-client"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_DISK_CACHE_DIR",
+      "value": "/tmp/spark-workflow-llm-cache"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-formale-pruefung": [
+    {
+      "name": "LITELLM_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_LLM_MAX_PER_SECOND",
+      "value": "3"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "formale-pruefung-worker"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-risikohinweiser": [
+    {
+      "name": "LITELLM_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "risikohinweiser"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "TEMPORAL_LLM_MAX_PER_SECOND",
+      "value": "3"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-inhaltsextraktion": [
+    {
+      "name": "DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "UNO_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "UNO_PORT",
+      "value": "2003"
+    },
+    {
+      "name": "UNO_PROTOCOL",
+      "value": "http"
+    },
+    {
+      "name": "EXTRACTION_PROVIDER",
+      "value": "docling"
+    },
+    {
+      "name": "DOCLING_HOST",
+      "value": "your-docling.example.com"
+    },
+    {
+      "name": "DOCLING_PORT",
+      "value": "443"
+    },
+    {
+      "name": "DOCLING_PROTOCOL",
+      "value": "https"
+    },
+    {
+      "name": "DOCLING_OCR_ENGINE",
+      "value": "easyocr"
+    },
+    {
+      "name": "METADATA_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "SCHWERPUNKTTHEMA_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "SUMMARIZATION_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "VLM_SUMMARY_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "STRUCTURE_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "VLLM_MODEL",
+      "value": "self-hosted/gemma-4-26b-a4b-it-maas"
+    },
+    {
+      "name": "QDRANT_BASE_URL",
+      "value": "http://qdrant:6333"
+    },
+    {
+      "name": "QDRANT_DENSE_VECTOR_SIZE",
+      "value": "1536"
+    },
+    {
+      "name": "EMBEDDING_MODEL",
+      "value": "self-hosted/bge-m3"
+    },
+    {
+      "name": "QDRANT_COLLECTION_NAME",
+      "value": "data"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "SINGLE_DOCUMENT_WORKFLOW_CONCURRENCY",
+      "value": "3"
+    },
+    {
+      "name": "SINGLE_DOCUMENT_EWMS_WORKFLOW_CONCURRENCY",
+      "value": "5"
+    },
+    {
+      "name": "EXTRACTION_CHUNK_CONCURRENCY",
+      "value": "1"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "inhaltsextraktion"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "INJECTION_LLM_MODEL",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "INJECTION_LLM_SCAN_ENABLED",
+      "value": "false"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "STRUCTURE_NODE_MAX_NODE_CHARS",
+      "value": "128000"
+    },
+    {
+      "name": "PAGE_INDEX_MIN_TOKEN_THRESHOLD",
+      "value": "200"
+    },
+    {
+      "name": "HYBRID_EXTRACTION_DOCLING_CONCURRENCY",
+      "value": "1"
+    },
+    {
+      "name": "HYBRID_EXTRACTION_OCR_CONCURRENCY",
+      "value": "5"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "INJECTION_MODEL_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "KEYCLOAK_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-rechtsmethodik": [
+    {
+      "name": "LAW_DATABASE_DOCUMENTS_URL",
+      "value": "http://gesetze-normen-db/documents/"
+    },
+    {
+      "name": "LAW_DATABASE_NORMS_SEARCH_URL",
+      "value": "http://gesetze-normen-db/norms/search"
+    },
+    {
+      "name": "LAW_DATABASE_ABSATZ_JURABK_URL",
+      "value": "http://gesetze-normen-db/absatz/{jurabk}"
+    },
+    {
+      "name": "LAW_DATABASE_DOCUMENTS_SEARCH_TERM_URL",
+      "value": "http://gesetze-normen-db/documents/search/{search_term}"
+    },
+    {
+      "name": "LAW_DATABASE_DOCUMENTS_JURABK_URL",
+      "value": "http://gesetze-normen-db/documents/{jurabk}"
+    },
+    {
+      "name": "LAW_DATABASE_LEGALDEFINITIONEN_JURABK_URL",
+      "value": "http://gesetze-normen-db/legaldefinitionen/{jurabk}"
+    },
+    {
+      "name": "LAW_DATABASE_TECHNISCHE_NORMEN_DOKUMENT_URL",
+      "value": "http://gesetze-normen-db/technische-normen/{dokument}"
+    },
+    {
+      "name": "LAW_DATABASE_QUERY_TOP_K_DR_URL",
+      "value": "http://gesetzesbegruendung-db/query_top_k"
+    },
+    {
+      "name": "LAW_DATABASE_QUERY_K_RESULTS_UT_URL",
+      "value": "http://jura-db/query_k_results"
+    },
+    {
+      "name": "LAW_DATABASE_QUERY_CHUNKS_UT_URL",
+      "value": "http://jura-db/chunks"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "rechtsmethodik"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "MODELS_LARGE_LLM",
+      "value": "Qwen/Qwen3-235B-A22B-Instruct-2507"
+    },
+    {
+      "name": "MODELS_MEDIUM_LLM",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "MODELS_SMALL_LLM",
+      "value": "self-hosted/gemma-4-26b-a4b-it-maas"
+    },
+    {
+      "name": "WIKTIONARY_ENABLED",
+      "value": "true"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LEGAL_DEFINITION_POSTGRES_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "LEGAL_DEFINITION_POSTGRES_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-bewertung": [
+    {
+      "name": "LITELLM_MODEL",
+      "value": "Qwen/Qwen3-235B-A22B-Instruct-2507"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "bewertung"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-einwendungsmanagement": [
+    {
+      "name": "LITELLM_MODEL_NAME",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "einwendungsmanagement"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-suche-und-zuordnung": [
+    {
+      "name": "LLM_EMBEDDING_MODEL",
+      "value": "self-hosted/bge-m3"
+    },
+    {
+      "name": "LLM_PAGEINDEX_SVM_MODEL_STAGE1",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "LLM_PAGEINDEX_SVM_MODEL_STAGE2",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "LLM_DB_RESEARCH_MODEL",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "modul-suche-und-zuordnung"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "FCS_BASE_URL",
+      "value": "http://formal-completeness"
+    },
+    {
+      "name": "FCS_TIMEOUT",
+      "value": "60"
+    },
+    {
+      "name": "QDRANT_HOST",
+      "value": "localhost"
+    },
+    {
+      "name": "QDRANT_PORT",
+      "value": "6333"
+    },
+    {
+      "name": "QDRANT_COLLECTION",
+      "value": "data"
+    },
+    {
+      "name": "LAW_DATABASE_DKE_BASE_URL",
+      "value": "http://gesetzesbegruendung-db"
+    },
+    {
+      "name": "LAW_DATABASE_UT_BASE_URL",
+      "value": "http://jura-db"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "FORCE_COLOR",
+      "value": "1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "LLM_PAGEINDEX_SVM_STAGE1_MAX_INPUT_TOKENS",
+      "value": "70000"
+    },
+    {
+      "name": "LLM_PAGEINDEX_SVM_STAGE2_MAX_INPUT_TOKENS",
+      "value": "70000"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "DMS_FVP_URL",
+      "value": "http://formal-completeness"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-plausibilitaet-pruefung": [
+    {
+      "name": "LITELLM_MODEL",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "self-hosted/bge-m3"
+    },
+    {
+      "name": "QDRANT_CLUSTER_ENDPOINT",
+      "value": "http://qdrant:6333"
+    },
+    {
+      "name": "DMS_BASE_URL",
+      "value": "http://document-management"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "plausibilitaet_pruefung"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ],
+  "worker-anonymisierung": [
+    {
+      "name": "LLM_MODEL",
+      "value": "self-hosted/gpt-oss-120b"
+    },
+    {
+      "name": "LLM_TEMPERATURE",
+      "value": "0.0"
+    },
+    {
+      "name": "LLM_PAGES_PER_CALL",
+      "value": "3"
+    },
+    {
+      "name": "LLM_ENABLED",
+      "value": "true"
+    },
+    {
+      "name": "TEMPORAL_HOST",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_MAX_CONCURRENT_ACTIVITIES",
+      "value": "2"
+    },
+    {
+      "name": "TEMPORAL_THREAD_MAX_WORKERS",
+      "value": "4"
+    },
+    {
+      "name": "TEMPORAL_S3_BUCKET_NAME",
+      "value": "temporal-payloads"
+    },
+    {
+      "name": "TEMPORAL_S3_ENDPOINT_URL",
+      "value": "http://minio:9000"
+    },
+    {
+      "name": "TEMPORAL_S3_REGION",
+      "value": "eu-west-1"
+    },
+    {
+      "name": "TEMPORAL_JOB_SERVICE_URL",
+      "value": "http://temporal-job"
+    },
+    {
+      "name": "OTEL_SERVICE_NAME",
+      "value": "anonymisierung"
+    },
+    {
+      "name": "OTEL_ENDPOINT",
+      "value": "http://localhost:4317"
+    },
+    {
+      "name": "OCR_JOBS",
+      "value": "2"
+    },
+    {
+      "name": "LLM_TOP_P",
+      "value": "1.0"
+    },
+    {
+      "name": "LLM_MAX_PROMPT_SIZE",
+      "value": "300000"
+    },
+    {
+      "name": "ENV",
+      "value": "dev"
+    },
+    {
+      "name": "AUTH_MODE",
+      "value": "optional_verify_dry_run"
+    },
+    {
+      "name": "PYTHONUNBUFFERED",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONUTF8",
+      "value": "1"
+    },
+    {
+      "name": "PYTHONIOENCODING",
+      "value": "utf-8"
+    },
+    {
+      "name": "DB_USER",
+      "value": "postgres"
+    },
+    {
+      "name": "DB_PASSWORD",
+      "secretRef": "db-password"
+    },
+    {
+      "name": "DB_HOST",
+      "value": "postgresql"
+    },
+    {
+      "name": "DB_PORT",
+      "value": "5432"
+    },
+    {
+      "name": "TEMPORAL_SERVER_URL",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_ADDRESS",
+      "value": "temporal:7233"
+    },
+    {
+      "name": "TEMPORAL_NAMESPACE",
+      "value": "default"
+    },
+    {
+      "name": "TEMPORAL_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "TEMPORAL_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "QUARANTINE_S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "QUARANTINE_S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "AUTH_BASE_URL",
+      "value": "http://keycloak:8080"
+    },
+    {
+      "name": "AUTH_REALM",
+      "value": "local"
+    },
+    {
+      "name": "AUTH_AUDIENCE",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_JWKS_URL",
+      "value": "http://keycloak:8080/realms/local/protocol/openid-connect/certs"
+    },
+    {
+      "name": "AUTH_CLIENT_ID",
+      "value": "local-client"
+    },
+    {
+      "name": "AUTH_CLIENT_SECRET",
+      "secretRef": "keycloak-client-secret"
+    },
+    {
+      "name": "S3_EXTERNAL_URL",
+      "value": "https://minio-public.example.invalid"
+    },
+    {
+      "name": "OTEL_SDK_DISABLED",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_ENDPOINT",
+      "value": "spicedb:50051"
+    },
+    {
+      "name": "AUTH_SPICE_DB_INSECURE",
+      "value": "true"
+    },
+    {
+      "name": "AUTH_SPICE_DB_TOKEN",
+      "secretRef": "spicedb-token"
+    },
+    {
+      "name": "S3_ACCESS_KEY_ID",
+      "secretRef": "s3-access-key"
+    },
+    {
+      "name": "S3_SECRET_ACCESS_KEY",
+      "secretRef": "s3-secret-key"
+    },
+    {
+      "name": "LITELLM_BASE_URL",
+      "value": "https://api.openai.com/v1"
+    },
+    {
+      "name": "LITELLM_TEXT_MODEL",
+      "value": "gpt-5.4-mini"
+    },
+    {
+      "name": "LITELLM_EMBEDDING_MODEL",
+      "value": "text-embedding-3-small"
+    },
+    {
+      "name": "LITELLM_MASTER_KEY",
+      "secretRef": "openai-api-key"
+    },
+    {
+      "name": "INJECTION_MODEL_TOKEN",
+      "value": "disabled"
+    }
+  ]
+}

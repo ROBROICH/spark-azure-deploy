@@ -1,0 +1,29 @@
+diff --git a/04-shared-services/temporal/src/temporal/activities/llm.py b/04-shared-services/temporal/src/temporal/activities/llm.py
+index 22fd0de..fc41e12 100644
+--- a/04-shared-services/temporal/src/temporal/activities/llm.py
++++ b/04-shared-services/temporal/src/temporal/activities/llm.py
+@@ -11,7 +11,9 @@ from temporalio.common import RetryPolicy
+ from temporal.activities.models import ChatModel, LlmActivityInput, get_queue_for_model
+ 
+ _DEFAULT_RETRY = RetryPolicy(
+-    maximum_attempts=30,
++    # Cost-safety: bound LLM retries (was 30) so a persistently-failing call cannot
++    # keep burning tokens/quota. See patches/README.md.
++    maximum_attempts=10,
+     initial_interval=timedelta(seconds=60),
+     maximum_interval=timedelta(seconds=120),
+ )
+diff --git a/04-shared-services/temporal/src/temporal/activities/vlm.py b/04-shared-services/temporal/src/temporal/activities/vlm.py
+index 1202b51..ba9d3d9 100644
+--- a/04-shared-services/temporal/src/temporal/activities/vlm.py
++++ b/04-shared-services/temporal/src/temporal/activities/vlm.py
+@@ -10,7 +10,8 @@ from temporalio.common import RetryPolicy
+ from temporal.activities.models import VlmModel, VlmActivityInput, get_queue_for_model
+ 
+ _DEFAULT_RETRY = RetryPolicy(
+-    maximum_attempts=30,
++    # Cost-safety: bound VLM retries (was 30). See patches/README.md.
++    maximum_attempts=10,
+     initial_interval=timedelta(seconds=60),
+     backoff_coefficient=2.0,
+     maximum_interval=timedelta(seconds=120),

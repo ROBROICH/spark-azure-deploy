@@ -1,0 +1,55 @@
+{
+  "realm": "local",
+  "enabled": true,
+  "sslRequired": "none",
+  "loginWithEmailAllowed": true,
+  "accessTokenLifespan": 315360000,
+  "accessTokenLifespanForImplicitFlow": 315360000,
+  "ssoSessionIdleTimeout": 315360000,
+  "ssoSessionMaxLifespan": 315360000,
+  "roles": {
+    "realm": [
+      { "name": "admin" },
+      { "name": "user" },
+      { "name": "service" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "local-client",
+      "enabled": true,
+      "publicClient": false,
+      "secret": "__CLIENT_SECRET__",
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "protocolMappers": [
+        {
+          "name": "local-client-audience",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "local-client",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "id": "__USER_ID__",
+      "username": "__USER_EMAIL__",
+      "email": "__USER_EMAIL__",
+      "emailVerified": true,
+      "enabled": true,
+      "firstName": "__USER_FIRST__",
+      "lastName": "__USER_LAST__",
+      "credentials": [
+        { "type": "password", "value": "__USER_PASSWORD__", "temporary": false }
+      ],
+      "realmRoles": ["admin", "user"]
+    }
+  ]
+}

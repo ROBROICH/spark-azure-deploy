@@ -1,0 +1,137 @@
+diff --git a/05-modulcluster/modul-formale-pruefung/src/services/dms_client.py b/05-modulcluster/modul-formale-pruefung/src/services/dms_client.py
+index ee6350c..05a9249 100644
+--- a/05-modulcluster/modul-formale-pruefung/src/services/dms_client.py
++++ b/05-modulcluster/modul-formale-pruefung/src/services/dms_client.py
+@@ -1,6 +1,5 @@
+ import json
+ import logging
+-import tempfile
+ from typing import Any
+ 
+ import httpx
+@@ -153,7 +152,12 @@ class DMSClient:
+ 
+     async def download_json(self, file_id: str) -> Any:
+         """
+-        Downloads a JSON file from DMS and parses it using a temporary file.
++        Downloads a JSON file from DMS and parses it.
++
++        The object is fetched via HTTP Range requests in sub-64 KiB chunks: the
++        object-storage serving path drops a single HTTP response body once it grows past
++        ~64 KiB, so large extraction files must be retrieved in smaller ranges and
++        reassembled here.
+ 
+         Args:
+             file_id (str): The unique identifier of the file to download.
+@@ -165,13 +169,38 @@ class DMSClient:
+             httpx.HTTPStatusError: If the download request fails.
+         """
+         download_url = await self.get_download_url(file_id)
++        raw = await self._download_bytes_in_ranges(download_url)
++        return json.loads(raw)
++
++    async def _download_bytes_in_ranges(self, url: str, chunk_size: int = 32 * 1024) -> bytes:
++        """Fetch an object with HTTP Range requests and reassemble the full body.
++
++        Works around a ~64 KiB per-response cap in the object-storage serving path by
++        requesting chunks smaller than the cap. Falls back to the whole body if the
++        server does not honour Range requests.
++        """
++        buffer = bytearray()
++        start = 0
+         async with httpx.AsyncClient(timeout=self.timeout) as client:
+-            resp = await client.get(download_url)
+-            resp.raise_for_status()
+-            with tempfile.NamedTemporaryFile(mode="w+", delete=True, suffix=".json", encoding="utf-8") as tmp:
+-                tmp.write(resp.text)
+-                tmp.seek(0)
+-                return json.load(tmp)
++            while True:
++                headers = {"Range": f"bytes={start}-{start + chunk_size - 1}"}
++                resp = await client.get(url, headers=headers)
++                if resp.status_code == 416:
++                    break
++                resp.raise_for_status()
++                buffer += resp.content
++                if resp.status_code != 206:
++                    return bytes(buffer)
++                start += len(resp.content)
++                content_range = resp.headers.get("content-range", "")
++                total = (
++                    int(content_range.rsplit("/", 1)[1])
++                    if "/" in content_range and content_range.rsplit("/", 1)[1].isdigit()
++                    else None
++                )
++                if len(resp.content) < chunk_size or (total is not None and start >= total):
++                    break
++        return bytes(buffer)
+ 
+     async def get_extraction_data(
+         self,
+diff --git a/05-modulcluster/modul-plausibilitaet-pruefung/src/dms/dms_client.py b/05-modulcluster/modul-plausibilitaet-pruefung/src/dms/dms_client.py
+index 66b03fd..c071889 100644
+--- a/05-modulcluster/modul-plausibilitaet-pruefung/src/dms/dms_client.py
++++ b/05-modulcluster/modul-plausibilitaet-pruefung/src/dms/dms_client.py
+@@ -2,7 +2,6 @@
+ 
+ import json
+ import logging
+-import tempfile
+ from typing import Any
+ 
+ import httpx
+@@ -119,18 +118,45 @@ class DMSClient:
+         return data["downloadUrl"]
+ 
+     async def download_json(self, file_id: str) -> Any:
+-        """Download and parse a DMS JSON file via the signed URL flow."""
++        """Download and parse a DMS JSON file via the signed URL flow.
++
++        Fetched via HTTP Range requests in sub-64 KiB chunks because the object-storage
++        serving path drops a single HTTP response body once it exceeds ~64 KiB.
++        """
+ 
+         download_url = await self.get_download_url(file_id)
++        raw = await self._download_bytes_in_ranges(download_url)
++        return json.loads(raw)
++
++    async def _download_bytes_in_ranges(self, url: str, chunk_size: int = 32 * 1024) -> bytes:
++        """Fetch an object with HTTP Range requests and reassemble the full body.
++
++        Works around a ~64 KiB per-response cap in the object-storage serving path by
++        requesting chunks smaller than the cap. Falls back to the whole body if the
++        server does not honour Range requests.
++        """
++        buffer = bytearray()
++        start = 0
+         async with httpx.AsyncClient(timeout=self.timeout, limits=_HTTP_LIMITS) as client:
+-            resp = await client.get(download_url)
+-            resp.raise_for_status()
+-            with tempfile.NamedTemporaryFile(
+-                mode="w+", delete=True, suffix=".json", encoding="utf-8"
+-            ) as tmp:
+-                tmp.write(resp.text)
+-                tmp.seek(0)
+-                return json.load(tmp)
++            while True:
++                headers = {"Range": f"bytes={start}-{start + chunk_size - 1}"}
++                resp = await client.get(url, headers=headers)
++                if resp.status_code == 416:
++                    break
++                resp.raise_for_status()
++                buffer += resp.content
++                if resp.status_code != 206:
++                    return bytes(buffer)
++                start += len(resp.content)
++                content_range = resp.headers.get("content-range", "")
++                total = (
++                    int(content_range.rsplit("/", 1)[1])
++                    if "/" in content_range and content_range.rsplit("/", 1)[1].isdigit()
++                    else None
++                )
++                if len(resp.content) < chunk_size or (total is not None and start >= total):
++                    break
++        return bytes(buffer)
+ 
+     async def get_extraction_data(
+         self,

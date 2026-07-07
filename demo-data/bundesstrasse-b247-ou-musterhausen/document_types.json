@@ -1,0 +1,104 @@
+[
+  {
+    "category": "Teil A - Allgemeiner Teil",
+    "document_type_name": "Erläuterungsbericht",
+    "document_type_description": "Zentrales Textdokument, das das beantragte Straßenbauvorhaben umfassend beschreibt und begründet. Enthält Angaben zur Planrechtfertigung und zum Bedarf (Bundesverkehrswegeplan, Bedarfsplan FStrAbG), zur Beschreibung des Vorhabens (Trassenverlauf, Querschnitt, Knotenpunkte, Ingenieurbauwerke), zur Abschnittsbildung, zur Variantenuntersuchung (Trassenalternativen einschließlich Nullvariante) sowie zur Auseinandersetzung mit den berührten öffentlichen und privaten Belangen (Verkehr, Lärm, Natur, Wasser, Landwirtschaft). Fasst die Ergebnisse der Fachgutachten zusammen.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil A - Allgemeiner Teil",
+    "document_type_name": "Inhaltsverzeichnis der Planunterlagen",
+    "document_type_description": "Globales, vorhabenbezogenes Verzeichnis aller eingereichten Planunterlagen mit Unterlagennummer, Kapitel- bzw. Anlagenbezeichnung, Maßstab und Blattanzahl. Dient der Identifikation des Plans, der festgestellt werden soll, und als Grundlage für den Abgleich von Soll- und Ist-Bestand der eingereichten Dokumente.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Übersichtskarte",
+    "document_type_description": "Kartografische Darstellung der Lage des Vorhabens im überörtlichen Straßennetz auf Grundlage einer topografischen Karte (i. d. R. Maßstab 1:25.000). Zeigt den geplanten Trassenverlauf farblich gekennzeichnet sowie den Zusammenhang mit benachbarten Verkehrsvorhaben.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Übersichtslageplan",
+    "document_type_description": "Übersichtsplan (i. d. R. 1:5.000), der den geplanten Streckenverlauf lagebezogen darstellt und die räumliche Einordnung ermöglicht (Anschlussstellen/Knotenpunkte, Querungen, Ingenieurbauwerke, betroffene Ortslagen, Schutzgebiete). Der Verlauf kann abschnittsweise auf mehreren Blättern dargestellt sein.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Lageplan",
+    "document_type_description": "Detaillierter Bauwerks- und Grunderwerbslageplan (i. d. R. 1:1.000), der die genaue Lage der Trasse, der Fahrbahnen, Böschungen, Entwässerungsanlagen, Schallschutzanlagen, Wege und Leitungen sowie die dauernd und vorübergehend in Anspruch genommenen Flächen parzellenscharf darstellt. Grundlage für die enteignungsrechtliche Vorwirkung.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Höhenplan / Längsschnitt",
+    "document_type_description": "Darstellung der Gradiente (Höhenlage der Straße) im Längsschnitt mit Stationierung, Längsneigungen, Kuppen- und Wannenhalbmessern, Geländehöhen sowie Lage der Bauwerke und Kreuzungen. Maßstab i. d. R. 1:1.000 (Länge) / 1:100 (Höhe).",
+    "expected_count": null
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Regelquerschnitte und Sonderquerschnitte",
+    "document_type_description": "Zeichnerische Darstellung des Regelquerschnitts (z. B. RQ 11) sowie besonderer Querschnitte (Einschnitt, Damm, Bauwerksbereiche) mit Fahrbahn-, Bankett-, Mulden- und Böschungsmaßen, Querneigung und Oberbauaufbau.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Bauwerksverzeichnis",
+    "document_type_description": "Tabellarisches Verzeichnis sämtlicher Ingenieur- und Straßenbauwerke sowie der wesentlichen Anlagen (Brücken, Durchlässe, Stützwände, Lärmschutzanlagen, Regenrückhaltebecken, Wege, Leitungen). Enthält je Bauwerk Bauwerksnummer, Bezeichnung, Station, Art der Maßnahme und Angaben zur Unterhaltungslast.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Grunderwerbsplan",
+    "document_type_description": "Parzellenscharfer Plan, der die vom Vorhaben betroffenen Grundstücke nach Art der Inanspruchnahme (dauernder Erwerb, vorübergehende Inanspruchnahme, dingliche Beschränkung) farblich kennzeichnet. Korrespondiert mit dem Grunderwerbsverzeichnis.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil B - Planteil (zeichnerisch)",
+    "document_type_name": "Grunderwerbsverzeichnis",
+    "document_type_description": "Tabellarisches, fortlaufend nummeriertes Verzeichnis aller vom Vorhaben betroffenen Liegenschaften mit Angaben zu Gemarkung, Flur, Flurstück, Eigentümer (anonymisiert), Nutzungsart, Gesamtfläche, dauernd zu erwerbender Fläche, vorübergehend in Anspruch genommener Fläche sowie zur Art der erforderlichen dinglichen Sicherung.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "UVP-Bericht",
+    "document_type_description": "Bericht zu den Umweltauswirkungen des Vorhabens nach § 16 UVPG und Anlage 4 UVPG. Beschreibt das Vorhaben, die Umwelt und ihre Bestandteile im Einwirkungsbereich, die zu erwartenden erheblichen Umweltauswirkungen auf die Schutzgüter (Menschen/Gesundheit, Tiere/Pflanzen/biologische Vielfalt, Fläche, Boden, Wasser, Luft, Klima, Landschaft, kulturelles Erbe), die Vermeidungs-, Verminderungs- und Ausgleichsmaßnahmen sowie die geprüften vernünftigen Alternativen; mit allgemein verständlicher, nichttechnischer Zusammenfassung.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "Landschaftspflegerischer Begleitplan (LBP)",
+    "document_type_description": "Fachplan zur Bewältigung der naturschutzrechtlichen Eingriffsregelung (§§ 13 ff. BNatSchG). Ermittelt und bewertet Eingriffe in Natur und Landschaft, stellt Vermeidungs-, Minimierungs-, Ausgleichs- und Ersatzmaßnahmen dar und enthält eine Eingriffs-Ausgleichs-Bilanz sowie ein Maßnahmenverzeichnis mit Maßnahmenblättern.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "Artenschutzbeitrag (saP)",
+    "document_type_description": "Spezielle artenschutzrechtliche Prüfung nach § 44 BNatSchG. Prüft für die relevanten europarechtlich geschützten Arten (Anhang IV FFH-Richtlinie, europäische Vogelarten) das Eintreten der Zugriffsverbote (Tötung/Verletzung, Störung, Beschädigung/Zerstörung von Fortpflanzungs- und Ruhestätten) und stellt vorgezogene Ausgleichsmaßnahmen (CEF), Vermeidungsmaßnahmen sowie ggf. die Voraussetzungen einer Ausnahme dar.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "FFH-Verträglichkeitsuntersuchung / -Vorprüfung",
+    "document_type_description": "Untersuchung der Verträglichkeit des Vorhabens mit den Erhaltungszielen betroffener Natura-2000-Gebiete (FFH- und Vogelschutzgebiete) nach § 34 BNatSchG. Umfasst regelmäßig eine Vorprüfung und, soweit erhebliche Beeinträchtigungen nicht ausgeschlossen werden können, eine vertiefte Verträglichkeitsprüfung.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "Schalltechnische Untersuchung",
+    "document_type_description": "Gutachten zur Ermittlung der vorhabenbedingten Verkehrsgeräuschimmissionen nach der 16. BImSchV (Verkehrslärmschutzverordnung) und Berechnung der Beurteilungspegel nach Anlage 2 (RLS). Enthält Eingangsdaten/Verkehrsprognose, Gebietseinstufung der Immissionsorte, Berechnungsergebnisse, die Dimensionierung aktiver Schallschutzmaßnahmen sowie die Ermittlung von Ansprüchen auf passiven Schallschutz und Entschädigung.",
+    "expected_count": 1
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "Wassertechnische Untersuchung / Entwässerungskonzept",
+    "document_type_description": "Fachbeitrag zur Straßenentwässerung und zum Gewässerschutz mit Darstellung der Entwässerungsanlagen (Mulden, Becken, Einleitstellen), der Bemessung der Regenrückhaltung, der Behandlung des Straßenoberflächenwassers sowie der wasserrechtlichen Tatbestände (Gewässerquerung, Einleitung) nach WHG.",
+    "expected_count": null
+  },
+  {
+    "category": "Teil C - Umwelt- und Fachgutachten",
+    "document_type_name": "Verkehrsuntersuchung",
+    "document_type_description": "Verkehrsgutachten mit Bestandsanalyse und Verkehrsprognose (Prognosehorizont), Darstellung der Verkehrsbelastungen (DTV, Schwerverkehrsanteil) im Bestands-, Prognose-Null- und Prognose-Planfall sowie der verkehrlichen Entlastungswirkung für die durchfahrenen Ortslagen. Grundlage der schalltechnischen und schadstofftechnischen Untersuchungen.",
+    "expected_count": null
+  }
+]

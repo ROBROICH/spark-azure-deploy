@@ -1,0 +1,238 @@
+diff --git a/04-shared-services/llm/llm-client/src/llm_client/_shared.py b/04-shared-services/llm/llm-client/src/llm_client/_shared.py
+index 9886fd1..3e16071 100644
+--- a/04-shared-services/llm/llm-client/src/llm_client/_shared.py
++++ b/04-shared-services/llm/llm-client/src/llm_client/_shared.py
+@@ -6,7 +6,10 @@ from openai import AsyncOpenAI
+ 
+ from llm_client.env import ENV
+ 
+-NON_RETRYABLE_STATUS_CODES = frozenset({404, 422})
++# 400 (bad request) is non-retryable: a malformed request (e.g. a reasoning model
++# rejecting sampling params) should fail fast instead of retrying and burning
++# tokens/quota. Cost-safety change - see patches/README.md.
++NON_RETRYABLE_STATUS_CODES = frozenset({400, 404, 422})
+ AUTH_ERROR_STATUS_CODES = frozenset({401, 403})
+ 
+ _client: AsyncOpenAI | None = None
+@@ -23,3 +26,36 @@ def get_client() -> AsyncOpenAI:
+             max_retries=0,
+         )
+     return _client
++
++
++def resolve_chat_model(model: str) -> str:
++    """Map a routing alias to the configured OpenAI chat model.
++
++    The demo calls the OpenAI API directly instead of a multi-provider LiteLLM
++    proxy, so provider-prefixed aliases (``self-hosted/gpt-oss-120b``,
++    ``gcp/gemini-2.0-flash`` …) are not valid OpenAI model IDs. Collapse them all
++    to the single configured OpenAI text model.
++    """
++    return ENV.LITELLM.TEXT_MODEL
++
++
++def resolve_embedding_model(model: str) -> str:
++    """Map a routing alias to the configured OpenAI embedding model."""
++    return ENV.LITELLM.EMBEDDING_MODEL
++
++
++# OpenAI reasoning models (gpt-5.x and the o-series) require ``max_completion_tokens``
++# (not ``max_tokens``) and only accept the default sampling params: ``temperature`` and
++# ``top_p`` must be 1, and frequency/presence penalties are unsupported. Sending any other
++# value returns HTTP 400 — which is retryable here, so a bad value hangs the workflow.
++_REASONING_MODEL_PREFIXES = ("gpt-5", "o1", "o3", "o4")
++
++
++def is_reasoning_model(model: str) -> bool:
++    """Return True for OpenAI reasoning models (gpt-5.x, o-series).
++
++    The model string may be bare (``gpt-5.4-mini``) or proxy-prefixed
++    (``openai/gpt-5.4-mini``).
++    """
++    name = model.lower().rsplit("/", 1)[-1]
++    return name.startswith(_REASONING_MODEL_PREFIXES)
+diff --git a/04-shared-services/llm/llm-client/src/llm_client/embedding.py b/04-shared-services/llm/llm-client/src/llm_client/embedding.py
+index 12f92eb..9b80964 100644
+--- a/04-shared-services/llm/llm-client/src/llm_client/embedding.py
++++ b/04-shared-services/llm/llm-client/src/llm_client/embedding.py
+@@ -12,6 +12,7 @@ from llm_client._shared import (
+     AUTH_ERROR_STATUS_CODES,
+     NON_RETRYABLE_STATUS_CODES,
+     get_client,
++    resolve_embedding_model,
+ )
+ 
+ 
+@@ -34,7 +35,9 @@ async def _embedding_invoke(input: EmbeddingActivityInput) -> list[list[float]]:
+ 
+     try:
+         response = await client.embeddings.create(
+-            model=input.model, input=input.texts, encoding_format="float"
++            model=resolve_embedding_model(input.model),
++            input=input.texts,
++            encoding_format="float",
+         )
+     except APIStatusError as e:
+         if e.status_code in AUTH_ERROR_STATUS_CODES:
+diff --git a/04-shared-services/llm/llm-client/src/llm_client/env.py b/04-shared-services/llm/llm-client/src/llm_client/env.py
+index 9f2346e..628e69b 100644
+--- a/04-shared-services/llm/llm-client/src/llm_client/env.py
++++ b/04-shared-services/llm/llm-client/src/llm_client/env.py
+@@ -13,6 +13,12 @@ class LiteLLMConfig(BaseModel):
+     BASE_URL: str = Field(min_length=1)
+     MASTER_KEY: str = Field(min_length=1)
+     DISK_CACHE_DIR: str | None = None
++    # The demo talks to the OpenAI API directly (no multi-provider LiteLLM proxy),
++    # so provider-prefixed routing aliases (``self-hosted/*``, ``gcp/*`` …) are not
++    # valid OpenAI model IDs. Every chat/vision call is remapped to TEXT_MODEL and
++    # every embedding call to EMBEDDING_MODEL before the request is sent.
++    TEXT_MODEL: str = Field(default="gpt-5.4-mini", min_length=1)
++    EMBEDDING_MODEL: str = Field(default="text-embedding-3-small", min_length=1)
+ 
+ 
+ class TemporalConfig(BaseModel):
+diff --git a/04-shared-services/llm/llm-client/src/llm_client/llm.py b/04-shared-services/llm/llm-client/src/llm_client/llm.py
+index c3ab645..8c42737 100644
+--- a/04-shared-services/llm/llm-client/src/llm_client/llm.py
++++ b/04-shared-services/llm/llm-client/src/llm_client/llm.py
+@@ -18,6 +18,8 @@ from llm_client._shared import (
+     AUTH_ERROR_STATUS_CODES,
+     NON_RETRYABLE_STATUS_CODES,
+     get_client,
++    is_reasoning_model,
++    resolve_chat_model,
+ )
+ from llm_client.env import ENV
+ 
+@@ -51,6 +53,14 @@ def _model_supports_strict_schema(model: str) -> bool:
+     return any(tag in model.lower() for tag in _STRICT_SCHEMA_MODELS)
+ 
+ 
++def _model_requires_max_completion_tokens(model: str) -> bool:
++    """Return True if the model rejects ``max_tokens`` and needs ``max_completion_tokens``.
++
++    Reasoning models (gpt-5.x, o-series) only accept ``max_completion_tokens``.
++    """
++    return is_reasoning_model(model)
++
++
+ def _build_messages(prompt: str, system_prompt: str) -> list[dict]:
+     """Assemble the chat messages list from user prompt and optional system prompt."""
+     messages: list[dict] = []
+@@ -131,12 +141,23 @@ def _system_prompt_for_request(
+     return (system_prompt + schema_hint) if system_prompt else schema_hint.lstrip()
+ 
+ 
+-def _add_optional_completion_kwargs(kwargs: dict, input: LlmActivityInput) -> None:
+-    """Add max_tokens, max_completion_tokens, and reasoning_effort if set."""
+-    if input.max_tokens is not None:
+-        kwargs["max_tokens"] = input.max_tokens
+-    if input.max_completion_tokens is not None:
+-        kwargs["max_completion_tokens"] = input.max_completion_tokens
++def _add_optional_completion_kwargs(
++    kwargs: dict, input: LlmActivityInput, model: str
++) -> None:
++    """Add the token limit and reasoning_effort if set.
++
++    OpenAI reasoning models (gpt-5.x, o-series) reject ``max_tokens``, so for
++    those a caller-provided ``max_tokens`` is sent as ``max_completion_tokens``.
++    """
++    if _model_requires_max_completion_tokens(model):
++        token_limit = input.max_completion_tokens or input.max_tokens
++        if token_limit is not None:
++            kwargs["max_completion_tokens"] = token_limit
++    else:
++        if input.max_tokens is not None:
++            kwargs["max_tokens"] = input.max_tokens
++        if input.max_completion_tokens is not None:
++            kwargs["max_completion_tokens"] = input.max_completion_tokens
+     if input.reasoning_effort is not None:
+         kwargs["reasoning_effort"] = input.reasoning_effort
+ 
+@@ -167,26 +188,34 @@ def _add_response_format_kwargs(
+ 
+ def _build_completion_kwargs(input: LlmActivityInput) -> dict:
+     """Assemble the full kwargs dict for the OpenAI chat.completions.create call."""
++    # Demo runs directly against OpenAI: remap the routing alias to the configured
++    # OpenAI model first, then key parameter selection (strict schema,
++    # max_completion_tokens) off the resolved model rather than the alias.
++    model = resolve_chat_model(input.model)
+     use_strict_schema = (
+-        input.response_schema is not None and _model_supports_strict_schema(input.model)
++        input.response_schema is not None and _model_supports_strict_schema(model)
+     )
+     system_prompt = _system_prompt_for_request(
+         input, use_strict_schema=use_strict_schema
+     )
+ 
+     kwargs: dict = {
+-        "model": input.model,
++        "model": model,
+         "messages": _build_messages(input.prompt, system_prompt),
+-        "temperature": input.temperature,
+-        "top_p": input.top_p,
+     }
+-    _add_optional_completion_kwargs(kwargs, input)
++    # Reasoning models (gpt-5.x, o-series) only accept the default temperature/top_p (1);
++    # sending other values returns HTTP 400. Omit them and let the API apply its defaults.
++    if not is_reasoning_model(model):
++        kwargs["temperature"] = input.temperature
++        kwargs["top_p"] = input.top_p
++    _add_optional_completion_kwargs(kwargs, input, model)
+     _add_response_format_kwargs(kwargs, input, use_strict_schema=use_strict_schema)
+ 
+-    is_retry = activity.info().attempt > 1
+-    if input.no_cache or is_retry:
+-        kwargs["extra_body"] = {"cache": {"no-cache": True}}
+-
++    # The ``extra_body={"cache": ...}`` retry cache-control hint is a LiteLLM-proxy
++    # feature. The demo calls the OpenAI API directly, which rejects unknown
++    # parameters (HTTP 400), so it is intentionally not sent. Cache-busting on
++    # retries is unnecessary here: the local disk cache only stores successful
++    # responses, so a retry after a failure always issues a fresh request.
+     return kwargs
+ 
+ 
+diff --git a/04-shared-services/llm/llm-client/src/llm_client/vlm.py b/04-shared-services/llm/llm-client/src/llm_client/vlm.py
+index 96cc09e..d815465 100644
+--- a/04-shared-services/llm/llm-client/src/llm_client/vlm.py
++++ b/04-shared-services/llm/llm-client/src/llm_client/vlm.py
+@@ -12,6 +12,8 @@ from llm_client._shared import (
+     AUTH_ERROR_STATUS_CODES,
+     NON_RETRYABLE_STATUS_CODES,
+     get_client,
++    is_reasoning_model,
++    resolve_chat_model,
+ )
+ 
+ 
+@@ -41,19 +43,20 @@ async def _vlm_invoke(input: VlmActivityInput) -> str:
+         }
+     )
+ 
++    model = resolve_chat_model(input.model)
+     kwargs: dict = {
+-        "model": input.model,
++        "model": model,
+         "messages": messages,
+-        "temperature": input.temperature,
+         "max_completion_tokens": input.max_completion_tokens,
+-        "frequency_penalty": input.frequency_penalty,
+-        "presence_penalty": input.presence_penalty,
+-        "top_p": input.top_p,
+     }
+-    is_retry = activity.info().attempt > 1
+-    if is_retry:
+-        kwargs["extra_body"] = {"cache": {"no-cache": True}}
+-
++    # Reasoning models (gpt-5.x, o-series) reject non-default sampling params (HTTP 400).
++    if not is_reasoning_model(model):
++        kwargs["temperature"] = input.temperature
++        kwargs["top_p"] = input.top_p
++        kwargs["frequency_penalty"] = input.frequency_penalty
++        kwargs["presence_penalty"] = input.presence_penalty
++    # The ``extra_body={"cache": ...}`` hint is a LiteLLM-proxy-only parameter;
++    # the demo talks to the OpenAI API directly, which rejects unknown params.
+     try:
+         response = await client.chat.completions.create(**kwargs)
+     except APIStatusError as e:

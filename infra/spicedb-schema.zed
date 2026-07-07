@@ -1,0 +1,31 @@
+// SpiceDB schema for the SPARK demo (mirrors identity_management_service auth migration 005).
+// Applied directly via a one-shot `zed schema write` job because SpiceDB runs with the
+// in-memory datastore (ephemeral) while identity-management tracks applied migrations in
+// Postgres — so after a SpiceDB restart the schema must be re-written independently.
+
+// Users
+definition user {}
+
+// Groups
+definition group {
+    relation member: user | group#member
+}
+
+//Projects
+definition project {
+  relation member: user | group#member
+  relation owner: user | group#member
+  relation auditor: user | group#member
+
+  permission access = member + owner
+
+  permission read    = member + owner + auditor
+  permission create  = member + owner
+  permission update  = member + owner
+  permission execute = member + owner
+  permission delete  = member + owner
+  permission export  = member + owner
+  permission assign = owner
+  permission approve = owner
+  permission audit = auditor
+}

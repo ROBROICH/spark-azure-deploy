@@ -1,0 +1,16 @@
+diff --git a/process-compose.yaml b/process-compose.yaml
+index 18d360c..ba5b941 100644
+--- a/process-compose.yaml
++++ b/process-compose.yaml
+@@ -7,6 +7,11 @@ environment:
+   - ENV=dev
+   - AUTH_MODE=disabled
+   - PYTHONUNBUFFERED=1
++  # Force UTF-8 for all file I/O so German umlauts in seed/data files (e.g.
++  # vae_nodes.json) are read correctly on Windows, where Python otherwise
++  # defaults to the legacy locale codepage (cp1252). No-op on Linux/macOS.
++  - PYTHONUTF8=1
++  - PYTHONIOENCODING=utf-8
+   - DB_USER=postgres
+   - DB_PASSWORD=${DB_PASSWORD}
+   - DB_HOST=localhost

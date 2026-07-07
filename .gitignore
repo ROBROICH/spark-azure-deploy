@@ -1,0 +1,48 @@
+# ---------------------------------------------------------------------------
+# Fetched upstream openCode source (populated by scripts/fetch-upstream).
+# Only the DELTA is committed to this repo; the ~30-service application source is
+# pulled from openCode on demand and must never be committed here.
+# ---------------------------------------------------------------------------
+/01-frontend/
+/02-backend/
+/04-shared-services/
+/05-modulcluster/
+/docker/
+/helm/
+/images/
+/ISSUE_TEMPLATE/
+/THIRD_PARTY_LICENSES/
+/CHANGELOG.md
+/CODE_OF_CONDUCT.md
+/CONTRIBUTING.md
+/docker-compose.yaml
+/LOCAL-DEV-NOTES.md
+/MAINTAINERS.md
+/process-compose.yaml
+/publiccode.yml
+/PULL_REQUEST_TEMPLATE.md
+/pyproject.toml
+/uv.lock
+/.python-version
+/SECURITY.md
+/SUPPORT.md
+/workspace.code-workspace
+
+# Upstream scripts/ and docs/ — keep only the Azure/demo delta.
+/scripts/*
+!/scripts/azure/
+!/scripts/seed/
+!/scripts/fetch-upstream.ps1
+!/scripts/fetch-upstream.sh
+/docs/*
+!/docs/azure-demo.md
+
+# Build artifacts / local state.
+seed-pack/
+seed-pack.tar.gz
+*.err
+__pycache__/
+*.pyc
+.venv/
+scripts/azure/.demo-scale-state.json
+scripts/azure/.qa-clone-state.json

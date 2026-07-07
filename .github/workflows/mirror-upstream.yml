@@ -1,0 +1,49 @@
+# Mirror the upstream openCode SPARK Workflow into this GitHub repo.
+#
+# ONE-WAY, FETCH-ONLY: this workflow only reads the openCode GitLab repo and
+# writes to THIS GitHub repo. It never pushes to GitLab. Upstream's state is
+# published to the `upstream-sync` branch; a maintainer then opens a PR into
+# `main` and re-applies the overlay (patches/apply-patches.sh) as needed. This
+# keeps the Azure overlay (infra/, scripts/azure/, patches/, .github/) separate
+# from a clean upstream import.
+name: mirror-upstream
+
+on:
+  schedule:
+    - cron: '0 5 * * 1' # Mondays 05:00 UTC
+  workflow_dispatch:
+    inputs:
+      upstream_ref:
+        description: Upstream branch or tag to mirror
+        default: main
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mirror-upstream
+  cancel-in-progress: false
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout this repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch upstream (read-only) and publish to upstream-sync
+        env:
+          UPSTREAM: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow.git
+          REF: ${{ github.event.inputs.upstream_ref || 'main' }}
+        run: |
+          set -euo pipefail
+          git config user.name "spark-mirror-bot"
+          git config user.email "spark-mirror-bot@users.noreply.github.com"
+          git remote add upstream "$UPSTREAM"
+          git fetch --tags upstream "$REF"
+          # Publish upstream's state to a dedicated branch in THIS repo only.
+          git push --force origin "FETCH_HEAD:refs/heads/upstream-sync"
+          echo "Mirrored upstream '$REF' to branch 'upstream-sync'."
+          echo "Next (maintainer): open a PR upstream-sync -> main, then run patches/apply-patches.sh."

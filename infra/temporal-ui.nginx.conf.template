@@ -1,0 +1,36 @@
+# nginx Basic-Auth gate in front of the Temporal Web UI (admin/monitoring).
+# The expected "Basic <base64(user:pass)>" header is injected from Key Vault at deploy time
+# (__BASIC_AUTH_EXPECTED__). Everything is gated; once authenticated the browser resends the
+# header on every request. Proxies to the temporal-ui container on localhost:8080.
+map $http_upgrade $spark_conn_upgrade {
+    default upgrade;
+    ''      close;
+}
+
+map $http_authorization $spark_ui_ok {
+    default                      0;
+    "__BASIC_AUTH_EXPECTED__"    1;
+}
+
+server {
+    listen 80;
+    server_name _;
+
+    client_max_body_size 25m;
+
+    location / {
+        if ($spark_ui_ok = 0) {
+            add_header WWW-Authenticate 'Basic realm="SPARK Admin - Temporal"' always;
+            return 401;
+        }
+
+        proxy_pass http://127.0.0.1:8080;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $spark_conn_upgrade;
+        proxy_read_timeout 300s;
+    }
+}

@@ -1,0 +1,151 @@
+diff --git a/02-backend/agent_orchestration_service/src/workflows/mvp/workflow.py b/02-backend/agent_orchestration_service/src/workflows/mvp/workflow.py
+index 74dd12f..c8aaccb 100644
+--- a/02-backend/agent_orchestration_service/src/workflows/mvp/workflow.py
++++ b/02-backend/agent_orchestration_service/src/workflows/mvp/workflow.py
+@@ -17,6 +17,7 @@ from temporal.workflows.rechtsmethodik.types import (
+ )
+ from temporalio import workflow
+ from temporalio.common import RetryPolicy
++from temporalio.exceptions import ApplicationError, FailureError
+ 
+ from src.workflows.insert_rechtsmethodik_results.types import (
+     InsertRechtsmethodikResultOutput,
+@@ -93,6 +94,18 @@ async def _run_rechtsmethodik_and_insert(
+     return rm_output, rm_insert_results
+ 
+ 
++def _caused_by_norm_not_found(err: BaseException) -> bool:
++    """True if the error chain contains a NormNotFound ApplicationError (norm text absent from DB)."""
++    current: BaseException | None = err
++    for _ in range(20):
++        if current is None:
++            break
++        if isinstance(current, ApplicationError) and current.type == "NormNotFound":
++            return True
++        current = current.__cause__
++    return False
++
++
+ @workflow.defn(name="MVPWorkflow")
+ class MVPWorkflow:
+     """End-to-end pipeline for a single norm: Rechtsmethodik -> insert."""
+@@ -100,7 +113,26 @@ class MVPWorkflow:
+     @workflow.run
+     async def run(self, input: MVPWorkflowInput) -> MVPWorkflowOutput:
+         # ── Steps 1+2: Rechtsmethodik + insert ─────────────────────────
+-        _rm_output, rm_insert_results = await _run_rechtsmethodik_and_insert(input)
++        try:
++            _rm_output, rm_insert_results = await _run_rechtsmethodik_and_insert(input)
++        except FailureError as err:
++            # A norm whose text is absent from gesetze-normen-db (HTTP 404) is skipped instead of
++            # failing the whole MVP (and its parent BatchMVP section). Mirrors the `skipped`
++            # semantics below and stops one missing norm from erroring an entire review batch.
++            if not _caused_by_norm_not_found(err):
++                raise
++            workflow.logger.warning(
++                "[MVP] norm not found in gesetze-normen-db, skipping %s §%s",
++                input.jurabk,
++                input.paragraph_nr,
++            )
++            return MVPWorkflowOutput(
++                project_id=input.project_id,
++                jurabk=input.jurabk,
++                paragraph_nr=input.paragraph_nr,
++                skipped=True,
++            )
++
+         rm_insert = rm_insert_results[0]
+ 
+         if not rm_insert.norm_id:
+diff --git a/02-backend/agent_orchestration_service/tests/unit/test_mvp_workflow.py b/02-backend/agent_orchestration_service/tests/unit/test_mvp_workflow.py
+index 0fc1d9c..04f180a 100644
+--- a/02-backend/agent_orchestration_service/tests/unit/test_mvp_workflow.py
++++ b/02-backend/agent_orchestration_service/tests/unit/test_mvp_workflow.py
+@@ -1,7 +1,9 @@
+ from typing import Any
++from unittest.mock import MagicMock
+ from uuid import uuid4
+ 
+ import pytest
++from temporalio.exceptions import ApplicationError
+ from temporal.workflows.rechtsmethodik.types import RechtsmethodikWorkflowOutput
+ 
+ from src.workflows.insert_rechtsmethodik_results.types import InsertRechtsmethodikResultOutput
+@@ -108,3 +110,49 @@ async def test_mvp_cache_lookup_retries_indefinitely_before_expensive_work(
+ 
+     assert "retry_policy" not in activity_options["get_norm_deconstruction"]
+     assert child_workflows == [workflow_module.InsertRechtsmethodikResultsWorkflow.run]
++
++
++@pytest.mark.asyncio
++async def test_mvp_workflow_skips_when_norm_not_found(monkeypatch: pytest.MonkeyPatch) -> None:
++    """A norm whose text is absent from gesetze-normen-db (404) is skipped, not failed."""
++    project_id = uuid4()
++    monkeypatch.setattr(workflow_module.workflow, "logger", MagicMock())
++
++    async def raise_norm_not_found(*_args: Any, **_kwargs: Any) -> Any:
++        raise ApplicationError(
++            "Norm document not found in gesetze-normen-db: ThürWaldG",
++            type="NormNotFound",
++            non_retryable=True,
++        )
++
++    monkeypatch.setattr(
++        "src.workflows.mvp.workflow._run_rechtsmethodik_and_insert",
++        raise_norm_not_found,
++    )
++
++    result = await MVPWorkflow().run(
++        MVPWorkflowInput(project_id=project_id, jurabk="ThürWaldG", paragraph_nr="1")
++    )
++
++    assert result.skipped is True
++    assert result.norm_id is None
++    assert result.jurabk == "ThürWaldG"
++    assert result.project_id == project_id
++
++
++@pytest.mark.asyncio
++async def test_mvp_workflow_reraises_unrelated_failure(monkeypatch: pytest.MonkeyPatch) -> None:
++    """Errors other than NormNotFound must still propagate (not be swallowed as skipped)."""
++
++    async def raise_other(*_args: Any, **_kwargs: Any) -> Any:
++        raise ApplicationError("unexpected", type="SomethingElse")
++
++    monkeypatch.setattr(
++        "src.workflows.mvp.workflow._run_rechtsmethodik_and_insert",
++        raise_other,
++    )
++
++    with pytest.raises(ApplicationError):
++        await MVPWorkflow().run(
++            MVPWorkflowInput(project_id=uuid4(), jurabk="BNatSchG", paragraph_nr="44")
++        )
+diff --git a/05-modulcluster/modul-rechtsmethodik/src/activities/law_api_calls.py b/05-modulcluster/modul-rechtsmethodik/src/activities/law_api_calls.py
+index a2cadaa..2d92059 100644
+--- a/05-modulcluster/modul-rechtsmethodik/src/activities/law_api_calls.py
++++ b/05-modulcluster/modul-rechtsmethodik/src/activities/law_api_calls.py
+@@ -8,6 +8,7 @@ from internal_auth import internal_api_key_headers
+ from pydantic import BaseModel, ConfigDict
+ from temporal.workflows.rechtsmethodik.types import Absatz
+ from temporalio import activity, workflow
++from temporalio.exceptions import ApplicationError
+ 
+ from src.activities.utils import api_call
+ from src.env import ENV
+@@ -191,6 +192,15 @@ async def _fetch_document_by_jurabk(activity_input: FetchDocumentByJurabkInput)
+ 
+     async with httpx.AsyncClient(timeout=10.0) as client:
+         response = await client.get(url, params=params, headers=internal_api_key_headers())
++        if response.status_code == httpx.codes.NOT_FOUND:
++            # The norm's text is not in gesetze-normen-db (e.g. Länder/state laws absent from the
++            # federal-only seed). Signal a typed, non-retryable error so the caller can skip this
++            # norm instead of retrying the lookup 30x and failing the whole Rechtsmethodik section.
++            raise ApplicationError(
++                f"Norm document not found in gesetze-normen-db: {activity_input.jurabk}",
++                type="NormNotFound",
++                non_retryable=True,
++            )
+         response.raise_for_status()
+         data = response.json()
+         if not isinstance(data, dict) or not data:

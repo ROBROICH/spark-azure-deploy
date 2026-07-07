@@ -1,0 +1,19 @@
+diff --git a/01-frontend/frontend/docker-entrypoint.sh b/01-frontend/frontend/docker-entrypoint.sh
+index 2b20be2..39f9a26 100644
+--- a/01-frontend/frontend/docker-entrypoint.sh
++++ b/01-frontend/frontend/docker-entrypoint.sh
+@@ -79,5 +79,14 @@ sed -i "s|$ENABLE_DOCUMENT_VERSIONING_FEATURE_PLACEHOLDER|$ESCAPED_ENABLE_DOCUME
+ sed -i "s|$DANGEROUS_ENABLE_ROLE_SWITCHER_PLACEHOLDER|$ESCAPED_DANGEROUS_ENABLE_ROLE_SWITCHER|g" "$INDEX_HTML_PATH"
+ sed -i "s|$ALLOW_DEV_MODE_PLACEHOLDER|$ESCAPED_ALLOW_DEV_MODE|g" "$INDEX_HTML_PATH"
+ 
++# 4b) Inject the gateway auth token into the nginx config, or drop the header if unset.
++NGINX_CONF="/etc/nginx/conf.d/default.conf"
++if [ -n "${GATEWAY_AUTH_TOKEN:-}" ]; then
++  ESCAPED_TOKEN=$(printf '%s' "$GATEWAY_AUTH_TOKEN" | sed 's/[&|]/\\&/g')
++  sed -i "s|__GATEWAY_AUTH_TOKEN__|$ESCAPED_TOKEN|g" "$NGINX_CONF"
++else
++  sed -i '/__GATEWAY_AUTH_TOKEN__/d' "$NGINX_CONF"
++fi
++
+ # 5) Start nginx in foreground.
+ exec nginx -g 'daemon off;'

@@ -1,0 +1,94 @@
+# Build all SPARK container images and publish them to GitHub Container Registry
+# (GHCR), then cut a release. Customer deployments (`azd up`) pull these PUBLIC
+# images by setting SPARK_IMAGE_REGISTRY=ghcr.io/<owner> — no build required.
+#
+# The image list is the single source of truth in build/images.json. The overlay
+# patches (patches/) are applied to the checked-out source before building so the
+# images carry the Azure/OpenAI-direct adjustments.
+#
+# NOTE: after the first run, set the GHCR packages to PUBLIC (repo/org package
+# settings) so customers can pull without authentication.
+name: build-and-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Tag to publish (e.g. 0.2 or a date)
+        default: '0.2'
+      apply_patches:
+        description: Apply patches/ onto the source before building
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  IMAGE_TAG: ${{ github.event.inputs.image_tag || '0.2' }}
+
+jobs:
+  matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.set.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: set
+        run: echo "images=$(jq -c . build/images.json)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 6
+      matrix:
+        image: ${{ fromJson(needs.matrix.outputs.images) }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch openCode source (+ overlay + patches)
+        run: ./scripts/fetch-upstream.sh
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & push ${{ matrix.image.name }}
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.image.context }}
+          file: ${{ matrix.image.dockerfile }}
+          push: true
+          provenance: false
+          tags: ghcr.io/${{ github.repository_owner }}/${{ matrix.image.name }}:${{ env.IMAGE_TAG }}
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create / update release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: spark-azure-${{ env.IMAGE_TAG }}
+          OWNER: ${{ github.repository_owner }}
+        run: |
+          set -euo pipefail
+          NOTES="SPARK Azure demo images published to ghcr.io/${OWNER}/<service>:${IMAGE_TAG}.
+
+          Deploy: \`azd up\` with SPARK_IMAGE_REGISTRY=ghcr.io/${OWNER} (see README).
+          Seed:   set SPARK_SEED_PACK_URL to a golden seed pack (make-seed-pack.ps1)."
+          gh release create "$TAG" --title "SPARK Azure demo $TAG" --notes "$NOTES" \
+            || gh release edit "$TAG" --notes "$NOTES"

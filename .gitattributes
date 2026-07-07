@@ -1,0 +1,13 @@
+# Force LF for shell scripts so they run in Linux CI / containers regardless of
+# the checkout platform (Windows autocrlf would otherwise break the shebang).
+*.sh text eol=lf
+
+# Never apply EOL conversion to patch files — `git apply` needs them byte-exact.
+*.patch -text
+
+# Paths excluded from `git archive` exports (the customer-facing deploy bundle
+# produced by the sync-and-build pipeline). These stay tracked in the repo but
+# are omitted from the exported archive: internal review material and build
+# cruft should not ship to customers.
+analysis/** export-ignore
+*.err export-ignore
