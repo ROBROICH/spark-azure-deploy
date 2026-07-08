@@ -16,6 +16,7 @@ include:
     inputs:
       stage: "oci-image"
       job_suffix: "$[[ inputs.job_suffix ]]"
+      pull_policy: "if-not-present"
       image_suffix: "$[[ inputs.image_suffix ]]"
       devguard_artifact_name: "$[[ inputs.artifact_name ]]"
       architecture: "amd64"
@@ -31,6 +32,7 @@ include:
       devguard_artifact_name: "$[[ inputs.artifact_name ]]"
       stage: "oci-image"
       job_suffix: "$[[ inputs.job_suffix ]]"
+      pull_policy: "if-not-present"
       image_tag: "$IMAGE_TAG"
       fetch_image_from_registry: "true"
       ignore_external_references: "true"
@@ -49,6 +51,7 @@ include:
       devguard_token: "$DEVGUARD_TOKEN"
       stage: "attestation"
       job_suffix: "$[[ inputs.job_suffix ]]"
+      pull_policy: "if-not-present"
       image: "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
       needs:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
@@ -65,6 +68,7 @@ include:
       devguard_artifact_name: "$[[ inputs.artifact_name ]]"
       stage: "attestation"
       job_suffix: "$[[ inputs.job_suffix ]]"
+      pull_policy: "if-not-present"
       image: "$IMAGE_TAG"
       needs:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
@@ -90,7 +94,7 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
     GIT_STRATEGY: fetch
   image:
     name: registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.27.3-devguard-scanner-v1.3.1@sha256:2966ade3c7d565ae56c48cfa50d5df6e36a5371f4173606eb4de57558186433d
-    pull_policy: always
+    pull_policy: if-not-present
     entrypoint:
       - ""
   before_script:
@@ -99,7 +103,7 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
   script:
     - IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --destination "$IMAGE_REF"
+    - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --push-retry=5 --destination "$IMAGE_REF"
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - /crane digest "$IMAGE_REF" > image-digest.txt
     - echo "Running DevGuard Intoto Build...stopping..."
