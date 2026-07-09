@@ -11,6 +11,9 @@ spec:
     dockerfile:
       type: string
 ---
+default:
+  retry: 2
+
 include:
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/generate-tag.yml"
     inputs:
@@ -52,7 +55,7 @@ include:
       stage: "attestation"
       job_suffix: "$[[ inputs.job_suffix ]]"
       pull_policy: "if-not-present"
-      image: "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
+      image: "$IMAGE_TAG"
       needs:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
@@ -101,7 +104,12 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
     - echo "Uses Kaniko to build Docker images securely without requiring privileged access. Images are pushed directly to the registry to avoid GitLab artifact size limits for large image tarballs."
     - /devguard-scanner intoto start --step=build --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA"
   script:
-    - IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
+    - |
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_TAG"
+      else
+        IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
+      fi
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --push-retry=5 --destination "$IMAGE_REF"
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
