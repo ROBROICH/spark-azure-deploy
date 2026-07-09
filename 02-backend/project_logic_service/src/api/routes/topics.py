@@ -8,12 +8,11 @@ from authentification.dependencies import (
     get_current_user,
     get_verifier,
     list_accessible_resources,
-    require_permissions,
+    require_permission_from_body,
     require_role,
 )
 from authentification.enums import AuthMode, OidcRoles, Permission, Resource
 from authentification.models import OidcUserInfo
-from authentification.resolver import body_field
 from authentification.verifier import OidcVerifier
 from fastapi import APIRouter, Body, Depends, Query, Response, status
 
@@ -78,17 +77,16 @@ async def list_topics(
     "",
     response_model=TopicResponse,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.CREATE, body_field("project_id")),
-                bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
-            )
-        ),
-    ],
 )
 async def create_topic(
-    payload: CreateTopicRequest = ...,
+    payload: CreateTopicRequest = Depends(
+        require_permission_from_body(
+            CreateTopicRequest,
+            "project_id",
+            Permission.CREATE,
+            bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
+        )
+    ),
     service: TopicService = Depends(get_topic_service),
 ):
     """Create a new topic.

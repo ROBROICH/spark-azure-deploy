@@ -21,7 +21,6 @@ from typing import Any
 from uuid import UUID
 
 import httpx
-from internal_auth import internal_api_key_headers
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_camel
 from temporal import Base64Bytes
@@ -139,7 +138,7 @@ async def get_file_metadata(file_id: UUID) -> FileObject:
     client = _get_client()
     url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}"
 
-    response = await client.get(url, params=_with_project_version_params(), headers=internal_api_key_headers())
+    response = await client.get(url, params=_with_project_version_params())
 
     if response.status_code == 404:
         raise FileNotFoundError(f"DMS file not found: {file_id}")
@@ -164,9 +163,11 @@ async def download_file(file_id: str | UUID) -> bytes:
     """
     client = _get_client()
 
-    # Step 1: Generate download URL
-    url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}/generate-download-url"
-    response = await client.get(url, params=_with_project_version_params(), headers=internal_api_key_headers())
+    # Step 1: Generate download URL. Use the internal endpoint so the URL is signed against the
+    # internal storage host (reachable service-to-service); the public route signs the
+    # browser-facing host, which a worker cannot reach.
+    url = f"{ENV.DMS_BASE_URL}/v2/internal/files/{file_id}/generate-download-url"
+    response = await client.get(url, params=_with_project_version_params())
 
     if response.status_code == 404:
         raise FileNotFoundError(f"DMS file not found: {file_id}")
@@ -221,7 +222,7 @@ async def list_files(input: ListFilesInput) -> list[FileObject]:
         "page_size": page_size,
     }
 
-    response = await client.get(url, params=_with_project_version_params(params), headers=internal_api_key_headers())
+    response = await client.get(url, params=_with_project_version_params(params))
     response.raise_for_status()
 
     return [FileObject(**file_data) for file_data in response.json()]
@@ -267,7 +268,7 @@ async def upload_file(
             url,
             params=_with_project_version_params(),
             content=_json_serialize(payload),
-            headers={"Content-Type": "application/json", **internal_api_key_headers()},
+            headers={"Content-Type": "application/json"},
         )
         if response.status_code >= 400:
             activity.logger.error(f"DMS upload error: {response.status_code} - {response.text}")
@@ -288,7 +289,7 @@ async def upload_file(
             confirm_url,
             params=_with_project_version_params(),
             content=_json_serialize(payload),
-            headers={"Content-Type": "application/json", **internal_api_key_headers()},
+            headers={"Content-Type": "application/json"},
         )
         if confirm_response.status_code >= 400:
             activity.logger.error(f"DMS confirm-upload error: {confirm_response.status_code} - {confirm_response.text}")
@@ -319,7 +320,7 @@ async def delete_file(file_id: UUID) -> None:
     client = _get_client()
     url = f"{ENV.DMS_BASE_URL}/v2/files/{file_id}"
 
-    response = await client.delete(url, params=_with_project_version_params(), headers=internal_api_key_headers())
+    response = await client.delete(url, params=_with_project_version_params())
 
     # Don't raise on 404 - delete should be idempotent
     if response.status_code != 404:

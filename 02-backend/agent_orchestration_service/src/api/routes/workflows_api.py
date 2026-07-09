@@ -1,9 +1,9 @@
+from typing import Annotated
 from uuid import UUID
 
 import puremagic
-from authentification.dependencies import require_permissions, require_role
-from authentification.enums import OidcRoles, Permission, Resource
-from authentification.resolver import body_field
+from authentification.dependencies import require_permission_from_body, require_role
+from authentification.enums import OidcRoles, Permission
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -155,16 +155,20 @@ async def anonymize_pdf(
 @router.post(
     "/fpp-download",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def orchestrate_fpp_download_workflow(
+    payload: Annotated[
+        FPPDownloadWorkflowArgs,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                FPPDownloadWorkflowArgs,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def orchestrate_fpp_download_workflow(payload: FPPDownloadWorkflowArgs) -> WorkflowResponse:
+) -> WorkflowResponse:
     """
     Orchestrate an FPP file download workflow.
 
@@ -186,16 +190,20 @@ async def orchestrate_fpp_download_workflow(payload: FPPDownloadWorkflowArgs) ->
 @router.post(
     "/formale-pruefung",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def orchestrate_fvp_workflow(
+    payload: Annotated[
+        FVPWorkflowRequest,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                FVPWorkflowRequest,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def orchestrate_fvp_workflow(payload: FVPWorkflowRequest) -> WorkflowResponse:
+) -> WorkflowResponse:
     """
     Orchestrate a FVP (Formale Vollständigkeitsprüfung) workflow.
 
@@ -233,16 +241,21 @@ async def orchestrate_fvp_workflow(payload: FVPWorkflowRequest) -> WorkflowRespo
 @router.post(
     "/suz/{norm_id}",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def start_suz_norm_workflow(
+    norm_id: str,
+    payload: Annotated[
+        SucheZuordnungNormRequest,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                SucheZuordnungNormRequest,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def start_suz_norm_workflow(norm_id: str, payload: SucheZuordnungNormRequest) -> WorkflowResponse:
+) -> WorkflowResponse:
     """
     Start the Suche & Zuordnung workflow for a single norm.
 
@@ -282,16 +295,20 @@ async def start_suz_norm_workflow(norm_id: str, payload: SucheZuordnungNormReque
 @router.post(
     "/mvp",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def start_batch_mvp_workflow(
+    payload: Annotated[
+        BatchMVPRequest,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                BatchMVPRequest,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def start_batch_mvp_workflow(payload: BatchMVPRequest) -> WorkflowResponse:
+) -> WorkflowResponse:
     project_version = await _latest_project_version(payload.project_id)
     workflow_id = project_scoped_workflow_id(str(BATCH_MVP_WORKFLOW_ID), payload.project_id)
     try:
@@ -321,16 +338,20 @@ _PRIORITY_HIGH = Priority(fairness_key="priority", fairness_weight=2.0)
 @router.post(
     "/bewertung",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def start_bewertung_workflow(
+    payload: Annotated[
+        BewertungRequest,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                BewertungRequest,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def start_bewertung_workflow(payload: BewertungRequest) -> WorkflowResponse:
+) -> WorkflowResponse:
     project_version = await _latest_project_version(payload.project_id)
     workflow_id = project_scoped_workflow_id(
         str(BEWERTUNG_WORKFLOW_ID),
@@ -366,16 +387,20 @@ async def start_bewertung_workflow(payload: BewertungRequest) -> WorkflowRespons
 @router.post(
     "/risikohinweise",
     response_model=WorkflowResponse,
-    dependencies=[
+)
+async def start_risikohinweise_workflow(
+    payload: Annotated[
+        RisikohinweiseRequest,
         Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.EXECUTE, body_field("project_id")),
+            require_permission_from_body(
+                RisikohinweiseRequest,
+                "project_id",
+                Permission.EXECUTE,
                 bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
             )
         ),
     ],
-)
-async def start_risikohinweise_workflow(payload: RisikohinweiseRequest) -> WorkflowResponse:
+) -> WorkflowResponse:
     project_version = await _latest_project_version(payload.project_id)
     workflow_id = project_scoped_workflow_id(
         str(RISIKOHINWEISE_WORKFLOW_ID),

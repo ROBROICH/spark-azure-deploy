@@ -31,6 +31,9 @@ export type ProjectDetailsEditFormProps = {
   onSaved: () => void;
 };
 
+const EDIT_PROJECT_TYPE_LABEL_ID = 'edit-project-type-label';
+const EDIT_FEDERAL_STATE_LABEL_ID = 'edit-federal-state-label';
+
 /** Inline edit form for project details. Persists changes via projectsCollection.update() for optimistic updates. */
 export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
   const { canMutateProject, project, onCancel, onSaved } = props;
@@ -139,6 +142,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
             return (
               <div className="flex items-start border-b border-border-primary">
                 <FieldLabel
+                  id={EDIT_PROJECT_TYPE_LABEL_ID}
                   htmlFor="edit-project-type"
                   className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
                 >
@@ -152,6 +156,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
                     id="edit-project-type"
                     invalid={isInvalid}
                     required
+                    ariaLabelledBy={EDIT_PROJECT_TYPE_LABEL_ID}
                     ariaDescribedby={
                       isInvalid ? 'edit-project-type-error' : undefined
                     }
@@ -199,6 +204,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
         </form.Field>
         <div className="flex items-start border-b border-border-primary">
           <FieldLabel
+            id={EDIT_FEDERAL_STATE_LABEL_ID}
             htmlFor="edit-federal-state"
             className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
           >
@@ -211,6 +217,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
               onChange={() => undefined}
               id="edit-federal-state"
               disabled
+              ariaLabelledBy={EDIT_FEDERAL_STATE_LABEL_ID}
               placeholder={t('ProjectDetails.edit.selectState')}
               triggerClassName="w-full"
             />

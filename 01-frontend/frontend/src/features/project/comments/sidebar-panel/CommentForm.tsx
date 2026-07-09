@@ -159,9 +159,11 @@ export const CommentForm = (props: CommentFormProps) => {
                   field.state.meta.isTouched &&
                   field.state.meta.errors.length > 0;
                 const errorId = `${formId}-${field.name}-error`;
+                const labelId = `${formId}-${field.name}-label`;
                 return (
                   <Field data-invalid={isInvalid || undefined}>
                     <FieldLabel
+                      id={labelId}
                       htmlFor={`${formId}-${field.name}`}
                       className="text-[11px] leading-[14px] font-medium tracking-[0.22px] text-text-secondary"
                     >
@@ -185,6 +187,7 @@ export const CommentForm = (props: CommentFormProps) => {
                       triggerClassName="w-full"
                       required
                       disabled={!canMutateProject}
+                      ariaLabelledBy={labelId}
                       ariaDescribedby={isInvalid ? errorId : undefined}
                     />
                     {isInvalid ? (

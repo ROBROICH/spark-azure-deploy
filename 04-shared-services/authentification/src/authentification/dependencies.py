@@ -1,5 +1,5 @@
 from collections.abc import Callable, Coroutine, Sequence
-from typing import Any
+from typing import Any, TypeVar
 
 from event_logging.enums import (
     EventAction,
@@ -38,12 +38,70 @@ _verifier: OidcVerifier | None = None
 _auth_client: AuthClient | None = None
 _oidc_client: OidcClient | None = None
 _privileged_oidc_client: OidcClient | None = None
+BodyT = TypeVar("BodyT")
+BodyFieldPath = str | Sequence[str]
+BodyPermissionSpec = tuple[Any, Permission, BodyFieldPath]
 
 AUTH_MODE_HEADER = "X-Auth-Mode"
 AUTH_RESULT_HEADER = "X-Auth-Result"
 AUTH_ROLES_HEADER = "X-Auth-Roles"
 AUTH_RESOURCE_FILTER_HEADER = "X-Auth-Resource-Filter"
 SERVICE_USER_ID = "00000000-0000-0000-0000-000000000001"
+
+
+def _normalize_body_field_path(field_name: BodyFieldPath) -> tuple[str, ...]:
+    if isinstance(field_name, str):
+        return (field_name,)
+    field_path = tuple(field_name)
+    if not field_path:
+        raise ValueError("Body field path must not be empty")
+    return field_path
+
+
+def _resolve_body_field_path(body: Any, field_path: tuple[str, ...]) -> Any:
+    value = body
+    for field_name in field_path:
+        value = value.get(field_name) if isinstance(value, dict) else getattr(value, field_name, None)
+
+        if value is None:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Missing required body field '{'.'.join(field_path)}'",
+            ) from None
+
+    return value
+
+
+def _validate_body_permission_specs(model: Any, specs: Sequence[BodyPermissionSpec]) -> tuple[BodyPermissionSpec, ...]:
+    body_specs = tuple(specs)
+    if not body_specs:
+        raise ValueError("At least one body permission is required")
+
+    model_fields = getattr(model, "model_fields", None)
+    if model_fields is None:
+        return body_specs
+
+    for _, _, field_name in body_specs:
+        field_path = _normalize_body_field_path(field_name)
+        if field_path[0] not in model_fields:
+            raise ValueError(f"{model.__name__} has no field {field_path[0]!r}")
+
+    return body_specs
+
+
+def _body_permission_checks(body: Any, specs: Sequence[BodyPermissionSpec]) -> list[BulkCheckItem]:
+    checks: list[BulkCheckItem] = []
+    for resource_type, permission, field_name in specs:
+        field_path = _normalize_body_field_path(field_name)
+        resource_id = _resolve_body_field_path(body, field_path)
+        checks.append(
+            BulkCheckItem(
+                resource_type=resource_type,
+                resource_id=str(resource_id),
+                permission=permission,
+            )
+        )
+    return checks
 
 
 def _request_log_context(request: Request | None) -> dict[str, Any]:
@@ -56,10 +114,10 @@ def _request_log_context(request: Request | None) -> dict[str, Any]:
     forwarded_host = request.headers.get("x-forwarded-host")
     forwarded_proto = request.headers.get("x-forwarded-proto")
     host = request.headers.get("host")
-    request_url = str(request.url)
+    request_path = request.url.path
 
     request_summary = (
-        f"method={request.method} url={request_url} host={host or '-'} client={client.host if client else '-'}"
+        f"method={request.method} path={request_path} host={host or '-'} client={client.host if client else '-'}"
     )
     if forwarded_host or forwarded_proto or forwarded_for:
         request_summary = (
@@ -385,6 +443,74 @@ def require_permissions(
         return user
 
     return dependency
+
+
+def require_permissions_from_body(
+    model: Any,
+    *required_perms: BodyPermissionSpec,
+    bypass_roles: Sequence[str] | None = None,
+) -> Callable[..., Coroutine[Any, Any, BodyT]]:
+    """Authorize a request using field paths from the validated FastAPI body.
+
+    The returned dependency also returns the validated body, so handlers can use
+    the same object that authorization inspected.
+    """
+
+    body_specs = _validate_body_permission_specs(model, required_perms)
+
+    async def dependency(
+        body: model,  # type: ignore[valid-type]
+        response: Response,
+        user: OidcUserInfo | None = Depends(get_current_user),
+        verifier: OidcVerifier = Depends(get_verifier),
+        auth_client: AuthClient = Depends(get_auth_client),
+    ) -> BodyT:
+        is_dry_run = verifier.auth_mode == AuthMode.OPTIONAL_VERIFY_DRY_RUN
+
+        if verifier.requires_user and user is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Authentication required",
+            )
+
+        if user is None:
+            _set_auth_dry_run_header(
+                response=response,
+                dry_run=is_dry_run,
+                name=AUTH_PERMISSIONS_HEADER,
+                value="skipped:no-user",
+            )
+            return body
+
+        await check_permissions(
+            user=user,
+            checks=_body_permission_checks(body, body_specs),
+            auth_client=auth_client,
+            subject=Subject.USER,
+            bypass_roles=bypass_roles,
+            dry_run=is_dry_run,
+            response=response,
+        )
+
+        return body
+
+    return dependency
+
+
+def require_permission_from_body(
+    model: Any,
+    field_name: BodyFieldPath,
+    permission: Permission,
+    resource_type: Any = Resource.PROJECT,
+    bypass_roles: Sequence[str] | None = None,
+) -> Callable[..., Coroutine[Any, Any, BodyT]]:
+    """Authorize a request using one field path from the validated FastAPI body."""
+
+    return require_permissions_from_body(
+        model,
+        (resource_type, permission, field_name),
+        bypass_roles=bypass_roles,
+    )
 
 
 def list_accessible_resources(

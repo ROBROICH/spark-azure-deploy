@@ -28,6 +28,24 @@ describe('SelectMenu', () => {
     );
   });
 
+  it('wires ariaLabelledBy to the trigger accessible name', () => {
+    render(
+      <>
+        <span id="select-label">Project type</span>
+        <SelectMenu
+          items={ITEMS}
+          value="a"
+          onChange={() => {}}
+          ariaLabelledBy="select-label"
+        />
+      </>,
+    );
+
+    expect(
+      screen.getByRole('combobox', { name: 'Project type' }),
+    ).toHaveAttribute('aria-labelledby', 'select-label');
+  });
+
   it('marks the trigger aria-invalid when invalid is true', () => {
     render(<SelectMenu items={ITEMS} value="a" onChange={() => {}} invalid />);
     expect(screen.getByRole('combobox')).toHaveAttribute(

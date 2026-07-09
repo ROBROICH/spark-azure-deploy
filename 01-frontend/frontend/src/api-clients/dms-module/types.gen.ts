@@ -998,6 +998,10 @@ export type RenameChange = {
      * Sha
      */
     sha: string;
+    /**
+     * Bucket Path
+     */
+    bucket_path?: string | null;
 };
 
 /**
@@ -1405,12 +1409,6 @@ export type ConfirmUploadV2FilesConfirmUploadPostData = {
     } & EwmsZipUpload) | ({
         type: 'erwiderungs_import';
     } & ErwiderungsImportUpload);
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -1443,12 +1441,6 @@ export type ConfirmUploadV2FilesConfirmUploadPostResponse = ConfirmUploadV2Files
 
 export type DeleteFileV2FilesFileIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -1484,12 +1476,6 @@ export type DeleteFileV2FilesFileIdDeleteResponse = DeleteFileV2FilesFileIdDelet
 
 export type GetFileV2FilesFileIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -1525,12 +1511,6 @@ export type GetFileV2FilesFileIdGetResponse = GetFileV2FilesFileIdGetResponses[k
 
 export type UpdateFileV2FilesFileIdPatchData = {
     body: FileUpdateRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -1566,12 +1546,6 @@ export type UpdateFileV2FilesFileIdPatchResponse = UpdateFileV2FilesFileIdPatchR
 
 export type GetVersionsV2FilesFileIdVersionsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -1604,12 +1578,6 @@ export type GetVersionsV2FilesFileIdVersionsGetResponse = GetVersionsV2FilesFile
 
 export type GenerateDownloadUrlV2FilesFileIdGenerateDownloadUrlGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -1653,12 +1621,6 @@ export type GenerateDownloadUrlV2FilesFileIdGenerateDownloadUrlGetResponse = Gen
 
 export type StartFileProcessingV2FilesStartFileProcessingPostData = {
     body: StartFileProcessingRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/v2/files/start-file-processing';
@@ -1697,12 +1659,6 @@ export type GenerateUploadUrlV2FilesGenerateUploadUrlPostData = {
     } & EwmsZipUpload) | ({
         type: 'erwiderungs_import';
     } & ErwiderungsImportUpload);
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -1733,12 +1689,6 @@ export type GenerateUploadUrlV2FilesGenerateUploadUrlPostResponse = GenerateUplo
 
 export type ListFilesV2FilesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query: {
         file_type: FileTypeEnum;
@@ -1833,10 +1783,6 @@ export type InternalConfirmUploadV2InternalFilesConfirmUploadPostData = {
     } & TemplateUpload);
     headers?: {
         /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-        /**
          * Authorization
          */
         authorization?: string | null;
@@ -1900,10 +1846,6 @@ export type InternalGenerateUploadUrlV2InternalFilesGenerateUploadUrlPostData = 
     } & TemplateUpload);
     headers?: {
         /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-        /**
          * Authorization
          */
         authorization?: string | null;
@@ -1939,10 +1881,6 @@ export type InternalGenerateUploadUrlV2InternalFilesGenerateUploadUrlPostRespons
 export type InternalGetZipDiffV2InternalFilesProjectIdZipsZipFileIdDiffGetData = {
     body?: never;
     headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
         /**
          * Authorization
          */
@@ -1991,10 +1929,6 @@ export type InternalUpdateZipApprovalStatusV2InternalFilesProjectIdZipsZipFileId
     body: ZipApprovalStatusRequest;
     headers?: {
         /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-        /**
          * Authorization
          */
         authorization?: string | null;
@@ -2035,10 +1969,6 @@ export type InternalCommitDiffV2InternalFilesProjectIdZipsZipFileIdCommitDiffPos
     body: CommitDiffRequest;
     headers?: {
         /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-        /**
          * Authorization
          */
         authorization?: string | null;
@@ -2077,12 +2007,6 @@ export type InternalCommitDiffV2InternalFilesProjectIdZipsZipFileIdCommitDiffPos
 
 export type GetFileApprovalStatusV2FilesFileIdApprovalStatusGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -2115,12 +2039,6 @@ export type GetFileApprovalStatusV2FilesFileIdApprovalStatusGetResponse = GetFil
 
 export type SubmitApprovalV2FilesFileIdDecisionPostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -2156,12 +2074,6 @@ export type SubmitApprovalV2FilesFileIdDecisionPostResponse = SubmitApprovalV2Fi
 
 export type GetFileDiffV2FilesFileIdDiffGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -2194,12 +2106,6 @@ export type GetFileDiffV2FilesFileIdDiffGetResponse = GetFileDiffV2FilesFileIdDi
 
 export type SetFileDiffV2FilesFileIdDiffPostData = {
     body: FileDiffResponse;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -2228,14 +2134,8 @@ export type SetFileDiffV2FilesFileIdDiffPostResponses = {
 
 export type SetFileDiffV2FilesFileIdDiffPostResponse = SetFileDiffV2FilesFileIdDiffPostResponses[keyof SetFileDiffV2FilesFileIdDiffPostResponses];
 
-export type CancelUploadProcessV2FilesFileIdCancelGetData = {
+export type CancelUploadProcessV2FilesFileIdCancelPostData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * File Id
@@ -2246,16 +2146,16 @@ export type CancelUploadProcessV2FilesFileIdCancelGetData = {
     url: '/v2/files/{file_id}/cancel';
 };
 
-export type CancelUploadProcessV2FilesFileIdCancelGetErrors = {
+export type CancelUploadProcessV2FilesFileIdCancelPostErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type CancelUploadProcessV2FilesFileIdCancelGetError = CancelUploadProcessV2FilesFileIdCancelGetErrors[keyof CancelUploadProcessV2FilesFileIdCancelGetErrors];
+export type CancelUploadProcessV2FilesFileIdCancelPostError = CancelUploadProcessV2FilesFileIdCancelPostErrors[keyof CancelUploadProcessV2FilesFileIdCancelPostErrors];
 
-export type CancelUploadProcessV2FilesFileIdCancelGetResponses = {
+export type CancelUploadProcessV2FilesFileIdCancelPostResponses = {
     /**
      * Successful Response
      */
@@ -2264,12 +2164,6 @@ export type CancelUploadProcessV2FilesFileIdCancelGetResponses = {
 
 export type ListZipFilesV2ZipFilesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query: {
         /**
@@ -2322,12 +2216,6 @@ export type ListZipFilesV2ZipFilesGetResponse = ListZipFilesV2ZipFilesGetRespons
 
 export type GetZipFileV2ZipFilesZipFileIdGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Zip File Id
@@ -2411,12 +2299,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2454,12 +2336,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2497,12 +2373,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -2533,12 +2403,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

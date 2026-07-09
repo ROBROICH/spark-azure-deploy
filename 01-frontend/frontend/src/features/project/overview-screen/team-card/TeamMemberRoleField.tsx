@@ -20,17 +20,20 @@ type TeamMemberRoleFieldApi = {
 
 type TeamMemberRoleFieldProps = {
   field: TeamMemberRoleFieldApi;
+  labelId: string;
 };
 
 export function TeamMemberRoleField(props: TeamMemberRoleFieldProps) {
-  const { field } = props;
+  const { field, labelId } = props;
   const { t } = useTranslation('Project');
   const isInvalid = field.state.meta.errors.length > 0;
   const errorId = `${field.name}-error`;
 
   return (
     <Field data-invalid={isInvalid || undefined}>
-      <FieldLabel htmlFor={field.name}>{t('Team.form.role')}*</FieldLabel>
+      <FieldLabel id={labelId} htmlFor={field.name}>
+        {t('Team.form.role')}*
+      </FieldLabel>
       <SelectMenu
         id={field.name}
         items={[
@@ -43,6 +46,7 @@ export function TeamMemberRoleField(props: TeamMemberRoleFieldProps) {
         invalid={isInvalid}
         triggerClassName="w-full"
         required
+        ariaLabelledBy={labelId}
         ariaDescribedby={isInvalid ? errorId : undefined}
       />
       {isInvalid ? (

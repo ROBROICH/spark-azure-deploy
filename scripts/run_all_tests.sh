@@ -69,6 +69,7 @@ run_test() {
   local module="$1"
   local slug="${module//\//_}"
   local outfile="$RESULTS_DIR/$slug"
+  local logfile="$RESULTS_DIR/$slug.log"
 
   local output
   local exit_code=0
@@ -76,10 +77,14 @@ run_test() {
   if (cd "$REPO_ROOT/$module" && uv run python -c 'import pytest_timeout' >/dev/null 2>&1); then
     pytest_args=(--timeout=20 "${pytest_args[@]}")
   fi
+  if [ -n "${POSTGRESQL_EXEC:-}" ] && grep -q 'pytest-postgresql' "$REPO_ROOT/$module/pyproject.toml"; then
+    pytest_args+=("--postgresql-exec=$POSTGRESQL_EXEC")
+  fi
   if [[ "$INTEGRATION" == true ]]; then
     pytest_args+=(-m integration --no-cov)
   fi
   output=$(cd "$REPO_ROOT/$module" && uv run pytest "${pytest_args[@]}" 2>&1) || exit_code=$?
+  printf "%s\n" "$output" > "$logfile"
 
   local summary
   summary=$(echo "$output" | grep -E '(passed|failed|error|no tests|deselected)' | tail -1) || true
@@ -114,7 +119,7 @@ wait
 printf "%-90s %-6s %7s %7s %7s %7s\n" "Module" "Status" "Passed" "Failed" "Errors" "Skipped"
 printf "%-90s %-6s %7s %7s %7s %7s\n" "$(printf '%0.s-' {1..90})" "------" "-------" "-------" "-------" "-------"
 
-total_passed=0 total_failed=0 total_errors=0 total_skipped=0
+total_passed=0 total_failed=0 total_errors=0 total_skipped=0 failed_modules=0
 
 for module in "${MODULES[@]}"; do
   slug="${module//\//_}"
@@ -124,6 +129,9 @@ for module in "${MODULES[@]}"; do
   total_failed=$((total_failed + failed))
   total_errors=$((total_errors + errors))
   total_skipped=$((total_skipped + skipped))
+  if [ "$status" = "FAIL" ]; then
+    failed_modules=$((failed_modules + 1))
+  fi
   if [ -n "$note" ]; then
     echo "$note"
   fi
@@ -131,3 +139,21 @@ done
 
 printf "%-90s %-6s %7s %7s %7s %7s\n" "$(printf '%0.s-' {1..90})" "------" "-------" "-------" "-------" "-------"
 printf "%-90s %-6s %7s %7s %7s %7s\n" "TOTAL" "" "$total_passed" "$total_failed" "$total_errors" "$total_skipped"
+
+if [ "$failed_modules" -gt 0 ]; then
+  echo ""
+  echo "Failed module output:"
+  for module in "${MODULES[@]}"; do
+    slug="${module//\//_}"
+    IFS='|' read -r name status passed failed errors skipped note < "$RESULTS_DIR/$slug"
+    if [ "$status" = "FAIL" ]; then
+      echo ""
+      echo "===== $module ====="
+      cat "$RESULTS_DIR/$slug.log"
+    fi
+  done
+fi
+
+if [ "$failed_modules" -gt 0 ] || [ "$total_failed" -gt 0 ] || [ "$total_errors" -gt 0 ]; then
+  exit 1
+fi

@@ -30,7 +30,7 @@ class AuthSettings(BaseSettings):
 
     mode: AuthMode = Field(
         default=AuthMode.STRICT,
-        description=("Authentication mode (disabled | optional_verify_dry_run | optional_verify | strict)"),
+        description=("Authentication mode (disabled | optional_verify_dry_run | strict)"),
     )
 
     # OIDC settings

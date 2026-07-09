@@ -1,6 +1,5 @@
 import type { ComponentProps } from 'react';
 import {
-  act,
   cleanup,
   fireEvent,
   render,
@@ -14,29 +13,38 @@ import { RechtsgrundlageDialog } from './RechtsgrundlageDialog';
 type RechtsgrundlageDialogProps = ComponentProps<typeof RechtsgrundlageDialog>;
 
 const {
-  insertMock,
   updateMock,
   deleteMock,
   transactMock,
-  refetchNodeSummariesMock,
+  addLegalBasisNormsToProjectMock,
+  experimentalRouteRemountMock,
   sentryCaptureExceptionMock,
   useAvailableRechtsgrundlageDataMock,
   toastErrorMock,
 } = vi.hoisted(() => ({
-  insertMock: vi.fn(),
   updateMock: vi.fn(),
   deleteMock: vi.fn(),
   transactMock: vi.fn(),
-  refetchNodeSummariesMock: vi.fn(),
+  addLegalBasisNormsToProjectMock: vi.fn(),
+  experimentalRouteRemountMock: vi.fn(),
   sentryCaptureExceptionMock: vi.fn(),
   useAvailableRechtsgrundlageDataMock: vi.fn(),
   toastErrorMock: vi.fn(),
 }));
 
+const BNATSCHG_44_SELECTION_KEY = 'bnatschg::44';
+const BNATSCHG_45_SELECTION_KEY = 'bnatschg::45';
+const ENWG_17_SELECTION_KEY = 'enwg::17';
+
 const MOCK_AVAILABLE_NORM_ENTRIES = [
   {
+    selectionKey: BNATSCHG_44_SELECTION_KEY,
+    legalBasis: {
+      jurabk: 'BNatSchG',
+      paragraph_nr: '44',
+    },
     norm: {
-      id: 'norm-bnatschg-44',
+      id: BNATSCHG_44_SELECTION_KEY,
       gesetz_id: 'law-bnatschg',
       paragraph_nr: '44',
       paragraph_titel:
@@ -46,6 +54,10 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
     gesetz: {
       id: 'law-bnatschg',
       jurabk: 'BNatSchG',
+    },
+    projectNorm: {
+      id: 'norm-bnatschg-44',
+      frontend_parent_ids: ['topic_norm:topic-norm-bnatschg-44'],
     },
     topicNorms: [
       {
@@ -63,10 +75,30 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
       paragraph_nr: '44',
       update_type: 'automated',
     },
+    topicNormLinks: [
+      {
+        norm: {
+          id: 'norm-bnatschg-44',
+          frontend_parent_ids: ['topic_norm:topic-norm-bnatschg-44'],
+        },
+        topicNorm: {
+          id: 'topic-norm-bnatschg-44',
+          node_type: 'topic_norm',
+          jurabk: 'BNatSchG',
+          paragraph_nr: '44',
+          update_type: 'automated',
+        },
+      },
+    ],
   },
   {
+    selectionKey: BNATSCHG_45_SELECTION_KEY,
+    legalBasis: {
+      jurabk: 'BNatSchG',
+      paragraph_nr: '45',
+    },
     norm: {
-      id: 'norm-bnatschg-45',
+      id: BNATSCHG_45_SELECTION_KEY,
       gesetz_id: 'law-bnatschg',
       paragraph_nr: '45',
       paragraph_titel:
@@ -77,12 +109,19 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
       id: 'law-bnatschg',
       jurabk: 'BNatSchG',
     },
+    projectNorm: null,
     topicNorms: [],
     topicNorm: null,
+    topicNormLinks: [],
   },
   {
+    selectionKey: ENWG_17_SELECTION_KEY,
+    legalBasis: {
+      jurabk: 'EnWG',
+      paragraph_nr: '17',
+    },
     norm: {
-      id: 'norm-enwg-17',
+      id: ENWG_17_SELECTION_KEY,
       gesetz_id: 'law-enwg',
       paragraph_nr: '17',
       paragraph_titel:
@@ -93,8 +132,10 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
       id: 'law-enwg',
       jurabk: 'EnWG',
     },
+    projectNorm: null,
     topicNorms: [],
     topicNorm: null,
+    topicNormLinks: [],
   },
 ] as const;
 
@@ -126,40 +167,38 @@ const getNormLabel = (
 const getSelectNormCheckboxLabel = (
   normEntry: (typeof MOCK_AVAILABLE_NORM_ENTRIES)[number],
 ) => {
-  return `${getNormLabel(normEntry)} auswaehlen`;
+  return getNormLabel(normEntry);
 };
 
 const getDeselectNormCheckboxLabel = (
   normEntry: (typeof MOCK_AVAILABLE_NORM_ENTRIES)[number],
 ) => {
-  return `Auswahl von ${getNormLabel(normEntry)} aufheben`;
+  return getNormLabel(normEntry);
 };
 
 const getSelectLawGroupCheckboxLabel = (lawGroup: string) => {
-  return `Alle Normen in ${lawGroup} auswaehlen`;
-};
-
-const getDeselectLawGroupCheckboxLabel = (lawGroup: string) => {
-  return `Auswahl aller Normen in ${lawGroup} aufheben`;
+  return lawGroup;
 };
 
 let mockSelectedNormIds = new Set<string>();
-let generatedIdIndex = 0;
-const NODE_SUMMARIES_REFETCH_DELAY_MS = 3000;
-
 vi.mock('../../screen-data/useRechtsgrundlageData', () => ({
   useAvailableRechtsgrundlageData: () => useAvailableRechtsgrundlageDataMock(),
-  getAvailableNormLabel: (
-    normEntry: (typeof MOCK_AVAILABLE_NORM_ENTRIES)[number],
-  ) => getNormLabel(normEntry),
-  getAvailableNormText: (
-    normEntry: (typeof MOCK_AVAILABLE_NORM_ENTRIES)[number],
-  ) => normEntry.norm.text,
+}));
+
+vi.mock('@/api-clients/examination-module', () => ({
+  addLegalBasisNormsToProject: addLegalBasisNormsToProjectMock,
+}));
+
+vi.mock('@/features/project/versioning/projectVersioning', () => ({
+  useProjectRouteVersion: () => 7,
+}));
+
+vi.mock('@/integrations/router/routeRemount', () => ({
+  experimentalRouteRemount: experimentalRouteRemountMock,
 }));
 
 vi.mock('@/db/nodes/hooks/useAction', () => ({
   useAction: () => ({
-    insert: insertMock,
     update: updateMock,
     delete: deleteMock,
     transact: transactMock,
@@ -214,9 +253,6 @@ vi.mock('@tanstack/react-router', () => ({
       topicName: 'topic-1',
       verfahrenId: 'verfahren-1',
     }),
-    useLoaderData: () => ({
-      refetchNodeSummaries: refetchNodeSummariesMock,
-    }),
   }),
 }));
 
@@ -237,23 +273,11 @@ vi.mock('react-i18next', () => ({
       if (key === 'RechtsgrundlageDialog.selectedCount') {
         return `${String(params?.count ?? 0)} ausgewaehlt`;
       }
-      if (key === 'RechtsgrundlageDialog.groupCheckboxSelectAriaLabel') {
-        return getSelectLawGroupCheckboxLabel(String(params?.lawGroup ?? ''));
-      }
-      if (key === 'RechtsgrundlageDialog.groupCheckboxDeselectAriaLabel') {
-        return getDeselectLawGroupCheckboxLabel(String(params?.lawGroup ?? ''));
-      }
       if (key === 'RechtsgrundlageDialog.groupCheckboxSelectHint') {
         return `Aktivierung waehlt auch ${String(params?.count ?? 0)} zugehoerige Normen aus.`;
       }
       if (key === 'RechtsgrundlageDialog.groupCheckboxDeselectHint') {
         return `Deaktivierung hebt die Auswahl von ${String(params?.count ?? 0)} zugehoerigen Normen auf.`;
-      }
-      if (key === 'RechtsgrundlageDialog.normCheckboxSelectAriaLabel') {
-        return `${String(params?.norm ?? '')} auswaehlen`;
-      }
-      if (key === 'RechtsgrundlageDialog.normCheckboxDeselectAriaLabel') {
-        return `Auswahl von ${String(params?.norm ?? '')} aufheben`;
       }
       if (key in translations) {
         return translations[key as keyof typeof translations];
@@ -322,12 +346,13 @@ afterEach(() => {
 
 beforeEach(() => {
   mockSelectedNormIds = new Set<string>();
-  generatedIdIndex = 0;
-  insertMock.mockReset();
   updateMock.mockReset();
   deleteMock.mockReset();
   transactMock.mockReset();
-  refetchNodeSummariesMock.mockReset();
+  addLegalBasisNormsToProjectMock.mockReset();
+  addLegalBasisNormsToProjectMock.mockResolvedValue({ data: { items: [] } });
+  experimentalRouteRemountMock.mockReset();
+  experimentalRouteRemountMock.mockResolvedValue(undefined);
   sentryCaptureExceptionMock.mockReset();
   toastErrorMock.mockReset();
   useAvailableRechtsgrundlageDataMock.mockReset();
@@ -343,11 +368,6 @@ beforeEach(() => {
         promise: Promise.resolve(),
       },
     };
-  });
-  refetchNodeSummariesMock.mockResolvedValue(undefined);
-  vi.spyOn(globalThis.crypto, 'randomUUID').mockImplementation(() => {
-    generatedIdIndex += 1;
-    return `00000000-0000-4000-8000-${String(generatedIdIndex).padStart(12, '0')}`;
   });
 });
 
@@ -379,74 +399,9 @@ const renderDialog = (overrides?: {
   };
 };
 
-const mockDelayedNodeSummaryRefetchTimer = () => {
-  let delayedRefetch: (() => void) | null = null;
-  const originalSetTimeout = window.setTimeout.bind(window);
-  const originalClearTimeout = window.clearTimeout.bind(window);
-  const setTimeoutSpy = vi.spyOn(window, 'setTimeout').mockImplementation(((
-    handler: TimerHandler,
-    timeout?: number,
-  ) => {
-    if (
-      timeout === NODE_SUMMARIES_REFETCH_DELAY_MS &&
-      typeof handler === 'function'
-    ) {
-      delayedRefetch = () => {
-        (handler as () => void)();
-      };
-      return {} as ReturnType<typeof window.setTimeout>;
-    }
-
-    return originalSetTimeout(handler, timeout);
-  }) as typeof window.setTimeout);
-  const clearTimeoutSpy = vi.spyOn(window, 'clearTimeout').mockImplementation(((
-    timerId?: number,
-  ) => {
-    if (timerId !== undefined) {
-      originalClearTimeout(timerId);
-    }
-  }) as typeof window.clearTimeout);
-
-  return {
-    clearTimeoutSpy,
-    run: async () => {
-      expect(setTimeoutSpy).toHaveBeenCalledWith(
-        expect.any(Function),
-        NODE_SUMMARIES_REFETCH_DELAY_MS,
-      );
-      expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
-
-      await act(async () => {
-        delayedRefetch?.();
-        await Promise.resolve();
-      });
-
-      expect(refetchNodeSummariesMock).toHaveBeenCalledTimes(1);
-    },
-    runAndExpectFailure: async () => {
-      expect(setTimeoutSpy).toHaveBeenCalledWith(
-        expect.any(Function),
-        NODE_SUMMARIES_REFETCH_DELAY_MS,
-      );
-      expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
-
-      await act(async () => {
-        delayedRefetch?.();
-        await Promise.resolve();
-      });
-
-      expect(refetchNodeSummariesMock).toHaveBeenCalledTimes(1);
-      expect(sentryCaptureExceptionMock).toHaveBeenCalledOnce();
-      expect(toastErrorMock).toHaveBeenCalledWith(
-        'Änderungen konnten nicht gespeichert werden.',
-      );
-    },
-  };
-};
-
 describe('RechtsgrundlageDialog', () => {
   it('keeps existing linked norms checked and disabled', () => {
-    const selectedNormIds = new Set<string>(['norm-bnatschg-44']);
+    const selectedNormIds = new Set<string>([BNATSCHG_44_SELECTION_KEY]);
 
     renderDialog({ selectedNormIds });
 
@@ -456,6 +411,14 @@ describe('RechtsgrundlageDialog', () => {
 
     expect(checkbox.getAttribute('data-state')).toBe('checked');
     expect(checkbox.hasAttribute('disabled')).toBe(false);
+  });
+
+  it('does not render norm text in selectable norm rows', () => {
+    renderDialog();
+
+    expect(screen.queryByText('Normtext 44')).toBeNull();
+    expect(screen.queryByText('Normtext 45')).toBeNull();
+    expect(screen.queryByText('Normtext 17')).toBeNull();
   });
 
   it('toggles a new norm locally when its checkbox is clicked', async () => {
@@ -479,12 +442,16 @@ describe('RechtsgrundlageDialog', () => {
     const groupCheckbox = screen.getByRole('checkbox', {
       name: getSelectLawGroupCheckboxLabel('BNatSchG'),
     });
-    const cascadeHintId = groupCheckbox.getAttribute('aria-describedby');
+    const describedByIds = (
+      groupCheckbox.getAttribute('aria-describedby') ?? ''
+    )
+      .split(' ')
+      .filter(Boolean);
+    const describedTexts = describedByIds.map(
+      (id) => document.getElementById(id)?.textContent ?? '',
+    );
 
-    expect(cascadeHintId).toBeTruthy();
-
-    const cascadeHint = document.getElementById(cascadeHintId ?? '');
-    expect(cascadeHint?.textContent).toBe(
+    expect(describedTexts).toContain(
       'Aktivierung waehlt auch 2 zugehoerige Normen aus.',
     );
   });
@@ -492,7 +459,7 @@ describe('RechtsgrundlageDialog', () => {
   it('announces the selected norm count in a polite live region', async () => {
     const user = userEvent.setup();
 
-    renderDialog({ selectedNormIds: new Set(['norm-bnatschg-44']) });
+    renderDialog({ selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]) });
 
     const liveRegion = screen.getByText('1 ausgewaehlt', {
       selector: '.sr-only',
@@ -514,7 +481,7 @@ describe('RechtsgrundlageDialog', () => {
   it('selects all norms in a group when the group checkbox is clicked', async () => {
     const user = userEvent.setup();
 
-    renderDialog({ selectedNormIds: new Set(['norm-bnatschg-44']) });
+    renderDialog({ selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]) });
 
     const groupCheckbox = screen.getByRole('checkbox', {
       name: getSelectLawGroupCheckboxLabel('BNatSchG'),
@@ -535,7 +502,7 @@ describe('RechtsgrundlageDialog', () => {
   it('unselects an existing norm locally when its checkbox is clicked', async () => {
     const user = userEvent.setup();
 
-    renderDialog({ selectedNormIds: new Set(['norm-bnatschg-44']) });
+    renderDialog({ selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]) });
 
     const checkbox = screen.getByRole('checkbox', {
       name: getDeselectNormCheckboxLabel(MOCK_AVAILABLE_NORM_ENTRIES[0]),
@@ -547,12 +514,12 @@ describe('RechtsgrundlageDialog', () => {
     expect(checkbox.getAttribute('data-state')).toBe('unchecked');
   });
 
-  it('closes the dialog, inserts new topic_norm nodes, and schedules a node summary refetch for newly selected norms', async () => {
+  it('bulk adds newly selected norms and remounts the MVP route', async () => {
     const user = userEvent.setup();
     const onOpenChange = vi.fn<RechtsgrundlageDialogProps['onOpenChange']>();
     renderDialog({
       onOpenChange,
-      selectedNormIds: new Set(['norm-bnatschg-44']),
+      selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]),
     });
 
     const newNormCheckbox = screen.getByRole('checkbox', {
@@ -562,48 +529,31 @@ describe('RechtsgrundlageDialog', () => {
     await waitFor(() => {
       expect(newNormCheckbox.getAttribute('data-state')).toBe('checked');
     });
-    const delayedRefetch = mockDelayedNodeSummaryRefetchTimer();
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     await waitFor(() => {
-      expect(transactMock).toHaveBeenCalledOnce();
-      expect(insertMock).toHaveBeenCalledOnce();
-      expect(updateMock).toHaveBeenCalledOnce();
+      expect(addLegalBasisNormsToProjectMock).toHaveBeenCalledOnce();
+      expect(transactMock).not.toHaveBeenCalled();
+      expect(updateMock).not.toHaveBeenCalled();
       expect(deleteMock).not.toHaveBeenCalled();
       expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(experimentalRouteRemountMock).toHaveBeenCalledWith('verfahren-1');
     });
-    await delayedRefetch.run();
 
     expect(onOpenChange.mock.invocationCallOrder.at(-1)).toBeGreaterThan(
-      transactMock.mock.invocationCallOrder.at(0) ?? 0,
+      addLegalBasisNormsToProjectMock.mock.invocationCallOrder.at(0) ?? 0,
     );
 
-    expect(insertMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: '00000000-0000-4000-8000-000000000001',
-        node_type: 'topic_norm',
-        payload: {
-          topic_id: 'topic-1',
-          type: 'pruefung',
-          jurabk: 'BNatSchG',
-          paragraph_nr: '45',
-          mvp_status: 'unchecked',
-          satz_statuses: {},
-          update_type: 'manual',
-          frontend_parent_ids: ['topic:topic-1'],
-        },
-      }),
-    );
-    expect(insertMock.mock.calls[0]?.[0]?.payload).not.toHaveProperty(
-      'project_version',
-    );
-    expect(insertMock.mock.calls[0]?.[0]?.payload).not.toHaveProperty(
-      'sys_period',
-    );
-    expect(updateMock).toHaveBeenCalledWith(
-      MOCK_AVAILABLE_NORM_ENTRIES[1].norm,
-      expect.any(Function),
-    );
+    expect(addLegalBasisNormsToProjectMock).toHaveBeenCalledWith({
+      body: {
+        topic_id: 'topic-1',
+        type: 'pruefung',
+        norms: [{ jurabk: 'BNatSchG', paragraph_nr: '45' }],
+      },
+      path: { project_id: 'verfahren-1' },
+      query: { project_version: 7 },
+      throwOnError: true,
+    });
   });
 
   it('does not persist selection changes without topic mutation rights', async () => {
@@ -621,24 +571,21 @@ describe('RechtsgrundlageDialog', () => {
     await user.click(saveButton);
 
     expect(transactMock).not.toHaveBeenCalled();
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(addLegalBasisNormsToProjectMock).not.toHaveBeenCalled();
     expect(updateMock).not.toHaveBeenCalled();
     expect(deleteMock).not.toHaveBeenCalled();
-    expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
+    expect(experimentalRouteRemountMock).not.toHaveBeenCalled();
   });
 
   it('shows a spinner in the save button while saving', async () => {
     const user = userEvent.setup();
-    let resolvePersistence: (() => void) | undefined;
-    transactMock.mockImplementationOnce((callback: () => void) => {
-      callback();
-      return {
-        isPersisted: {
-          promise: new Promise<void>((resolve) => {
-            resolvePersistence = resolve;
-          }),
-        },
-      };
+    let resolveAddRequest: (() => void) | undefined;
+    addLegalBasisNormsToProjectMock.mockImplementationOnce(() => {
+      return new Promise((resolve) => {
+        resolveAddRequest = () => {
+          resolve({ data: { items: [] } });
+        };
+      });
     });
     renderDialog();
 
@@ -655,13 +602,13 @@ describe('RechtsgrundlageDialog', () => {
     expect(saveButton.getAttribute('aria-busy')).toBe('true');
     expect(saveButton.querySelector('svg.animate-spin')).not.toBeNull();
 
-    resolvePersistence?.();
+    resolveAddRequest?.();
   });
 
   it('deletes topic_norm nodes and cleans the norm edge for removed norms', async () => {
     const user = userEvent.setup();
     const { onOpenChange } = renderDialog({
-      selectedNormIds: new Set(['norm-bnatschg-44']),
+      selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]),
     });
 
     const checkbox = screen.getByRole('checkbox', {
@@ -671,72 +618,25 @@ describe('RechtsgrundlageDialog', () => {
     await waitFor(() => {
       expect(checkbox.getAttribute('data-state')).toBe('unchecked');
     });
-    const delayedRefetch = mockDelayedNodeSummaryRefetchTimer();
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     await waitFor(() => {
       expect(transactMock).toHaveBeenCalledOnce();
+      expect(addLegalBasisNormsToProjectMock).not.toHaveBeenCalled();
       expect(deleteMock).toHaveBeenCalledOnce();
       expect(updateMock).toHaveBeenCalledOnce();
-      expect(insertMock).not.toHaveBeenCalled();
+      expect(addLegalBasisNormsToProjectMock).not.toHaveBeenCalled();
       expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(experimentalRouteRemountMock).toHaveBeenCalledWith('verfahren-1');
     });
-    await delayedRefetch.run();
 
     expect(deleteMock).toHaveBeenCalledWith(
       MOCK_AVAILABLE_NORM_ENTRIES[0].topicNorm,
     );
     expect(updateMock).toHaveBeenCalledWith(
-      MOCK_AVAILABLE_NORM_ENTRIES[0].norm,
+      MOCK_AVAILABLE_NORM_ENTRIES[0].projectNorm,
       expect.any(Function),
     );
-  });
-
-  it('clears a scheduled node summary refetch when the dialog unmounts', async () => {
-    const user = userEvent.setup();
-    const { unmount } = renderDialog();
-
-    const checkbox = screen.getByRole('checkbox', {
-      name: getSelectNormCheckboxLabel(MOCK_AVAILABLE_NORM_ENTRIES[1]),
-    });
-    await user.click(checkbox);
-    await waitFor(() => {
-      expect(checkbox.getAttribute('data-state')).toBe('checked');
-    });
-    const delayedRefetch = mockDelayedNodeSummaryRefetchTimer();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
-
-    await waitFor(() => {
-      expect(transactMock).toHaveBeenCalledOnce();
-    });
-
-    unmount();
-
-    expect(delayedRefetch.clearTimeoutSpy).toHaveBeenCalled();
-    expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
-  });
-
-  it('reports delayed node summary refetch failures', async () => {
-    const user = userEvent.setup();
-    refetchNodeSummariesMock.mockRejectedValueOnce(new Error('refetch failed'));
-    renderDialog();
-
-    const checkbox = screen.getByRole('checkbox', {
-      name: getSelectNormCheckboxLabel(MOCK_AVAILABLE_NORM_ENTRIES[1]),
-    });
-    await user.click(checkbox);
-    await waitFor(() => {
-      expect(checkbox.getAttribute('data-state')).toBe('checked');
-    });
-    const delayedRefetch = mockDelayedNodeSummaryRefetchTimer();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
-
-    await waitFor(() => {
-      expect(transactMock).toHaveBeenCalledOnce();
-    });
-    await delayedRefetch.runAndExpectFailure();
   });
 
   it('deletes every linked topic_norm when removing a norm with duplicate links', async () => {
@@ -757,13 +657,30 @@ describe('RechtsgrundlageDialog', () => {
               frontend_parent_ids: ['topic:topic-1'],
             },
           ],
+          topicNormLinks: [
+            {
+              norm: MOCK_AVAILABLE_NORM_ENTRIES[0].projectNorm,
+              topicNorm: MOCK_AVAILABLE_NORM_ENTRIES[0].topicNorm,
+            },
+            {
+              norm: MOCK_AVAILABLE_NORM_ENTRIES[0].projectNorm,
+              topicNorm: {
+                id: 'topic-norm-bnatschg-44-duplicate',
+                node_type: 'topic_norm',
+                jurabk: 'BNatSchG',
+                paragraph_nr: '44',
+                update_type: 'manual',
+                frontend_parent_ids: ['topic:topic-1'],
+              },
+            },
+          ],
         },
         ...MOCK_AVAILABLE_NORM_ENTRIES.slice(1),
       ],
-      selectedNormIds: new Set(['norm-bnatschg-44']),
+      selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]),
     }));
     const { onOpenChange } = renderDialog({
-      selectedNormIds: new Set(['norm-bnatschg-44']),
+      selectedNormIds: new Set([BNATSCHG_44_SELECTION_KEY]),
     });
 
     const checkbox = screen.getByRole('checkbox', {
@@ -773,7 +690,6 @@ describe('RechtsgrundlageDialog', () => {
     await waitFor(() => {
       expect(checkbox.getAttribute('data-state')).toBe('unchecked');
     });
-    const delayedRefetch = mockDelayedNodeSummaryRefetchTimer();
     fireEvent.click(screen.getByRole('button', { name: 'Speichern' }));
 
     await waitFor(() => {
@@ -781,19 +697,13 @@ describe('RechtsgrundlageDialog', () => {
       expect(updateMock).toHaveBeenCalledTimes(2);
       expect(onOpenChange).toHaveBeenCalledWith(false);
     });
-    await delayedRefetch.run();
   });
 
   it('shows an error when persisting new norms fails', async () => {
     const user = userEvent.setup();
-    transactMock.mockImplementationOnce((callback: () => void) => {
-      callback();
-      return {
-        isPersisted: {
-          promise: Promise.reject(new Error('save failed')),
-        },
-      };
-    });
+    addLegalBasisNormsToProjectMock.mockRejectedValueOnce(
+      new Error('save failed'),
+    );
     const { onOpenChange } = renderDialog();
 
     await user.click(
@@ -810,66 +720,7 @@ describe('RechtsgrundlageDialog', () => {
     });
 
     expect(onOpenChange).not.toHaveBeenCalledWith(false);
-    expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
-  });
-
-  it('shows a user-visible error when a selected norm cannot be saved without a law payload', async () => {
-    const user = userEvent.setup();
-
-    useAvailableRechtsgrundlageDataMock.mockImplementation(() => ({
-      availableLawGroups: [
-        {
-          id: 'law-missing',
-          gesetz: null,
-          norms: [
-            {
-              norm: {
-                id: 'norm-missing-law',
-                gesetz_id: 'law-missing',
-                paragraph_nr: '99',
-                paragraph_titel: 'Norm ohne Gesetz',
-                text: 'Normtext 99',
-              },
-              gesetz: null,
-              topicNorms: [],
-              topicNorm: null,
-            },
-          ],
-        },
-      ],
-      availableNormEntries: [
-        {
-          norm: {
-            id: 'norm-missing-law',
-            gesetz_id: 'law-missing',
-            paragraph_nr: '99',
-            paragraph_titel: 'Norm ohne Gesetz',
-            text: 'Normtext 99',
-          },
-          gesetz: null,
-          topicNorms: [],
-          topicNorm: null,
-        },
-      ],
-      selectedNormIds: new Set<string>(),
-    }));
-
-    renderDialog();
-
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: '§ 99 Norm ohne Gesetz auswaehlen',
-      }),
-    );
-    await user.click(screen.getByRole('button', { name: 'Speichern' }));
-
-    expect(toastErrorMock).toHaveBeenCalledWith(
-      'Mindestens eine ausgewählte Norm kann ohne zugeordnetes Gesetz nicht gespeichert werden.',
-    );
-    expect(transactMock).not.toHaveBeenCalled();
-    expect(insertMock).not.toHaveBeenCalled();
-    expect(updateMock).not.toHaveBeenCalled();
-    expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
+    expect(experimentalRouteRemountMock).not.toHaveBeenCalled();
   });
 
   it('closes without inserting when cancel is clicked', async () => {
@@ -878,10 +729,10 @@ describe('RechtsgrundlageDialog', () => {
 
     await user.click(screen.getByRole('button', { name: 'Abbrechen' }));
 
-    expect(insertMock).not.toHaveBeenCalled();
+    expect(addLegalBasisNormsToProjectMock).not.toHaveBeenCalled();
     expect(updateMock).not.toHaveBeenCalled();
     expect(deleteMock).not.toHaveBeenCalled();
-    expect(refetchNodeSummariesMock).not.toHaveBeenCalled();
+    expect(experimentalRouteRemountMock).not.toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 

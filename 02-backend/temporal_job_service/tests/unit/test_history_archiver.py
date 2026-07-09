@@ -41,8 +41,7 @@ async def test_archive_inlines_s3_reference_payloads(tmp_path):
     codec.decode = AsyncMock(return_value=[decoded])
 
     storage = MagicMock()
-    storage.put = AsyncMock()
-    storage.put.return_value = "temporal-history/proj-1/T/wf/run.json.gz"
+    storage.put_bytes = AsyncMock(return_value="temporal-history/proj-1/T/wf/run.json.gz")
 
     archiver = HistoryArchiver(s3=storage, codec=codec, bucket="b", prefix="temporal-history")
     key = await archiver.archive(
@@ -55,8 +54,10 @@ async def test_archive_inlines_s3_reference_payloads(tmp_path):
         project_version="1",
     )
     assert key == "temporal-history/proj-1/T/wf/run.json.gz"
-    storage.put.assert_awaited_once()
-    body = storage.put.await_args.args[0]
+    storage.put_bytes.assert_awaited_once()
+    assert storage.put_bytes.await_args.kwargs["key"] == "temporal-history/proj-1/T/wf/run.json.gz"
+    assert storage.put_bytes.await_args.kwargs["content_type"] == "application/gzip"
+    body = storage.put_bytes.await_args.kwargs["payload_data"]
     envelope = json.loads(gzip.decompress(body).decode())
     assert envelope["workflow_id"] == "wf"
     assert envelope["status"] == "completed"
@@ -72,8 +73,7 @@ async def test_archive_uses_unknown_for_missing_project(tmp_path):
     client.get_workflow_handle = MagicMock(return_value=handle)
 
     storage = MagicMock()
-    storage.put = AsyncMock()
-    storage.put.return_value = "temporal-history/unknown/T/wf/run.json.gz"
+    storage.put_bytes = AsyncMock(return_value="temporal-history/unknown/T/wf/run.json.gz")
 
     archiver = HistoryArchiver(s3=storage, codec=MagicMock(), bucket="b", prefix="temporal-history")
     key = await archiver.archive(
@@ -86,6 +86,7 @@ async def test_archive_uses_unknown_for_missing_project(tmp_path):
         project_version=None,
     )
     assert key == "temporal-history/unknown/T/wf/run.json.gz"
+    assert storage.put_bytes.await_args.kwargs["key"] == "temporal-history/unknown/T/wf/run.json.gz"
 
 
 async def test_archive_encrypts_body_when_key_configured(tmp_path):
@@ -96,7 +97,7 @@ async def test_archive_encrypts_body_when_key_configured(tmp_path):
     client.get_workflow_handle = MagicMock(return_value=handle)
 
     storage = MagicMock()
-    storage.put = AsyncMock(return_value="temporal-history/unknown/T/wf/run.json.gz")
+    storage.put_bytes = AsyncMock(return_value="temporal-history/proj-1/T/wf/run.json.gz")
 
     key = Fernet.generate_key()
     archiver = HistoryArchiver(
@@ -116,10 +117,12 @@ async def test_archive_encrypts_body_when_key_configured(tmp_path):
         project_version="1",
     )
 
-    storage.put.assert_awaited_once()
-    body = storage.put.await_args.args[0]
+    storage.put_bytes.assert_awaited_once()
+    assert storage.put_bytes.await_args.kwargs["key"] == "temporal-history/proj-1/T/wf/run.json.gz"
+    assert storage.put_bytes.await_args.kwargs["content_type"] == "application/octet-stream"
+    body = storage.put_bytes.await_args.kwargs["payload_data"]
     # Raw body is no longer a readable gzip stream.
-    with pytest.raises(Exception):
+    with pytest.raises(gzip.BadGzipFile):
         gzip.decompress(body)
     # But decrypting with the configured key recovers the original envelope.
     envelope = json.loads(gzip.decompress(Fernet(key).decrypt(body)).decode())

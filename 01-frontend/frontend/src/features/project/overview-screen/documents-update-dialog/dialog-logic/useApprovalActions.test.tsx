@@ -12,7 +12,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/api-clients/dms-module', () => ({
-  cancelUploadProcessV2FilesFileIdCancelGet: mocks.cancelUpload,
+  cancelUploadProcessV2FilesFileIdCancelPost: mocks.cancelUpload,
 }));
 
 vi.mock('@/api-clients/dms-module/@tanstack/react-query.gen', () => ({

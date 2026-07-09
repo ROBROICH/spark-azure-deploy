@@ -16,6 +16,18 @@
   "next": "Weiter",
   "plzInvalid": "Die PLZ muss 5 Ziffern haben.",
   "projectTypesLoadError": "Verfahrensarten konnten nicht geladen werden.",
+  "required": {
+    "country": "Land ist ein Pflichtfeld.",
+    "entryDate": "Antragseingang ist ein Pflichtfeld.",
+    "federalState": "Bundesland ist ein Pflichtfeld.",
+    "houseNumber": "Hausnummer ist ein Pflichtfeld.",
+    "internalProjectNumber": "Aktenzeichen ist ein Pflichtfeld.",
+    "location": "Ort ist ein Pflichtfeld.",
+    "plz": "PLZ ist ein Pflichtfeld.",
+    "projectName": "Verfahrensname ist ein Pflichtfeld.",
+    "projectType": "Art ist ein Pflichtfeld.",
+    "street": "Straße ist ein Pflichtfeld."
+  },
   "saving": "Wird gespeichert…",
   "step1": {
     "aktenzeichen": "Aktenzeichen",

@@ -90,6 +90,7 @@ export const projectRouteLoader = async (
 
   return {
     db,
+    projectName: project.name,
     projectVersion,
     refetchNodeSummaries: () => nodesCollection.utils.refetch(),
     workflowsManager,

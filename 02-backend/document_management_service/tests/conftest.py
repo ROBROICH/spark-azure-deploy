@@ -12,7 +12,13 @@ if _env_override:
 if os.environ.get("INTEGRATION_TEST"):
     os.environ["DOC_STORE_PATH"] = "integration_tests"
 
+# Values only used for testing. Do not copy them in your production env
 os.environ.setdefault("AUTH_MODE", "disabled")
+os.environ.setdefault("DB_PASSWORD", "unit-test-password")
+os.environ.setdefault("TEMPORAL__S3_SECRET_ACCESS_KEY", "unit-test-secret")
+os.environ.setdefault("TEMPORAL__S3_ACCESS_KEY_ID", "unit-test-key")
+os.environ.setdefault("S3_ACCESS_KEY_ID", "unit-test-secret")
+os.environ.setdefault("S3_SECRET_ACCESS_KEY", "unit-test-key")
 
 import pytest  # noqa: E402
 import pytest_asyncio  # noqa: E402

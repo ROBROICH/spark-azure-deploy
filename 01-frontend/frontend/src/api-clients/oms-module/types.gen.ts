@@ -1210,12 +1210,6 @@ export type MetricsMetricsGetResponses = {
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1253,12 +1247,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1296,12 +1284,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1339,12 +1321,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1375,12 +1351,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1411,12 +1381,6 @@ export type UndoVersionProjectIdUndoVersionPostResponse = UndoVersionProjectIdUn
 
 export type ExportArgumentsProjectIdArgumentsExportGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1447,12 +1411,6 @@ export type ExportArgumentsProjectIdArgumentsExportGetResponse = ExportArguments
 
 export type ImportArgumentsProjectIdArgumentsImportPostData = {
     body: FileIdRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1483,12 +1441,6 @@ export type ImportArgumentsProjectIdArgumentsImportPostResponse = ImportArgument
 
 export type ListProcessedFileIdsProjectIdEwmsProcessedFileIdsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1524,12 +1476,6 @@ export type ListProcessedFileIdsProjectIdEwmsProcessedFileIdsGetResponse = ListP
 
 export type InsertArgumentExtractionResultsProjectIdEwmsArgumentExtractionPostData = {
     body: ArgumentExtractionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1565,12 +1511,6 @@ export type InsertArgumentExtractionResultsProjectIdEwmsArgumentExtractionPostRe
 
 export type UpdateClassificationResultsProjectIdEwmsClassificationPatchData = {
     body: ClassificationRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1606,12 +1546,6 @@ export type UpdateClassificationResultsProjectIdEwmsClassificationPatchResponse 
 
 export type MarkClassificationFailedProjectIdEwmsClassificationFailedPatchData = {
     body: ClassificationFailedRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -1647,12 +1581,6 @@ export type MarkClassificationFailedProjectIdEwmsClassificationFailedPatchRespon
 
 export type MarkInjectionDetectedProjectIdEwmsInjectionDetectedPostData = {
     body: InjectionDetectedRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

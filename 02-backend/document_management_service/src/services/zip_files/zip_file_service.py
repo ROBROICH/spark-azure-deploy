@@ -320,9 +320,9 @@ class ZipFileService:
             return
         if kind == ZipDiffKind.UNCHANGED and row.old_name is not None:
             row.filename = row.old_name
-        elif kind == ZipDiffKind.NEW and row.new_name is not None:
-            row.filename = row.new_name
-        elif kind == ZipDiffKind.RENAMED and row.new_name is not None:
+        elif (kind == ZipDiffKind.NEW and row.new_name is not None) or (
+            kind == ZipDiffKind.RENAMED and row.new_name is not None
+        ):
             row.filename = row.new_name
 
     async def _get_diff_rows(

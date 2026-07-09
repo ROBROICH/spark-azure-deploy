@@ -24,6 +24,44 @@ environment:
   - QUARANTINE_S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
   - QUARANTINE_S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
 
+  # ----- LLM model routing (single source of truth) ------------------------
+  # Each module hard-codes provider-specific model names in its own .env.local
+  # (self-hosted/gpt-oss-120b, Qwen/..., bge-m3, gemma-...). The local LiteLLM
+  # proxy only serves the models the operator actually configured, so force
+  # every module's model variable to one of the three names from the root .env
+  # (written by scripts/create_secrets.sh). Module variable names differ, so
+  # each is set explicitly; a process ignores variables it does not read, and
+  # OS env set here overrides the value in the module's .env.local.
+  #   LITELLM_TEXT_MODEL     -> chat / completion
+  #   LITELLM_EMBEDDING_MODEL -> text embeddings
+  #   LITELLM_VISUAL_MODEL   -> vision / multimodal (image + PDF-page input)
+  # Chat:
+  - LLM_MODEL=${LITELLM_TEXT_MODEL}
+  - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
+  - LITELLM_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  - MODELS_LARGE_LLM=${LITELLM_TEXT_MODEL}
+  - MODELS_MEDIUM_LLM=${LITELLM_TEXT_MODEL}
+  - MODELS_SMALL_LLM=${LITELLM_TEXT_MODEL}
+  - LLM_DB_RESEARCH_MODEL=${LITELLM_TEXT_MODEL}
+  - LLM_PAGEINDEX_SVM_MODEL_STAGE1=${LITELLM_TEXT_MODEL}
+  - LLM_PAGEINDEX_SVM_MODEL_STAGE2=${LITELLM_TEXT_MODEL}
+  - METADATA_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  - STRUCTURE_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  - SCHWERPUNKTTHEMA_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  - SUMMARIZATION_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  # VLM_SUMMARY_MODEL_NAME summarises the *text* output of a prior VLM run -> chat.
+  - VLM_SUMMARY_MODEL_NAME=${LITELLM_TEXT_MODEL}
+  - LLM_CATEGORISATION_MODEL=${LITELLM_TEXT_MODEL}
+  - LLM_SUMMARISATION_MODEL=${LITELLM_TEXT_MODEL}
+  - LLM_ENRICHMENT_MODEL=${LITELLM_TEXT_MODEL}
+  # Embeddings (plausibilitaet reads LITELLM_EMBEDDING_MODEL directly from .env):
+  - EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
+  - LLM_EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
+  - CHUNKING_MODEL=${LITELLM_EMBEDDING_MODEL}
+  # Vision / multimodal (modul-inhaltsextraktion: VLM enhancement + LightOnOCR):
+  - VLLM_MODEL=${LITELLM_VISUAL_MODEL}
+  - LIGHT_ON_OCR_MODEL=${LITELLM_VISUAL_MODEL}
+
 processes:
   project-logic:
     command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18000 --reload
@@ -65,6 +103,9 @@ processes:
     working_dir: ./02-backend/document_management_service
     environment:
       - DB_NAME=dms
+      # Origin embedded in presigned upload/download URLs handed to the browser. Overrides the
+      # service's .env.local. Same-origin as the frontend behind a reverse proxy; localhost otherwise.
+      - S3_EXTERNAL_URL=${S3_PUBLIC_URL}
       - TEMPORAL__HOST=localhost:7233
       - TEMPORAL__TASK_QUEUE=dms
       - TEMPORAL__PLS_TASK_QUEUE=project-logic-service
@@ -658,11 +699,14 @@ processes:
     working_dir: ./01-frontend/frontend
     environment:
       - VITE_DEV_API_MODE=port-forwarding
-      - VITE_API_BASE_URL=http://localhost:3000
+      # Browser-facing URLs: localhost, or the public https://<port>-$WEB_HOST values that
+      # create_secrets.sh wrote to .env. The S3 origins must equal the origin of the presigned
+      # URLs (S3_EXTERNAL_URL on the document-management service below).
+      - VITE_API_BASE_URL=${FRONTEND_PUBLIC_URL}
       - VITE_APP_BASE_PATH=/app
-      - VITE_TEMPORAL_UI_BASE_URL=http://localhost:8233
-      - VITE_ALLOWED_DOWNLOAD_ORIGINS=http://localhost:9000
-      - VITE_ALLOWED_UPLOAD_ORIGINS=http://localhost:9000
+      - VITE_TEMPORAL_UI_BASE_URL=${TEMPORAL_UI_PUBLIC_URL}
+      - VITE_ALLOWED_DOWNLOAD_ORIGINS=${S3_PUBLIC_URL}
+      - VITE_ALLOWED_UPLOAD_ORIGINS=${S3_PUBLIC_URL}
       - VITE_PLS_OPENAPI_URL=http://localhost:18000/openapi.json
       - VITE_DMS_OPENAPI_URL=http://localhost:18001/openapi.json
       - VITE_FCS_OPENAPI_URL=http://localhost:18002/openapi.json

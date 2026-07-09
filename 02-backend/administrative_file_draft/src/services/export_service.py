@@ -7,7 +7,6 @@ from uuid import UUID
 
 import httpx
 from anyio import to_thread
-from authentification.internal_api_key import internal_api_key_headers
 from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -45,7 +44,7 @@ async def export_project_pdf(project_id: UUID, db: AsyncSession) -> bytes:
 
 async def _fetch_project_export_metadata(project_id: UUID) -> ProjectExportMetadata:
     """Fetch project metadata from the project logic service."""
-    async with httpx.AsyncClient(timeout=5.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=5.0) as client:
         try:
             response = await client.get(f"{settings.PROJECT_LOGIC_SERVICE_URL}/projects/{project_id}")
         except httpx.RequestError as exc:

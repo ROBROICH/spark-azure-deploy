@@ -1,4 +1,10 @@
 """Test configuration and fixtures."""
+import os
+
+# Values only used for testing. Do not copy them in your production env
+os.environ.setdefault("AUTH_MODE", "disabled")
+os.environ.setdefault("TEMPORAL__S3_SECRET_ACCESS_KEY", "unit-test-secret")
+os.environ.setdefault("TEMPORAL__S3_ACCESS_KEY_ID", "unit-test-key")
 
 from collections.abc import Iterator
 

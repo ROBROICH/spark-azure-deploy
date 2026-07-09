@@ -6,7 +6,6 @@ from uuid import UUID
 
 import httpx
 from audit_client import ChangeType, record_audit_entry
-from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -68,7 +67,7 @@ def _latest_version_from_response(body: dict[str, Any]) -> int:
 
 async def _get_latest_project_version(project_id: UUID) -> int:
     url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/latest-version"
-    async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(url)
         if response.status_code == HTTPStatus.NOT_FOUND:
             raise NotFoundError(f"Project {project_id} not found in PLS")
@@ -78,7 +77,7 @@ async def _get_latest_project_version(project_id: UUID) -> int:
 
 async def _validate_project_write_version(project_id: UUID, project_version: int) -> int:
     url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/version-lock/validate-write"
-    async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.post(url, json={"project_version": project_version})
         if response.status_code == HTTPStatus.CONFLICT:
             detail = response.json().get("detail", response.text)
@@ -107,7 +106,7 @@ async def _fetch_project_type_id(project_id: UUID) -> UUID:
     if not pls_url:
         raise NotFoundError("PROJECT_LOGIC_SERVICE_URL is not configured")
 
-    async with httpx.AsyncClient(timeout=5.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=5.0) as client:
         response = await client.get(f"{pls_url}/projects/{project_id}")
 
     if response.status_code == HTTPStatus.NOT_FOUND:

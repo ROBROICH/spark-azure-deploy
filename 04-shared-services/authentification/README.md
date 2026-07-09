@@ -106,7 +106,7 @@ dependencies = [
 | Variable | Description | Default | Required |
 | -------- | ----------- | ------- | -------- |
 | `SERVICE_NAME` | Name of the consuming service for settings and logging context. | `not-set` | no |
-| `AUTH_MODE` | Authentication mode: `disabled`, `optional_verify_dry_run`, `optional_verify`, or `strict`. | `strict` | no |
+| `AUTH_MODE` | Authentication mode: `disabled`, `optional_verify_dry_run`, or `strict`. | `strict` | no |
 | `AUTH_BASE_URL` | OIDC provider base URL. | — | yes, except when `AUTH_MODE=disabled` |
 | `AUTH_REALM` | OIDC realm or tenant. | — | yes, except when `AUTH_MODE=disabled` |
 | `AUTH_AUDIENCE` | Expected token audience or client ID. | — | yes, except when `AUTH_MODE=disabled` |
@@ -133,8 +133,7 @@ When `AUTH_MODE=disabled`, missing **OIDC- & OAuth 2.0-konformer Identitäts- un
 
 | Mode | Bearer token handling                                                                                                                                                                                                                                                            | Role and ReBAC enforcement | Intended use |
 | ---- |----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| -------------------------- | ------------ |
-| `strict` | A bearer token is required and must verify against the configured issuer, audience, expiry, and signature. Missing or invalid tokens return `401`.                                                                                                                               | `require_role`, `require_permissions`, and `list_accessible_resources` require an authenticated user. Missing roles or denied ReBAC checks return `403`. | Services that must enforce authentication and authorization themselves, including direct in-cluster calls that bypass the edge proxy. |
-| `optional_verify` | A bearer token is optional. If present, it must verify. Missing token is accepted and resolves to `user=None` unless an allowlisted machine identity is present; invalid token returns `401`.                                                                                                                                      | If no user is resolved, role, permission, and resource-filter dependencies skip checks and return anonymous results. If a valid user is resolved, role and ReBAC checks are enforced normally. | Current edge-auth deployment mode for services behind Envoy Gateway: Envoy enforces that external requests are authenticated and forwards the access token, while the service verifies forwarded tokens when present. Direct calls without a bearer token must be protected by mesh/network policy or allowlisted machine identity. |
+| `strict` | A bearer token is required and must verify against the configured issuer, audience, expiry, and signature. Missing or invalid tokens return `401`, unless an allowlisted machine identity is present.                                                                                                                               | `require_role`, `require_permissions`, and `list_accessible_resources` require an authenticated user. Missing roles or denied ReBAC checks return `403`. | Default deployment mode. Services enforce authentication and authorization themselves, including direct in-cluster calls that bypass the edge proxy. |
 | `optional_verify_dry_run` | **Only for testing**: A bearer token is optional. If present, the verifier first tries strict verification. If verification fails, it logs the failure and falls back to unverified claim decoding. If the token cannot even be decoded, the request continues with `user=None`. | Checks are evaluated for visibility but do not block denied ReBAC or role decisions. Responses include dry-run headers such as `X-Auth-Mode`, `X-Auth-Result`, `X-Auth-Permissions`, `X-Auth-Roles`, and `X-Auth-Resource-Filter` when relevant. | Rollout and migration mode for measuring what strict auth would do before enforcing it. Not a security boundary. |
 | `disabled` | The library ignores bearer tokens and returns `user=None`. OIDC and ReBAC settings may be omitted and are replaced with dummy local values.                                                                                                                                      | Role, permission, and resource-filter dependencies skip checks because there is no authenticated user. Code that explicitly checks `auth_settings().mode == AuthMode.DISABLED` may also skip relationship writes or auth-client usage. | Local tests, isolated development, or services protected entirely by other controls. Do not use for externally reachable production routes unless another layer fully enforces access. |
 
@@ -144,14 +143,14 @@ Tokenless service-to-service calls can authenticate with an Istio SPIFFE identit
 
 Istio and Envoy operate before the request reaches the FastAPI application. The project deployment config currently uses Envoy Gateway OIDC for external browser/API traffic and Istio mTLS for in-cluster workload traffic.
 
-For Envoy Gateway OIDC, the `SecurityPolicy` uses `clientID: envoy-gateway` and `forwardAccessToken: true`. Envoy performs the login/session flow, obtains an OIDC access token, and forwards it to backend services as `Authorization: Bearer ...`. Backend deployments then set `AUTH_AUDIENCE=envoy-gateway` and commonly use `AUTH_MODE=optional_verify`.
+For Envoy Gateway OIDC, the `SecurityPolicy` uses `clientID: envoy-gateway` and `forwardAccessToken: true`. Envoy performs the login/session flow, obtains an OIDC access token, and forwards it to backend services as `Authorization: Bearer ...`. Backend deployments then set `AUTH_AUDIENCE=envoy-gateway` and use `AUTH_MODE=strict`.
 
 That combination means:
 
 - External requests must authenticate at Envoy before reaching the backend.
 - The backend verifies the forwarded bearer token when it is present.
 - Route-level role and ReBAC checks run when the verified token resolves to a user.
-- A request that reaches the service without a bearer token is accepted by `optional_verify` and app-level auth dependencies skip user-based checks unless an allowlisted machine identity resolves to the synthetic `service` user. Direct service access must still be controlled by the mesh or Kubernetes networking.
+- A request that reaches the service without a bearer token is rejected in `strict` mode unless an allowlisted machine identity resolves to the synthetic `service` user.
 
 `AUTH_MODE=strict` is stronger at the application layer because the service itself rejects any request without a valid bearer token. Use it when direct callers are also expected to send user/service JWTs and the service should not rely on Envoy or mesh policy for missing-token rejection.
 
@@ -227,19 +226,26 @@ async def get_project(project_id: UUID):
     return {"status": "ok", "project_id": project_id}
 ```
 
-### Resolve Resource IDs From Request Bodies
+### Resolve Resource IDs From Validated Request Bodies
 
 ```python
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
-from authentification.dependencies import require_permissions
+from authentification.dependencies import require_permission_from_body, require_permissions, require_permissions_from_body
 from authentification.enums import Permission, Resource
-from authentification.resolver import body_field, body_path
+from authentification.resolver import path_param
 
 router = APIRouter(prefix="/projects", tags=["projects"])
+
+
+class CreateTopicRequest(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    project_id: UUID = Field(alias="projectId")
+    name: str
 
 
 class FileModel(BaseModel):
@@ -247,43 +253,83 @@ class FileModel(BaseModel):
     name: str
 
 
-class GetProjectFilesRequest(BaseModel):
-    metadata: dict
+class FileActionRequest(BaseModel):
+    project_id: UUID = Field(alias="projectId")
     file: FileModel
 
 
-@router.post(
-    "/{project_id}/files/by-path",
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.READ, body_path("file", "id"))
-            )
-        ),
-    ],
-)
-async def get_project_file_by_path(project_id: UUID, payload: GetProjectFilesRequest):
-    return {"status": "ok", "project_id": project_id, "file": payload.file.id}
-
-
-class FileRequest(BaseModel):
-    id: UUID
-    name: str
-
-
-@router.post(
-    "/{project_id}/files/by-field",
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.READ, body_field("id"))
-            )
-        ),
-    ],
-)
-async def get_project_file_by_field(project_id: UUID, payload: FileRequest):
-    return {"status": "ok", "project_id": project_id, "file": payload.id}
+@router.post("/topics")
+async def create_topic(
+    payload: CreateTopicRequest = Depends(
+        require_permission_from_body(
+            CreateTopicRequest,
+            "project_id",
+            Permission.CREATE,
+            Resource.PROJECT,
+            bypass_roles=["admin", "service"],
+        )
+    ),
+):
+    return {"status": "ok", "project_id": payload.project_id}
 ```
+
+Pass a field path for nested values:
+
+```python
+@router.post("/files/action")
+async def run_file_action(
+    payload: FileActionRequest = Depends(
+        require_permission_from_body(
+            FileActionRequest,
+            ("file", "id"),
+            Permission.READ,
+            "file",
+        )
+    ),
+):
+    return {"status": "ok", "file_id": payload.file.id}
+```
+
+For multiple checks against the same validated body, use one dependency:
+
+```python
+@router.post("/files/action")
+async def run_project_file_action(
+    payload: FileActionRequest = Depends(
+        require_permissions_from_body(
+            FileActionRequest,
+            (Resource.PROJECT, Permission.UPDATE, "project_id"),
+            ("file", Permission.READ, ("file", "id")),
+        )
+    ),
+):
+    return {"status": "ok", "file_id": payload.file.id}
+```
+
+For multiple checks, combine a validated-body dependency with path/query resolvers:
+
+```python
+@router.post("/{project_id}/topics")
+async def create_project_topic(
+    project_id: UUID,
+    payload: CreateTopicRequest = Depends(
+        require_permission_from_body(
+            CreateTopicRequest,
+            "project_id",
+            Permission.CREATE,
+            Resource.PROJECT,
+        )
+    ),
+    _: None = Depends(
+        require_permissions(
+            (Resource.PROJECT, Permission.READ, path_param("project_id"))
+        )
+    ),
+):
+    return {"status": "ok", "project_id": project_id, "body_project_id": payload.project_id}
+```
+
+Do not resolve authorization resources from raw JSON bodies. Use a validated request model so authorization and handler logic read the same value.
 
 ### List Accessible Resources
 

@@ -65,9 +65,11 @@ global:
     - name: AUTH_BASE_URL
       value: "<keycloak-base-url>"
 
-    # Authentication enforcement mode: optional_verify | enforce | disabled.
+    # Authentication enforcement mode: strict | enforce | disabled.
     - name: AUTH_MODE
       value: "<auth-mode>"
+    - name: AUTH_ALLOWED_MACHINE_IDENTITIES
+      value: "spiffe://cluster.local/ns/*/sa/*"
 
     # Keycloak realm used for token validation.
     - name: AUTH_REALM

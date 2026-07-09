@@ -39,7 +39,6 @@ Shared workflow definitions live in this package so callers and workers import t
 | S3-compatible object storage | Stores large payloads referenced from Temporal payload metadata. |
 | **Event-Logging-Library** | Emits structured worker and workflow logs. |
 | **Audit-Client-Library** | Propagates actor and audit context across Temporal boundaries. |
-| `internal-auth` | Supplies internal authentication headers for workflow tracking calls. |
 | OpenTelemetry collector | Receives tracing and local log export data. |
 
 ### Data Models
@@ -104,7 +103,6 @@ The library accepts configuration as function arguments, but consuming services 
 | `OTEL_SERVICE_NAME` | Service name used in OpenTelemetry resources. | - | yes, when observability is configured |
 | `OTEL_ENDPOINT` | OTLP endpoint for traces and local log export. | - | yes, when observability is configured |
 | `TEMPORAL_JOB_SERVICE_URL` | Enables workflow tracking when set. Status payloads are posted to this base URL. | unset | no |
-| `AUTH_INTERNAL_API_KEY` | Internal API key used by `internal-auth` for workflow tracking requests. | empty string | no |
 
 ### Running the Module / Service
 
@@ -207,7 +205,7 @@ Tracking requests are sent to:
 POST {TEMPORAL_JOB_SERVICE_URL}/internal/workflows/status
 ```
 
-The `TrackingClient` uses `internal-auth` headers, so set `AUTH_INTERNAL_API_KEY` when the receiving service requires internal service authentication. Tracking HTTP failures are logged and do not crash workflow execution.
+Tracking HTTP failures are logged and do not crash workflow execution.
 
 ## Public API
 

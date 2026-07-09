@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 from uuid import uuid4
 
 import pytest
+from node_crud.exceptions import ProjectVersionLockedError
 from sqlalchemy import select
 
 from src.exceptions.exceptions import NotFoundError
@@ -15,6 +16,7 @@ from src.models.schemas.risks_schemas import (
 )
 from src.services.risks_service import (
     _get_latest_project_version,
+    _validate_project_write_version,
     create_risks,
     get_risks,
     update_risk,
@@ -91,6 +93,39 @@ async def test_get_latest_project_version_accepts_camel_case_response(monkeypatc
     monkeypatch.setattr("src.services.risks_service.httpx.AsyncClient", lambda **_kwargs: Client())
 
     assert await _get_latest_project_version(uuid4()) == 5
+
+
+@pytest.mark.asyncio
+async def test_validate_project_write_version_sanitizes_upstream_conflict(monkeypatch):
+    upstream_body = "internal lock owner=user@example.test token=secret"
+
+    class Response:
+        status_code = 409
+        text = upstream_body
+
+        def raise_for_status(self):
+            return None
+
+    class Client:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *_args):
+            return None
+
+        async def post(self, _url, json):
+            return Response()
+
+    monkeypatch.setattr("src.services.risks_service.httpx.AsyncClient", lambda **_kwargs: Client())
+
+    with pytest.raises(ProjectVersionLockedError) as exc_info:
+        await _validate_project_write_version(uuid4(), 3)
+
+    message = str(exc_info.value)
+    assert "Project version cannot be modified" in message
+    assert "correlation_id=" in message
+    assert "internal lock owner" not in message
+    assert "secret" not in message
 
 
 @pytest.mark.asyncio

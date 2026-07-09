@@ -40,6 +40,25 @@ export const germanStateByCode = {
   TH: 'Thüringen',
 } satisfies Record<FederalStateCode, GermanState>;
 
+export const federalStateCodeByGermanState = {
+  Bayern: 'BY',
+  'Baden-Württemberg': 'BW',
+  Berlin: 'BE',
+  Brandenburg: 'BB',
+  Bremen: 'HB',
+  Hamburg: 'HH',
+  Hessen: 'HE',
+  'Mecklenburg-Vorpommern': 'MV',
+  Niedersachsen: 'NI',
+  'Nordrhein-Westfalen': 'NW',
+  'Rheinland-Pfalz': 'RP',
+  Saarland: 'SL',
+  Sachsen: 'SN',
+  'Sachsen-Anhalt': 'ST',
+  'Schleswig-Holstein': 'SH',
+  Thüringen: 'TH',
+} satisfies Record<GermanState, FederalStateCode>;
+
 export const germanStates = Object.values(germanStateByCode) as [
   GermanState,
   ...GermanState[],

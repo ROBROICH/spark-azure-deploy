@@ -6,15 +6,6 @@ requires-python = ">=3.13, <3.14"
 
 [tool.uv]
 managed = true
-# Forces starlette>=1.0.1 past prometheus-fastapi-instrumentator's <1.0 cap (CVE-2026-48710).
-# Runtime-verified compatible with prom-fastapi-instrumentator 7.1.0; the upstream cap is
-# over-conservative. Track upstream relaxation and drop this override once available.
-override-dependencies = ["starlette>=1.0.1"]
-constraint-dependencies = [
-  "temporalio<1.28.0",
-  "prometheus-fastapi-instrumentator>=7.1.0,<8.0.0",
-  "pyjwt>=2.13.0",
-]
 
 [tool.uv.workspace]
 members = [
@@ -43,7 +34,6 @@ members = [
     "04-shared-services/db-services/shared",
     "04-shared-services/alembic-utils",
     "04-shared-services/audit-client",
-    "04-shared-services/internal-auth",
     "04-shared-services/node-crud",
     "04-shared-services/prompt-injection",
     "04-shared-services/temporal",
@@ -144,15 +134,15 @@ max-statements = 50
 
 [tool.poe.tasks.pyrefly-all]
 help = "Run pyrefly check in each uv workspace member"
-cmd = "sh scripts/pyrefly_all.sh"
+cmd = "bash scripts/pyrefly_all.sh"
 
 [tool.poe.tasks.test]
 help = "Run all workspace member pytests. Use --pr to only run it for members you changed"
-cmd = "sh scripts/run_all_tests.sh"
+cmd = "bash scripts/run_all_tests.sh"
 
 [tool.poe.tasks.create-secrets]
 help = "Create a private .env file with shared local secrets"
-cmd = "sh scripts/create_secrets.sh"
+cmd = "bash scripts/create_secrets.sh"
 
 [tool.poe.tasks.process-compose]
 help = "Start the native local service stack"

@@ -8,12 +8,13 @@ from authentification.dependencies import (
     get_auth_client,
     get_current_user,
     get_verifier,
+    require_permission_from_body,
     require_permissions,
     require_role,
 )
 from authentification.enums import AuthMode, OidcRoles, Permission, Resource
 from authentification.models import OidcUserInfo
-from authentification.resolver import body_field, query_param
+from authentification.resolver import query_param
 from authentification.verifier import OidcVerifier
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response, status
 
@@ -38,18 +39,17 @@ AUTHENTICATED_ROLES = [OidcRoles.SERVICE, OidcRoles.USER, OidcRoles.ADMIN]
 @router.post(
     "/confirm-upload",
     response_model=FileResponse | ZipFileResponse,
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.CREATE, body_field("project_id")),
-                bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
-            )
-        ),
-    ],
 )
 async def confirm_upload(
-    payload: PublicUploadRequest,
     request: Request,
+    payload: PublicUploadRequest = Depends(
+        require_permission_from_body(
+            PublicUploadRequest,
+            "project_id",
+            Permission.CREATE,
+            bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
+        )
+    ),
     project_version: Annotated[int | None, Query()] = None,
     service: FileService = Depends(get_file_service),
 ):
@@ -316,18 +316,17 @@ async def generate_download_url(
 @router.post(
     "/start-file-processing",
     response_model=StartFileProcessingResponse,
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.CREATE, body_field("project_id")),
-                bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
-            )
-        ),
-    ],
 )
 async def start_file_processing(
-    payload: StartFileProcessingRequest,
     request: Request,
+    payload: StartFileProcessingRequest = Depends(
+        require_permission_from_body(
+            StartFileProcessingRequest,
+            "project_id",
+            Permission.CREATE,
+            bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
+        )
+    ),
     service: FileService = Depends(get_file_service),
 ):
     """
@@ -345,17 +344,16 @@ async def start_file_processing(
 @router.post(
     "/generate-upload-url",
     response_model=FileUploadUrlResponse,
-    dependencies=[
-        Depends(
-            require_permissions(
-                (Resource.PROJECT, Permission.CREATE, body_field("project_id")),
-                bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
-            )
-        ),
-    ],
 )
 async def generate_upload_url(
-    file_data: PublicUploadRequest,
+    file_data: PublicUploadRequest = Depends(
+        require_permission_from_body(
+            PublicUploadRequest,
+            "project_id",
+            Permission.CREATE,
+            bypass_roles=[OidcRoles.ADMIN, OidcRoles.SERVICE],
+        )
+    ),
     project_version: Annotated[int | None, Query()] = None,
     service: FileService = Depends(get_file_service),
 ):

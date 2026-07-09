@@ -79,7 +79,7 @@ export const OccurrenceComparisonColumn = (
             documentId={occurrence.documentId}
             pageNumber={pageNumber}
             label={occurrenceLabel}
-            viewerKey={`${occurrence.documentId}-${pageNumber}`}
+            viewerKey={`${occurrence.documentId}-${pageNumber}-${occurrenceIndex}`}
             hideLabel
           />
         </div>

@@ -10,7 +10,7 @@ import pytest
 from temporal.project_context import use_project_context
 from temporalio.exceptions import ApplicationError
 
-from src.services.api_clients import FileObject, FilesApiClient, ObjectionsServiceClient, PlsApiClient
+from src.services.api_clients import ApiClient, FileObject, FilesApiClient, ObjectionsServiceClient, PlsApiClient
 from src.services.project_version_errors import (
     PROJECT_VERSION_LOCKED_ERROR_TYPE,
     VERSION_NOT_LATEST_ERROR_TYPE,
@@ -18,6 +18,8 @@ from src.services.project_version_errors import (
 
 PAGE_SIZE = 500
 EXPECTED_LATEST_VERSION = 3
+HTTP_OK = 200
+HTTP_BAD_GATEWAY = 502
 
 
 def _make_file_dict(**kwargs: Any) -> dict[str, Any]:
@@ -226,6 +228,49 @@ def test_api_client_marks_project_version_conflicts_non_retryable(detail: str, e
     assert exc_info.value.type == error_type
     assert exc_info.value.non_retryable is True
     assert exc_info.value.message == detail
+
+
+def test_api_client_handles_http_status_error_without_response() -> None:
+    request = httpx.Request("GET", "http://service/unavailable")
+    status_error = httpx.HTTPStatusError("connect failed", request=request, response=None)
+
+    FilesApiClient._raise_non_retryable_project_version_error(status_error)
+
+    assert FilesApiClient._http_error_status(status_error) == HTTP_BAD_GATEWAY
+    assert FilesApiClient._http_error_body(status_error) == "No upstream response"
+
+
+@pytest.mark.asyncio
+async def test_get_stream_uses_bounded_timeout(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured_client_kwargs: dict[str, Any] = {}
+
+    class StreamingResponseContext:
+        async def __aenter__(self) -> httpx.Response:
+            request = httpx.Request("GET", "http://service/file")
+            return httpx.Response(HTTP_OK, request=request)
+
+        async def __aexit__(self, *args: object) -> None:
+            return None
+
+    class RecordingAsyncClient:
+        def __init__(self, **kwargs: object) -> None:
+            captured_client_kwargs.update(kwargs)
+
+        async def __aenter__(self) -> "RecordingAsyncClient":
+            return self
+
+        async def __aexit__(self, *args: object) -> None:
+            return None
+
+        def stream(self, method: str, url: str, params: dict[str, str] | None = None) -> StreamingResponseContext:
+            return StreamingResponseContext()
+
+    monkeypatch.setattr(httpx, "AsyncClient", RecordingAsyncClient)
+
+    async with FilesApiClient.get_stream("http://service/file") as response:
+        assert response.status_code == HTTP_OK
+
+    assert captured_client_kwargs["timeout"] == ApiClient.stream_timeout
 
 
 @pytest.mark.asyncio

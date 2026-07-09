@@ -4,7 +4,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from '@/features/ui/form/field';
-import { Input } from '@/features/ui/input/Input';
 import { SelectMenu } from '@/features/ui/select-menu/SelectMenu';
 import { revalidateLogic, useForm } from '@tanstack/react-form';
 import type React from 'react';
@@ -15,12 +14,17 @@ import {
   isFederalStateCode,
 } from '@/features/project/data/project-details-form/federalStates';
 import {
-  PROJECT_NAME_MAX_LENGTH,
   createProjectSchema,
   type ProjectStepValues,
 } from '@/features/project/data/project-details-form/projectForm.schema';
+import { replaceProjectRequiredErrorMessage } from './createProjectFormErrors.logic';
+import { focusFirstInvalidFormControl } from './focusFirstInvalidFormControl';
+import { ProjectInputField } from './ProjectFormStepFields';
 
 export type { ProjectStepValues };
+
+const ADD_PROJECT_TYPE_LABEL_ID = 'add-project-type-label';
+const ADD_PROJECT_FEDERAL_STATE_LABEL_ID = 'add-project-federal-state-label';
 
 type ProjectFormStepProps = {
   defaultValues: ProjectStepValues;
@@ -37,7 +41,11 @@ type ProjectFormStepProps = {
   onFormReady?: (methods: { submit: () => void }) => void;
 };
 
-/** Step 1: Project details. Parent triggers submit via onFormReady ref. */
+/**
+ * Owns the project-detail validation step and exposes the guarded submit handle
+ * used by the parent stepper so native and footer-triggered submits share the
+ * same duplicate-check gate.
+ */
 export function ProjectFormStep(
   props: ProjectFormStepProps,
 ): React.ReactElement {
@@ -51,11 +59,11 @@ export function ProjectFormStep(
     onFormReady,
   } = props;
   const { t } = useTranslation('CreateProjectForm');
+  const formRef = useRef<HTMLFormElement>(null);
   const verfahrenSchema = createProjectSchema(
     t,
     existingInternalProjectNumbers,
   );
-
   const form = useForm({
     defaultValues,
     validationLogic: revalidateLogic({
@@ -67,6 +75,9 @@ export function ProjectFormStep(
     },
     onSubmit: ({ value }) => {
       handleStepSubmit(value);
+    },
+    onSubmitInvalid: () => {
+      focusFirstInvalidFormControl(formRef);
     },
   });
 
@@ -101,37 +112,14 @@ export function ProjectFormStep(
         submitWhenAllowed();
       }}
       id="add-project-step1-form"
+      ref={formRef}
       className="flex flex-col gap-4"
     >
       <FieldGroup className="gap-4">
         <form.Field name="name">
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && field.state.meta.errors.length > 0;
-            const errorId = `${field.name}-error`;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>
-                  {t('step1.projectName')}*
-                </FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  maxLength={PROJECT_NAME_MAX_LENGTH}
-                  autoComplete="off"
-                  aria-required
-                  aria-invalid={isInvalid}
-                  aria-describedby={isInvalid ? errorId : undefined}
-                />
-                {isInvalid ? (
-                  <FieldError id={errorId} errors={field.state.meta.errors} />
-                ) : null}
-              </Field>
-            );
-          }}
+          {(field) => (
+            <ProjectInputField field={field} labelKey="step1.projectName" />
+          )}
         </form.Field>
         <form.Field name="projectTypeId">
           {(field) => {
@@ -140,7 +128,10 @@ export function ProjectFormStep(
             const errorId = 'add-project-type-error';
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor="add-project-type">
+                <FieldLabel
+                  id={ADD_PROJECT_TYPE_LABEL_ID}
+                  htmlFor="add-project-type"
+                >
                   {t('step1.type')}*
                 </FieldLabel>
                 <SelectMenu
@@ -156,10 +147,19 @@ export function ProjectFormStep(
                   placeholder={t('step1.selectType')}
                   triggerClassName="w-full"
                   required
+                  ariaLabelledBy={ADD_PROJECT_TYPE_LABEL_ID}
                   ariaDescribedby={isInvalid ? errorId : undefined}
                 />
                 {isInvalid && (
-                  <FieldError id={errorId} errors={field.state.meta.errors} />
+                  <FieldError
+                    id={errorId}
+                    announce={false}
+                    errors={replaceProjectRequiredErrorMessage(
+                      field.state.meta.errors,
+                      field.name,
+                      t,
+                    )}
+                  />
                 )}
                 {projectTypesLoadFailed && projectTypes.length === 0 && (
                   <div
@@ -181,7 +181,10 @@ export function ProjectFormStep(
             const errorId = 'add-project-federal-state-error';
             return (
               <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor="add-project-federal-state">
+                <FieldLabel
+                  id={ADD_PROJECT_FEDERAL_STATE_LABEL_ID}
+                  htmlFor="add-project-federal-state"
+                >
                   {t('step1.federalState')}*
                 </FieldLabel>
                 <SelectMenu
@@ -200,72 +203,33 @@ export function ProjectFormStep(
                   onBlur={field.handleBlur}
                   triggerClassName="w-full"
                   required
+                  ariaLabelledBy={ADD_PROJECT_FEDERAL_STATE_LABEL_ID}
                   ariaDescribedby={isInvalid ? errorId : undefined}
                 />
                 {isInvalid && (
-                  <FieldError id={errorId} errors={field.state.meta.errors} />
+                  <FieldError
+                    id={errorId}
+                    announce={false}
+                    errors={replaceProjectRequiredErrorMessage(
+                      field.state.meta.errors,
+                      field.name,
+                      t,
+                    )}
+                  />
                 )}
               </Field>
             );
           }}
         </form.Field>
         <form.Field name="entryDate">
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && field.state.meta.errors.length > 0;
-            const errorId = `${field.name}-error`;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>
-                  {t('step1.antrageingang')}*
-                </FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type="date"
-                  max="9999-12-31"
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  autoComplete="off"
-                  aria-required
-                  aria-invalid={isInvalid}
-                  aria-describedby={isInvalid ? errorId : undefined}
-                />
-                {isInvalid ? (
-                  <FieldError id={errorId} errors={field.state.meta.errors} />
-                ) : null}
-              </Field>
-            );
-          }}
+          {(field) => (
+            <ProjectInputField field={field} labelKey="step1.antrageingang" />
+          )}
         </form.Field>
         <form.Field name="internalProjectNumber">
-          {(field) => {
-            const isInvalid =
-              field.state.meta.isTouched && field.state.meta.errors.length > 0;
-            const errorId = `${field.name}-error`;
-            return (
-              <Field data-invalid={isInvalid}>
-                <FieldLabel htmlFor={field.name}>
-                  {t('step1.aktenzeichen')}*
-                </FieldLabel>
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  value={field.state.value}
-                  onBlur={field.handleBlur}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  autoComplete="off"
-                  aria-required
-                  aria-invalid={isInvalid}
-                  aria-describedby={isInvalid ? errorId : undefined}
-                />
-                {isInvalid ? (
-                  <FieldError id={errorId} errors={field.state.meta.errors} />
-                ) : null}
-              </Field>
-            );
-          }}
+          {(field) => (
+            <ProjectInputField field={field} labelKey="step1.aktenzeichen" />
+          )}
         </form.Field>
       </FieldGroup>
     </form>

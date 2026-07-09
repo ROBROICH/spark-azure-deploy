@@ -5,7 +5,6 @@ from typing import Any
 from uuid import UUID
 
 import httpx
-from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -37,7 +36,7 @@ async def _fetch_file_metadata(file_id: UUID, project_version: int | None = None
     base_url = settings.DOCUMENT_MANAGEMENT_SERVICE_URL.rstrip("/")
     metadata_endpoint = f"{base_url}/v2/files/{file_id}"
     params = {"project_version": project_version} if project_version is not None else None
-    async with httpx.AsyncClient(timeout=30.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(metadata_endpoint, params=params)
         response.raise_for_status()
         return response.json()
@@ -75,7 +74,7 @@ async def _fetch_download_url(
 ) -> FileDownloadResponse:
     """Fetch presigned download URL for a file from Document Management Service."""
     params = {"project_version": project_version} if project_version is not None else None
-    async with httpx.AsyncClient(timeout=30.0, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.get(download_url_endpoint, params=params)
         response.raise_for_status()
         return FileDownloadResponse.model_validate(response.json())
@@ -104,7 +103,9 @@ async def _fetch_json_content(
 async def fetch_results_file(file_id: UUID, project_version: int | None = None) -> FormalCompletenessCheckResults:
     """Fetch and parse the results JSON from Document Management Service."""
     base_url = settings.DOCUMENT_MANAGEMENT_SERVICE_URL.rstrip("/")
-    download_url_endpoint = f"{base_url}/v2/files/{file_id}/generate-download-url"
+    # Internal route: signed against the internal storage endpoint so this server-side caller can
+    # reach it (the public route signs the browser-facing host, unreachable from the backend).
+    download_url_endpoint = f"{base_url}/v2/internal/files/{file_id}/generate-download-url"
 
     logger.debug(
         EventAction.READ,

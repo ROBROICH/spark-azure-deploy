@@ -1,3 +1,14 @@
+## Version 0.12.0 (29.06.2026)
+
+- The plausibility check was expanded to include bidirectional checks for contradictions between documents (previous scope: checks within one document and between a document and the explanatory report).
+- Various interface adjustments (including accessibility improvements), bug fixes, and general quality improvements were completed.
+
+## Version 0.11.0 (22.06.2026)
+
+- The dialog for editing the legal basis in the material completeness check was expanded to include all available legal norms.
+- Notes added during text recognition are removed more reliably so EWMS can process objections without unnecessary security warnings.
+- ZIP archives now have more time to extract, so uploads with many or large files are processed more reliably.
+
 ## Version 0.10.0 (28.05.2026)
 
 - The “Public participation” process step is available.

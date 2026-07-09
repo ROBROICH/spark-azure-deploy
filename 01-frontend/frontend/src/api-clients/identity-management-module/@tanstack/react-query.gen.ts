@@ -4,7 +4,7 @@ import { type DefaultError, queryOptions, type UseMutationOptions } from '@tanst
 
 import { client } from '../client.gen';
 import { getAllIdentitiesUsersGet, getIdentityMeGet, healthCheckHealthzGet, metricsMetricsGet, type Options, readinessCheckReadyGet, replaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPost, startupCheckStartupGet, updateUserRolesMeRolesPost } from '../sdk.gen';
-import type { GetAllIdentitiesUsersGetData, GetAllIdentitiesUsersGetError, GetAllIdentitiesUsersGetResponse, GetIdentityMeGetData, GetIdentityMeGetError, GetIdentityMeGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, MetricsMetricsGetData, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostData, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostError, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostResponse, StartupCheckStartupGetData, UpdateUserRolesMeRolesPostData, UpdateUserRolesMeRolesPostError, UpdateUserRolesMeRolesPostResponse } from '../types.gen';
+import type { GetAllIdentitiesUsersGetData, GetAllIdentitiesUsersGetError, GetAllIdentitiesUsersGetResponse, GetIdentityMeGetData, GetIdentityMeGetResponse, HealthCheckHealthzGetData, HealthCheckHealthzGetResponse, MetricsMetricsGetData, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponse, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostData, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostError, ReplaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostResponse, StartupCheckStartupGetData, UpdateUserRolesMeRolesPostData, UpdateUserRolesMeRolesPostError, UpdateUserRolesMeRolesPostResponse } from '../types.gen';
 
 export type QueryKey<TOptions extends Options> = [
     Pick<TOptions, 'baseUrl' | 'body' | 'headers' | 'path' | 'query'> & {
@@ -69,7 +69,7 @@ export const getIdentityMeGetQueryKey = (options?: Options<GetIdentityMeGetData>
  * Requires a valid Bearer token. No external calls are made — all fields
  * are read directly from the token payload.
  */
-export const getIdentityMeGetOptions = (options?: Options<GetIdentityMeGetData>) => queryOptions<GetIdentityMeGetResponse, GetIdentityMeGetError, GetIdentityMeGetResponse, ReturnType<typeof getIdentityMeGetQueryKey>>({
+export const getIdentityMeGetOptions = (options?: Options<GetIdentityMeGetData>) => queryOptions<GetIdentityMeGetResponse, DefaultError, GetIdentityMeGetResponse, ReturnType<typeof getIdentityMeGetQueryKey>>({
     queryFn: async ({ queryKey, signal }) => {
         const { data } = await getIdentityMeGet({
             ...options,

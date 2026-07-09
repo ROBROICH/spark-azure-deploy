@@ -46,6 +46,14 @@ class FakeTemporalHandle:
         return self.history
 
 
+class FakeTemporalDescriptionHandle:
+    def __init__(self, search_attributes) -> None:
+        self.search_attributes = search_attributes
+
+    async def describe(self):
+        return SimpleNamespace(search_attributes=self.search_attributes)
+
+
 class FakeTemporalHistoryClient:
     def __init__(self, history) -> None:
         self.history = history
@@ -54,6 +62,16 @@ class FakeTemporalHistoryClient:
     def get_workflow_handle(self, workflow_id: str, run_id: str | None = None):
         self.handle_requests.append((workflow_id, run_id))
         return FakeTemporalHandle(self.history)
+
+
+class FakeTemporalDescriptionClient:
+    def __init__(self, search_attributes) -> None:
+        self.search_attributes = search_attributes
+        self.handle_requests: list[tuple[str, str | None]] = []
+
+    def get_workflow_handle(self, workflow_id: str, run_id: str | None = None):
+        self.handle_requests.append((workflow_id, run_id))
+        return FakeTemporalDescriptionHandle(self.search_attributes)
 
 
 def make_workflow(
@@ -79,6 +97,20 @@ def make_workflow(
         start_time=datetime(2026, 4, 15, 9, 0, tzinfo=UTC),
         close_time=datetime(2026, 4, 15, 9, 5, tzinfo=UTC),
     )
+
+
+@pytest.mark.asyncio
+async def test_get_workflow_project_id_reads_project_search_attribute() -> None:
+    project_id = str(uuid4())
+    temporal_client = FakeTemporalDescriptionClient({"ProjectId": [project_id]})
+
+    result = await JobServiceService.get_workflow_project_id(
+        "wf-1",
+        temporal_client,  # type: ignore[arg-type]
+    )
+
+    assert result == project_id
+    assert temporal_client.handle_requests == [("wf-1", None)]
 
 
 def make_child_history(

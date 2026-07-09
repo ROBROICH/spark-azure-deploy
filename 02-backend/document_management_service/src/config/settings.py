@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     MAX_SINGLE_ENTRY_SIZE_MB: int
     MAX_ZIP_ENTRIES: int
     MAX_COMPRESSION_RATIO: int
+    MAX_DIFF_HASH_CONCURRENCY: int = Field(default=8, ge=1)
 
     @property
     def MAX_ZIP_EXTRACTION_SIZE_BYTES(self) -> int:  # noqa: N802
@@ -188,12 +189,12 @@ class Settings(BaseSettings):
         scanning entirely. This validator refuses to start in such misconfigured states.
         """
         # Environments where scanning can be safely disabled (local dev only)
-        SCANNING_OPTIONAL_ENVS = {"local", "development", "dev"}
+        scanning_optional_envs = {"local", "development", "dev"}
 
-        if self.ENV not in SCANNING_OPTIONAL_ENVS and not self.CLAMAV.ENABLED:
+        if self.ENV not in scanning_optional_envs and not self.CLAMAV.ENABLED:
             raise ValueError(
                 f"CLAMAV must be enabled in '{self.ENV}' environment. "
-                f"Malware scanning can only be disabled in local development: {', '.join(sorted(SCANNING_OPTIONAL_ENVS))}. "
+                f"Malware scanning can only be disabled in local development: {', '.join(sorted(scanning_optional_envs))}. "
                 "Set CLAMAV__ENABLED=true or use ENV=dev for local development."
             )
         return self

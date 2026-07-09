@@ -50,6 +50,8 @@ type SelectMenuProps = {
   itemClassName?: string;
   /** Accessible label for the trigger button. */
   ariaLabel?: string;
+  /** References visible label text that names the trigger button. */
+  ariaLabelledBy?: string;
   /** Links the trigger to an error or hint element. Pass the error element's `id`. */
   ariaDescribedby?: string;
   required?: boolean;
@@ -182,6 +184,7 @@ function SelectMenu(props: SelectMenuProps) {
     chevronClassName,
     itemClassName,
     ariaLabel,
+    ariaLabelledBy,
     ariaDescribedby,
     required,
     disabled = false,
@@ -204,6 +207,7 @@ function SelectMenu(props: SelectMenuProps) {
       <SelectTrigger
         id={id}
         aria-label={ariaLabel}
+        aria-labelledby={ariaLabelledBy}
         aria-describedby={ariaDescribedby || undefined}
         aria-required={required || undefined}
         aria-invalid={invalid || undefined}

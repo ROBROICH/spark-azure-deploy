@@ -1,4 +1,4 @@
-import { cancelUploadProcessV2FilesFileIdCancelGet } from '@/api-clients/dms-module';
+import { cancelUploadProcessV2FilesFileIdCancelPost } from '@/api-clients/dms-module';
 import {
   setFileDiffV2FilesFileIdDiffPostMutation,
   submitApprovalV2FilesFileIdDecisionPostMutation,
@@ -55,7 +55,7 @@ const useApprovalActionsRaw = () => {
   );
   const cancelUpload = useMutation({
     mutationFn: async (fileId: string) => {
-      const { data } = await cancelUploadProcessV2FilesFileIdCancelGet({
+      const { data } = await cancelUploadProcessV2FilesFileIdCancelPost({
         path: { file_id: fileId },
       });
       return data;

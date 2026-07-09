@@ -291,12 +291,6 @@ export type StartupCheckStartupGetResponse = StartupCheckStartupGetResponses[key
 
 export type GetPendingPendingUpdatesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -347,25 +341,10 @@ export type GetPendingPendingUpdatesGetResponse = GetPendingPendingUpdatesGetRes
 
 export type DeleteScheduleTemporalScheduleDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/temporal/schedule';
 };
-
-export type DeleteScheduleTemporalScheduleDeleteErrors = {
-    /**
-     * Validation Error
-     */
-    422: HttpValidationError;
-};
-
-export type DeleteScheduleTemporalScheduleDeleteError = DeleteScheduleTemporalScheduleDeleteErrors[keyof DeleteScheduleTemporalScheduleDeleteErrors];
 
 export type DeleteScheduleTemporalScheduleDeleteResponses = {
     /**
@@ -378,12 +357,6 @@ export type DeleteScheduleTemporalScheduleDeleteResponse = DeleteScheduleTempora
 
 export type CreateScheduleTemporalSchedulePostData = {
     body: CreateScheduleRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/temporal/schedule';
@@ -407,12 +380,6 @@ export type CreateScheduleTemporalSchedulePostResponses = {
 
 export type UpdateScheduleTemporalSchedulePutData = {
     body: UpdateScheduleRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/temporal/schedule';
@@ -438,12 +405,6 @@ export type UpdateScheduleTemporalSchedulePutResponse = UpdateScheduleTemporalSc
 
 export type PauseScheduleTemporalSchedulePausePostData = {
     body: PauseScheduleRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/temporal/schedule/pause';

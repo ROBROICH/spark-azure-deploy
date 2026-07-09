@@ -1411,6 +1411,11 @@ export type BewertungQuellePatchPayload = {
 };
 
 /**
+ * BundeslandParam
+ */
+export type BundeslandParam = 'BY' | 'BW' | 'BE' | 'BB' | 'HB' | 'HH' | 'HE' | 'MV' | 'NI' | 'NW' | 'RP' | 'SL' | 'SN' | 'ST' | 'SH' | 'TH';
+
+/**
  * CheckResponse
  *
  * Response model for health checks.
@@ -3283,6 +3288,251 @@ export type IvPruefungPatchPayload = {
 };
 
 /**
+ * LegalBasisAddNormItemResponse
+ */
+export type LegalBasisAddNormItemResponse = {
+    gesetz: ProjectLegalBasisLawResponse;
+    norm: ProjectLegalBasisNormResponse;
+    topic_norm: ProjectLegalBasisTopicNormResponse;
+    /**
+     * Created Gesetz
+     */
+    created_gesetz: boolean;
+    /**
+     * Created Norm
+     */
+    created_norm: boolean;
+    /**
+     * Created Topic Norm
+     */
+    created_topic_norm: boolean;
+    /**
+     * Is Deconstructed
+     */
+    is_deconstructed: boolean;
+    /**
+     * Deconstruction Id
+     */
+    deconstruction_id?: string | null;
+    /**
+     * Deconstruction Created At
+     */
+    deconstruction_created_at?: string | null;
+};
+
+/**
+ * LegalBasisAddNormRequest
+ */
+export type LegalBasisAddNormRequest = {
+    /**
+     * Topic Id
+     */
+    topic_id: string;
+    /**
+     * Norms
+     */
+    norms: Array<LegalBasisNormSelection>;
+    /**
+     * Type
+     */
+    type?: 'pruefung' | 'verfahren';
+};
+
+/**
+ * LegalBasisAddNormResponse
+ */
+export type LegalBasisAddNormResponse = {
+    /**
+     * Items
+     */
+    items: Array<LegalBasisAddNormItemResponse>;
+};
+
+/**
+ * LegalBasisLawResponse
+ */
+export type LegalBasisLawResponse = {
+    /**
+     * Node Type
+     */
+    node_type?: 'gesetz';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Jurabk
+     */
+    jurabk: string;
+    /**
+     * Titel
+     */
+    titel?: string | null;
+    /**
+     * Kurztitel
+     */
+    kurztitel?: string | null;
+    /**
+     * Doknr
+     */
+    doknr?: string | null;
+    /**
+     * Bundesland
+     */
+    bundesland?: string | null;
+    /**
+     * Dokument Typ
+     */
+    dokument_typ?: string | null;
+    /**
+     * Fundstelle
+     */
+    fundstelle?: string | null;
+    /**
+     * Standangaben
+     */
+    standangaben?: Array<LegalBasisStandangabeResponse>;
+};
+
+/**
+ * LegalBasisNormInfoResponse
+ */
+export type LegalBasisNormInfoResponse = {
+    /**
+     * Node Type
+     */
+    node_type?: 'norm';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Gesetz Id
+     */
+    gesetz_id: string;
+    /**
+     * Paragraph Nr
+     */
+    paragraph_nr: string;
+    /**
+     * Paragraph Titel
+     */
+    paragraph_titel?: string | null;
+    /**
+     * Text
+     */
+    text?: string | null;
+    /**
+     * Regelungsgegenstand
+     */
+    regelungsgegenstand?: string | null;
+    /**
+     * Doknr
+     */
+    doknr?: string | null;
+    /**
+     * Prev
+     */
+    prev?: string | null;
+    /**
+     * Next
+     */
+    next?: string | null;
+    /**
+     * Frontend Parent Ids
+     */
+    frontend_parent_ids?: Array<string>;
+    /**
+     * Is Outdated
+     */
+    is_outdated?: boolean;
+};
+
+/**
+ * LegalBasisNormResponse
+ */
+export type LegalBasisNormResponse = {
+    /**
+     * Jurabk
+     */
+    jurabk: string;
+    /**
+     * Paragraph Nr
+     */
+    paragraph_nr: string;
+    /**
+     * Paragraph Titel
+     */
+    paragraph_titel?: string | null;
+    /**
+     * Gesetz Titel
+     */
+    gesetz_titel?: string | null;
+    /**
+     * Gesetz Kurztitel
+     */
+    gesetz_kurztitel?: string | null;
+    /**
+     * Doknr
+     */
+    doknr?: string | null;
+    /**
+     * Bundesland
+     */
+    bundesland?: string | null;
+    /**
+     * Dokument Typ
+     */
+    dokument_typ?: string | null;
+    gesetz: LegalBasisLawResponse;
+    norm: LegalBasisNormInfoResponse;
+    /**
+     * Is Deconstructed
+     */
+    is_deconstructed: boolean;
+    /**
+     * Deconstruction Id
+     */
+    deconstruction_id?: string | null;
+    /**
+     * Deconstruction Created At
+     */
+    deconstruction_created_at?: string | null;
+};
+
+/**
+ * LegalBasisNormSelection
+ */
+export type LegalBasisNormSelection = {
+    /**
+     * Jurabk
+     */
+    jurabk: string;
+    /**
+     * Paragraph Nr
+     */
+    paragraph_nr: string;
+};
+
+/**
+ * LegalBasisStandangabeResponse
+ */
+export type LegalBasisStandangabeResponse = {
+    /**
+     * Standtyp
+     */
+    standtyp?: string | null;
+    /**
+     * Standkommentar
+     */
+    standkommentar?: string | null;
+};
+
+/**
  * LegaldefinitionInsertNodeAction
  */
 export type LegaldefinitionInsertNodeAction = {
@@ -4418,6 +4668,210 @@ export type ProjectInsertPayload = {
      * Sys Period
      */
     sys_period?: unknown;
+};
+
+/**
+ * ProjectLegalBasisLawResponse
+ */
+export type ProjectLegalBasisLawResponse = {
+    /**
+     * Node Type
+     */
+    node_type?: 'gesetz';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Project Id
+     */
+    project_id: string;
+    /**
+     * Project Version
+     */
+    project_version: number;
+    /**
+     * Name
+     */
+    name: string;
+    /**
+     * Jurabk
+     */
+    jurabk: string;
+    /**
+     * Frontend Parent Ids
+     */
+    frontend_parent_ids?: Array<string>;
+    /**
+     * Is Deleted
+     */
+    is_deleted?: boolean;
+    /**
+     * Is Outdated
+     */
+    is_outdated?: boolean;
+    /**
+     * Update Type
+     */
+    update_type?: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * ProjectLegalBasisNormResponse
+ */
+export type ProjectLegalBasisNormResponse = {
+    /**
+     * Node Type
+     */
+    node_type?: 'norm';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Project Id
+     */
+    project_id: string;
+    /**
+     * Project Version
+     */
+    project_version: number;
+    /**
+     * Gesetz Id
+     */
+    gesetz_id: string;
+    /**
+     * Paragraph Nr
+     */
+    paragraph_nr: string;
+    /**
+     * Paragraph Titel
+     */
+    paragraph_titel?: string | null;
+    /**
+     * Text
+     */
+    text: string;
+    /**
+     * Regelungsgegenstand
+     */
+    regelungsgegenstand?: string | null;
+    /**
+     * Frontend Parent Ids
+     */
+    frontend_parent_ids?: Array<string>;
+    /**
+     * Is Deleted
+     */
+    is_deleted?: boolean;
+    /**
+     * Is Outdated
+     */
+    is_outdated?: boolean;
+    /**
+     * Update Type
+     */
+    update_type?: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
+};
+
+/**
+ * ProjectLegalBasisTopicNormResponse
+ */
+export type ProjectLegalBasisTopicNormResponse = {
+    /**
+     * Node Type
+     */
+    node_type?: 'topic_norm';
+    /**
+     * Id
+     */
+    id: string;
+    /**
+     * Topic Id
+     */
+    topic_id: string;
+    /**
+     * Project Id
+     */
+    project_id: string;
+    /**
+     * Project Version
+     */
+    project_version: number;
+    /**
+     * Jurabk
+     */
+    jurabk: string;
+    /**
+     * Paragraph Nr
+     */
+    paragraph_nr?: string | null;
+    /**
+     * Type
+     */
+    type: 'pruefung' | 'verfahren';
+    /**
+     * Absatz
+     */
+    absatz?: string | null;
+    /**
+     * Satz
+     */
+    satz?: string | null;
+    /**
+     * Nummer
+     */
+    nummer?: string | null;
+    /**
+     * Mvp Status
+     */
+    mvp_status: string;
+    /**
+     * Satz Statuses
+     */
+    satz_statuses?: {
+        [key: string]: string;
+    };
+    /**
+     * Frontend Parent Ids
+     */
+    frontend_parent_ids?: Array<string>;
+    /**
+     * Is Deleted
+     */
+    is_deleted?: boolean;
+    /**
+     * Is Outdated
+     */
+    is_outdated?: boolean;
+    /**
+     * Update Type
+     */
+    update_type?: string | null;
+    /**
+     * Created At
+     */
+    created_at: string;
+    /**
+     * Updated At
+     */
+    updated_at: string;
 };
 
 /**
@@ -7642,12 +8096,6 @@ export type MetricsMetricsGetResponses = {
 
 export type ListNodesProjectIdNodesGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -7685,12 +8133,6 @@ export type ListNodesProjectIdNodesGetResponse = ListNodesProjectIdNodesGetRespo
 
 export type BatchGetProjectIdBatchNodesPostData = {
     body: BatchGetNodesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -7728,12 +8170,6 @@ export type BatchGetProjectIdBatchNodesPostResponse = BatchGetProjectIdBatchNode
 
 export type UpdateNodesProjectIdUpdatePostData = {
     body: ProcessNodeChangesRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -7771,12 +8207,6 @@ export type UpdateNodesProjectIdUpdatePostResponse = UpdateNodesProjectIdUpdateP
 
 export type CopyVersionNodesProjectIdCopyVersionPostData = {
     body: CopyVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -7807,12 +8237,6 @@ export type CopyVersionNodesProjectIdCopyVersionPostResponse = CopyVersionNodesP
 
 export type UndoVersionProjectIdUndoVersionPostData = {
     body: UndoVersionRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -7841,14 +8265,103 @@ export type UndoVersionProjectIdUndoVersionPostResponses = {
 
 export type UndoVersionProjectIdUndoVersionPostResponse = UndoVersionProjectIdUndoVersionPostResponses[keyof UndoVersionProjectIdUndoVersionPostResponses];
 
+export type GetLegalBasisNormsLegalBasisNormsGetData = {
+    body?: never;
+    path?: never;
+    query?: {
+        /**
+         * Jurabk
+         *
+         * Law abbreviation / Jura-BK.
+         */
+        jurabk?: string | null;
+        /**
+         * Paragraph Nr
+         *
+         * Paragraph number, e.g. 44 or § 44.
+         */
+        paragraph_nr?: string | null;
+        /**
+         * Doknr
+         *
+         * Exact law database document id.
+         */
+        doknr?: string | null;
+        /**
+         * Bundesland
+         *
+         * Optional state discriminator, e.g. BY or NW.
+         */
+        bundesland?: BundeslandParam | null;
+        /**
+         * Limit
+         *
+         * Maximum number of norms to return.
+         */
+        limit?: number;
+    };
+    url: '/legal-basis/norms';
+};
+
+export type GetLegalBasisNormsLegalBasisNormsGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetLegalBasisNormsLegalBasisNormsGetError = GetLegalBasisNormsLegalBasisNormsGetErrors[keyof GetLegalBasisNormsLegalBasisNormsGetErrors];
+
+export type GetLegalBasisNormsLegalBasisNormsGetResponses = {
+    /**
+     * Response Get Legal Basis Norms Legal Basis Norms Get
+     *
+     * Successful Response
+     */
+    200: Array<LegalBasisNormResponse>;
+};
+
+export type GetLegalBasisNormsLegalBasisNormsGetResponse = GetLegalBasisNormsLegalBasisNormsGetResponses[keyof GetLegalBasisNormsLegalBasisNormsGetResponses];
+
+export type AddLegalBasisNormsToProjectData = {
+    body: LegalBasisAddNormRequest;
+    path: {
+        /**
+         * Project Id
+         */
+        project_id: string;
+    };
+    query: {
+        /**
+         * Project Version
+         *
+         * Target project version. Must be the current writable project version.
+         */
+        project_version: number;
+    };
+    url: '/legal-basis/projects/{project_id}/norms';
+};
+
+export type AddLegalBasisNormsToProjectErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type AddLegalBasisNormsToProjectError = AddLegalBasisNormsToProjectErrors[keyof AddLegalBasisNormsToProjectErrors];
+
+export type AddLegalBasisNormsToProjectResponses = {
+    /**
+     * Successful Response
+     */
+    200: LegalBasisAddNormResponse;
+};
+
+export type AddLegalBasisNormsToProjectResponse = AddLegalBasisNormsToProjectResponses[keyof AddLegalBasisNormsToProjectResponses];
+
 export type GetNormDeconstructionsNormDeconstructionsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: {
         /**
@@ -7888,12 +8401,6 @@ export type UpsertNormDeconstructionsNormDeconstructionsPostData = {
      * Items
      */
     body: Array<NormDeconstructionCreate>;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path?: never;
     query?: never;
     url: '/norm-deconstructions/';

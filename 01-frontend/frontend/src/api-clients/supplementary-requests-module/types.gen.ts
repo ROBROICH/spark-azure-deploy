@@ -191,12 +191,6 @@ export type MetricsMetricsGetResponses = {
 
 export type ListSupplementaryRequestsProjectsProjectIdSupplementaryRequestsGetData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -250,12 +244,6 @@ export type ListSupplementaryRequestsProjectsProjectIdSupplementaryRequestsGetRe
 
 export type CreateSupplementaryRequestProjectsProjectIdSupplementaryRequestsPostData = {
     body: CreateSupplementaryRequestRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -286,12 +274,6 @@ export type CreateSupplementaryRequestProjectsProjectIdSupplementaryRequestsPost
 
 export type DeleteSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdDeleteData = {
     body?: never;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id
@@ -326,12 +308,6 @@ export type DeleteSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequ
 
 export type UpdateSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdPatchData = {
     body: UpdateSupplementaryRequestRequest;
-    headers?: {
-        /**
-         * X-Internal-Api-Key
-         */
-        'X-Internal-Api-Key'?: string | null;
-    };
     path: {
         /**
          * Project Id

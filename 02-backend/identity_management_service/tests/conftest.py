@@ -1,5 +1,6 @@
 """Test configuration and fixtures."""
 
+import os
 from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock
 
@@ -9,6 +10,13 @@ from authentification.enums import OidcRoles
 from authentification.models import OidcUserInfo
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
+
+os.environ.setdefault("DB_USER", "test")
+os.environ.setdefault("DB_PASSWORD", "test")
+os.environ.setdefault("DB_HOST", "localhost")
+os.environ.setdefault("DB_PORT", "5432")
+os.environ.setdefault("DB_NAME", "test_db")
+os.environ.setdefault("TEMPORAL_JOB_SERVICE_URL", "http://localhost:18011")
 
 
 @pytest.fixture
