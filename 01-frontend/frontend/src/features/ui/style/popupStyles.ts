@@ -14,7 +14,7 @@ const POPUP_ITEM_DISABLED_CLASSES =
   'data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50';
 
 const POPUP_ITEM_HIGHLIGHT_CLASSES =
-  'data-[highlighted]:bg-slate-700 data-[highlighted]:text-neutral-white';
+  'data-[highlighted]:bg-slate-700 data-[highlighted]:text-neutral-white data-[highlighted]:ring-1 data-[highlighted]:ring-white';
 
 const POPUP_ITEM_CHECKED_CLASSES =
   'data-[state=checked]:bg-slate-500 data-[state=checked]:text-neutral-white data-[highlighted]:data-[state=checked]:ring-1 data-[highlighted]:data-[state=checked]:ring-white/40';

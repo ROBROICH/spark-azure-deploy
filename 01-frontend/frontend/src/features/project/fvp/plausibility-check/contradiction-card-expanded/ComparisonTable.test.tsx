@@ -65,10 +65,15 @@ vi.mock('./InlinePdfViewer', () => ({
     documentId: string;
     pageNumber: number;
     label: string;
+    viewerKey?: string;
   }) => {
-    const { documentId, pageNumber, label } = props;
+    const { documentId, pageNumber, label, viewerKey } = props;
 
-    return <div>{`PDF ${label} ${documentId} ${pageNumber}`}</div>;
+    return (
+      <div data-testid={`pdf-${label}`} data-viewer-key={viewerKey}>
+        {`PDF ${label} ${documentId} ${pageNumber}`}
+      </div>
+    );
   },
 }));
 
@@ -247,6 +252,42 @@ describe('ComparisonTable selector sync', () => {
       previewPageNumber: 1,
       rightOccurrenceIndex: undefined,
     });
+  });
+
+  it('remounts the inline PDF when the selected occurrence changes on the same document page', () => {
+    const contradiction = makeContradiction([
+      {
+        ...makeOccurrence(1),
+        documentId: 'doc-shared',
+        pageNumber: 135,
+      },
+      makeOccurrence(2),
+      {
+        ...makeOccurrence(3),
+        documentId: 'doc-shared',
+        pageNumber: 135,
+      },
+    ]);
+    const { rerender } = render(
+      <ComparisonTable contradiction={contradiction} />,
+    );
+
+    expect(
+      screen.getByTestId('pdf-Text passage 1').getAttribute('data-viewer-key'),
+    ).toBe('doc-shared-135-0');
+
+    mocks.useSearchMock.mockReturnValue({
+      leftOccurrenceIndex: 2,
+      previewDocumentId: undefined,
+      previewPageNumber: undefined,
+      rightOccurrenceIndex: undefined,
+    });
+
+    rerender(<ComparisonTable contradiction={contradiction} />);
+
+    expect(
+      screen.getByTestId('pdf-Text passage 3').getAttribute('data-viewer-key'),
+    ).toBe('doc-shared-135-2');
   });
 });
 

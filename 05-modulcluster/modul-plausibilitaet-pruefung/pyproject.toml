@@ -10,12 +10,11 @@ dependencies = [
     "requests>=2.32.4",
     "pytest>=9.0.3,<10",
     "python-dotenv>=1.2.2",
-    "temporalio>=1.27.0,<2.0.0",
+    "temporalio>=1.27.0,<1.28.0",
     "pydantic-settings (>=2.12.0,<3.0.0)",
     "qdrant-client (>=1.16.1,<2.0.0)",
     "pandas (>=2.3.3,<3.0.0)",
     "matplotlib (>=3.10.8,<4.0.0)",
-    "internal-auth",
     "prompt-injection",
     "temporal",
     "urllib3>=2.7.0,<3",
@@ -40,7 +39,6 @@ dev = [
 package = false
 
 [tool.uv.sources]
-internal-auth = { workspace = true }
 prompt-injection = { workspace = true }
 temporal = { workspace = true }
 

@@ -8,14 +8,13 @@ dependencies = [
     "python-ulid>=3.1.0",
     "event-logging",
     "audit-client",
-    "internal-auth",
     "aioboto3>=14.0.0",
     "types-aioboto3[s3]>=14.0.0",
     "opentelemetry-exporter-otlp-proto-grpc>=1.39.1",
     "opentelemetry-sdk>=1.39.1",
     "opentelemetry-api>=1.39.1",
     "pydantic>=2.10.6,<3.0.0",
-    "temporalio[opentelemetry]>=1.27.0,<2.0.0",
+    "temporalio[opentelemetry]>=1.27.0,<1.28.0",
     "httpx>=0.28.1,<0.29.0",
 ]
 
@@ -28,7 +27,6 @@ dev = [
 [tool.uv.sources]
 event-logging = { workspace = true }
 audit-client = { workspace = true }
-internal-auth = { workspace = true }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

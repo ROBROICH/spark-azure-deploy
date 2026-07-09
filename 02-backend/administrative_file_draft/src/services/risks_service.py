@@ -1,10 +1,9 @@
 """Service layer for risk operations."""
 
 from collections.abc import Sequence
-from uuid import UUID
+from uuid import UUID, uuid4
 
 import httpx
-from authentification.internal_api_key import internal_api_key_headers
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -25,11 +24,20 @@ from src.models.schemas.risks_schemas import (
 )
 from src.utils.logger import logger
 
+UPSTREAM_BODY_LOG_LIMIT = 2_000
+
+
+def _project_version_conflict_message(correlation_id: str) -> str:
+    return (
+        "Project version cannot be modified while version creation is locked. "
+        f"Retry after the current version operation completes. correlation_id={correlation_id}"
+    )
+
 
 async def _get_latest_project_version(project_id: UUID) -> int:
     url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/latest-version"
     try:
-        async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(url)
     except httpx.RequestError as exc:
         raise HTTPException(
@@ -47,7 +55,7 @@ async def _get_latest_project_version(project_id: UUID) -> int:
 async def _validate_project_write_version(project_id: UUID, project_version: int) -> int:
     url = f"{settings.PROJECT_LOGIC_SERVICE_URL.rstrip('/')}/projects/{project_id}/version-lock/validate-write"
     try:
-        async with httpx.AsyncClient(timeout=10.0, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(url, json={"project_version": project_version})
     except httpx.RequestError as exc:
         raise HTTPException(
@@ -55,8 +63,19 @@ async def _validate_project_write_version(project_id: UUID, project_version: int
             detail=f"Could not reach project logic service: {exc}",
         ) from exc
     if response.status_code == status.HTTP_409_CONFLICT:
-        detail = response.json().get("detail", response.text)
-        raise ProjectVersionLockedError(str(project_id), detail)
+        correlation_id = str(uuid4())
+        logger.warn(
+            action=EventAction.VALIDATE,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.API,
+            project_id=str(project_id),
+            message=(
+                "Project write-version validation rejected by upstream "
+                f"(status={response.status_code}, correlation_id={correlation_id}, "
+                f"body={response.text[:UPSTREAM_BODY_LOG_LIMIT]!r})"
+            ),
+        )
+        raise ProjectVersionLockedError(str(project_id), _project_version_conflict_message(correlation_id))
     response.raise_for_status()
     body = response.json()
     latest_version = body.get("latest_version", body.get("latestVersion"))

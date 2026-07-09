@@ -32,6 +32,8 @@ type ApplicantInputControlProps = {
   labelClassName?: string;
   transformValue?: (value: string) => string;
   hideLabel?: boolean;
+  errors?: ({ message?: string } | undefined)[];
+  announceError?: boolean;
 };
 
 function resolveApplicantAutoComplete(
@@ -63,6 +65,8 @@ export function ApplicantInputControl(props: ApplicantInputControlProps) {
     labelClassName,
     transformValue,
     hideLabel = false,
+    errors,
+    announceError = true,
   } = props;
   const isInvalid =
     field.state.meta.isTouched && field.state.meta.errors.length > 0;
@@ -102,7 +106,11 @@ export function ApplicantInputControl(props: ApplicantInputControlProps) {
         aria-describedby={isInvalid ? errorId : undefined}
       />
       {isInvalid ? (
-        <FieldError id={errorId} errors={field.state.meta.errors} />
+        <FieldError
+          id={errorId}
+          announce={announceError}
+          errors={errors ?? field.state.meta.errors}
+        />
       ) : null}
     </div>
   );

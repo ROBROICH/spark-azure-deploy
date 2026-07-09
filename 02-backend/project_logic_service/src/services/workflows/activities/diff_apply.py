@@ -2,10 +2,25 @@ from typing import Any
 from uuid import UUID
 
 import httpx
-from authentification.internal_api_key import internal_api_key_headers
 from temporalio import activity
 
 _HTTP_TIMEOUT_SECONDS = 600.0
+
+
+async def fetch_service_nodes(
+    service_base_url: str,
+    service_name: str,
+    project_id: UUID,
+    project_version: int,
+) -> list[dict[str, Any]]:
+    url = f"{service_base_url.rstrip('/')}/{project_id}/nodes"
+    params = {"project_version": project_version}
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
+        resp = await client.get(url, params=params)
+        resp.raise_for_status()
+        body = resp.json()
+    nodes = body.get("nodes", [])
+    return [{**node, "_service": service_name} for node in nodes]
 
 
 @activity.defn
@@ -15,14 +30,23 @@ async def list_service_nodes(
     project_id: UUID,
     project_version: int,
 ) -> list[dict[str, Any]]:
-    url = f"{service_base_url.rstrip('/')}/{project_id}/nodes"
-    params = {"project_version": project_version}
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
-        resp = await client.get(url, params=params)
+    return await fetch_service_nodes(service_base_url, service_name, project_id, project_version)
+
+
+async def fetch_batch_service_nodes(
+    service_base_url: str,
+    service_name: str,
+    project_id: UUID,
+    project_version: int,
+    nodes: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    url = f"{service_base_url.rstrip('/')}/{project_id}/batch-nodes"
+    payload = {"nodes": nodes}
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
+        resp = await client.post(url, params={"project_version": project_version}, json=payload)
         resp.raise_for_status()
         body = resp.json()
-    nodes = body.get("nodes", [])
-    return [{**node, "_service": service_name} for node in nodes]
+    return [{**node, "_service": service_name} for node in body.get("results", [])]
 
 
 @activity.defn
@@ -33,13 +57,7 @@ async def batch_get_service_nodes(
     project_version: int,
     nodes: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    url = f"{service_base_url.rstrip('/')}/{project_id}/batch-nodes"
-    payload = {"nodes": nodes}
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
-        resp = await client.post(url, params={"project_version": project_version}, json=payload)
-        resp.raise_for_status()
-        body = resp.json()
-    return [{**node, "_service": service_name} for node in body.get("results", [])]
+    return await fetch_batch_service_nodes(service_base_url, service_name, project_id, project_version, nodes)
 
 
 @activity.defn
@@ -60,7 +78,7 @@ async def copy_service_version_nodes(
         "dry_run": dry_run,
         "nodes": nodes,
     }
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
         resp = await client.post(url, json=payload)
         resp.raise_for_status()
         return resp.json()
@@ -75,7 +93,7 @@ async def undo_service_version(
 ) -> dict[str, Any]:
     url = f"{service_base_url.rstrip('/')}/{project_id}/undo-version"
     payload = {"target_version": target_version, "lock_token": lock_token}
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
         resp = await client.post(url, json=payload)
         resp.raise_for_status()
         return resp.json()
@@ -89,7 +107,7 @@ async def get_dms_zip_diff(
     source_version: int,
 ) -> dict[str, Any]:
     url = f"{dms_base_url.rstrip('/')}/v2/internal/files/{project_id}/zips/{zip_file_id}/diff"
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
         resp = await client.get(url, params={"source_version": source_version})
         resp.raise_for_status()
         return resp.json()
@@ -105,7 +123,7 @@ async def update_dms_zip_approval_status(
 ) -> dict[str, Any]:
     url = f"{dms_base_url.rstrip('/')}/v2/internal/files/{project_id}/zips/{zip_file_id}/approval-status"
     payload = {"approval_status": approval_status, "error": error}
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
         resp = await client.patch(url, json=payload)
         resp.raise_for_status()
         return resp.json()
@@ -128,7 +146,7 @@ async def commit_dms_zip_diff(
         "lock_token": lock_token,
         "dry_run": dry_run,
     }
-    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS, headers=internal_api_key_headers()) as client:
+    async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_SECONDS) as client:
         resp = await client.post(url, json=payload)
         resp.raise_for_status()
         return resp.json()

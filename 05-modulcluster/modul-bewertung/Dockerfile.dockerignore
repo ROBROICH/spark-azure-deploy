@@ -13,7 +13,6 @@
 !04-shared-services/prompt-injection
 !02-backend/logging
 !04-shared-services/audit-client
-!04-shared-services/internal-auth
 !04-shared-services/temporal
 !04-shared-services/authentification
 

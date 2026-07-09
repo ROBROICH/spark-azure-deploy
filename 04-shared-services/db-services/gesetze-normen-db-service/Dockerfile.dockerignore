@@ -12,7 +12,6 @@
 # Workspace and used shared libraries
 !04-shared-services/db-services/shared/**
 !04-shared-services/authentification/**
-!04-shared-services/internal-auth/**
 !04-shared-services/audit-client/**
 !04-shared-services/temporal/**
 !02-backend/logging/**

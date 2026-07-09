@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { GetSystemLoadTemporalLoadGetData, GetSystemLoadTemporalLoadGetErrors, GetSystemLoadTemporalLoadGetResponses, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetData, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetErrors, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetResponses, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetData, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetErrors, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetResponses, GetWorkflowsTemporalWorkflowsGetData, GetWorkflowsTemporalWorkflowsGetErrors, GetWorkflowsTemporalWorkflowsGetResponses, GetWorkflowTemporalWorkflowsWorkflowIdGetData, GetWorkflowTemporalWorkflowsWorkflowIdGetErrors, GetWorkflowTemporalWorkflowsWorkflowIdGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, StatusInternalWorkflowsStatusPostData, StatusInternalWorkflowsStatusPostErrors, StatusInternalWorkflowsStatusPostResponses } from './types.gen';
+import type { GetSystemLoadTemporalLoadGetData, GetSystemLoadTemporalLoadGetResponses, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetData, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetErrors, GetWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGetResponses, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetData, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetErrors, GetWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGetResponses, GetWorkflowsTemporalWorkflowsGetData, GetWorkflowsTemporalWorkflowsGetErrors, GetWorkflowsTemporalWorkflowsGetResponses, GetWorkflowTemporalWorkflowsWorkflowIdGetData, GetWorkflowTemporalWorkflowsWorkflowIdGetErrors, GetWorkflowTemporalWorkflowsWorkflowIdGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, StatusInternalWorkflowsStatusPostData, StatusInternalWorkflowsStatusPostErrors, StatusInternalWorkflowsStatusPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -71,7 +71,7 @@ export const getWorkflowExecutionTreeTemporalWorkflowsWorkflowIdExecutionTreeGet
  *
  * Return the current system load based on running workflows and their complexity weights.
  */
-export const getSystemLoadTemporalLoadGet = <ThrowOnError extends boolean = false>(options?: Options<GetSystemLoadTemporalLoadGetData, ThrowOnError>) => (options?.client ?? client).get<GetSystemLoadTemporalLoadGetResponses, GetSystemLoadTemporalLoadGetErrors, ThrowOnError>({
+export const getSystemLoadTemporalLoadGet = <ThrowOnError extends boolean = false>(options?: Options<GetSystemLoadTemporalLoadGetData, ThrowOnError>) => (options?.client ?? client).get<GetSystemLoadTemporalLoadGetResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/temporal/load',
     ...options

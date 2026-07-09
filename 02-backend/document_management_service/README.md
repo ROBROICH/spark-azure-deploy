@@ -72,7 +72,7 @@ docker compose up -d
 | `POST` | `/v2/files/{file_id}/decision`        | Submit approval decision (`approve` or `reject`) |
 | `GET`  | `/v2/files/{file_id}/diff`            | Get file diff from running workflow              |
 | `POST` | `/v2/files/{file_id}/diff`            | Set file diff in running workflow                |
-| `GET`  | `/v2/files/{file_id}/cancel`          | Cancel a running upload workflow                 |
+| `POST` | `/v2/files/{file_id}/cancel`          | Cancel a running upload workflow                 |
 
 #### Internal Files
 

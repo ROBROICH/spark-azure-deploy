@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { BatchGetProjectIdBatchNodesPostData, BatchGetProjectIdBatchNodesPostErrors, BatchGetProjectIdBatchNodesPostResponses, CopyVersionNodesProjectIdCopyVersionPostData, CopyVersionNodesProjectIdCopyVersionPostErrors, CopyVersionNodesProjectIdCopyVersionPostResponses, GetNormDeconstructionsNormDeconstructionsGetData, GetNormDeconstructionsNormDeconstructionsGetErrors, GetNormDeconstructionsNormDeconstructionsGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, ListNodesProjectIdNodesGetData, ListNodesProjectIdNodesGetErrors, ListNodesProjectIdNodesGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, UndoVersionProjectIdUndoVersionPostData, UndoVersionProjectIdUndoVersionPostErrors, UndoVersionProjectIdUndoVersionPostResponses, UpdateNodesProjectIdUpdatePostData, UpdateNodesProjectIdUpdatePostErrors, UpdateNodesProjectIdUpdatePostResponses, UpsertNormDeconstructionsNormDeconstructionsPostData, UpsertNormDeconstructionsNormDeconstructionsPostErrors, UpsertNormDeconstructionsNormDeconstructionsPostResponses } from './types.gen';
+import type { AddLegalBasisNormsToProjectData, AddLegalBasisNormsToProjectErrors, AddLegalBasisNormsToProjectResponses, BatchGetProjectIdBatchNodesPostData, BatchGetProjectIdBatchNodesPostErrors, BatchGetProjectIdBatchNodesPostResponses, CopyVersionNodesProjectIdCopyVersionPostData, CopyVersionNodesProjectIdCopyVersionPostErrors, CopyVersionNodesProjectIdCopyVersionPostResponses, GetLegalBasisNormsLegalBasisNormsGetData, GetLegalBasisNormsLegalBasisNormsGetErrors, GetLegalBasisNormsLegalBasisNormsGetResponses, GetNormDeconstructionsNormDeconstructionsGetData, GetNormDeconstructionsNormDeconstructionsGetErrors, GetNormDeconstructionsNormDeconstructionsGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, ListNodesProjectIdNodesGetData, ListNodesProjectIdNodesGetErrors, ListNodesProjectIdNodesGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, UndoVersionProjectIdUndoVersionPostData, UndoVersionProjectIdUndoVersionPostErrors, UndoVersionProjectIdUndoVersionPostResponses, UpdateNodesProjectIdUpdatePostData, UpdateNodesProjectIdUpdatePostErrors, UpdateNodesProjectIdUpdatePostResponses, UpsertNormDeconstructionsNormDeconstructionsPostData, UpsertNormDeconstructionsNormDeconstructionsPostErrors, UpsertNormDeconstructionsNormDeconstructionsPostResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -79,6 +79,28 @@ export const copyVersionNodesProjectIdCopyVersionPost = <ThrowOnError extends bo
 export const undoVersionProjectIdUndoVersionPost = <ThrowOnError extends boolean = false>(options: Options<UndoVersionProjectIdUndoVersionPostData, ThrowOnError>) => (options.client ?? client).post<UndoVersionProjectIdUndoVersionPostResponses, UndoVersionProjectIdUndoVersionPostErrors, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/{project_id}/undo-version',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Get Legal Basis Norms
+ */
+export const getLegalBasisNormsLegalBasisNormsGet = <ThrowOnError extends boolean = false>(options?: Options<GetLegalBasisNormsLegalBasisNormsGetData, ThrowOnError>) => (options?.client ?? client).get<GetLegalBasisNormsLegalBasisNormsGetResponses, GetLegalBasisNormsLegalBasisNormsGetErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/legal-basis/norms',
+    ...options
+});
+
+/**
+ * Add law database norms to a project topic
+ */
+export const addLegalBasisNormsToProject = <ThrowOnError extends boolean = false>(options: Options<AddLegalBasisNormsToProjectData, ThrowOnError>) => (options.client ?? client).post<AddLegalBasisNormsToProjectResponses, AddLegalBasisNormsToProjectErrors, ThrowOnError>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/legal-basis/projects/{project_id}/norms',
     ...options,
     headers: {
         'Content-Type': 'application/json',

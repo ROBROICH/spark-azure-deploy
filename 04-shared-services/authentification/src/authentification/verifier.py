@@ -60,7 +60,6 @@ class OidcVerifier(ABC):
         return self.auth_mode in {
             AuthMode.DISABLED,
             AuthMode.OPTIONAL_VERIFY_DRY_RUN,
-            AuthMode.OPTIONAL_VERIFY,
         }
 
     @property
@@ -137,12 +136,12 @@ class OidcVerifier(ABC):
             )
 
         if not token:
-            if self.auth_mode == AuthMode.STRICT:
-                raise InvalidTokenError("Missing or invalid Authorization header")
-            return AuthResolution(
-                user=None,
-                status="missing",
-            )
+            if self.auth_mode == AuthMode.OPTIONAL_VERIFY_DRY_RUN:
+                return AuthResolution(
+                    user=None,
+                    status="missing",
+                )
+            raise InvalidTokenError("Missing or invalid Authorization header")
 
         try:
             payload = self._decode_verified(token)

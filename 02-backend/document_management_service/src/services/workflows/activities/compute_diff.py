@@ -1,12 +1,14 @@
 import asyncio
 from collections import defaultdict
 from collections.abc import Sequence
+from difflib import SequenceMatcher
 from pathlib import Path
-from typing import TypedDict
+from typing import TypedDict, cast
 from uuid import UUID
 
 from temporalio import activity
 
+from src.config.settings import settings
 from src.models.db.database import AsyncSessionLocal
 from src.models.db.db_models import File
 from src.models.db.file_enum import FileTypeEnum
@@ -63,23 +65,29 @@ async def gather_sha256(
     storage_provider_service: BaseStorageProviderService,
     filepaths: list[str],
     chunk_size: int = 8192 * 4,
+    max_concurrency: int | None = None,
+    semaphore: asyncio.Semaphore | None = None,
 ) -> list[str]:
-    """Fetch or compute SHA-256 hashes for multiple files in parallel."""
-    results = await asyncio.gather(
-        *[
-            get_sha256(
+    """Fetch or compute SHA-256 hashes for multiple files with bounded concurrency."""
+    if semaphore is None:
+        semaphore = asyncio.Semaphore(max_concurrency or settings.MAX_DIFF_HASH_CONCURRENCY)
+
+    async def guarded_get_sha256(filepath: str) -> str:
+        async with semaphore:
+            return await get_sha256(
                 storage_provider_service=storage_provider_service,
-                filepath=f,
+                filepath=filepath,
                 chunk_size=chunk_size,
             )
-            for f in filepaths
-        ],
+
+    results = await asyncio.gather(
+        *(guarded_get_sha256(f) for f in filepaths),
         return_exceptions=True,
     )
     for result in results:
         if isinstance(result, Exception):
             raise result
-    return results  # type: ignore
+    return cast(list[str], results)
 
 
 async def get_renamed(
@@ -100,8 +108,6 @@ async def get_renamed(
     seen = set()
 
     def filename_similarity(a: str, b: str) -> float:
-        from difflib import SequenceMatcher
-
         return SequenceMatcher(None, a.lower(), b.lower()).ratio()
 
     renamed: list[RenameChange] = []
@@ -235,9 +241,10 @@ async def create_diff(
     target_paths = [info["bucket_path"] for info in target_info.values()]
     source_paths = [info["bucket_path"] for info in source_info.values()]
 
+    hash_semaphore = asyncio.Semaphore(settings.MAX_DIFF_HASH_CONCURRENCY)
     target_shas, source_shas = await asyncio.gather(
-        gather_sha256(storage_provider_service, target_paths),
-        gather_sha256(storage_provider_service, source_paths),
+        gather_sha256(storage_provider_service, target_paths, semaphore=hash_semaphore),
+        gather_sha256(storage_provider_service, source_paths, semaphore=hash_semaphore),
     )
 
     for info, sha in zip(target_info.values(), target_shas, strict=True):

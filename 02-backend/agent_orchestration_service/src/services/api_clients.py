@@ -7,7 +7,6 @@ from uuid import UUID
 
 import httpx
 from audit_client import merge_audit_headers
-from authentification.internal_api_key import merge_internal_api_key_header
 from event_logging.enums import (
     EventAction,
     EventCategory,
@@ -41,10 +40,12 @@ ProjectInternalStatus = Literal["IN_PROGRESS"]
 
 HTTP_CONFLICT = 409
 HTTP_OK = 200
+HTTP_BAD_GATEWAY = 502
 
 
 class ApiClient:
     timeout = settings.api.timeout
+    stream_timeout = httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0)
 
     def __init__(self) -> None:
         pass
@@ -71,9 +72,22 @@ class ApiClient:
                 return detail
         return response.text
 
+    @staticmethod
+    def _http_error_status(exc: httpx.HTTPStatusError) -> int:
+        return exc.response.status_code if exc.response is not None else HTTP_BAD_GATEWAY
+
+    @staticmethod
+    def _http_error_body(exc: httpx.HTTPStatusError) -> object:
+        if exc.response is None:
+            return "No upstream response"
+        try:
+            return exc.response.json()
+        except Exception:
+            return exc.response.text
+
     @classmethod
     def _raise_non_retryable_project_version_error(cls, exc: httpx.HTTPStatusError) -> None:
-        if exc.response.status_code != HTTP_CONFLICT:
+        if exc.response is None or exc.response.status_code != HTTP_CONFLICT:
             return
 
         detail = cls._http_error_detail(exc.response)
@@ -90,11 +104,8 @@ class ApiClient:
         params: dict[str, Any] | None = None,
         headers: dict[str, Any] | None = None,
         include_project_version: bool = True,
-        include_internal_api_key: bool = True,
     ) -> httpx.Response:
         headers = merge_audit_headers(headers)
-        if include_internal_api_key:
-            headers = merge_internal_api_key_header(headers)
         if include_project_version:
             params = cls._with_project_version(params)
         async with httpx.AsyncClient(timeout=cls.timeout) as client:
@@ -102,15 +113,13 @@ class ApiClient:
                 response = await client.get(url, params=params, headers=headers)
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                try:
-                    body = exc.response.json()
-                except Exception:
-                    body = exc.response.text
+                status_code = cls._http_error_status(exc)
+                body = cls._http_error_body(exc)
                 logger.error(
                     action=EventAction.DOWNLOAD,
                     outcome=EventOutcome.FAILURE,
                     category=EventCategory.FILE,
-                    message=f"Failed GET {exc.response.status_code} {url}: {body!s}",
+                    message=f"Failed GET {status_code} {url}: {body!s}",
                 )
                 cls._raise_non_retryable_project_version_error(exc)
                 raise
@@ -154,7 +163,7 @@ class ApiClient:
             httpx.AsyncClient(
                 headers=default_headers,
                 verify=ssl_context,
-                timeout=None,
+                timeout=cls.stream_timeout,
             ) as client,
             client.stream("GET", url, params=params) as resp,
         ):
@@ -191,7 +200,7 @@ class ApiClient:
         params: dict[str, Any] | None = None,
         include_project_version: bool = True,
     ) -> httpx.Response:
-        headers = merge_internal_api_key_header(merge_audit_headers(headers))
+        headers = merge_audit_headers(headers)
         if include_project_version:
             params = cls._with_project_version(params)
         async with httpx.AsyncClient(timeout=cls.timeout) as client:
@@ -199,15 +208,13 @@ class ApiClient:
                 response = await client.post(url, params=params, data=data, json=json, headers=headers)
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                try:
-                    body = exc.response.json()
-                except Exception:
-                    body = exc.response.text
+                status_code = cls._http_error_status(exc)
+                body = cls._http_error_body(exc)
                 logger.error(
                     action=EventAction.UPLOAD,
                     outcome=EventOutcome.FAILURE,
                     category=EventCategory.FILE,
-                    message=f"Failed POST {exc.response.status_code} {url}: {body!s}",
+                    message=f"Failed POST {status_code} {url}: {body!s}",
                 )
                 cls._raise_non_retryable_project_version_error(exc)
                 raise
@@ -232,15 +239,13 @@ class ApiClient:
                 response = await client.put(url, content=content, headers=headers)
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                try:
-                    body = exc.response.json()
-                except Exception:
-                    body = exc.response.text
+                status_code = cls._http_error_status(exc)
+                body = cls._http_error_body(exc)
                 logger.error(
                     action=EventAction.UPLOAD,
                     outcome=EventOutcome.FAILURE,
                     category=EventCategory.FILE,
-                    message=f"Failed PUT {exc.response.status_code} {url}: {body!s}",
+                    message=f"Failed PUT {status_code} {url}: {body!s}",
                 )
                 cls._raise_non_retryable_project_version_error(exc)
                 raise
@@ -272,7 +277,7 @@ class ApiClient:
         params: dict[str, Any] | None = None,
         include_project_version: bool = True,
     ) -> httpx.Response:
-        headers = merge_internal_api_key_header(merge_audit_headers(headers))
+        headers = merge_audit_headers(headers)
         if include_project_version:
             params = cls._with_project_version(params)
         async with httpx.AsyncClient(timeout=cls.timeout) as client:
@@ -280,15 +285,13 @@ class ApiClient:
                 response = await client.patch(url, params=params, json=json, headers=headers)
                 response.raise_for_status()
             except httpx.HTTPStatusError as exc:
-                try:
-                    body = exc.response.json()
-                except Exception:
-                    body = exc.response.text
+                status_code = cls._http_error_status(exc)
+                body = cls._http_error_body(exc)
                 logger.error(
                     action=EventAction.UPLOAD,
                     outcome=EventOutcome.FAILURE,
                     category=EventCategory.FILE,
-                    message=f"Failed PATCH {exc.response.status_code} {url}: {body!s}",
+                    message=f"Failed PATCH {status_code} {url}: {body!s}",
                 )
                 cls._raise_non_retryable_project_version_error(exc)
                 raise
@@ -362,9 +365,11 @@ class FilesApiClient(ApiClient):
 
     @classmethod
     async def download_file(cls, file_id: UUID) -> BytesIO:
-        resp = await cls.get(f"{cls.BASE_URL}/v2/files/{file_id}/generate-download-url")
+        # Internal route: signed against the internal storage endpoint so this server-side caller
+        # can reach it (the public route signs the browser-facing host, unreachable from the backend).
+        resp = await cls.get(f"{cls.BASE_URL}/v2/internal/files/{file_id}/generate-download-url")
         download_url = resp.json()["downloadUrl"]
-        response = await cls.get(download_url, include_project_version=False, include_internal_api_key=False)
+        response = await cls.get(download_url, include_project_version=False)
         return BytesIO(response.content)
 
     @classmethod
@@ -500,7 +505,7 @@ class FilesApiClient(ApiClient):
                 action=EventAction.UPLOAD,
                 outcome=EventOutcome.FAILURE,
                 category=EventCategory.FILE,
-                message=f"HTTP error during file upload: {exc.response.status_code}",
+                message=f"HTTP error during file upload: {cls._http_error_status(exc)}",
             )
             raise
         except Exception as exc:

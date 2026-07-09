@@ -286,7 +286,7 @@ async def set_file_diff(
     return file_diff
 
 
-@router.get(
+@router.post(
     "/{file_id}/cancel",
     summary="Cancel an upload process",
     dependencies=[Depends(require_role(allowed_roles=AUTHENTICATED_ROLES))],

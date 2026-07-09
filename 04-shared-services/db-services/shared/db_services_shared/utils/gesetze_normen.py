@@ -1,13 +1,11 @@
 
 """utility class for interacting with the gesetze-normen-db"""
 
-from db_services_shared.constants import BundeslandParam, Hierarchy
-
 import httpx
-from internal_auth import internal_api_key_headers
+from cachetools import TTLCache, cachedmethod
 from pydantic import BaseModel, HttpUrl
 
-from cachetools import TTLCache, cachedmethod
+from db_services_shared.constants import BundeslandParam, Hierarchy
 
 
 class GNDoc(BaseModel):
@@ -41,8 +39,7 @@ class GesetzeNormenDB:
         """initialise class"""
         self.client = httpx.Client(
             base_url=gn_url.encoded_string(),
-            headers=internal_api_key_headers(),
-        )
+            )
         self.ttl = ttl
         self._all_docs_cache = TTLCache(maxsize=1, ttl=self.ttl)
         self._single_doc_cache = TTLCache(maxsize=100, ttl=self.ttl)

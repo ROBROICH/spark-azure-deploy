@@ -1,0 +1,27 @@
+{
+  "app": {
+    "title": "SPARK Workflow"
+  },
+  "pages": {
+    "accessibility": "Accessibility Statement",
+    "changelog": "Changelog",
+    "dashboard": "Dashboard",
+    "loading": "Loading",
+    "notFound": "Page not found",
+    "projectsOverview": "Projects Overview",
+    "redactionAgent": "Redaction Agent"
+  },
+  "projectFeatures": {
+    "ewms": "Public participation",
+    "formalCompletenessCheck": "Formal completeness check",
+    "materialCompletenessCheck": "Material completeness check",
+    "plausibilityCheck": "Plausibility check",
+    "projectOverview": "Project overview",
+    "rpb": "Legal review and resolution drafting",
+    "supplementaryRequests": "Supplementary request letter"
+  },
+  "dev": {
+    "designSystem": "Design System",
+    "nodes": "Nodes Dev Tools"
+  }
+}

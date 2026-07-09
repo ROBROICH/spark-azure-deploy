@@ -1,3 +1,14 @@
+## Version 0.12.0 (29.06.2026)
+
+- Die Plausibilitätsprüfung wurde auf die bidirektionale Prüfung von Widersprüchen zwischen Unterlagen erweitert (bisheriger Funktionsumfang: Prüfung innerhalb einer Unterlage und zwischen einer Unterlage und dem Erläuterungsbericht).
+- Verschiedene Anpassungen an der Oberfläche (u. a. zur Barrierefreiheit), Fehlerbehebungen und allgemeine Verbesserungen der Qualität wurden vorgenommen.
+
+## Version 0.11.0 (22.06.2026)
+
+- Der Dialog zur Bearbeitung der Rechtsgrundlage in der materiellen Vollständigkeitsprüfung wurde um alle zur Verfügung stehenden Normen erweitert.
+- Hinweise aus der Texterkennung werden zuverlässiger entfernt, damit EWMS Einwendungen nicht fälschlicherweise als Sicherheitsrisiko einstuft.
+- Die maximale Laufzeit für das Entpacken von ZIP-Archiven wurde erhöht, damit Uploads mit vielen oder großen Dateien zuverlässiger verarbeitet werden.
+
 ## Version 0.10.0 (28.05.2026)
 
 - Der Prozessschritt „Behörden- und Öffentlichkeitsbeteiligung“ steht zur Verfügung.

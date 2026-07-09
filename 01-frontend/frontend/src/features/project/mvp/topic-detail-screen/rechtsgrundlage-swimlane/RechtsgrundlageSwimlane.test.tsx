@@ -151,6 +151,12 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
 
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({
+    useLoaderData: (options?: {
+      select?: (loaderData: { projectVersion: number }) => unknown;
+    }) =>
+      options?.select
+        ? options.select({ projectVersion: 1 })
+        : { projectVersion: 1 },
     useParams: () => ({ topicName: 'topic-1', verfahrenId: 'project-1' }),
     useSearch: (options?: { select?: (search: RouteSearch) => unknown }) =>
       options?.select ? options.select(routeState.search) : routeState.search,

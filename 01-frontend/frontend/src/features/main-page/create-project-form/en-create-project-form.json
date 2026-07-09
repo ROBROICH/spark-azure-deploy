@@ -16,6 +16,18 @@
   "next": "Next",
   "plzInvalid": "Postal code must be 5 digits.",
   "projectTypesLoadError": "Project types could not be loaded.",
+  "required": {
+    "country": "Country is required.",
+    "entryDate": "Entry date is required.",
+    "federalState": "Federal state is required.",
+    "houseNumber": "House number is required.",
+    "internalProjectNumber": "File reference number is required.",
+    "location": "City is required.",
+    "plz": "Postal code is required.",
+    "projectName": "Project name is required.",
+    "projectType": "Type is required.",
+    "street": "Street is required."
+  },
   "saving": "Saving…",
   "step1": {
     "aktenzeichen": "File reference number",

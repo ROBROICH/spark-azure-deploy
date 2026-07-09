@@ -4,7 +4,6 @@ from uuid import UUID
 
 import httpx
 from event_logging.enums import EventAction, EventCategory, EventOutcome, LogEventDefault
-from internal_auth import internal_api_key_headers
 
 from src.config.settings import settings
 from src.utils.logger import logger
@@ -54,7 +53,7 @@ class AgentOrchestrationClient:
             },
         }
 
-        async with httpx.AsyncClient(timeout=cls.TIMEOUT, headers=internal_api_key_headers()) as client:
+        async with httpx.AsyncClient(timeout=cls.TIMEOUT) as client:
             try:
                 response = await client.post(url, json=payload)
                 response.raise_for_status()

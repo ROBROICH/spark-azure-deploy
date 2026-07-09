@@ -12,7 +12,6 @@ from authentification.dependencies import (
     require_role,
 )
 from authentification.enums import OidcRoles, Permission, Resource
-from authentification.internal_api_key import internal_api_key_headers
 from authentification.models import OidcUserInfo
 from authentification.resolver import path_param
 from authentification.verifier import OidcVerifier
@@ -69,7 +68,6 @@ def build_http_version_lock_validator(
         async with httpx.AsyncClient(timeout=timeout_seconds) as client:
             response = await client.post(
                 f"{base_url}/projects/{project_id}/version-lock/validate",
-                headers=internal_api_key_headers(),
                 json={
                     "source_version": source_version,
                     "target_version": target_version,
@@ -96,8 +94,7 @@ def build_http_latest_version_resolver(
         async with httpx.AsyncClient(timeout=timeout_seconds) as client:
             response = await client.get(
                 f"{base_url}/projects/{project_id}/latest-version",
-                headers=internal_api_key_headers(),
-            )
+                )
             response.raise_for_status()
         return _latest_version_from_response(response.json())
 
@@ -117,7 +114,6 @@ def build_http_write_version_validator(
         async with httpx.AsyncClient(timeout=timeout_seconds) as client:
             response = await client.post(
                 f"{base_url}/projects/{project_id}/version-lock/validate-write",
-                headers=internal_api_key_headers(),
                 json={"project_version": project_version},
             )
             if response.status_code == status.HTTP_409_CONFLICT:

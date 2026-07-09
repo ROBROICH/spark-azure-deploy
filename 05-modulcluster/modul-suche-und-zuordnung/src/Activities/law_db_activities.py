@@ -17,7 +17,6 @@ import logging
 from datetime import timedelta
 
 import httpx
-from internal_auth import internal_api_key_headers
 from pydantic import BaseModel
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
@@ -72,7 +71,7 @@ class QueryKResultsUTInput(BaseModel):
 async def _query_top_k_dr(input: QueryTopKDRInput) -> list[dict[str, object]]:
     """POST to DKE and return top-k relevant law sections, or [] if the response is empty."""
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(_DKE_URL, json=input.model_dump(), headers=internal_api_key_headers())
+        response = await client.post(_DKE_URL, json=input.model_dump())
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list) or not data:
@@ -85,7 +84,7 @@ async def _query_top_k_dr(input: QueryTopKDRInput) -> list[dict[str, object]]:
 async def _query_k_results_ut(input: QueryKResultsUTInput) -> list[dict[str, object]]:
     """POST to Urteile and return top-k relevant court judgments, or [] if the response is empty."""
     async with httpx.AsyncClient(timeout=60) as client:
-        response = await client.post(_UT_URL, json=input.model_dump(), headers=internal_api_key_headers())
+        response = await client.post(_UT_URL, json=input.model_dump())
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, list) or not data:

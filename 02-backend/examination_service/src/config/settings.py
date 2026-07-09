@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     DB_NAME: str = ""
     PROJECT_LOGIC_SERVICE_URL: str
     TEMPORAL_JOB_SERVICE_URL: str
+    LAW_DATABASE_BASE_URL: str
 
     @property
     def DATABASE_URL(self) -> str:  # noqa: N802

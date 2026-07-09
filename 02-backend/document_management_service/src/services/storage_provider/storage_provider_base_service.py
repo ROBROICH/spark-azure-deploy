@@ -228,6 +228,7 @@ class BaseStorageProviderService(ABC):
         expiration_minutes: int = 15,
         mime_type: str | None = None,
         inline: bool = False,
+        internal: bool = False,
     ) -> str:
         """
         Abstract method to generate a signed URL for downloading a document.
@@ -237,6 +238,9 @@ class BaseStorageProviderService(ABC):
             expiration_minutes (int): URL expiration in minutes.
             mime_type (str | None): Optional MIME type for response.
             inline (bool): Whether to display inline in browser.
+            internal (bool): If True, sign against the internal storage endpoint
+                (reachable service-to-service) instead of the public browser-facing
+                host. Use for server-side consumers (e.g. Temporal workers).
 
         Returns:
             str: URL signed.

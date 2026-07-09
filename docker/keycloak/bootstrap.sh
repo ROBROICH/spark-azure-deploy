@@ -8,6 +8,10 @@ set -euo pipefail
 
 KCADM=/opt/keycloak/bin/kcadm.sh
 
+# Public frontend origin the browser uses; the OIDC redirect lands here. http://localhost:3000
+# locally, or https://3000-$WEB_HOST behind a reverse proxy (passed in via docker-compose).
+FRONTEND_PUBLIC_URL="${FRONTEND_PUBLIC_URL:-http://localhost:3000}"
+
 for var in KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD LOCAL_KEYCLOAK_CLIENT_SECRET LOCAL_USER_ID LOCAL_USER_EMAIL LOCAL_USER_PASSWORD; do
   if [ -z "${!var:-}" ]; then
     echo "Missing $var. Regenerate .env with scripts/create_secrets.sh (wipe Docker volumes afterwards)." >&2
@@ -56,8 +60,8 @@ if [ -z "$client_id" ]; then
   client_id="$("$KCADM" get clients -r local -q clientId=local-client --fields id --format csv --noquotes | head -n 1)"
 fi
 "$KCADM" update "clients/$client_id" -r local \
-  -s 'redirectUris=["http://localhost:3000/oauth2/callback"]' \
-  -s 'webOrigins=["http://localhost:3000"]'
+  -s "redirectUris=[\"${FRONTEND_PUBLIC_URL}/oauth2/callback\"]" \
+  -s "webOrigins=[\"${FRONTEND_PUBLIC_URL}\"]"
 
 # oauth2-proxy requires an aud claim in the access token, which Keycloak
 # only adds through an explicit audience mapper.

@@ -198,12 +198,8 @@
     "save": "Save",
     "cancel": "Cancel",
     "selectedCount": "{{count}} selected",
-    "groupCheckboxSelectAriaLabel": "Select all norms in {{lawGroup}}",
-    "groupCheckboxDeselectAriaLabel": "Deselect all norms in {{lawGroup}}",
     "groupCheckboxSelectHint": "Activating also selects {{count}} related norms.",
     "groupCheckboxDeselectHint": "Deactivating also deselects {{count}} related norms.",
-    "normCheckboxSelectAriaLabel": "Select {{norm}}",
-    "normCheckboxDeselectAriaLabel": "Deselect {{norm}}",
     "openAriaLabel": "Edit legal basis",
     "errors": {
       "missingLawReference": "At least one selected norm cannot be saved without a linked law.",

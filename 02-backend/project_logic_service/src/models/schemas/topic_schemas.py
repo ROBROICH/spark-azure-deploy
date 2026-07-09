@@ -26,11 +26,16 @@ class TopicResponse(CamelConfig):
 class TopicNormResponse(CamelConfig):
     """Response model for topic norm metadata."""
 
+    id: UUID = Field(..., description="The ID of the topic norm")
     topic_id: UUID = Field(..., description="The ID of the topic")
     type: TopicNormType = Field(..., description="The type of the norm")
     project_id: UUID = Field(..., description="The ID of the associated project")
+    project_version: int = Field(..., description="The project version of the topic norm")
     jurabk: str = Field(..., description="The legal code (Jurabk)")
     paragraph_nr: str = Field(..., description="The paragraph number (ParagraphNr)")
+    absatz: str | None = Field(None, description="Optional Absatz discriminator")
+    satz: str | None = Field(None, description="Optional Satz discriminator")
+    nummer: str | None = Field(None, description="Optional Nummer discriminator")
     mvp_status: TopicNormStatus = Field(..., description="MVP review status for this topic norm")
     satz_statuses: dict[str, TopicNormStatus] = Field(
         ..., description="RPB per-Satz review statuses keyed by Satz node ID"

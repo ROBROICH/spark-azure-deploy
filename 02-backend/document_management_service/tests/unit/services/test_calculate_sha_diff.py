@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
@@ -9,6 +10,7 @@ from src.models.db.workflow_enum import ActionEnum
 from src.services.storage_provider.storage_provider_base_service import (
     BaseStorageProviderService,
 )
+from src.services.workflows.activities import compute_diff
 from src.services.workflows.activities.activity_models import (
     ComputeDiffInput,
     SingleFileResult,
@@ -99,6 +101,28 @@ async def test_gather_sha256_parallel(mock_storage):
 
 
 @pytest.mark.asyncio
+async def test_gather_sha256_limits_concurrency(monkeypatch, mock_storage):
+    concurrency_limit = 2
+    active = 0
+    max_active = 0
+
+    async def fake_get_sha256(storage_provider_service, filepath, chunk_size=8192 * 4):
+        nonlocal active, max_active
+        active += 1
+        max_active = max(max_active, active)
+        await asyncio.sleep(0.01)
+        active -= 1
+        return f"sha-{filepath}"
+
+    monkeypatch.setattr(compute_diff, "get_sha256", fake_get_sha256)
+
+    shas = await gather_sha256(mock_storage, ["f1", "f2", "f3", "f4", "f5"], max_concurrency=concurrency_limit)
+
+    assert shas == ["sha-f1", "sha-f2", "sha-f3", "sha-f4", "sha-f5"]
+    assert max_active <= concurrency_limit
+
+
+@pytest.mark.asyncio
 @patch("src.services.workflows.activities.compute_diff.create_file_service")
 async def test_create_sha256_diff_new_and_deleted(
     mock_create_service, mock_file_service, mock_storage, sample_compute_input
@@ -123,10 +147,12 @@ async def test_create_sha256_diff_new_and_deleted(
 
     result = await create_diff(sample_compute_input)
 
-    assert len(result.new) == 2
+    expected_new_count = 2
+    assert len(result.new) == expected_new_count
     assert {f.filename for f in result.new} == {"report-v2.pdf", "notes/old.txt"}
 
-    assert len(result.deleted) == 2
+    expected_deleted_count = 2
+    assert len(result.deleted) == expected_deleted_count
     assert {d.filename for d in result.deleted} == {"report-v1.pdf", "secret.txt"}
 
     assert len(result.changed) == 0
@@ -333,7 +359,8 @@ async def test_create_sha256_diff_ewms_filename_based_duplicate_detection(
     )
 
     # New files (unique filenames)
-    assert len(result.new) == 2
+    expected_new_count = 2
+    assert len(result.new) == expected_new_count
     assert {file.filename for file in result.new} == {"E3333.pdf", "E4444.pdf"}
     assert all(file.sha is None for file in result.new)  # No SHA for EWMS
 

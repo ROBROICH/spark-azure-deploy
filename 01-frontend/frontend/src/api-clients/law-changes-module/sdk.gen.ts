@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { CreateScheduleTemporalSchedulePostData, CreateScheduleTemporalSchedulePostErrors, CreateScheduleTemporalSchedulePostResponses, DeleteScheduleTemporalScheduleDeleteData, DeleteScheduleTemporalScheduleDeleteErrors, DeleteScheduleTemporalScheduleDeleteResponses, GetPendingPendingUpdatesGetData, GetPendingPendingUpdatesGetErrors, GetPendingPendingUpdatesGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, PauseScheduleTemporalSchedulePausePostData, PauseScheduleTemporalSchedulePausePostErrors, PauseScheduleTemporalSchedulePausePostResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, UpdateScheduleTemporalSchedulePutData, UpdateScheduleTemporalSchedulePutErrors, UpdateScheduleTemporalSchedulePutResponses } from './types.gen';
+import type { CreateScheduleTemporalSchedulePostData, CreateScheduleTemporalSchedulePostErrors, CreateScheduleTemporalSchedulePostResponses, DeleteScheduleTemporalScheduleDeleteData, DeleteScheduleTemporalScheduleDeleteResponses, GetPendingPendingUpdatesGetData, GetPendingPendingUpdatesGetErrors, GetPendingPendingUpdatesGetResponses, HealthCheckHealthzGetData, HealthCheckHealthzGetResponses, MetricsMetricsGetData, MetricsMetricsGetResponses, PauseScheduleTemporalSchedulePausePostData, PauseScheduleTemporalSchedulePausePostErrors, PauseScheduleTemporalSchedulePausePostResponses, ReadinessCheckReadyGetData, ReadinessCheckReadyGetResponses, StartupCheckStartupGetData, StartupCheckStartupGetResponses, UpdateScheduleTemporalSchedulePutData, UpdateScheduleTemporalSchedulePutErrors, UpdateScheduleTemporalSchedulePutResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -63,7 +63,7 @@ export const getPendingPendingUpdatesGet = <ThrowOnError extends boolean = false
 /**
  * Delete Schedule
  */
-export const deleteScheduleTemporalScheduleDelete = <ThrowOnError extends boolean = false>(options?: Options<DeleteScheduleTemporalScheduleDeleteData, ThrowOnError>) => (options?.client ?? client).delete<DeleteScheduleTemporalScheduleDeleteResponses, DeleteScheduleTemporalScheduleDeleteErrors, ThrowOnError>({
+export const deleteScheduleTemporalScheduleDelete = <ThrowOnError extends boolean = false>(options?: Options<DeleteScheduleTemporalScheduleDeleteData, ThrowOnError>) => (options?.client ?? client).delete<DeleteScheduleTemporalScheduleDeleteResponses, unknown, ThrowOnError>({
     security: [{ scheme: 'bearer', type: 'http' }],
     url: '/temporal/schedule',
     ...options
