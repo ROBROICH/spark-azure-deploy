@@ -16,10 +16,6 @@ stages:
   - service-pipelines-4
   - service-pipelines-5
   - service-pipelines-6
-  - service-pipelines-7
-  - service-pipelines-8
-  - service-pipelines-9
-  - service-pipelines-10
 
 variables:
   DEVGUARD_WEB_UI: "https://devguard.opencode.de"
@@ -98,7 +94,7 @@ agent-orchestration-service:
     - when: never
 
 comment-service:
-  stage: service-pipelines-2
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/comment-service.yml"
@@ -114,7 +110,7 @@ comment-service:
     - when: never
 
 document-management-service:
-  stage: service-pipelines-2
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/document-management-service.yml"
@@ -146,7 +142,7 @@ examination-service:
     - when: never
 
 feedback-service:
-  stage: service-pipelines-3
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/feedback-service.yml"
@@ -162,7 +158,7 @@ feedback-service:
     - when: never
 
 formal-completeness-check:
-  stage: service-pipelines-3
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/formal-completeness-check.yml"
@@ -178,7 +174,7 @@ formal-completeness-check:
     - when: never
 
 fpp-service:
-  stage: service-pipelines-3
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/fpp-service.yml"
@@ -194,7 +190,7 @@ fpp-service:
     - when: never
 
 identity-management-service:
-  stage: service-pipelines-4
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/identity-management-service.yml"
@@ -210,7 +206,7 @@ identity-management-service:
     - when: never
 
 objections-management-service:
-  stage: service-pipelines-4
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/objections-management-service.yml"
@@ -226,7 +222,7 @@ objections-management-service:
     - when: never
 
 plausibility-notes:
-  stage: service-pipelines-4
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/plausibility-notes.yml"
@@ -242,7 +238,7 @@ plausibility-notes:
     - when: never
 
 project-logic-service:
-  stage: service-pipelines-5
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/project-logic-service.yml"
@@ -258,7 +254,7 @@ project-logic-service:
     - when: never
 
 protocol-service:
-  stage: service-pipelines-5
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/protocol-service.yml"
@@ -274,7 +270,7 @@ protocol-service:
     - when: never
 
 supplementary-requests-service:
-  stage: service-pipelines-5
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/supplementary-requests-service.yml"
@@ -290,7 +286,7 @@ supplementary-requests-service:
     - when: never
 
 temporal-job-service:
-  stage: service-pipelines-6
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/temporal-job-service.yml"
@@ -306,7 +302,7 @@ temporal-job-service:
     - when: never
 
 rechtsaenderungs-monitoring:
-  stage: service-pipelines-6
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/rechtsaenderungs-monitoring.yml"
@@ -322,7 +318,7 @@ rechtsaenderungs-monitoring:
     - when: never
 
 gesetze-normen-db-service:
-  stage: service-pipelines-6
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetze-normen-db-service.yml"
@@ -338,7 +334,7 @@ gesetze-normen-db-service:
     - when: never
 
 gesetzesbegruendung-db-service:
-  stage: service-pipelines-7
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetzesbegruendung-db-service.yml"
@@ -354,7 +350,7 @@ gesetzesbegruendung-db-service:
     - when: never
 
 jura-db-service:
-  stage: service-pipelines-7
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/jura-db-service.yml"
@@ -370,7 +366,7 @@ jura-db-service:
     - when: never
 
 llm-client:
-  stage: service-pipelines-7
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/llm-client.yml"
@@ -386,7 +382,7 @@ llm-client:
     - when: never
 
 modul-anonymisierung:
-  stage: service-pipelines-8
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-anonymisierung.yml"
@@ -402,7 +398,7 @@ modul-anonymisierung:
     - when: never
 
 modul-bewertung:
-  stage: service-pipelines-8
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-bewertung.yml"
@@ -418,7 +414,7 @@ modul-bewertung:
     - when: never
 
 modul-einwendungsmanagement:
-  stage: service-pipelines-8
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-einwendungsmanagement.yml"
@@ -434,7 +430,7 @@ modul-einwendungsmanagement:
     - when: never
 
 modul-formale-pruefung:
-  stage: service-pipelines-9
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-formale-pruefung.yml"
@@ -450,7 +446,7 @@ modul-formale-pruefung:
     - when: never
 
 modul-inhaltsextraktion:
-  stage: service-pipelines-9
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-inhaltsextraktion.yml"
@@ -466,7 +462,7 @@ modul-inhaltsextraktion:
     - when: never
 
 modul-plausibilitaet-pruefung:
-  stage: service-pipelines-9
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-plausibilitaet-pruefung.yml"
@@ -482,7 +478,7 @@ modul-plausibilitaet-pruefung:
     - when: never
 
 modul-rechtsmethodik:
-  stage: service-pipelines-10
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-rechtsmethodik.yml"
@@ -498,7 +494,7 @@ modul-rechtsmethodik:
     - when: never
 
 modul-risikohinweiser:
-  stage: service-pipelines-10
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-risikohinweiser.yml"
@@ -514,7 +510,7 @@ modul-risikohinweiser:
     - when: never
 
 modul-suche-und-zuordnung:
-  stage: service-pipelines-10
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-suche-und-zuordnung.yml"
