@@ -9,7 +9,7 @@ replicaCount: 2
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "<container-registry>/feedback-module"
+  repository: "registry.opencode.de/oc000155419009/spark-workflow/feedback-module"
   tag: "<image-tag>"
   pullPolicy: Always
 

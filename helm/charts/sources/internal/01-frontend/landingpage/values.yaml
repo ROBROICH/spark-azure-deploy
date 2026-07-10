@@ -24,7 +24,7 @@ replicaCount: 1
 #   pullPolicy: Always
 
 image:
-  repository: "<container-registry>/landingpage-app"
+  repository: "registry.opencode.de/oc000155419009/spark-workflow/landingpage-app"
   tag: "<image-tag>"
   pullPolicy: Always
 

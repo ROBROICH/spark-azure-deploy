@@ -131,7 +131,7 @@ frontend-layer:
 
   frontend:
     image:
-      repository: "<container-registry>/frontend-app"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/frontend-app"
       tag: "<image-tag>"
 
     replicaCount: 1
@@ -188,7 +188,7 @@ service-layer:
   # Core project state machine and workflow coordinator.
   project-logic-service:
     image:
-      repository: "<container-registry>/pls-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/pls-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -232,7 +232,7 @@ service-layer:
   # REST facade exposing Temporal workflow submission and status APIs.
   temporal-job-service:
     image:
-      repository: "<container-registry>/temporal-jobs-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/temporal-jobs-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -258,7 +258,7 @@ service-layer:
   # Document storage, virus scanning, and lifecycle management.
   document-management-service:
     image:
-      repository: "<container-registry>/dms-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/dms-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -303,7 +303,7 @@ service-layer:
   # Coordinates multi-agent AI workflows via Temporal.
   agent-orchestration-service:
     image:
-      repository: "<container-registry>/agent-orchestration-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/agent-orchestration-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -347,7 +347,7 @@ service-layer:
   # Manages administrative file drafts and planning document lifecycle.
   administrative-file-draft:
     image:
-      repository: "<container-registry>/administrative-file-draft"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/administrative-file-draft"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -365,7 +365,7 @@ service-layer:
   # Inline comment and annotation management for planning documents.
   comment-service:
     image:
-      repository: "<container-registry>/comment-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/comment-module"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -376,7 +376,7 @@ service-layer:
   # Orchestrates formal examination workflows for submitted documents.
   examination-service:
     image:
-      repository: "<container-registry>/examination-service"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/examination-service"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -394,7 +394,7 @@ service-layer:
   # Collects and stores user feedback on AI module results.
   feedback-service:
     image:
-      repository: "<container-registry>/feedback-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/feedback-module"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -410,7 +410,7 @@ service-layer:
   # Checks submitted planning documents for formal completeness.
   formal-completeness-check:
     image:
-      repository: "<container-registry>/fcs-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/fcs-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -430,7 +430,7 @@ service-layer:
   # Formal planning procedure service.
   fpp-service:
     image:
-      repository: "<container-registry>/fpp-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/fpp-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -449,7 +449,7 @@ service-layer:
 
   llm-client:
     image:
-      repository: "<container-registry>/llm-client"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/llm-client"
       tag: "<image-tag>"
     extraEnv:
       - name: LITELLM_BASE_URL
@@ -467,7 +467,7 @@ service-layer:
   # User identity and role management backed by Keycloak admin APIs.
   identity-management-service:
     image:
-      repository: "<container-registry>/identity-management-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/identity-management-module"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -482,7 +482,7 @@ service-layer:
   # Manages objection records and resolution workflows.
   objections-management-service:
     image:
-      repository: "<container-registry>/objections-management-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/objections-management-module"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -500,7 +500,7 @@ service-layer:
   # Plausibility audit notes for reviewed planning documents.
   plausibility-notes:
     image:
-      repository: "<container-registry>/plausibility-notes-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/plausibility-notes-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -520,7 +520,7 @@ service-layer:
   # Handles requests for supplementary information in planning procedures.
   supplementary-requests-service:
     image:
-      repository: "<container-registry>/supplementary-requests-service"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/supplementary-requests-service"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -533,7 +533,7 @@ service-layer:
   # Cross-service audit trail — reads all service databases in read-only mode.
   protocol-service:
     image:
-      repository: "<container-registry>/protocol-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/protocol-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -563,7 +563,7 @@ service-layer:
   # Monitors legal amendments and classifies changes.
   rechtsaenderungs-monitoring:
     image:
-      repository: "<container-registry>/rechtsaenderungsmonitoring"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/rechtsaenderungsmonitoring"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -582,7 +582,7 @@ service-layer:
   # Laws and legal norms reference database and PDF extraction accessor.
   gesetze-normen-db-service:
     image:
-      repository: "<container-registry>/gesetze-normen-db"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/gesetze-normen-db"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -601,7 +601,7 @@ service-layer:
   # General legal reference database with LLM-powered chunking.
   jura-db-service:
     image:
-      repository: "<container-registry>/jura-db"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/jura-db"
       tag: "<image-tag>"
     replicaCount: 3
     extraEnv:
@@ -629,7 +629,7 @@ service-layer:
   # Legislative reasoning reference database. Integrates with Docling for OCR.
   gesetzesbegruendung-db-service:
     image:
-      repository: "<container-registry>/begruendungen-db"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/begruendungen-db"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -719,7 +719,7 @@ ai-module-layer:
   # Document content extraction: full text, tables, and metadata.
   inhaltsextraktion:
     image:
-      repository: "<container-registry>/inhaltsextraktion-backend"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/inhaltsextraktion-backend"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -761,7 +761,7 @@ ai-module-layer:
   # AI-assisted formal completeness check.
   formale-vollstaendigkeitspruefung:
     image:
-      repository: "<container-registry>/formale-pruefung-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/formale-pruefung-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -780,7 +780,7 @@ ai-module-layer:
   # Plausibility verification of AI-generated results.
   plausibilitaetspruefung:
     image:
-      repository: "<container-registry>/plausibilitaet-pruefung-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/plausibilitaet-pruefung-module"
       tag: "<image-tag>"
     replicaCount: 5
     extraEnv:
@@ -799,7 +799,7 @@ ai-module-layer:
   # Semantic / material completeness check for planning documents.
   materielle-vollstaendigkeitspruefung:
     image:
-      repository: "<container-registry>/suche-und-zuordnung"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/suche-und-zuordnung"
       tag: "<image-tag>"
     replicaCount: 1
     extraEnv:
@@ -824,7 +824,7 @@ ai-module-layer:
   # Classification and routing of objections.
   einwendungsmanagement:
     image:
-      repository: "<container-registry>/einwendungsmanagement-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/einwendungsmanagement-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -841,7 +841,7 @@ ai-module-layer:
   # Legal assessment and evaluation of planning procedures.
   rechtliche-pruefung-und-bewertung:
     image:
-      repository: "<container-registry>/bewertung-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/bewertung-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -860,7 +860,7 @@ ai-module-layer:
   # Legal methodology analysis.
   rechtsmethodik:
     image:
-      repository: "<container-registry>/rechtsmethodik-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/rechtsmethodik-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -883,7 +883,7 @@ ai-module-layer:
   # PII anonymisation of document content.
   anonymisierung:
     image:
-      repository: "<container-registry>/anonymisierung-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/anonymisierung-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -902,7 +902,7 @@ ai-module-layer:
   # Norm determination — resolves applicable norms via vector search + LLM.
   normenermittlung:
     image:
-      repository: "<container-registry>/norm-tbm-spec-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/norm-tbm-spec-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
@@ -919,7 +919,7 @@ ai-module-layer:
   # Risk-indicator analysis for planning documents.
   risikohinweiser:
     image:
-      repository: "<container-registry>/risikohinweiser-module"
+      repository: "registry.opencode.de/oc000155419009/spark-workflow/risikohinweiser-module"
       tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
