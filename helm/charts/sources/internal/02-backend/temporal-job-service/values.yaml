@@ -9,7 +9,7 @@ replicaCount: 1
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "registry.opencode.de/oc000155419009/spark-workflow/temporal-jobs-module"
+  repository: "registry.opencode.de/oc000155419009/spark-workflow/temporal-job-service"
   tag: "<image-tag>"
   pullPolicy: Always
 

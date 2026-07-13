@@ -47,7 +47,7 @@ inhaltsextraktion:
   nameOverride: "modul-inhaltsextraktion"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/inhaltsextraktion-backend"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-inhaltsextraktion"
     tag: "<image-tag>"
     pullPolicy: IfNotPresent
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -190,7 +190,7 @@ formale-vollstaendigkeitspruefung:
   nameOverride: "modul-formale-pruefung"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/formale-pruefung"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-formale-pruefung"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -262,7 +262,7 @@ plausibilitaetspruefung:
   nameOverride: "modul-plausibilitaet-pruefung"
   replicaCount: 5
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/plausibilitaet-pruefung"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-plausibilitaet-pruefung"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -338,7 +338,7 @@ materielle-vollstaendigkeitspruefung:
   nameOverride: "modul-suche-und-zuordnung"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/suche-und-zuordnung"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-suche-und-zuordnung"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -422,7 +422,7 @@ einwendungsmanagement:
   nameOverride: "modul-einwendungsmanagement"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/einwendungsmanagement"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-einwendungsmanagement"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -492,7 +492,7 @@ rechtliche-pruefung-und-bewertung:
   nameOverride: "modul-bewertung"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/bewertung"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-bewertung"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -557,7 +557,7 @@ rechtsmethodik:
   nameOverride: "modul-rechtsmethodik"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/rechtsmethodik-module"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-rechtsmethodik"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -658,7 +658,7 @@ anonymisierung:
   nameOverride: "modul-anonymisierung"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/anonymisierung"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-anonymisierung"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -736,7 +736,7 @@ normenermittlung:
   nameOverride: "modul-normenermittlung"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/norm-tbm-spec-module"
+    repository: "<container-registry>/norm-tbm-spec-module"
     tag: "<image-tag>"
     pullPolicy: IfNotPresent
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -809,7 +809,7 @@ risikohinweiser:
   nameOverride: "modul-risikohinweiser"
   replicaCount: 2
   image:
-    repository: "registry.opencode.de/oc000155419009/spark-workflow/risikohinweiser-module"
+    repository: "registry.opencode.de/oc000155419009/spark-workflow/modul-risikohinweiser"
     tag: "<image-tag>"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.

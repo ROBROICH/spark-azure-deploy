@@ -9,7 +9,7 @@ replicaCount: 2
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "registry.opencode.de/oc000155419009/spark-workflow/rechtsaenderungsmonitoring"
+  repository: "registry.opencode.de/oc000155419009/spark-workflow/rechtsaenderungs-monitoring"
   tag: "<image-tag>"
   pullPolicy: Always
 
