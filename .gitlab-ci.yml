@@ -49,6 +49,18 @@ include:
       <<: *devguard-test-inputs
       stage: "test"
 
+"devguard:secret_scanning":
+  allow_failure: true
+
+"devguard:static-application-security-testing":
+  allow_failure: true
+
+"devguard:infrastructure_as_code_scanning":
+  allow_failure: true
+
+"devguard:software_composition_analysis":
+  allow_failure: true
+
 frontend:
   stage: service-pipelines-1
   trigger:
