@@ -24,7 +24,7 @@ replicaCount: 1
 #   pullPolicy: Always
 
 image:
-  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/landingpage-app"
+  repository: "<container-registry>/landingpage-app"
   tag: "<image-tag>"
   pullPolicy: Always
 

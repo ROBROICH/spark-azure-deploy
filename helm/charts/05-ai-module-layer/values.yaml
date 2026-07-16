@@ -48,7 +48,7 @@ inhaltsextraktion:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-inhaltsextraktion"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: IfNotPresent
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -191,7 +191,7 @@ formale-vollstaendigkeitspruefung:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-formale-pruefung"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -263,7 +263,7 @@ plausibilitaetspruefung:
   replicaCount: 5
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-plausibilitaet-pruefung"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -339,7 +339,7 @@ materielle-vollstaendigkeitspruefung:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-suche-und-zuordnung"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -423,7 +423,7 @@ einwendungsmanagement:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-einwendungsmanagement"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -493,7 +493,7 @@ rechtliche-pruefung-und-bewertung:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-bewertung"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -558,7 +558,7 @@ rechtsmethodik:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-rechtsmethodik"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -659,7 +659,7 @@ anonymisierung:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-anonymisierung"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
@@ -810,7 +810,7 @@ risikohinweiser:
   replicaCount: 2
   image:
     repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-risikohinweiser"
-    tag: "<image-tag>"
+    tag: "v0.2.1"
     pullPolicy: Always
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
   #   - name: <registry-pull-secret>
