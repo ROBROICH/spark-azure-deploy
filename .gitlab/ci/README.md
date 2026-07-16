@@ -216,15 +216,3 @@ For pushes or web pipelines on `main`:
 For tags:
 
 - All service image pipelines run.
-
-## Compatibility Files
-
-The previous grouped child pipeline files remain as thin compatibility shims:
-
-- `.gitlab/ci/frontend.yml`
-- `.gitlab/ci/backend-a.yml`
-- `.gitlab/ci/backend-b.yml`
-- `.gitlab/ci/shared-services.yml`
-- `.gitlab/ci/modulcluster.yml`
-
-The parent pipeline no longer uses them directly, but keeping them avoids breaking external references while the per-service structure is adopted.
