@@ -6,6 +6,10 @@ Deploys the Docling-Serve API server backed by a Redis Queue (RQ) worker pool.
 Workers process document parsing and layout analysis jobs asynchronously.
 An internal Redis instance is bundled via the project `redis` subchart.
 
+> **External images:** This chart references public Docling images from GHCR and
+> Redis images from Docker Hub. These images are external dependencies and are
+> not published or maintained in the Spark Workflow repository.
+
 ## What this chart creates
 
 | Resource | Notes |
