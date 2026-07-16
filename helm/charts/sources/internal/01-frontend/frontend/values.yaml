@@ -23,7 +23,7 @@ replicaCount: 1
 #   pullPolicy: Always
 
 image:
-  repository: "registry.opencode.de/oc000155419009/spark-workflow/frontend"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/frontend"
   tag: "<image-tag>"
   pullPolicy: Always
 
