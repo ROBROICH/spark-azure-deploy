@@ -47,7 +47,7 @@ qdrant:
     # Must be a valid semver string — the upstream chart uses semverCompare on this
     # value to gate snapshot-API behaviour. Leave empty to use the chart's appVersion
     # (v1.17.0), or set an explicit tag such as "v1.17.0".
-    tag: ""
+    tag: "v1.17.0"
     pullPolicy: IfNotPresent
 
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.

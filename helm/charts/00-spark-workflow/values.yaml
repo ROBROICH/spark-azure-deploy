@@ -903,7 +903,7 @@ ai-module-layer:
   normenermittlung:
     image:
       repository: "<container-registry>/norm-tbm-spec-module"
-      tag: "v0.0.7"
+      tag: "<image-tag>"
     replicaCount: 2
     extraEnv:
       - name: OTEL_ENDPOINT
