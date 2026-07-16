@@ -206,8 +206,8 @@ temporal:
     enabled: true
     replicaCount: 1
     image:
-      repository: "<container-registry>/ui"
-      tag: "<image-tag>"
+      repository: "temporalio/ui"
+      tag: "2.48.1"
     service:
       type: ClusterIP
       port: 8080

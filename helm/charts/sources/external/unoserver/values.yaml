@@ -22,8 +22,8 @@ namespaceOverride: ""
 
 # ── Image ─────────────────────────────────────────────────────────────────────
 image:
-  repository: "<container-registry>/unoserver"
-  tag: "<image-tag>"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/unoserver"
+  tag: "3.5"
   pullPolicy: Always
 
 # imagePullSecrets:          # Uncomment and set your registry pull secret name.
