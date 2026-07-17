@@ -52,6 +52,12 @@ class RedactionConfig(BaseModel):
     # Margin (PDF points) to pad redaction boxes in all directions for complete PII coverage.
     REDACTION_MARGIN_PTS: float = 1.5
 
+    # Remove digital signatures before redaction. Redaction invalidates them
+    # anyway, and the signer names would otherwise leak via the signature
+    # panel and the visible signature appearance. Disable only if signed
+    # documents must retain their (then invalid) signatures.
+    STRIP_SIGNATURES: bool = True
+
     # Presidio detector parameters.
     PRESIDIO: PresidioConfig = PresidioConfig()
 
