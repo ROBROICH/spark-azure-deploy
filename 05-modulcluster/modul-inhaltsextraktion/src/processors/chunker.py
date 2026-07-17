@@ -235,6 +235,8 @@ def _process_parent_chunk(
     # Convert specs into SubChunk objects
     all_sub_chunks_with_type: list[dict[str, Any]] = []
     for content, chunk_type_str, metadata_updates, start_pos in all_sub_chunk_specs:
+        if not content.strip():
+            continue
         final_metadata = {
             **base_sub_chunk_metadata,
             **metadata_updates,
@@ -352,6 +354,8 @@ def chunk_markdown(markdown_content: str, content_list: list[ContentItemDict]) -
     last_valid_unterkapitel: list[str] = []
 
     for split in processed_splits:
+        if not split.page_content.strip():
+            continue
         chunk, last_valid_path, last_valid_unterkapitel, doc_wide_last_known_page = _process_parent_chunk(
             split,
             text_splitter,
