@@ -7,6 +7,7 @@ import httpx
 from pydantic import BaseModel, ConfigDict
 from temporal.workflows.rechtsmethodik.types import Absatz
 from temporalio import activity, workflow
+from temporalio.exceptions import ApplicationError
 
 from src.activities.utils import api_call
 from src.env import ENV
@@ -190,6 +191,8 @@ async def _fetch_document_by_jurabk(activity_input: FetchDocumentByJurabkInput) 
 
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(url, params=params)
+        if response.status_code == httpx.codes.NOT_FOUND:
+            return {}
         response.raise_for_status()
         data = response.json()
         if not isinstance(data, dict) or not data:
@@ -258,8 +261,15 @@ async def fetch_all_norm_data(
     norm_input: FetchNormInput,
 ) -> NormDekonstruktionWorkflowInput:
     """Fetch all norm data (document info, paragraph info, Absätze) and assemble workflow input."""
-    docs_jurabk_info, para_info, absaetze = await workflow.asyncio.gather(
-        fetch_document_by_jurabk(norm_input.jurabk, bundesland=norm_input.bundesland),
+    docs_jurabk_info = await fetch_document_by_jurabk(norm_input.jurabk, bundesland=norm_input.bundesland)
+    if not docs_jurabk_info:
+        raise ApplicationError(
+            f"No document found for jurabk '{norm_input.jurabk}'",
+            type="DocumentNotFoundError",
+            non_retryable=True,
+        )
+
+    para_info, absaetze = await workflow.asyncio.gather(
         fetch_norm(
             FetchNormInput(
                 jurabk=norm_input.jurabk, paragraph_nr=norm_input.paragraph_nr, bundesland=norm_input.bundesland
@@ -273,7 +283,11 @@ async def fetch_all_norm_data(
     )
 
     if not para_info:
-        raise ValueError(f"No norm data found for {norm_input.jurabk} §{norm_input.paragraph_nr}")
+        raise ApplicationError(
+            f"No norm data found for {norm_input.jurabk} §{norm_input.paragraph_nr}",
+            type="NormNotFoundError",
+            non_retryable=True,
+        )
 
     absaetze_list: list[Absatz[NormDekonstruktionWorkflowSatzInput]] = []
 
