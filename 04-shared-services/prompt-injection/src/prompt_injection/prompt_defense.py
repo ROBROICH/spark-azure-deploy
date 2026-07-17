@@ -227,6 +227,9 @@ def _strip_invisible_chars(text: str) -> str:
 
 def _strip_injection_markers(text: str) -> str:
     """Remove known prompt injection markers from text."""
+    # Normalize first so Unicode-variant lookalikes (fullwidth, compatibility forms, etc.)
+    # collapse to their canonical form before invisible-char stripping and marker matching.
+    text = unicodedata.normalize("NFKC", text)
     text = _strip_invisible_chars(text)
     # Remove Special char used in external data tags to obstruct prompt injections closing
     # them too early or in the middle of external data
@@ -275,6 +278,11 @@ def sanitize_html(
         tag.insert_after(sep)
         tag.unwrap()
     text = unicodedata.normalize("NFKC", soup.get_text())
+    # Strip invisible/control chars here too: otherwise they can be interleaved inside
+    # known markers (e.g. "<|im<ZWSP>_start|>") to dodge INJECTION_PATTERNS_HIGH_RISK
+    # at detection time, since this is the only sanitization step that runs before
+    # the injection detector's own pattern check.
+    text = _strip_invisible_chars(text)
     text = _EMAIL_RE.sub("[E-Mail]", text)
     text = _URL_RE.sub("[URL]", text)
     return text
