@@ -4,6 +4,8 @@ These tests verify endpoint behavior given different auth states.
 Token validation itself is covered by the authentification package's own tests.
 """
 
+from unittest.mock import AsyncMock
+
 from authentification.dependencies import get_current_user, get_privileged_oidc_client
 from authentification.enums import OidcRoles
 from authentification.models import OidcUserInfo
@@ -64,18 +66,57 @@ async def test_get_identity_returns_null_role_when_no_supported_realm_role(app) 
     assert response.json()["role"] is None
 
 
-async def test_get_all_identities_returns_users(authenticated_client, monkeypatch):
+async def test_get_all_identities_filters_built_in_admin_and_downgrades_admin_roles(
+    authenticated_client: AsyncClient,
+    mock_oidc_client: AsyncMock,
+) -> None:
+    regular_user = OidcUserInfo(
+        sub="00000000-0000-0000-0000-000000000002",
+        preferred_username="regular-user",
+        email="regular-user@example.com",
+        name="regular-user",
+        given_name="Regular",
+        family_name="User",
+        realm_roles=[OidcRoles.USER],
+    )
+    admin_user = OidcUserInfo(
+        sub="00000000-0000-0000-0000-000000000003",
+        preferred_username="admin-user",
+        email="admin-user@example.com",
+        name="admin-user",
+        given_name="Admin",
+        family_name="User",
+        realm_roles=[OidcRoles.ADMIN],
+    )
+    built_in_admin = OidcUserInfo(
+        sub="00000000-0000-0000-0000-000000000004",
+        preferred_username="admin",
+        email="admin@example.com",
+        name="admin",
+        given_name="Built-in",
+        family_name="Admin",
+        realm_roles=[OidcRoles.ADMIN],
+    )
+    mock_oidc_client.list_all_users.return_value = [regular_user, admin_user, built_in_admin]
+
     response = await authenticated_client.get("/users")
 
     assert response.status_code == status.HTTP_200_OK
     assert response.json() == {
         "users": [
             {
-                "userId": "00000000-0000-0000-0000-000000000001",
-                "email": "testuser@example.com",
-                "firstName": "Test",
+                "userId": "00000000-0000-0000-0000-000000000002",
+                "email": "regular-user@example.com",
+                "firstName": "Regular",
                 "lastName": "User",
-                "role": "admin",
+                "role": "user",
+            },
+            {
+                "userId": "00000000-0000-0000-0000-000000000003",
+                "email": "admin-user@example.com",
+                "firstName": "Admin",
+                "lastName": "User",
+                "role": "user",
             },
         ]
     }
