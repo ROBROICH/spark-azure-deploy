@@ -9,8 +9,8 @@ replicaCount: 1
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "<container-registry>/pls-module"
-  tag: "<image-tag>"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/project-logic-service"
+  tag: "v0.2.1"
   pullPolicy: Always
 
 # Pull secrets for private registries (list).

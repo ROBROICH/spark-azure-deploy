@@ -131,8 +131,8 @@ frontend-layer:
 
   frontend:
     image:
-      repository: "<container-registry>/frontend-app"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/frontend"
+      tag: "v0.2.1"
 
     replicaCount: 1
 
@@ -188,8 +188,8 @@ service-layer:
   # Core project state machine and workflow coordinator.
   project-logic-service:
     image:
-      repository: "<container-registry>/pls-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/project-logic-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -232,8 +232,8 @@ service-layer:
   # REST facade exposing Temporal workflow submission and status APIs.
   temporal-job-service:
     image:
-      repository: "<container-registry>/temporal-jobs-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/temporal-job-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: DB__NAME
@@ -258,8 +258,8 @@ service-layer:
   # Document storage, virus scanning, and lifecycle management.
   document-management-service:
     image:
-      repository: "<container-registry>/dms-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/document-management-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -303,8 +303,8 @@ service-layer:
   # Coordinates multi-agent AI workflows via Temporal.
   agent-orchestration-service:
     image:
-      repository: "<container-registry>/agent-orchestration-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/agent-orchestration-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -347,8 +347,8 @@ service-layer:
   # Manages administrative file drafts and planning document lifecycle.
   administrative-file-draft:
     image:
-      repository: "<container-registry>/administrative-file-draft"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/administrative-file-draft"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -365,8 +365,8 @@ service-layer:
   # Inline comment and annotation management for planning documents.
   comment-service:
     image:
-      repository: "<container-registry>/comment-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/comment-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       - name: DB_NAME
@@ -376,8 +376,8 @@ service-layer:
   # Orchestrates formal examination workflows for submitted documents.
   examination-service:
     image:
-      repository: "<container-registry>/examination-service"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/examination-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -394,8 +394,8 @@ service-layer:
   # Collects and stores user feedback on AI module results.
   feedback-service:
     image:
-      repository: "<container-registry>/feedback-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/feedback-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -410,8 +410,8 @@ service-layer:
   # Checks submitted planning documents for formal completeness.
   formal-completeness-check:
     image:
-      repository: "<container-registry>/fcs-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/formal-completeness-check"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -430,8 +430,8 @@ service-layer:
   # Formal planning procedure service.
   fpp-service:
     image:
-      repository: "<container-registry>/fpp-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/fpp-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -449,8 +449,8 @@ service-layer:
 
   llm-client:
     image:
-      repository: "<container-registry>/llm-client"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/llm-client"
+      tag: "v0.2.1"
     extraEnv:
       - name: LITELLM_BASE_URL
         value: "https://litellm.example.com/v1"
@@ -467,8 +467,8 @@ service-layer:
   # User identity and role management backed by Keycloak admin APIs.
   identity-management-service:
     image:
-      repository: "<container-registry>/identity-management-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/identity-management-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       - name: AUTH_BASE_URL
@@ -482,8 +482,8 @@ service-layer:
   # Manages objection records and resolution workflows.
   objections-management-service:
     image:
-      repository: "<container-registry>/objections-management-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/objections-management-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -500,8 +500,8 @@ service-layer:
   # Plausibility audit notes for reviewed planning documents.
   plausibility-notes:
     image:
-      repository: "<container-registry>/plausibility-notes-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/plausibility-notes"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -520,8 +520,8 @@ service-layer:
   # Handles requests for supplementary information in planning procedures.
   supplementary-requests-service:
     image:
-      repository: "<container-registry>/supplementary-requests-service"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/supplementary-requests-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       - name: DB_NAME
@@ -533,8 +533,8 @@ service-layer:
   # Cross-service audit trail — reads all service databases in read-only mode.
   protocol-service:
     image:
-      repository: "<container-registry>/protocol-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/protocol-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: PROTOCOL_SERVICE_CORS_ORIGINS
@@ -563,8 +563,8 @@ service-layer:
   # Monitors legal amendments and classifies changes.
   rechtsaenderungs-monitoring:
     image:
-      repository: "<container-registry>/rechtsaenderungsmonitoring"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/rechtsaenderungs-monitoring"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: DB_NAME
@@ -582,8 +582,8 @@ service-layer:
   # Laws and legal norms reference database and PDF extraction accessor.
   gesetze-normen-db-service:
     image:
-      repository: "<container-registry>/gesetze-normen-db"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/gesetze-normen-db-service"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: DB_NAME
@@ -601,8 +601,8 @@ service-layer:
   # General legal reference database with LLM-powered chunking.
   jura-db-service:
     image:
-      repository: "<container-registry>/jura-db"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/jura-db-service"
+      tag: "v0.2.1"
     replicaCount: 3
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -629,8 +629,8 @@ service-layer:
   # Legislative reasoning reference database. Integrates with Docling for OCR.
   gesetzesbegruendung-db-service:
     image:
-      repository: "<container-registry>/begruendungen-db"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/gesetzesbegruendung-db-service"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       # Service-to-service URLs below are pre-configured in 03-service-layer/values.yaml
@@ -719,8 +719,8 @@ ai-module-layer:
   # Document content extraction: full text, tables, and metadata.
   inhaltsextraktion:
     image:
-      repository: "<container-registry>/inhaltsextraktion-backend"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-inhaltsextraktion"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       - name: LITELLM_BASE_URL
@@ -761,8 +761,8 @@ ai-module-layer:
   # AI-assisted formal completeness check.
   formale-vollstaendigkeitspruefung:
     image:
-      repository: "<container-registry>/formale-pruefung-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-formale-pruefung"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: LITELLM_MODEL
@@ -780,8 +780,8 @@ ai-module-layer:
   # Plausibility verification of AI-generated results.
   plausibilitaetspruefung:
     image:
-      repository: "<container-registry>/plausibilitaet-pruefung-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-plausibilitaet-pruefung"
+      tag: "v0.2.1"
     replicaCount: 5
     extraEnv:
       - name: LITELLM_MODEL
@@ -799,8 +799,8 @@ ai-module-layer:
   # Semantic / material completeness check for planning documents.
   materielle-vollstaendigkeitspruefung:
     image:
-      repository: "<container-registry>/suche-und-zuordnung"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-suche-und-zuordnung"
+      tag: "v0.2.1"
     replicaCount: 1
     extraEnv:
       - name: LLM_DB_RESEARCH_MODEL
@@ -824,8 +824,8 @@ ai-module-layer:
   # Classification and routing of objections.
   einwendungsmanagement:
     image:
-      repository: "<container-registry>/einwendungsmanagement-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-einwendungsmanagement"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: OTEL_ENDPOINT
@@ -841,8 +841,8 @@ ai-module-layer:
   # Legal assessment and evaluation of planning procedures.
   rechtliche-pruefung-und-bewertung:
     image:
-      repository: "<container-registry>/bewertung-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-bewertung"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: LITELLM_MODEL
@@ -860,8 +860,8 @@ ai-module-layer:
   # Legal methodology analysis.
   rechtsmethodik:
     image:
-      repository: "<container-registry>/rechtsmethodik-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-rechtsmethodik"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: MODELS_LARGE_LLM
@@ -883,8 +883,8 @@ ai-module-layer:
   # PII anonymisation of document content.
   anonymisierung:
     image:
-      repository: "<container-registry>/anonymisierung-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-anonymisierung"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: LLM_MODEL
@@ -919,8 +919,8 @@ ai-module-layer:
   # Risk-indicator analysis for planning documents.
   risikohinweiser:
     image:
-      repository: "<container-registry>/risikohinweiser-module"
-      tag: "<image-tag>"
+      repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/modul-risikohinweiser"
+      tag: "v0.2.1"
     replicaCount: 2
     extraEnv:
       - name: LITELLM_MODEL

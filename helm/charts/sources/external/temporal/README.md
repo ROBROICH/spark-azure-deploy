@@ -7,6 +7,10 @@ Helm chart (version 0.73.2, appVersion 1.30.2). Deploys the Temporal server,
 web UI, and admin tools against an external PostgreSQL cluster, and adds a
 post-install job that registers project-specific custom search attributes.
 
+> **External images:** This chart references public Temporal images from Docker
+> Hub. These images are external dependencies and are not published or
+> maintained in the Spark Workflow repository.
+
 ## What this chart creates
 
 | Source | Resources | Notes |

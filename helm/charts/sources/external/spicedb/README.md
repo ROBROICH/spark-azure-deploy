@@ -5,6 +5,10 @@ Self-contained Helm chart for SpiceDB authorization infrastructure.
 All Kubernetes resources are templated directly — there is no external chart
 dependency. This gives full control over naming, labels, and RBAC.
 
+> **External images:** This chart references public SpiceDB images from GHCR.
+> These images are external dependencies and are not published or maintained in
+> the Spark Workflow repository.
+
 ## What this chart creates
 
 ### Operator (namespace: `values.operator.namespace`, default `spicedb-operator`)

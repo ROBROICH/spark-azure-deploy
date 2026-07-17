@@ -25,8 +25,8 @@ app:
 
 # ── Image ─────────────────────────────────────────────────────────────────────
 image:
-  repository: "<container-registry>/docling-serve-cu128"
-  tag: "<image-tag>"
+  repository: "ghcr.io/docling-project/docling-serve-cu128"
+  tag: "v1.14.3"
   pullPolicy: Always
 
 # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -235,9 +235,9 @@ redis:
   nameOverride: "docling-rq-redis"
 
   image:
-    registry: <container-registry>
+    registry: "docker.io"
     repository: "redis"
-    tag: "<image-tag>"
+    tag: "8.6.1-alpine"
     pullPolicy: IfNotPresent
 
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.

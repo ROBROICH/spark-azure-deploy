@@ -2,9 +2,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  registry: <container-registry>
+  registry: "docker.io/redis"
   repository: "redis"
-  tag: "<image-tag>"
+  tag: "8.6.2-alpine"
   pullPolicy: IfNotPresent
 
 # imagePullSecrets:          # Uncomment and set your registry pull secret name.
