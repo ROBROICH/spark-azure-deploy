@@ -59,9 +59,9 @@ operator:
   namespace: "spicedb-operator"
 
   image:
-    repository: "<container-registry>/spicedb-operator"
+    repository: "ghcr.io/authzed/spicedb-operator"
     # Use the exact digest/tag from your registry.
-    tag: "<image-tag>"
+    tag: "v1.23.0"
     pullPolicy: IfNotPresent
 
   # imagePullSecrets:          # Uncomment and set your registry pull secret name.
@@ -80,7 +80,7 @@ operator:
   # update-graph ConfigMap — tells the operator which image repository to pull
   # SpiceDB from when performing channel-based auto-upgrades.
   updateGraph:
-    spicedbImageName: "<container-registry>/infra/spicedb"
+    spicedbImageName: "ghcr.io/authzed/spicedb"
 
 # =============================================================================
 # cluster — SpiceDB data-plane cluster
@@ -120,7 +120,7 @@ cluster:
     replicas: 1
     # Pin to a specific image digest/tag; leave empty to let the operator
     # select the image via the channel update graph.
-    image: "<container-registry>/spicedb:<image-tag>"
+    image: "ghcr.io/authzed/spicedb:v1.51.0"
     # Plain string list (not objects) — matches the operator API:
     #   imagePullSecrets: [<registry-pull-secret>]
     # imagePullSecrets:          # Uncomment and set your registry pull secret name.

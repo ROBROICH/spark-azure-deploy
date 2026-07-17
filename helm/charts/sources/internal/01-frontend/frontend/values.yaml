@@ -23,8 +23,8 @@ replicaCount: 1
 #   pullPolicy: Always
 
 image:
-  repository: "<container-registry>/frontend-app"
-  tag: "<image-tag>"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/frontend"
+  tag: "v0.2.1"
   pullPolicy: Always
 
 # Pull secrets for private registries (list).

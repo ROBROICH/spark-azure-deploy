@@ -9,8 +9,8 @@ replicaCount: 2
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "<container-registry>/supplementary-requests-service"
-  tag: "<image-tag>"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/supplementary-requests-service"
+  tag: "v0.2.1"
   pullPolicy: Always
 
 # Pull secrets for private registries (list).

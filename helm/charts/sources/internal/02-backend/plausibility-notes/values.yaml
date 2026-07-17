@@ -9,8 +9,8 @@ replicaCount: 2
 
 # Container image. If tag is empty, Chart.appVersion is used.
 image:
-  repository: "<container-registry>/plausibility-notes-module"
-  tag: "<image-tag>"
+  repository: "registry.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/plausibility-notes"
+  tag: "v0.2.1"
   pullPolicy: Always
 
 # Pull secrets for private registries (list).

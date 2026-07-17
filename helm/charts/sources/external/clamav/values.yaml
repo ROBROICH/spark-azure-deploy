@@ -10,8 +10,8 @@ replicaCount: 2
 
 image:
   # Replace with your internal mirror, e.g. <container-registry>/infra/clamav-api
-  repository: "<container-registry>/clamav-api"
-  tag: "<image-tag>"
+  repository: "ghcr.io/devhatro/clamav-api"
+  tag: "v2.0.0"
   pullPolicy: IfNotPresent
 
 # Image pull secrets for private registries.

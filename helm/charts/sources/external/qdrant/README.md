@@ -7,6 +7,10 @@ Helm chart (version 1.17.0, appVersion v1.17.0). Deploys Qdrant as a
 three-replica clustered StatefulSet with persistent storage and project-managed
 image references.
 
+> **External images:** This chart references the public Qdrant image from Docker
+> Hub. This image is an external dependency and is not published or maintained
+> in the Spark Workflow repository.
+
 ## What this chart creates
 
 All resources are rendered by the upstream `qdrant/qdrant` dependency. The
