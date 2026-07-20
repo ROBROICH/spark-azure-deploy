@@ -442,6 +442,27 @@ def test_chunk_markdown_empty_content() -> None:
 
 
 @patch(
+    "src.processors.chunker._build_parent_chunks",
+    new=lambda *_: [
+        Document(page_content="  ", metadata={}),
+        Document(page_content="Valid parent", metadata={}),
+    ],
+)
+@patch(
+    "src.processors.chunker.process_text_segment",
+    new=lambda *_: [("  ", "text", {}, 0)],
+)
+def test_chunk_markdown_filters_blank_chunks_and_uses_parent_fallback() -> None:
+    """Blank chunks are dropped while valid parent content remains indexable."""
+    chunks = MarkdownChunker.chunk_markdown("ignored", [])
+
+    assert len(chunks) == 1
+    assert chunks[0].page_content == "Valid parent"
+    assert [sub.page_content for sub in chunks[0].sub_chunks] == ["Valid parent"]
+    assert all(sub.page_content.strip() for sub in chunks[0].sub_chunks)
+
+
+@patch(
     "src.processors.sub_chunk_builder.get_config",
     new=lambda: Config(PARENT_CHUNK_MAX_CHARACTERS=1000, CHUNKING_MAX_CHARACTERS=50),
 )
