@@ -97,7 +97,7 @@ async def get_all_identities(
                 email=user.email,
                 firstName=user.given_name,
                 lastName=user.family_name,
-                role=user.role,
+                role=OidcRoles.USER if user.role == OidcRoles.ADMIN else user.role,
             )
         )
 
