@@ -4,18 +4,23 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
+from temporalio.exceptions import ApplicationError
 
 from src.activities.law_api_calls import (
     DefinitionsByJurabkTitelInput,
+    FetchDocumentByJurabkInput,
+    FetchDocumentBySearchTermInput,
     FetchNormInput,
     LegaldefinitionOutput,
+    _fetch_document_by_jurabk,
+    _fetch_document_by_search_term,
+    _fetch_norm,
     _ld_table_get_definitions_by_jurabk_titel,
     _post_and_validate_list,
     _tn_table_get_by_dokument,
     fetch_all_norm_data,
 )
 
-_PATCH_GATHER = "src.activities.law_api_calls.workflow.asyncio.gather"
 _PATCH_FETCH_DOC = "src.activities.law_api_calls.fetch_document_by_jurabk"
 _PATCH_FETCH_NORM = "src.activities.law_api_calls.fetch_norm"
 _PATCH_FETCH_ABS = "src.activities.law_api_calls.fetch_absaetze"
@@ -27,6 +32,10 @@ def _make_http_client(status: int = 200, json_data: object = None) -> MagicMock:
     empty: list[object] = []
     resp.json.return_value = json_data if json_data is not None else empty
     resp.raise_for_status = MagicMock()
+    if status >= httpx.codes.BAD_REQUEST:
+        request = httpx.Request("GET", "http://example.com")
+        response = httpx.Response(status, request=request)
+        resp.raise_for_status.side_effect = httpx.HTTPStatusError(f"HTTP {status}", request=request, response=response)
     client = AsyncMock()
     client.__aenter__.return_value = client
     client.__aexit__.return_value = False
@@ -52,22 +61,72 @@ class TestPostAndValidateList:
             await _post_and_validate_list("http://example.com", {})
 
 
+class TestDocumentLookups:
+    async def test_search_term_raises_on_404(self) -> None:
+        """Tests if an unexpected search endpoint 404 remains an HTTP error."""
+        client = _make_http_client(404)
+        with (
+            patch("src.activities.law_api_calls.httpx.AsyncClient", return_value=client),
+            pytest.raises(httpx.HTTPStatusError),
+        ):
+            await _fetch_document_by_search_term(FetchDocumentBySearchTermInput(search_term="BGB"))
+
+        client.get.return_value.raise_for_status.assert_called_once_with()
+
+    async def test_jurabk_returns_empty_dict_on_404(self) -> None:
+        """Tests if a missing jurabk is returned as an empty result."""
+        client = _make_http_client(404)
+        with patch("src.activities.law_api_calls.httpx.AsyncClient", return_value=client):
+            result = await _fetch_document_by_jurabk(FetchDocumentByJurabkInput(jurabk="BGB"))
+
+        assert result == {}
+        client.get.return_value.raise_for_status.assert_not_called()
+
+    async def test_norm_raises_on_404(self) -> None:
+        """Tests if an unexpected norm search endpoint 404 remains an HTTP error."""
+        client = _make_http_client(404)
+        with (
+            patch("src.activities.law_api_calls.httpx.AsyncClient", return_value=client),
+            pytest.raises(httpx.HTTPStatusError),
+        ):
+            await _fetch_norm(FetchNormInput(jurabk="BGB", paragraph_nr="1"))
+
+        client.get.return_value.raise_for_status.assert_called_once_with()
+
+
 class TestFetchAllNormData:
+    async def test_raises_with_jurabk_when_document_missing(self) -> None:
+        """Tests if missing document data identifies the affected jurabk."""
+        empty_doc: dict[str, object] = {}
+        with (
+            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock, return_value=empty_doc),
+            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock) as mock_fetch_norm,
+            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock) as mock_fetch_absaetze,
+            pytest.raises(ApplicationError, match="No document found for jurabk 'BGB'") as exc_info,
+        ):
+            await fetch_all_norm_data(FetchNormInput(jurabk="BGB", paragraph_nr="1"))
+
+        assert exc_info.value.type == "DocumentNotFoundError"
+        assert exc_info.value.non_retryable
+        mock_fetch_norm.assert_not_awaited()
+        mock_fetch_absaetze.assert_not_awaited()
+
     async def test_raises_when_para_info_empty(self) -> None:
-        """Tests if an empty para_info raises a ValueError."""
+        """Tests if empty norm data raises a non-retryable application error."""
         standangaben: list[str] = []
         doc_info = {"kurzue": "BNatSchG", "standangaben": standangaben}
         empty_para: list[dict[str, object]] = []
         empty_abs: list[dict[str, object]] = []
         with (
-            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock),
-            patch(_PATCH_GATHER, new_callable=AsyncMock) as mock_gather,
+            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock, return_value=doc_info),
+            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock, return_value=empty_para),
+            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock, return_value=empty_abs),
+            pytest.raises(ApplicationError, match="No norm data found") as exc_info,
         ):
-            mock_gather.return_value = (doc_info, empty_para, empty_abs)
-            with pytest.raises(ValueError, match="No norm data found"):
-                await fetch_all_norm_data(FetchNormInput(jurabk="BNatSchG", paragraph_nr="44"))
+            await fetch_all_norm_data(FetchNormInput(jurabk="BNatSchG", paragraph_nr="44"))
+
+        assert exc_info.value.type == "NormNotFoundError"
+        assert exc_info.value.non_retryable
 
     async def test_assembles_workflow_input_from_responses(self) -> None:
         """Tests if fetch_all_norm_data correctly assembles the workflow input from API responses."""
@@ -83,12 +142,10 @@ class TestFetchAllNormData:
             }
         ]
         with (
-            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock),
-            patch(_PATCH_GATHER, new_callable=AsyncMock) as mock_gather,
+            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock, return_value=doc_info),
+            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock, return_value=para_info),
+            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock, return_value=absaetze),
         ):
-            mock_gather.return_value = (doc_info, para_info, absaetze)
             result = await fetch_all_norm_data(FetchNormInput(jurabk="BNatSchG", paragraph_nr="44"))
 
         assert result.jurabk == "BNatSchG"
@@ -106,12 +163,10 @@ class TestFetchAllNormData:
         para_info = [{"titel": "Titel", "paragraph_text": "Text."}]
         empty_abs: list[dict[str, object]] = []
         with (
-            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock),
-            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock),
-            patch(_PATCH_GATHER, new_callable=AsyncMock) as mock_gather,
+            patch(_PATCH_FETCH_DOC, new_callable=AsyncMock, return_value=doc_info),
+            patch(_PATCH_FETCH_NORM, new_callable=AsyncMock, return_value=para_info),
+            patch(_PATCH_FETCH_ABS, new_callable=AsyncMock, return_value=empty_abs),
         ):
-            mock_gather.return_value = (doc_info, para_info, empty_abs)
             result = await fetch_all_norm_data(FetchNormInput(jurabk="BNatSchG", paragraph_nr="44"))
         assert result.absaetze == []
 
