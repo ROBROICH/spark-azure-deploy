@@ -20,6 +20,7 @@ from src.services.pdf_extractor import extract_all_texts
 from src.services.pii_matcher import fuzzy_search_pdf
 from src.services.presidio_detector import detect_pii_in_lines
 from src.services.redactor import redact_pdf
+from src.services.signature_stripper import strip_signatures
 
 
 @activity.defn(name="extract_texts")
@@ -56,20 +57,29 @@ def apply_redactions(inp: ApplyRedactionsInput) -> ApplyRedactionsResult:
     pii_terms = inp.pii_terms
     error_pages = list(inp.error_pages)
 
+    # Always strip digital signatures first. Redaction invalidates them anyway,
+    # and the signer names would otherwise leak via the signature panel and the
+    # visible signature appearance (neither is part of the redacted text layer).
+    working_pdf = inp.pdf_data
+    if cfg.STRIP_SIGNATURES:
+        working_pdf, signatures_removed = strip_signatures(working_pdf)
+        if signatures_removed:
+            activity.logger.info("Removed %d digital signature(s)", signatures_removed)
+
     if not pii_terms:
-        # No terms to match — return early with unmodified PDF
-        doc = pdfium.PdfDocument(inp.pdf_data)
+        # No terms to match — return the signature-stripped PDF.
+        doc = pdfium.PdfDocument(working_pdf)
         num_pages = len(doc)
         doc.close()
         return ApplyRedactionsResult(
-            redacted_pdf=inp.pdf_data,
+            redacted_pdf=working_pdf,
             pages_processed=num_pages,
             matches_found=0,
             error_pages=error_pages,
         )
 
     # Extract text per page for fuzzy matching
-    doc = pdfium.PdfDocument(inp.pdf_data)
+    doc = pdfium.PdfDocument(working_pdf)
     num_pages = len(doc)
     page_matched_values: dict[int, set[str]] = {}
 
@@ -91,7 +101,7 @@ def apply_redactions(inp: ApplyRedactionsInput) -> ApplyRedactionsResult:
 
     # Redact all pages in one pass
     activity.heartbeat(f"Redacting {len(page_matched_values)} pages...")
-    redacted_bytes, total_matches = redact_pdf(inp.pdf_data, page_matched_values)
+    redacted_bytes, total_matches = redact_pdf(working_pdf, page_matched_values)
 
     activity.logger.info(
         "Redaction complete: %d pages, %d matches, %d error pages",
