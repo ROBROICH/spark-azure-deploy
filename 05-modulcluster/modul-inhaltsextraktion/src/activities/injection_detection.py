@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import secrets
+import unicodedata
 from datetime import timedelta
 from typing import Any, Literal
 
@@ -300,6 +301,9 @@ class InjectionDetector:
         return [(idx, self._max_injection_score(p)) for (idx, _), p in zip(batch, preds, strict=True)]
 
     async def predict(self, text: str) -> InjectionPrediction:
+        # Normalize before pattern matching so Unicode-variant lookalikes can't bypass
+        # INJECTION_PATTERNS_HIGH_RISK regardless of whether the caller already normalized.
+        text = unicodedata.normalize("NFKC", text)
         if ENV.INJECTION_LLM_SCAN_ENABLED:
             injected_chunk = await self._verify_full_text(text)
             if injected_chunk is not None:
