@@ -48,6 +48,8 @@ include:
     inputs:
       <<: *devguard-test-inputs
       stage: "test"
+      fail_on_risk: "high"
+      fail_on_cvss: "high"
 
 "devguard:secret_scanning":
   allow_failure: true
@@ -56,9 +58,6 @@ include:
   allow_failure: true
 
 "devguard:infrastructure_as_code_scanning":
-  allow_failure: true
-
-"devguard:software_composition_analysis":
   allow_failure: true
 
 frontend:
