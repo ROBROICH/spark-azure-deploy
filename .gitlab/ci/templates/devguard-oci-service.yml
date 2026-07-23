@@ -38,6 +38,8 @@ include:
       pull_policy: "if-not-present"
       image_tag: "$IMAGE_TAG"
       fetch_image_from_registry: "true"
+      fail_on_risk: "high"
+      fail_on_cvss: "high"
       ignore_external_references: "true"
       ignore_upstream_attestations: "true"
       needs:
