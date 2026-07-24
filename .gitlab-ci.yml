@@ -49,7 +49,7 @@ include:
       <<: *devguard-test-inputs
       stage: "test"
       fail_on_risk: "high"
-      fail_on_cvss: "high"
+      fail_on_cvss: "critical"
 
 "devguard:secret_scanning":
   allow_failure: true

@@ -49,6 +49,19 @@ The `test` stage runs DevGuard repository checks:
 - Infrastructure-as-code scanning
 - Software composition analysis
 
+## Scan Failure Policy
+
+Secret scanning, static application security testing, and infrastructure-as-code scanning are non-blocking. Their findings remain visible in DevGuard, but these jobs are allowed to fail without failing the pipeline.
+
+Software composition analysis is blocking for open findings with a high or critical risk level, or a critical CVSS score:
+
+```yaml
+fail_on_risk: "high"
+fail_on_cvss: "critical"
+```
+
+Container scanning uses the same thresholds in the shared service template, so every service child pipeline fails when its image has an open high or critical risk finding, or a critical CVSS finding. Lower-severity findings remain visible without blocking the pipeline.
+
 The `service-pipelines-*` stages contain child pipeline triggers for deployable services. Each batch contains at most three service triggers, which limits service child-pipeline fan-out and reduces runner timeouts. Each service has its own child pipeline file in:
 
 ```text

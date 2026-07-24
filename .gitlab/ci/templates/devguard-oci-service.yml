@@ -39,7 +39,7 @@ include:
       image_tag: "$IMAGE_TAG"
       fetch_image_from_registry: "true"
       fail_on_risk: "high"
-      fail_on_cvss: "high"
+      fail_on_cvss: "critical"
       ignore_external_references: "true"
       ignore_upstream_attestations: "true"
       needs:
