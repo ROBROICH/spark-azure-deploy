@@ -16,6 +16,39 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.2.1] - 2026-07-15
+
+### Added
+
+* Legal-basis APIs and frontend support for browsing and assigning all available legal norms in the material completeness check
+* Bidirectional plausibility checks for contradictions between documents
+* Accessible, route-aware browser document titles and improved form validation focus handling
+* Reverse-proxy support for the local stack, including Keycloak redirects and same-origin object-storage access
+* Per-service GitLab CI pipelines for building, scanning, signing, and attesting OCI images
+* Prompt-injection defense tests and the German technical product profile
+
+### Changed
+
+* Project-version creation now uses an explicit copy plan for more reliable workflow execution
+* Authentication and request authorization were hardened, including validated body-based permission checks
+* Dependency versions were updated to address security findings
+* CI service pipelines are batched to limit runner fan-out; repository security scans are non-blocking
+
+### Fixed
+
+* Workflow cancellation now uses `POST` instead of `GET` to prevent unintended cancellation and CSRF
+* Virus scanning now fails closed on ambiguous or unexpected scanner responses
+* OCR-generated notes are removed more reliably before objections are processed
+* ZIP extraction allows more time for uploads containing many or large files
+* Tagged CI builds now produce the correct Docker image tags
+* DevGuard jobs use the `if-not-present` pull policy to improve pipeline stability
+
+### Removed
+
+* Obsolete `internal-auth` shared package; authentication is consolidated in the `authentification` package
+
+---
+
 ## [0.2.0-beta] - 2026-06-15
 
 ### Added
