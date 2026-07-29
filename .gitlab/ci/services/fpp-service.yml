@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":fpp-service"
       image_suffix: "fpp-service"
-      artifact_name: "spark-workflow-fpp-service-main-amd64"
+      artifact_name: "pkg:oci/fpp-service"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/02-backend/fpp_service/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"

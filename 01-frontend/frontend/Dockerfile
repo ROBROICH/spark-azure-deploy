@@ -1,5 +1,8 @@
+ARG BASE_IMAGE_DEV=node:24-alpine3.23
+ARG BASE_IMAGE=nginx:1.30-alpine3.23-slim
+
 # Stage 1: Build the application
-FROM node:24-alpine3.23 AS builder
+FROM ${BASE_IMAGE_DEV} AS builder
 
 WORKDIR /app
 
@@ -16,7 +19,7 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Serve with Nginx
-FROM nginx:1.30-alpine3.23-slim
+FROM ${BASE_IMAGE}
 
 # Temporary guard until upstream nginx alpine image refreshes vulnerable Alpine packages
 RUN apk add --no-cache --upgrade \

@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-risikohinweiser"
       image_suffix: "modul-risikohinweiser"
-      artifact_name: "spark-workflow-modul-risikohinweiser-main-amd64"
+      artifact_name: "pkg:oci/modul-risikohinweiser"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-risikohinweiser/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"

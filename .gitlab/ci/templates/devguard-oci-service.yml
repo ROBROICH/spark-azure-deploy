@@ -10,6 +10,10 @@ spec:
       type: string
     dockerfile:
       type: string
+    base_image_dev:
+      type: string
+    base_image:
+      type: string
 ---
 default:
   retry: 2
@@ -113,7 +117,7 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
         IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
       fi
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --push-retry=5 --destination "$IMAGE_REF"
+    - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --build-arg "BASE_IMAGE_DEV=$[[ inputs.base_image_dev ]]" --build-arg "BASE_IMAGE=$[[ inputs.base_image ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --push-retry=5 --destination "$IMAGE_REF"
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - /crane digest "$IMAGE_REF" > image-digest.txt
     - echo "Running DevGuard Intoto Build...stopping..."
