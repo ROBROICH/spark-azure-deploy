@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-anonymisierung"
       image_suffix: "modul-anonymisierung"
-      artifact_name: "spark-workflow-modul-anonymisierung-main-amd64"
+      artifact_name: "pkg:oci/modul-anonymisierung"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-anonymisierung/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"

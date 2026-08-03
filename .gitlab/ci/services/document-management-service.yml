@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":document-management-service"
       image_suffix: "document-management-service"
-      artifact_name: "spark-workflow-document-management-service-main-amd64"
+      artifact_name: "pkg:oci/document-management-service"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/02-backend/document_management_service/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"

@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-suche-und-zuordnung"
       image_suffix: "modul-suche-und-zuordnung"
-      artifact_name: "spark-workflow-modul-suche-und-zuordnung-main-amd64"
+      artifact_name: "pkg:oci/modul-suche-und-zuordnung"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-suche-und-zuordnung/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"

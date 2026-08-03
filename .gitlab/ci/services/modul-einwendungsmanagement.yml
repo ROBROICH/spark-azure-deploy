@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-einwendungsmanagement"
       image_suffix: "modul-einwendungsmanagement"
-      artifact_name: "spark-workflow-modul-einwendungsmanagement-main-amd64"
+      artifact_name: "pkg:oci/modul-einwendungsmanagement"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-einwendungsmanagement/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "python:3.13-slim"
