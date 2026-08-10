@@ -138,6 +138,40 @@ Useful local endpoints:
 - Qdrant API: `http://localhost:6333`
 - Process Compose API: `http://localhost:8080`
 
+### Running behind a reverse proxy (`$WEB_HOST`)
+
+The local stack assumes the browser and the containers share `localhost`. Setting the
+`$WEB_HOST` variable signals that the stack runs behind a port-prefixing reverse proxy instead:
+the browser is remote and reaches each service through `https://<port>-$WEB_HOST`, so every
+**browser-facing** URL (the frontend, the Keycloak login redirect, and object-storage presigned
+URLs) must use that public host instead of `localhost`.
+
+This is handled automatically: when `$WEB_HOST` is set, `scripts/create_secrets.sh` writes the
+public base URLs into `.env`, and `docker-compose.yaml` / `process-compose.yaml` pick them up. No
+manual edits are needed — just run the normal flow on the proxied host:
+
+```bash
+uv run poe create-secrets        # detects $WEB_HOST, writes FRONTEND_PUBLIC_URL / KEYCLOAK_PUBLIC_URL / S3_PUBLIC_URL
+docker compose --env-file .env up --wait
+uv run poe process-compose
+```
+
+Then open `https://3000-$WEB_HOST/app/` (not `localhost:3000`).
+
+What changes vs. localhost:
+
+- **Keycloak** advertises `https://9090-$WEB_HOST` as its issuer; oauth2-proxy uses the public
+  host for the browser-facing (front-channel) login/redirect, while token redeem and JWKS stay on
+  the internal docker network (`keycloak:9090`) so they never traverse the authenticating proxy.
+- **Object storage** is served **same-origin** through oauth2-proxy (the `/dms-local/` route),
+  because an authenticating reverse proxy blocks the cross-origin CORS preflight a direct upload
+  to a separate MinIO port would trigger. Presigned URLs use path-style addressing so the
+  signature validates behind the proxy.
+
+If you regenerate `.env` after moving between a plain-localhost and a reverse-proxy setup, wipe the Docker volumes
+first (as for any `.env` regeneration). Override the Vite host allow-list with
+`VITE_DEV_ALLOWED_HOSTS` if you serve the frontend under a different domain.
+
 ### Run a Workflow
 
 Use the normal frontend workflow:
