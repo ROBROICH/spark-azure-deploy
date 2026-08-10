@@ -17,6 +17,8 @@ A detailed description of the project **SPARK** and the features of **SPARK Work
 
 * an operational assistance tool for complex administrative planning and permitting procedures. It helps public authorities handle large volumes of application materials, prepare information for review, and support key steps of the procedure.
 
+* based on initial concepts from the use cases of approval procedures for federal highways or hydrogen pipelines (Planfeststellungsverfahren für Bundesfernstraßen oder im Bereich des Wasserstoffkernnetzes). Due to its configurability and modular architecture, it can be adapted to other use cases.
+
 * built to reduce administrative workload while keeping humans in control and accountable. Every AI output has to be actively accepted, edited, or discarded.
 
 * distinctive in embedding AI directly into the authority's established, legally grounded working process. Results are shown in a user interface designed together with the officials who use it.
@@ -55,7 +57,7 @@ The local setup starts shared infrastructure with Docker Compose and runs the ap
 
 ### External AI Services
 
-The local stack does not start an LLM provider. During secret generation, provide an OpenAI-compatible base URL, API key, chat model, embedding model, and a vision/multimodal model (used by the Inhaltsextraktion module for image and PDF-page analysis). `process-compose.yaml` routes every module's model variable to one of these three names, so the modules only ever request models your LiteLLM proxy actually serves.
+The local stack does not start an LLM provider. During secret generation, provide an OpenAI-compatible base URL, API key, chat model, and embedding model.
 
 Document extraction also requires Docling Serve. You can point the setup at an existing Docling deployment, or run a local CPU container:
 
@@ -264,6 +266,30 @@ Then recreate the container:
 ```bash
 docker compose up -d temporal-ui
 ```
+</details>
+
+<details>
+<summary>Why does Temporal store large intermediate states externally in S3
+and pass only references to the workflows?</summary>
+
+In SPARK Workflow, Temporal stores its data in Postgres. Postgres can work with large amounts of data, but it's not recommended. Because of that, we made the deliberate design decision to enforce a 2MB limit on inputs and outputs in Temporal.
+
+Note: The AI-assisted steps in SPARK Workflow are not a low-latency solution. Workflows can run over several hours. In this context, the latency produced by the coupling of the Temporal Workflows and S3 is negligible.
+
+</details>
+
+<details> 
+<summary>The state-management of the local setup is fragile due to poor decoupling of configuration and persistent state.</summary>
+    
+The Docker setup is intended as a low-barrier entry point for getting started with SPARK Workflow. Its goal is to make testing SPARK Workflow as easy as possible. It is explicitly not production ready and not designed for a long-term setup. To deploy SPARK Workflow in a production environment, use the [Helm charts](./helm/README.md).
+</details>
+
+<details> 
+<summary>The source code does not allow legal norms to be generated or updated independently from primary sources.</summary>
+
+The [Laws and Norms Database service](04-shared-services/db-services/gesetze-normen-db-service) makes it possible to retrieve and update legal norms from public federal and state law databases using parsers. Further information can be found in the [README](04-shared-services/db-services/gesetze-normen-db-service/README.md).
+
+For the first local setup, a database seed for the Gesetze- und Normendatenbank (Law and Norm Database) has been provided. This was done to decrease the barrier to entry for the open-source community. This is **not a production-ready configuration**. Please note the security notice above for more information.
 
 </details>
 
