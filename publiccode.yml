@@ -2,8 +2,8 @@ publiccodeYmlVersion: '0.5'
 name: SPARK Workflow
 url: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow
 logo: logo.svg
-softwareVersion: 0.2.1
-releaseDate: '2026-07-15'
+softwareVersion: 0.2.2
+releaseDate: '2026-08-10'
 platforms:
 - web
 categories:
