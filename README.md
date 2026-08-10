@@ -17,6 +17,8 @@ A detailed description of the project **SPARK** and the features of **SPARK Work
 
 * an operational assistance tool for complex administrative planning and permitting procedures. It helps public authorities handle large volumes of application materials, prepare information for review, and support key steps of the procedure.
 
+* based on initial concepts from the use cases of approval procedures for federal highways or hydrogen pipelines (Planfeststellungsverfahren für Bundesfernstraßen oder im Bereich des Wasserstoffkernnetzes). Due to its configurability and modular architecture, it can be adapted to other use cases.
+
 * built to reduce administrative workload while keeping humans in control and accountable. Every AI output has to be actively accepted, edited, or discarded.
 
 * distinctive in embedding AI directly into the authority's established, legally grounded working process. Results are shown in a user interface designed together with the officials who use it.
@@ -55,7 +57,7 @@ The local setup starts shared infrastructure with Docker Compose and runs the ap
 
 ### External AI Services
 
-The local stack does not start an LLM provider. During secret generation, provide an OpenAI-compatible base URL, API key, chat model, embedding model, and a vision/multimodal model (used by the Inhaltsextraktion module for image and PDF-page analysis). `process-compose.yaml` routes every module's model variable to one of these three names, so the modules only ever request models your LiteLLM proxy actually serves.
+The local stack does not start an LLM provider. During secret generation, provide an OpenAI-compatible base URL, API key, chat model, and embedding model.
 
 Document extraction also requires Docling Serve. You can point the setup at an existing Docling deployment, or run a local CPU container:
 
@@ -135,40 +137,6 @@ Useful local endpoints:
 - MinIO console: `http://localhost:9001`
 - Qdrant API: `http://localhost:6333`
 - Process Compose API: `http://localhost:8080`
-
-### Running behind a reverse proxy (`$WEB_HOST`)
-
-The local stack assumes the browser and the containers share `localhost`. Setting the
-`$WEB_HOST` variable signals that the stack runs behind a port-prefixing reverse proxy instead:
-the browser is remote and reaches each service through `https://<port>-$WEB_HOST`, so every
-**browser-facing** URL (the frontend, the Keycloak login redirect, and object-storage presigned
-URLs) must use that public host instead of `localhost`.
-
-This is handled automatically: when `$WEB_HOST` is set, `scripts/create_secrets.sh` writes the
-public base URLs into `.env`, and `docker-compose.yaml` / `process-compose.yaml` pick them up. No
-manual edits are needed — just run the normal flow on the proxied host:
-
-```bash
-uv run poe create-secrets        # detects $WEB_HOST, writes FRONTEND_PUBLIC_URL / KEYCLOAK_PUBLIC_URL / S3_PUBLIC_URL
-docker compose --env-file .env up --wait
-uv run poe process-compose
-```
-
-Then open `https://3000-$WEB_HOST/app/` (not `localhost:3000`).
-
-What changes vs. localhost:
-
-- **Keycloak** advertises `https://9090-$WEB_HOST` as its issuer; oauth2-proxy uses the public
-  host for the browser-facing (front-channel) login/redirect, while token redeem and JWKS stay on
-  the internal docker network (`keycloak:9090`) so they never traverse the authenticating proxy.
-- **Object storage** is served **same-origin** through oauth2-proxy (the `/dms-local/` route),
-  because an authenticating reverse proxy blocks the cross-origin CORS preflight a direct upload
-  to a separate MinIO port would trigger. Presigned URLs use path-style addressing so the
-  signature validates behind the proxy.
-
-If you regenerate `.env` after moving between a plain-localhost and a reverse-proxy setup, wipe the Docker volumes
-first (as for any `.env` regeneration). Override the Vite host allow-list with
-`VITE_DEV_ALLOWED_HOSTS` if you serve the frontend under a different domain.
 
 ### Run a Workflow
 
@@ -264,6 +232,30 @@ Then recreate the container:
 ```bash
 docker compose up -d temporal-ui
 ```
+</details>
+
+<details>
+<summary>Why does Temporal store large intermediate states externally in S3
+and pass only references to the workflows?</summary>
+
+In SPARK Workflow, Temporal stores its data in Postgres. Postgres can work with large amounts of data, but it's not recommended. Because of that, we made the deliberate design decision to enforce a 2MB limit on inputs and outputs in Temporal.
+
+Note: The AI-assisted steps in SPARK Workflow are not a low-latency solution. Workflows can run over several hours. In this context, the latency produced by the coupling of the Temporal Workflows and S3 is negligible.
+
+</details>
+
+<details> 
+<summary>The state-management of the local setup is fragile due to poor decoupling of configuration and persistent state.</summary>
+    
+The Docker setup is intended as a low-barrier entry point for getting started with SPARK Workflow. Its goal is to make testing SPARK Workflow as easy as possible. It is explicitly not production ready and not designed for a long-term setup. To deploy SPARK Workflow in a production environment, use the [Helm charts](./helm/README.md).
+</details>
+
+<details> 
+<summary>The source code does not allow legal norms to be generated or updated independently from primary sources.</summary>
+
+The [Laws and Norms Database service](04-shared-services/db-services/gesetze-normen-db-service) makes it possible to retrieve and update legal norms from public federal and state law databases using parsers. Further information can be found in the [README](04-shared-services/db-services/gesetze-normen-db-service/README.md).
+
+For the first local setup, a database seed for the Gesetze- und Normendatenbank (Law and Norm Database) has been provided. This was done to decrease the barrier to entry for the open-source community. This is **not a production-ready configuration**. Please note the security notice above for more information.
 
 </details>
 
