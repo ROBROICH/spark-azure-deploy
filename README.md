@@ -4,14 +4,16 @@
 
 Welcome to the repository of the application **SPARK Workflow**!
 
-A detailed description of the project **SPARK** and the features of **SPARK Workflow** can be found on [openCode](https://opencode.de/de/software/spark-workflow-10117). Additional information for public authorities can be found on the [website](https://bmds.bund.de/themen/kuenstliche-intelligenz/ki-in-der-verwaltung/spark) of the BMDS. If you are interested in operating the solution, [the technical product data sheet (GER)](./docs/Technischer_Produktsteckbrief_GER_v1.pdf) is a good starting point.
+A detailed description of the project **SPARK** and the features of **SPARK Workflow** can be found on [openCode](https://opencode.de/de/software/spark-workflow-10117). Additional information for public authorities can be found on the [website](https://bmds.bund.de/themen/kuenstliche-intelligenz/ki-in-der-verwaltung/spark) of the BMDS.
+
+For step-by-step guidance on using the application, see the [user manual (DE)](./docs/Benutzerhandbuch_GER_v1.pdf). If you are interested in operating the solution, [the technical product data sheet (DE)](./docs/Technischer_Produktsteckbrief_GER_v1.pdf) is a good starting point. An overview of all documentation in this repository is available in the [documentation index](./docs/README.md).
 
 **SPARK Workflow** was released as open source in consecutive releases. For more information, see [roadmap.md](./docs/roadmap.md).
 
 > [!WARNING]
 > Please note the security notice below.
 
-## What it is, what it isn't
+## What it is, what it isn’t
 
 **SPARK Workflow is ...**
 
@@ -21,7 +23,7 @@ A detailed description of the project **SPARK** and the features of **SPARK Work
 
 * built to reduce administrative workload while keeping humans in control and accountable. Every AI output has to be actively accepted, edited, or discarded.
 
-* distinctive in embedding AI directly into the authority's established, legally grounded working process. Results are shown in a user interface designed together with the officials who use it.
+* distinctive in embedding AI directly into the authority’s established, legally grounded working process. Results are shown in a user interface designed together with the officials who use it.
 
 **SPARK Workflow is not ...**
 
@@ -109,7 +111,7 @@ Start application services and the frontend:
 uv run poe process-compose
 ```
 
-Process Compose loads the root `.env` by default. Keep it limited to shared local secrets and external provider credentials. Service-specific application settings stay in each service's tracked `.env.local` file, with explicit local aliases in `process-compose.yaml` where a service expects a different environment variable name.
+Process Compose loads the root `.env` by default. Keep it limited to shared local secrets and external provider credentials. Service-specific application settings stay in each service’s tracked `.env.local` file, with explicit local aliases in `process-compose.yaml` where a service expects a different environment variable name.
 
 The startup automatically runs the seed jobs needed for a fresh local system:
 
@@ -219,14 +221,14 @@ docker build \
 >- **Identity & Authorization**: Integration with an OIDC- and OAuth 2.0-compliant identity and authorization service and IAM. Roles and permissions are defined within the application and may require adaptation to internal requirements.
 >- **Service Communication**: Deployment within an mTLS-capable service mesh. TLS certificate lifecycle management at the platform level.
 >- **Secrets & Key Management**: All secrets, credentials, and cryptographic keys must be managed via a dedicated platform-level solution.
->- **Data Storage**: The application uses PostgreSQL, S3-compatible object storage and Redis. Infrastructure-level encryption of all storage backends is assumed. Additional encryption at the application or field level must be implemented as required by the operator's crypto concept.
->- **Observability**: The application exposes Prometheus-compatible metrics and supports OpenTelemetry-compatible telemetry. The application provides an audit log covering user actions and AI operations. Central aggregation, forwarding, and evaluation of logs must be provided by the operator's observability platform.
+>- **Data Storage**: The application uses PostgreSQL, S3-compatible object storage and Redis. Infrastructure-level encryption of all storage backends is assumed. Additional encryption at the application or field level must be implemented as required by the operator’s crypto concept.
+>- **Observability**: The application exposes Prometheus-compatible metrics and supports OpenTelemetry-compatible telemetry. The application provides an audit log covering user actions and AI operations. Central aggregation, forwarding, and evaluation of logs must be provided by the operator’s observability platform.
 >
 >Beyond infrastructure components, the operator is solely responsible for the secure and orderly operation of the deployment. This includes, among others:
 >- **Access Control & Administration**: Restricting access to internal services, administrative interfaces, and management endpoints to authorized personnel and systems only. Applying the principle of least privilege throughout.
 >- **Network Security**: Enforcing IP allowlisting, network segmentation, and firewall rules appropriate to the target environment. Configuring security-relevant HTTP response headers (e.g. Content-Security-Policy, Strict-Transport-Security, X-Frame-Options) at the edge.
 >- **Resource & Capacity Management**: Ensuring that storage volumes, databases, log targets, and message queues do not exhaust available capacity. Implementing appropriate retention policies, log rotation, and alerting.
->- **Monitoring & Incident Response**: The application's built-in audit log provides a record of user and AI activity but does not replace centralized log aggregation and analysis. Operating monitoring, alerting, and centralized log evaluation for all relevant system components. Establishing and maintaining incident response and escalation processes is the responsibility of the operator.
+>- **Monitoring & Incident Response**: The application’s built-in audit log provides a record of user and AI activity but does not replace centralized log aggregation and analysis. Operating monitoring, alerting, and centralized log evaluation for all relevant system components. Establishing and maintaining incident response and escalation processes is the responsibility of the operator.
 >- **Patch & Vulnerability Management**: Keeping all platform components, base images, and dependencies up to date. Tracking relevant security advisories and applying patches in a timely manner.
 >- **Backup & Recovery**: Implementing and regularly testing backup and disaster recovery procedures for all stateful components.
 >
@@ -235,9 +237,9 @@ docker build \
 ## Troubleshooting
 
 <details>
-<summary>PostgreSQL won't start / application services are crashing</summary>
+<summary>PostgreSQL won’t start / application services are crashing</summary>
 
-This is most likely because the `.env` file with secrets hasn't been created yet. Create it by running:
+This is most likely because the `.env` file with secrets hasn’t been created yet. Create it by running:
 
 ```bash
 ./scripts/create_secrets.sh
@@ -248,7 +250,7 @@ Then restart all containers. If the `.env` already exists and you want to regene
 </details>
 
 <details>
-<summary>Temporal UI: "missing csrf token in request header"</summary>
+<summary>Temporal UI: “missing csrf token in request header”</summary>
 
 The Temporal UI sets its CSRF cookie with the `Secure` flag. Some browsers drop `Secure` cookies over plain HTTP, which prevents the CSRF token from being sent with API requests.
 
@@ -272,7 +274,7 @@ docker compose up -d temporal-ui
 <summary>Why does Temporal store large intermediate states externally in S3
 and pass only references to the workflows?</summary>
 
-In SPARK Workflow, Temporal stores its data in Postgres. Postgres can work with large amounts of data, but it's not recommended. Because of that, we made the deliberate design decision to enforce a 2MB limit on inputs and outputs in Temporal.
+In SPARK Workflow, Temporal stores its data in Postgres. Postgres can work with large amounts of data, but it’s not recommended. Because of that, we made the deliberate design decision to enforce a 2MB limit on inputs and outputs in Temporal.
 
 Note: The AI-assisted steps in SPARK Workflow are not a low-latency solution. Workflows can run over several hours. In this context, the latency produced by the coupling of the Temporal Workflows and S3 is negligible.
 

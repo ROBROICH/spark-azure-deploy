@@ -16,6 +16,25 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.2.2] - 2026-08-10
+
+### Added
+
+* German user manual and a repository-wide documentation index organized by purpose, target audience, and language
+* README guidance on supported use cases, Temporal and S3 state handling, local-stack limitations, and maintaining the laws and norms database
+
+### Changed
+
+* DevGuard artifact identifiers now use Package URL (PURL) format for the monorepo and OCI service artifacts
+* Service CI pipelines now accept explicit build and runtime base-image inputs
+* Root README links directly to the user manual and documentation index and simplifies external AI service configuration
+
+### Fixed
+
+* Restored reverse-proxy setup guidance in the root README
+
+---
+
 ## [0.2.1] - 2026-07-15
 
 ### Added
