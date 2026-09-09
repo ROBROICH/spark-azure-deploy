@@ -1,10 +1,13 @@
 ARG BASE_IMAGE_DEV=node:24-alpine3.23
 ARG BASE_IMAGE=nginx:1.30-alpine3.23-slim
+ARG NODE_OPTIONS="--max-old-space-size=4096"
 
 # Stage 1: Build the application
 FROM ${BASE_IMAGE_DEV} AS builder
 
 WORKDIR /app
+
+ENV NODE_OPTIONS=${NODE_OPTIONS}
 
 # Copy package.json and pnpm-lock.yaml
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc ./
