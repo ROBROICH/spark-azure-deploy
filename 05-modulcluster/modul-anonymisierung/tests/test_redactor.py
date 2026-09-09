@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 import pikepdf
 import pypdfium2 as pdfium
+import pytest
 
 from src.services.redactor import redact_pdf
 
@@ -95,3 +96,86 @@ class TestRedactPdf:
 
         assert matches == 0
         assert result_bytes == pdf_data
+
+
+def _create_pdf_referencing_pii_page(referrer: str, marker: str) -> bytes:
+    """Three-page PDF whose last page holds *marker*, kept referenced by *referrer*.
+
+    Replacing a page only rewires ``/Pages``, so anything else still pointing at
+    the original page object keeps it — and its unredacted content — in the file.
+    """
+    pdf = pikepdf.new()
+    helvetica = pikepdf.Dictionary(
+        Type=pikepdf.Name.Font,
+        Subtype=pikepdf.Name.Type1,
+        BaseFont=pikepdf.Name.Helvetica,
+    )
+    for i in range(3):
+        pdf.add_blank_page(page_size=(612, 792))
+        page = pdf.pages[i]
+        text = marker if i == 2 else f"Unauffaelliger Text Seite {i + 1}"
+        page[pikepdf.Name.Resources] = pikepdf.Dictionary(Font=pikepdf.Dictionary({"/F1": helvetica}))
+        page[pikepdf.Name.Contents] = pdf.make_stream(f"BT /F1 12 Tf 72 720 Td ({text}) Tj ET".encode())
+
+    dest = pikepdf.Array([pdf.pages[2].obj, pikepdf.Name.Fit])
+
+    if referrer == "outlines":
+        item = pdf.make_indirect(pikepdf.Dictionary(Title=pikepdf.String("Zu Seite 3"), Dest=dest))
+        outlines = pdf.make_indirect(pikepdf.Dictionary(Type=pikepdf.Name.Outlines, First=item, Last=item, Count=1))
+        item.Parent = outlines
+        pdf.Root.Outlines = outlines
+    elif referrer == "names":
+        pdf.Root.Names = pdf.make_indirect(
+            pikepdf.Dictionary(Dests=pikepdf.Dictionary(Names=pikepdf.Array([pikepdf.String("s3"), dest])))
+        )
+    elif referrer == "legacy_dests":
+        pdf.Root.Dests = pdf.make_indirect(pikepdf.Dictionary(s3=dest))
+    elif referrer == "link_annot":
+        link = pdf.make_indirect(
+            pikepdf.Dictionary(
+                Type=pikepdf.Name.Annot,
+                Subtype=pikepdf.Name.Link,
+                Rect=pikepdf.Array([72, 700, 300, 740]),
+                A=pikepdf.Dictionary(S=pikepdf.Name.GoTo, D=dest),
+            )
+        )
+        pdf.pages[0].Annots = pdf.make_indirect(pikepdf.Array([link]))
+    else:
+        raise ValueError(referrer)
+
+    buf = BytesIO()
+    pdf.save(buf)
+    pdf.close()
+    return buf.getvalue()
+
+
+class TestNoStalePageContent:
+    """Replaced pages must not stay recoverable through other references."""
+
+    MARKER = "Zwischenfall Aktenzeichen 8241"
+
+    @pytest.mark.parametrize("referrer", ["outlines", "names", "legacy_dests", "link_annot"])
+    @patch("src.services.redactor.run_ocrmypdf", side_effect=_noop_ocr)
+    def test_original_page_content_is_gone(self, _mock_ocr, referrer: str) -> None:
+        """No object may carry the pre-redaction text, whoever still points at the page."""
+        pdf_data = _create_pdf_referencing_pii_page(referrer, self.MARKER)
+
+        result_bytes, matches = redact_pdf(pdf_data, {2: {self.MARKER}})
+
+        assert matches == 1
+        needle = self.MARKER.encode()
+        with pikepdf.open(BytesIO(result_bytes)) as out:
+            live = {page.obj.objgen for page in out.pages}
+            for obj in out.objects:
+                try:
+                    data = obj.read_bytes()
+                except Exception:  # not a stream
+                    data = b""
+                assert needle not in data, f"stale content in object {obj.objgen}"
+
+                try:
+                    is_stale_page = obj.get("/Type") == pikepdf.Name.Page and obj.objgen not in live
+                except Exception:  # not a dictionary
+                    continue
+                if is_stale_page:
+                    assert "/Contents" not in obj, f"page {obj.objgen} kept its content stream"

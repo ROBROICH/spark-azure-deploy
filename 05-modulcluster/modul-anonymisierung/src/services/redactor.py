@@ -15,6 +15,36 @@ from src.services.ocr import run_ocrmypdf
 
 logger = logging.getLogger(__name__)
 
+# Catalog entries that may hold a direct reference to a replaced page object,
+# and that may themselves carry copies of page text (bookmark titles, /Alt and
+# /ActualText in the structure tree, form field values).
+_UNSAFE_CATALOG_KEYS = (
+    "/Outlines",
+    "/Names",
+    "/Dests",
+    "/OpenAction",
+    "/AA",
+    "/StructTreeRoot",
+    "/Threads",
+    "/AcroForm",
+)
+
+# Content-bearing entries of a page object.
+_PAGE_CONTENT_KEYS = (
+    "/Contents",
+    "/Resources",
+    "/Annots",
+    "/Thumb",
+    "/B",
+    "/PieceInfo",
+    "/Metadata",
+    "/AA",
+)
+
+
+class RedactionLeakError(RuntimeError):
+    """Raised when the redacted PDF still contains pre-redaction page content."""
+
 
 def redact_pdf(
     pdf_data: bytes,
@@ -82,6 +112,8 @@ def redact_pdf(
                 img_pdf_bytes = img2pdf.convert(str(img_path))
                 with pikepdf.open(BytesIO(img_pdf_bytes)) as img_pdf:
                     original_pdf.pages[page_num] = img_pdf.pages[0]
+            
+            _drop_stale_page_content(original_pdf)
             original_pdf.save(assembled_path)
 
         # Phase 3: Restore text layer on rasterized pages via OCR
@@ -98,8 +130,63 @@ def redact_pdf(
         except Exception:
             logger.exception("OCR failed for pages %s, keeping without text layer", rasterized_page_nums)
             result_bytes = assembled_path.read_bytes()
+    
+    _assert_no_stale_page_content(result_bytes)
 
     return result_bytes, total_matches
+
+
+def _stale_pages(pdf: pikepdf.Pdf) -> list[pikepdf.Object]:
+    """Page objects that are no longer part of the page tree.
+
+    Assigning to ``pdf.pages[n]`` only rewires ``/Pages``; the replaced page
+    object itself stays in the file and is still written out as long as anything
+    else references it.
+    """
+    live = {page.obj.objgen for page in pdf.pages}
+    stale = []
+    for obj in pdf.objects:
+        try:
+            if obj.get("/Type") == pikepdf.Name.Page and obj.objgen not in live:
+                stale.append(obj)
+        except Exception:  # non-dictionary object
+            continue
+    return stale
+
+
+def _drop_stale_page_content(pdf: pikepdf.Pdf) -> None:
+    """Make pre-redaction page content unrecoverable from the saved PDF.
+
+    Two layers, because a blocklist of referencing structures can never be
+    complete:
+
+    1. Drop catalog entries that can point straight at a replaced page
+       (bookmarks, named destinations, structure tree, articles, form fields).
+       These also carry duplicates of page text in their own right.
+    2. Empty out any page object left outside the page tree, so a reference we
+       did not anticipate can only reach an empty husk.
+    """
+    for key in _UNSAFE_CATALOG_KEYS:
+        if key in pdf.Root:
+            del pdf.Root[key]
+
+    for page in _stale_pages(pdf):
+        for key in _PAGE_CONTENT_KEYS:
+            if key in page:
+                del page[key]
+
+
+def _assert_no_stale_page_content(pdf_bytes: bytes) -> None:
+    """Fail closed if the finished PDF still carries pre-redaction page content.
+
+    A well-formed rewrite has no content-bearing page object outside the page
+    tree, so a hit here means unredacted content is still extractable. Raising
+    keeps the leaking document from being returned to the caller.
+    """
+    with pikepdf.open(BytesIO(pdf_bytes)) as pdf:
+        offenders = [page.objgen for page in _stale_pages(pdf) if any(key in page for key in _PAGE_CONTENT_KEYS)]
+    if offenders:
+        raise RedactionLeakError(f"Redacted PDF still contains pre-redaction page content in objects {offenders}")
 
 
 def _search_page_for_values(
