@@ -11,4 +11,4 @@ include:
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/04-shared-services/db-services/gesetzesbegruendung-db-service/Dockerfile"
       base_image_dev: "python:3.13-slim"
-      base_image: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"
