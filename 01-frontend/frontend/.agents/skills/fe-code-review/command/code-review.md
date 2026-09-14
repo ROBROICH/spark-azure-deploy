@@ -6,7 +6,7 @@ Parallel topic-isolated code review with structured triage and automated fixing.
 
 `$ARGUMENTS` may include: `[SCOPE | PR_URL | feature-folder <path>] [--topics topic1,topic2,...] [--skip-triage] [--fix-only]`
 
-- **SCOPE** (optional): `local` | `branch` | `feature-folder <path>` | a pull request URL. If omitted, ask the user.
+- **SCOPE** (optional): `local` | `branch` | `feature-folder <path>` | a merge request URL. If omitted, ask the user.
 - A plain repo-relative directory path also counts as **Feature Folder** scope when it resolves to an existing folder.
 - **--topics**: Comma-separated list to restrict topics. Default: all applicable topics.
 - **--skip-triage**: Skip interactive triage, mark all findings as `fix` automatically.
@@ -16,7 +16,7 @@ Parallel topic-isolated code review with structured triage and automated fixing.
 
 Follow the scope selection rules from `SKILL.md`:
 
-1. If `$ARGUMENTS` contains a pull request URL → **Pull Request** scope
+1. If `$ARGUMENTS` contains a merge request URL → **Merge Request** scope
 2. If `$ARGUMENTS` contains `local` or `uncommitted` → **Local Changes** scope
 3. If `$ARGUMENTS` contains `branch` → **Branch Diff** scope
 4. If `$ARGUMENTS` contains `feature-folder <path>` or an existing repo-relative directory path → **Feature Folder** scope
@@ -26,9 +26,9 @@ Follow the scope selection rules from `SKILL.md`:
    - Options:
      - label: "Local changes", description: "Uncommitted changes only (staged + unstaged)"
      - label: "Branch diff", description: "All changes on this branch vs dev"
-     - label: "Pull request", description: "Review the checked-out PR branch or ask for a pull request URL"
+     - label: "Merge request", description: "Review the checked-out PR branch or ask for a merge request URL"
      - label: "Feature folder", description: "Review an existing feature folder directly"
-6. If the user selects "Pull request", ask for the PR URL or confirm that the current branch already matches the PR branch
+6. If the user selects "Merge request", ask for the PR URL or confirm that the current branch already matches the PR branch
 7. If the user selects "Feature folder", ask for the repo-relative folder path to review. Prefer `src/features/<FeatureName>`, but allow any existing folder in this package.
 
 ## Phase 1: Gather the Review Input
@@ -49,9 +49,9 @@ Use the commands matching the determined scope.
 3. Save to `.code-review-reports/branch-<branch-name>/diff.txt` and `changed-files.txt`
 4. Review ID: `branch-<branch-name>`
 
-### Pull Request scope
+### Merge Request scope
 
-1. If the user provided a pull request URL, extract the PR number when possible
+1. If the user provided a merge request URL, extract the PR number when possible
 2. Ensure the PR branch is checked out locally before reviewing. If it is not, ask the user to check it out or provide the source branch name.
 3. Run `git diff dev...HEAD --name-only` to get changed files from the checked-out PR branch
 4. Run `git diff dev...HEAD` for the full diff

@@ -60,7 +60,7 @@ All notable changes to this project will be documented in this file.
 * OCR-generated notes are removed more reliably before objections are processed
 * ZIP extraction allows more time for uploads containing many or large files
 * Tagged CI builds now produce the correct Docker image tags
-* DevGuard jobs use the `if-not-present` pull policy to improve pipeline stability
+* DevGuard jobs use the `if-not-present` merge policy to improve pipeline stability
 
 ### Removed
 

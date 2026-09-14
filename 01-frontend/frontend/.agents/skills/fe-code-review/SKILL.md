@@ -2,7 +2,7 @@
 name: fe-code-review
 description: |
   Deep, topic-isolated review for this frontend codebase.
-  Use for local changes, branch diffs, feature folders, or pull requests.
+  Use for local changes, branch diffs, feature folders, or merge requests.
   Runs REVIEW, TRIAGE, then optional FIX with stable severity IDs.
   Prefer Codex multi-agents when available; otherwise use native sub-agents or disclose a serial downgrade.
   Domain topics map to `.agents/rules/<topic>/`; clean-code topics map to individual `.agents/rules/clean-code/*.md` files.
@@ -50,7 +50,7 @@ If the user gives a free-form number, accept it when it is a positive integer. I
 
 ### Scope Selection Rules
 
-1. If `$ARGUMENTS` contains a pull request URL → skip asking, use **Pull Request** scope
+1. If `$ARGUMENTS` contains a merge request URL → skip asking, use **Merge Request** scope
 2. If `$ARGUMENTS` contains `local` or `uncommitted` → skip asking, use **Local Changes** scope
 3. If `$ARGUMENTS` contains `branch` → skip asking, use **Branch Diff** scope
 4. If `$ARGUMENTS` contains `feature-folder <path>` or a repo-relative directory path that exists → skip asking, use **Feature Folder** scope
@@ -62,11 +62,11 @@ Header: "Review scope"
 Options:
   - label: "Local changes", description: "Uncommitted changes only (staged + unstaged)"
   - label: "Branch diff", description: "All changes on this branch vs dev"
-  - label: "Pull request", description: "Review the checked-out PR branch or ask for a pull request URL"
+  - label: "Merge request", description: "Review the checked-out PR branch or ask for a merge request URL"
   - label: "Feature folder", description: "Review an existing feature folder directly"
 ```
 
-If the user selects "Pull request", follow up by asking for the PR URL or confirm that the current branch already matches the PR branch.
+If the user selects "Merge request", follow up by asking for the PR URL or confirm that the current branch already matches the PR branch.
 
 If the user selects "Feature folder", ask for the repo-relative folder path to review. Prefer a folder under `src/features/`, but allow any existing folder inside this package.
 
@@ -76,7 +76,7 @@ If the user selects "Feature folder", ask for the repo-relative folder path to r
 | -------------- | --------------------------------- | --------------------------------------- |
 | Local changes  | `git diff HEAD --name-only`       | `git diff HEAD`                         |
 | Branch diff    | `git diff dev...HEAD --name-only` | `git diff dev...HEAD`                   |
-| Pull request   | `git diff dev...HEAD --name-only` | `git diff dev...HEAD`                   |
+| Merge request   | `git diff dev...HEAD --name-only` | `git diff dev...HEAD`                   |
 | Feature folder | `rg --files <folder>`             | Inspect files under `<folder>` directly |
 
 ### Command-Driven Checks
@@ -95,7 +95,7 @@ If the user selects "Feature folder", ask for the repo-relative folder path to r
 | -------------- | ---------------------------------- |
 | Local changes  | `local-uncommitted`                |
 | Branch diff    | `branch-<branch-name>`             |
-| Pull request   | `pr-<branch-name-or-number>`       |
+| Merge request   | `pr-<branch-name-or-number>`       |
 | Feature folder | `feature-<normalized-folder-path>` |
 
 ## Phase Overview
@@ -180,7 +180,7 @@ When the selected scope is **Feature Folder**, inspect the folder before launchi
 ### Applicable Topic Rules
 
 - For feature-folder scope, run the full review topic set unless a topic is provably irrelevant to the selected folder.
-- For local changes, branch diff, and pull request scopes, the coordinator MUST run a pre-filter step before spawning any agents. Run `git diff dev...HEAD` (or the equivalent scope command) and grep it for each topic's trigger patterns below. Only spawn an agent for topics whose patterns match, or that are marked Always.
+- For local changes, branch diff, and merge request scopes, the coordinator MUST run a pre-filter step before spawning any agents. Run `git diff dev...HEAD` (or the equivalent scope command) and grep it for each topic's trigger patterns below. Only spawn an agent for topics whose patterns match, or that are marked Always.
 - If `.agents/rules/clean-code/**` changes, include every clean-code topic. If `.agents/rules/<domain-topic>/**` changes, include that domain topic.
 - If `.agents/skills/fe-code-review/**`, `.agents/CODE-STANDARDS.md`, or `AGENTS.md` changes, include all topics because the review workflow or rule index changed.
 - If a topic is skipped due to no pattern match, the output must say so.

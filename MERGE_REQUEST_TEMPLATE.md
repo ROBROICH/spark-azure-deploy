@@ -1,8 +1,8 @@
-# Pull Request
+# Merge Request
 
 ## Summary
 
-Provide a short summary of the changes introduced by this pull request.
+Provide a short summary of the changes introduced by this merge request.
 
 Explain **what** was changed and **why**.
 
@@ -10,7 +10,7 @@ Explain **what** was changed and **why**.
 
 ## Changes
 
-Describe the main changes included in this pull request.
+Describe the main changes included in this merge request.
 
 - Added:
 - Changed:
