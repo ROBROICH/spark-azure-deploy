@@ -6,6 +6,10 @@ This module contains the constant string templates used as system and user
 prompts for the LLM activities. It includes prompts for:
 1. Generating classification-specific summaries of documents.
 2. Matching documents against a predefined list of types based on those summaries.
+
+The schema classes inside the prompts keep the output valid on models and hosters
+without output schema support. They must stay field-identical to ``output_class``
+and can be dropped once every model in use supports output schemas.
 """
 
 DOCUMENT_SUMMARIZATION_SYSTEM_PROMPT = """
@@ -134,7 +138,7 @@ Gib ausschließlich das JSON-Objekt zurück. Verwende **Integer-Indizes**, keine
 ```json
 class DocumentGroup(BaseModel):
     group_name: str # z.B. "Kapitel 19.1 Bodenschutz"
-    file_indices: List[int]
+    document_indices: List[int]
     representative_index: int
 
 class DocumentGroupingResult(BaseModel):
@@ -154,7 +158,7 @@ Index [{{ loop.index0 }}]: {{ name }}
 
 ---
 
-Erstelle die JSON-Ausgabe mit den Gruppen (file_indices) und Repräsentanten (representative_index).
+Erstelle die JSON-Ausgabe mit den Gruppen (document_indices) und Repräsentanten (representative_index).
 """
 
 DOCUMENT_MATCHING_SYSTEM_PROMPT = """

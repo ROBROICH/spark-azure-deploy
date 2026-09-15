@@ -11,6 +11,10 @@ These prompts guide the LLM in three specific tasks:
 The prompts employ sophisticated logic traps (e.g., "Prescriptive Trap",
 "Bibliography Trap") to distinguish genuine Tables of Contents from checklists,
 reference lists, or internal document outlines.
+
+The schema classes inside the prompts keep the output valid on models and hosters
+without output schema support. They must stay field-identical to ``output_class``
+and can be dropped once every model in use supports output schemas.
 """
 
 INHALTSVERZEICHNIS_CHUNK_CLASSIFICATION_SYSTEM_PROMPT = """
@@ -184,6 +188,7 @@ Gib **ausschließlich** das JSON-Objekt zurück.
 
 ```json
 class InhaltsverzeichnisClassificationResult(BaseModel):
+    reasoning: str
     is_global_inhalts_verzeichnis: bool
 ```
 """
@@ -448,7 +453,7 @@ Kapitel 15 Umweltverträglichkeitsprüfung-Bericht
 Gib **ausschließlich** das JSON-Objekt zurück, das dem folgenden Schema entspricht:
 
 ```json
-class InhaltsverzeichnisLeafEntry(BaseModel):
+class InhaltsverzeichnisEntry(BaseModel):
     hierarchy_path: List[str] = Field(
         None,
         description="Liste der übergeordneten Überschriften. Null, wenn Top-Level."
@@ -463,7 +468,7 @@ class InhaltsverzeichnisLeafEntry(BaseModel):
     )
 
 class InhaltsverzeichnisParsedResult(BaseModel):
-    entries: List[InhaltsverzeichnisLeafEntry]
+    entries: List[InhaltsverzeichnisEntry]
 ```
 """
 
