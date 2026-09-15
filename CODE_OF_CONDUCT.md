@@ -56,7 +56,7 @@ This Code of Conduct applies within all project spaces, including:
 
 - Git repositories
 - Issue trackers
-- Pull requests
+- Merge requests
 - Community discussions
 - Communication channels related to the project
 
