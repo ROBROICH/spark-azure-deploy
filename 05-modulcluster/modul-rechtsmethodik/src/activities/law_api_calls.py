@@ -1,12 +1,13 @@
 """Temporal activities for querying the law database API."""
 
+import asyncio
 from typing import Any
 from urllib.parse import quote
 
 import httpx
 from pydantic import BaseModel, ConfigDict
 from temporal.workflows.rechtsmethodik.types import Absatz
-from temporalio import activity, workflow
+from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from src.activities.utils import api_call
@@ -269,7 +270,7 @@ async def fetch_all_norm_data(
             non_retryable=True,
         )
 
-    para_info, absaetze = await workflow.asyncio.gather(
+    para_info, absaetze = await asyncio.gather(
         fetch_norm(
             FetchNormInput(
                 jurabk=norm_input.jurabk, paragraph_nr=norm_input.paragraph_nr, bundesland=norm_input.bundesland

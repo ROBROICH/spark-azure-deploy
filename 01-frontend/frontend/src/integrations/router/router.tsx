@@ -23,7 +23,9 @@ export const router = createRouter({
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
   defaultNotFoundComponent: () => <NotFound />,
-  defaultErrorComponent: ({ error }) => <ErrorBoundary error={error} />,
+  defaultErrorComponent: ({ error }) => (
+    <ErrorBoundary error={error instanceof Error ? error : new Error(String(error))} />
+  ),
 });
 
 // Register the router so non-component modules (e.g. the version-conflict event

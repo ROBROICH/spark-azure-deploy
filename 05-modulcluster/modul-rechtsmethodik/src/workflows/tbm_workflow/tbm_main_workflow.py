@@ -1,5 +1,6 @@
 """Main TBM analysis workflow running parallel sub-agents."""
 
+import asyncio
 from collections.abc import Awaitable
 from datetime import timedelta
 from typing import Any
@@ -145,7 +146,7 @@ class TatbestandsAnalyseWorkflow:
         pf_task, verweis_task, rechtsbegriffe_task, fe_task = cls._build_workflow_tasks(
             satz, gesetz, jurabk, paragraph_nr, paragraph_text, absatz_nr
         )
-        results = await workflow.asyncio.gather(pf_task, verweis_task, rechtsbegriffe_task, fe_task)
+        results = await asyncio.gather(pf_task, verweis_task, rechtsbegriffe_task, fe_task)
         return cls._assemble_satz_results(results, satz)
 
     @staticmethod

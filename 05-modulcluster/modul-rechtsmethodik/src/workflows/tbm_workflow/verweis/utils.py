@@ -1,11 +1,11 @@
 """Utilities for resolving Verweise (legal references)."""
 
+import asyncio
 import re
 from typing import Any, Literal
 
 from rapidfuzz import fuzz, process
 from temporal.workflows.rechtsmethodik.types import ExplicitVerweiseInfo, TechnischeNorm, Untergliederung
-from temporalio import workflow
 
 from src.activities.law_api_calls import (
     FetchAbsaetzeInput,
@@ -298,11 +298,9 @@ async def fetch_context_for_verweise(
     ve_rf: list[ExplicitVerweiseInfo],
 ) -> tuple[list[list[ExplicitVerweiseInfo]], list[ExplicitVerweiseInfo]]:
     """Fetch context for all explicit references in parallel."""
-    ve_a_tbms_tasks = [
-        workflow.asyncio.gather(*(_fetch_verweis_context(v) for v in tbm_list)) for tbm_list in ve_a_tbms
-    ]
-    ve_a_tbms_w_context = await workflow.asyncio.gather(*ve_a_tbms_tasks)
-    ve_rf_w_context = await workflow.asyncio.gather(*(_fetch_verweis_context(v) for v in ve_rf))
+    ve_a_tbms_tasks = [asyncio.gather(*(_fetch_verweis_context(v) for v in tbm_list)) for tbm_list in ve_a_tbms]
+    ve_a_tbms_w_context = await asyncio.gather(*ve_a_tbms_tasks)
+    ve_rf_w_context = await asyncio.gather(*(_fetch_verweis_context(v) for v in ve_rf))
 
     # Filter out references where context could not be resolved (e.g. hallucinated norms)
     ve_a_tbms_filtered = [[v for v in tbm_list if v.kontext] for tbm_list in ve_a_tbms_w_context]

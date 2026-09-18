@@ -29,7 +29,9 @@ RUN apk add --no-cache --upgrade \
     'libexpat>=2.7.5-r0' \
     'libpng>=1.6.56-r0' \
     'musl>=1.2.5-r23' \
-    'musl-utils>=1.2.5-r23'
+    'musl-utils>=1.2.5-r23' \
+    'libcrypto3>=3.5.8-r0' \
+    'libssl3>=3.5.8-r0'
 
 # Copy the build output from the builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html

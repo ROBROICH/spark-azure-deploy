@@ -18,7 +18,7 @@ from src.workflows.norm_workflow.norm_types import (
 )
 
 _PATCH_CHILD = "temporalio.workflow.execute_child_workflow"
-_PATCH_GATHER = "temporalio.workflow.asyncio.gather"
+_PATCH_GATHER = "asyncio.gather"
 
 
 @pytest.fixture

@@ -36,7 +36,6 @@ dev = [
     "pytest-cov>=6.2.1,<7",
     "pytest-xdist>=3.8.0,<4",
     "pytest-postgresql>=8.0.0,<9",
-    "interrogate>=1.7.0,<2",
     "respx>=0.22.0",
 ]
 
@@ -80,18 +79,6 @@ omit = [
     # omit this single file
     "tests/*",
     ]
-
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = true
-ignore-module = true
-ignore-nested-functions = true
-exclude = [
-    # Exclude docstrings for tests and notebooks
-    "tests",
-    "notebooks",
-]
-verbose = 1
 
 [tool.pyrefly]
 search_path = ["."]

@@ -1,3 +1,4 @@
+import asyncio
 from uuid import UUID, uuid4
 
 from prompt_injection.prompt_defense import render_prompt_format, sanitize_and_wrap_external_data, wrap_system_prompt
@@ -150,10 +151,7 @@ def _quality_analysis_request(
 def _quality_defects(quality_check_results: list[QualityAnalysisResponse]) -> dict[int, QualityCheckItem]:
     threshold = config.RISK_CHECKER_WORKFLOW.QUALITY_DEFECT_RATING_THRESHOLD
     defect_results = [
-        item
-        for result in quality_check_results
-        for item in result.quality_check_results
-        if item.rating < threshold
+        item for result in quality_check_results for item in result.quality_check_results if item.rating < threshold
     ]
     return {
         i: QualityCheckItem(
@@ -173,11 +171,9 @@ class RiskCheckerWorkflow:
         intention_output = await analyze_intention(chapter.text)
         quality_output = await rate_criteria_relevance(intention_output)
 
-        quality_check_results = await workflow.asyncio.gather(
+        quality_check_results = await asyncio.gather(
             *(
-                analyze_quality(
-                    _quality_analysis_request(chapter.text, intention_output, item)
-                )
+                analyze_quality(_quality_analysis_request(chapter.text, intention_output, item))
                 for item in _relevant_criteria(quality_output)
             )
         )

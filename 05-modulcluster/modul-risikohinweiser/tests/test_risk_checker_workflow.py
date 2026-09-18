@@ -78,7 +78,7 @@ async def test_run_executes_pipeline_and_formats_risks(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.workflow.asyncio.gather", _awaiting_gather),
+        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 
@@ -110,7 +110,7 @@ async def test_run_filters_relevant_criteria_and_defect_ratings(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.workflow.asyncio.gather", _awaiting_gather),
+        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         await RiskCheckerWorkflow().run(sample_chapter)
 
@@ -135,7 +135,7 @@ async def test_run_skips_quality_and_risk_steps_without_relevant_criteria(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.workflow.asyncio.gather", _awaiting_gather),
+        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 
@@ -159,7 +159,7 @@ async def test_run_skips_risk_formulation_when_quality_checks_pass(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.workflow.asyncio.gather", _awaiting_gather),
+        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 

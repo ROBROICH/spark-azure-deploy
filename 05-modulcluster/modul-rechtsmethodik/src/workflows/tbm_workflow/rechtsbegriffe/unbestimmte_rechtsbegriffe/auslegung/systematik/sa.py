@@ -1,5 +1,6 @@
 """Agent for systematische Auslegung."""
 
+import asyncio
 import re
 from typing import Any
 
@@ -111,7 +112,7 @@ class SystematikAuslegerAgentWorkflow:
         """Builds the full norm context as a structured dict containing the current, surrounding, and general norms."""
 
         # --- Current norm ---
-        current_absaetze, surrounding_norms_info = await workflow.asyncio.gather(
+        current_absaetze, surrounding_norms_info = await asyncio.gather(
             fetch_absaetze(FetchAbsaetzeInput(jurabk=input.jurabk, paragraph_nr=input.paragraph_nr)),
             fetch_norm(FetchNormInput(jurabk=input.jurabk, paragraph_nr=input.paragraph_nr)),
         )
@@ -131,7 +132,7 @@ class SystematikAuslegerAgentWorkflow:
         prev_paragraph_nr = surrounding_norms_info[0]["prev"]
         next_paragraph_nr = surrounding_norms_info[0]["next"]
 
-        vorherige_norm, nachfolgende_norm = await workflow.asyncio.gather(
+        vorherige_norm, nachfolgende_norm = await asyncio.gather(
             cls._fetch_norm_info(
                 jurabk=input.jurabk,
                 paragraph_nr=prev_paragraph_nr,
@@ -256,7 +257,7 @@ class SystematikAuslegerAgentWorkflow:
             and not _BEGRIFFSBESTIMMUNGEN_PATTERN.search(norm["titel"])
         ][:10]
 
-        return await workflow.asyncio.gather(*[cls._build_norm_info(jurabk, norm) for norm in relevant_norms])
+        return await asyncio.gather(*[cls._build_norm_info(jurabk, norm) for norm in relevant_norms])
 
     @staticmethod
     async def _build_plain_norm_text(

@@ -24,7 +24,6 @@ dev = [
     "pytest-asyncio>=1.1.0,<2",
     "httpx>=0.28.1,<0.29",
     "pytest-cov>=6.2.1,<7",
-    "interrogate>=1.7.0,<2",
     "ruff>=0.14.6,<0.15",
     "pyrefly>=0.49.0",
     "asgi-lifespan>=2.1.0,<3",
@@ -57,12 +56,6 @@ asyncio_default_fixture_loop_scope = "session"
 
 [tool.coverage.run]
 source = ["src"]
-
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = true
-ignore-module = true
-ignore-nested-functions = true
 
 [tool.pyrefly]
 search_path = ["."]

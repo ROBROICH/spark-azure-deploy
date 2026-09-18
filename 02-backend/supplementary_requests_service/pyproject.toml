@@ -31,7 +31,6 @@ dev = [
     "pytest-asyncio>=1.1.0,<2",
     "httpx>=0.28.1,<0.29",
     "pytest-cov>=6.2.1,<7",
-    "interrogate>=1.7.0,<2",
     "pytest-env>=1.1.5,<2",
     "pytest-httpx>=0.36.2,<0.37",
     "pre-commit>=4.3.0,<5",
@@ -68,12 +67,6 @@ asyncio_mode = "auto"
 [tool.coverage.run]
 source = ["src"]
 omit = ["src/models/db/migrations/**"]
-
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = true
-ignore-module = true
-ignore-nested-functions = true
 
 [tool.pyrefly]
 search_path = ["."]
