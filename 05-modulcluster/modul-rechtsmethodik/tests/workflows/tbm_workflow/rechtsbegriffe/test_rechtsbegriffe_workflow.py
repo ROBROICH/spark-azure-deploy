@@ -10,7 +10,7 @@ from src.workflows.tbm_workflow.rechtsbegriffe.rechtsbegriffe_workflow import Re
 from src.workflows.tbm_workflow.tbm_types import RechtsbegriffeWorkflowInput
 
 _PATCH_CHILD = "temporalio.workflow.execute_child_workflow"
-_PATCH_GATHER = "temporalio.workflow.asyncio.gather"
+_PATCH_GATHER = "asyncio.gather"
 
 
 def _make_input(atomare: list[str]) -> RechtsbegriffeWorkflowInput:

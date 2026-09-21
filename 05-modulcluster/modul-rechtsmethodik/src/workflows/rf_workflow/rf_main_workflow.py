@@ -1,5 +1,6 @@
 """Main Rechtsfolge analysis workflow."""
 
+import asyncio
 from datetime import timedelta
 
 from temporal import sliding_window
@@ -71,7 +72,7 @@ class RechtsfolgenAnalyseWorkflow:
             if not (satz.norm_typ_lvl_2 == WENN_DANN and satz.rechtsfolge):
                 return None
 
-            ae_output, sa_output = await workflow.asyncio.gather(
+            ae_output, sa_output = await asyncio.gather(
                 workflow.execute_child_workflow(
                     AdressatenErmessenWorkflow.run,
                     satz.rechtsfolge,

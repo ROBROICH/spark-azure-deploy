@@ -1,5 +1,7 @@
 """Agent for generating Pruefformulierungen for TBMs."""
 
+import asyncio
+
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke
@@ -42,6 +44,6 @@ class PruefFormulierungsAgentWorkflow:
 
             return output.pruefungen
 
-        batch_results = await workflow.asyncio.gather(*[_invoke_batch(batch) for batch in batches])
+        batch_results = await asyncio.gather(*[_invoke_batch(batch) for batch in batches])
 
         return [p for results in batch_results for p in results]

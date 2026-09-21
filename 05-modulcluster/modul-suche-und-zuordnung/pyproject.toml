@@ -20,7 +20,7 @@ dependencies = [
     "temporal",
     # Data Processing
     "python-dotenv>=1.2.2",
-    "openai>=1.109.1",
+    "openai>=2.26.0",
     "json-repair>=0.58.0",
     # Prompt defence — resolved from 04-shared-services/prompt-injection (workspace).
     # Same build requirement as temporal above.
@@ -33,7 +33,6 @@ dev = [
     "pytest-asyncio>=1.3.0,<2",
     "pytest-cov>=4.0.0",
     "coverage>=7.0.0",
-    "interrogate>=1.5.0",
     "ruff>=0.14.6,<0.15",
     "pyrefly>=0.49.0",
     "bandit[toml]>=1.9.3",
@@ -52,7 +51,7 @@ asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=84", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pyrefly]

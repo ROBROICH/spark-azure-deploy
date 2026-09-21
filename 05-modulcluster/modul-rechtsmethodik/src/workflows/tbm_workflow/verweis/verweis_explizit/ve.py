@@ -1,5 +1,7 @@
 """Agent for identifying explicit Verweise."""
 
+import asyncio
+
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke
@@ -27,7 +29,9 @@ class VerweisExplizitAgentWorkflow:
     ) -> list[VerweisBlockExplizit]:
         """Extracts explicit references from the atomic legal constituents and the consequences."""
 
-        a_tbms_mit_ids = [{"id": f"tbm_{i}", "tatbestandsmerkmal": tbm} for i, tbm in enumerate(input.atomare_tatbestandsmerkmale)]
+        a_tbms_mit_ids = [
+            {"id": f"tbm_{i}", "tatbestandsmerkmal": tbm} for i, tbm in enumerate(input.atomare_tatbestandsmerkmale)
+        ]
         rf_mit_id = {"id": "rf_0", "rechtsfolge": input.rechtsfolge}
 
         # Batch a_tbms to avoid LLM gateway timeouts on large inputs
@@ -53,7 +57,7 @@ class VerweisExplizitAgentWorkflow:
             )
             return output.verweise
 
-        batch_results = await workflow.asyncio.gather(*[_invoke_batch(batch) for batch in batches])
+        batch_results = await asyncio.gather(*[_invoke_batch(batch) for batch in batches])
 
         # Collect tbm_ entries from all batches, rf_ entries only from the first batch
         all_verweise = []

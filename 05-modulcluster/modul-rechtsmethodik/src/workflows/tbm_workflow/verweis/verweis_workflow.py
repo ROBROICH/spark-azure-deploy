@@ -1,5 +1,6 @@
 """Orchestrator for explicit and implicit Verweis analysis."""
 
+import asyncio
 from datetime import timedelta
 
 from temporal.workflows.rechtsmethodik.types import Verweise
@@ -26,7 +27,7 @@ class VerweisWorkflow:
     @workflow.run
     async def run(self, input: VerweisWorkflowInput) -> tuple[list[Verweise], Verweise]:
         """Run explicit and implicit Verweis extraction in parallel and merge results."""
-        all_verweise, (vi_tbms, vi_rf) = await workflow.asyncio.gather(
+        all_verweise, (vi_tbms, vi_rf) = await asyncio.gather(
             workflow.execute_child_workflow(
                 VerweisExplizitAgentWorkflow.run,
                 VerweisAgentInputExplizit(

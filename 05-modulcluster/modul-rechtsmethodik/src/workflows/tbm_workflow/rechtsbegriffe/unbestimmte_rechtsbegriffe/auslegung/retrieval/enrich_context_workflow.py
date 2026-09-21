@@ -1,5 +1,6 @@
 """Workflow for enriching Auslegung context with Drucksachen and Urteile."""
 
+import asyncio
 import re
 from datetime import timedelta
 
@@ -46,7 +47,7 @@ class EnrichContextWorkflow:
         ) -> UnbestimmterRechtsbegriffWithContext:
             """Retrieves UT and DKE context for a single Rechtsbegriff in parallel."""
 
-            u_chunks, d_chunks = await workflow.asyncio.gather(
+            u_chunks, d_chunks = await asyncio.gather(
                 workflow.execute_child_workflow(
                     UrteileKontextRetrievalAgentWorkflow.run,
                     UrteileKontextRetrievalWorkflowInput(
@@ -106,7 +107,7 @@ class EnrichContextWorkflow:
             )
             all_tasks.append(task)
 
-        return await workflow.asyncio.gather(*all_tasks)
+        return await asyncio.gather(*all_tasks)
 
     @staticmethod
     def _construct_substrings(

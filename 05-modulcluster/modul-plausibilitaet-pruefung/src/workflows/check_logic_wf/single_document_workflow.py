@@ -1,3 +1,4 @@
+import asyncio
 from collections import defaultdict
 from datetime import timedelta
 
@@ -373,7 +374,7 @@ class PlausibilityCheckSingleDocumentWorkflow:
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
         )
 
-        summarizer_results = await workflow.asyncio.gather(
+        summarizer_results = await asyncio.gather(
             *[_summarize_cluster(cluster, model) for cluster in inconsistency_cluster_groups.clusters]
         )
         # Flatten per-cluster summarizer responses into one list.
