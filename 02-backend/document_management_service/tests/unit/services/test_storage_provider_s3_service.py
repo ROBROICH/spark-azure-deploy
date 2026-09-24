@@ -147,6 +147,34 @@ class TestS3DocumentService:
             ExpiresIn=600,
         )
 
+    async def test_generate_upload_signed_url_internal(self, s3_service):
+        document_name = "file.pdf"
+        key = s3_service._get_key(document_name)
+        expected_url = "http://internal-s3/upload/signed"
+
+        s3_service.document_exists = AsyncMock(return_value=False)
+        s3_service._private_client.generate_presigned_url = AsyncMock(return_value=expected_url)
+        s3_service._public_client.generate_presigned_url = AsyncMock()
+
+        url = await s3_service.generate_upload_signed_url(
+            document_name=document_name,
+            expiration_minutes=10,
+            mime_type="application/pdf",
+            internal=True,
+        )
+
+        assert url == expected_url
+        s3_service._private_client.generate_presigned_url.assert_called_once_with(
+            "put_object",
+            Params={
+                "Bucket": "my-bucket",
+                "Key": key,
+                "ContentType": "application/pdf",
+            },
+            ExpiresIn=600,
+        )
+        s3_service._public_client.generate_presigned_url.assert_not_called()
+
     async def test_generate_upload_signed_url_file_exists(self, s3_service):
         s3_service.document_exists = AsyncMock(return_value=True)
         with pytest.raises(FileExistsError):

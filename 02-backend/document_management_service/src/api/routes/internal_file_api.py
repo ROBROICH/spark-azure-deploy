@@ -87,8 +87,18 @@ async def internal_generate_upload_url(
     project_version: Annotated[int | None, Query()] = None,
     service: FileService = Depends(get_file_service),
 ):
-    """Generate signed upload URL — internal, accepts all file types."""
-    url, mime_type = await service.generate_upload_url(file_data=file_data, project_version=project_version)
+    """Generate signed upload URL for service-to-service use.
+
+    Accepts all file types, and signs against the internal storage endpoint
+    (S3_ENDPOINT_URL) so server-side callers can reach it, unlike the public route
+    which targets the browser-facing host. Same reasoning as the internal download
+    route below.
+    """
+    url, mime_type = await service.generate_upload_url(
+        file_data=file_data,
+        project_version=project_version,
+        internal=True,
+    )
     return FileUploadUrlResponse(upload_url=url, mime_type=mime_type)
 
 
