@@ -47,6 +47,7 @@ include:
   - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/software-composition-analysis.yml"
     inputs:
       <<: *devguard-test-inputs
+      devguard_artifact_name: "pkg:generic/spark-workflow-monorepo"
       stage: "test"
       fail_on_risk: "high"
       fail_on_cvss: "critical"
@@ -539,3 +540,5 @@ modul-suche-und-zuordnung:
     - changes: [05-modulcluster/modul-suche-und-zuordnung/**/*, .gitlab/ci/services/modul-suche-und-zuordnung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
+
+    

@@ -55,7 +55,7 @@ export const BackButtonBar = (props: BackButtonBarProps) => {
         >
           <Link
             to="/verfahren/$verfahrenId/mvp"
-            from="/verfahren/$verfahrenId/mvp/$topicName"
+            from="/verfahren/$verfahrenId/mvp/$topicName/"
             search={(prev) => ({
               search: prev.search,
               topicAssigneeIds: prev.topicAssigneeIds,

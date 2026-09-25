@@ -423,6 +423,7 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         expiration_minutes: int = 15,
         create_new_version: bool = False,
         mime_type: str | None = None,
+        internal: bool = False,
     ) -> str:
         """Generate a presigned URL for direct upload.
 
@@ -430,6 +431,9 @@ class AsyncS3StorageClient(BaseStorageProviderService):
             document_name: Name of the document to upload.
             expiration_minutes: URL validity duration in minutes.
             mime_type: Optional Content-Type restriction.
+            internal: If True, sign with the internal endpoint (S3_ENDPOINT_URL) so
+                server-side callers can reach it; otherwise sign with the public
+                browser-facing endpoint (S3_EXTERNAL_URL).
 
         Returns:
             Presigned PUT URL.
@@ -445,7 +449,8 @@ class AsyncS3StorageClient(BaseStorageProviderService):
         if mime_type:
             params["ContentType"] = mime_type
 
-        return await self._public_client.generate_presigned_url(
+        client = self._private_client if internal else self._public_client
+        return await client.generate_presigned_url(
             "put_object",
             Params=params,
             ExpiresIn=expiration_minutes * 60,

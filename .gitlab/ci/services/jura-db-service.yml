@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":jura-db-service"
       image_suffix: "jura-db-service"
-      artifact_name: "spark-workflow-jura-db-service-main-amd64"
+      artifact_name: "pkg:oci/jura-db-service"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/04-shared-services/db-services/jura-db-service/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

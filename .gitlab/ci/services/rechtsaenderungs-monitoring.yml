@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":rechtsaenderungs-monitoring"
       image_suffix: "rechtsaenderungs-monitoring"
-      artifact_name: "spark-workflow-rechtsaenderungs-monitoring-main-amd64"
+      artifact_name: "pkg:oci/rechtsaenderungs-monitoring"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/04-shared-services/basiskomponenten/rechtsaenderungs-monitoring/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-bewertung"
       image_suffix: "modul-bewertung"
-      artifact_name: "spark-workflow-modul-bewertung-main-amd64"
+      artifact_name: "pkg:oci/modul-bewertung"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-bewertung/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

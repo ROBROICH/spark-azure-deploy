@@ -17,11 +17,11 @@ dependencies = [
     "httpx>=0.27",
     "rapidfuzz>=3.0",
     # Workflow orchestration
-    "temporalio>=1.27.0,<1.28.0",
+    "temporalio>=1.33.0,<2.0.0",
     "temporal",
     "prompt-injection",
     # LLM client
-    "openai>=1.0",
+    "openai>=2.26.0",
     # Deterministic PII detection (NER + structured patterns)
     "presidio-analyzer>=2.2,<3.0",
     "spacy>=3.7,<4.0",

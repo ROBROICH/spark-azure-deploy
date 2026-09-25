@@ -1,5 +1,6 @@
 """Orchestrator for bestimmte and unbestimmte Rechtsbegriffe analysis."""
 
+import asyncio
 from datetime import timedelta
 
 from temporal.workflows.rechtsmethodik.types import (
@@ -29,7 +30,7 @@ class RechtsbegriffeWorkflow:
     @workflow.run
     async def run(self, input: RechtsbegriffeWorkflowInput) -> list[Rechtsbegriffe]:
         """Run bestimmte and unbestimmte Rechtsbegriffe workflows in parallel and merge results."""
-        bre_output, ur_workflow_output = await workflow.asyncio.gather(
+        bre_output, ur_workflow_output = await asyncio.gather(
             workflow.execute_child_workflow(
                 BestimmteRechtsbegriffeErkennerAgentWorkflow.run,
                 BestimmteRechtsbegriffeErkennerAgentInput(

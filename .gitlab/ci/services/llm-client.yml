@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":llm-client"
       image_suffix: "llm-client"
-      artifact_name: "spark-workflow-llm-client-main-amd64"
+      artifact_name: "pkg:oci/llm-client"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/04-shared-services/llm/llm-client/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

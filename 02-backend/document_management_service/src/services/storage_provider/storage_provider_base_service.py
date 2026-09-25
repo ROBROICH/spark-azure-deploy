@@ -206,6 +206,7 @@ class BaseStorageProviderService(ABC):
         expiration_minutes: int = 15,
         create_new_version: bool = False,
         mime_type: str | None = None,
+        internal: bool = False,
     ) -> str:
         """
         Args:
@@ -213,6 +214,8 @@ class BaseStorageProviderService(ABC):
             expiration_minutes (int): URL expiration in minutes.
             create_new_version (bool): Whether to create a new version of the document.
             mime_type (str | None): Optional MIME type.
+            internal (bool): Sign with the internal storage endpoint instead of the
+                browser-facing one, for server-side callers.
 
         Returns:
             str: A signed upload URL if supported by the backend.

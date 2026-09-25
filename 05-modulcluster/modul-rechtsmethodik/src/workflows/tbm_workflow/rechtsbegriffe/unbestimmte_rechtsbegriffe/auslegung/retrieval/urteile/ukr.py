@@ -1,3 +1,4 @@
+import asyncio
 from typing import Any
 
 from pydantic import BaseModel
@@ -152,7 +153,7 @@ class UrteileKontextRetrievalAgentWorkflow:
             paragraph=f"§ {input.paragraph_nr}",
             absatz=f"Abs {input.absatz_nr}",
         )
-        topic_chunk_lists = await workflow.asyncio.gather(
+        topic_chunk_lists = await asyncio.gather(
             *[query_k_results_ut(QueryKResultsUTInput(query_text=q, norms=[norm], k=10)) for q in queries]
         )
         return [[UTChunk.model_validate(c) for c in chunks] for chunks in topic_chunk_lists]
@@ -186,7 +187,9 @@ class UrteileKontextRetrievalAgentWorkflow:
     def _extract_citations_with_rn(chunk: UTChunk) -> UTChunk:
         if chunk.gericht != "BVerwG":
             return chunk
-        return chunk.model_copy(update={"zitierte_urteile": citations_from_matches(BVERWG_AZ_RN.findall(chunk.section_text))})
+        return chunk.model_copy(
+            update={"zitierte_urteile": citations_from_matches(BVERWG_AZ_RN.findall(chunk.section_text))}
+        )
 
     @staticmethod
     def _get_unique_citations(results: list[UTChunk]) -> list[UTCitation]:

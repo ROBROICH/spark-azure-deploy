@@ -9,7 +9,7 @@ dependencies = [
     "temporal",
     "tiktoken>=0.12.0",
     "unoserver==3.5",
-    "pillow>=12.2.0",
+    "pillow>=12.3.0",
     "pypdfium2>=5.3.0",
     "pikepdf>=9.0.0",
     "imagehash>=4.3.2",
@@ -32,7 +32,6 @@ build-backend = "hatchling.build"
 dev = [
     "pytest-cov>=6.2.1,<7",
     "pytest-mock>=3.14.1,<4",
-    "interrogate>=1.7.0,<2",
     "pytest>=9.0.3,<10",
     "pytest-asyncio>=1.3.0",
     "pytest-timeout>=2.3.1",
@@ -92,14 +91,6 @@ exclude_lines = [
     "response = super\\(\\)._generate",
     "response = await super\\(\\)._agenerate",
 ]
-
-[tool.interrogate]
-exclude = ["tests", "notebooks", "scripts", "pageindex-demo", ".venv"]
-fail-under = 80
-ignore-init-method = true
-ignore-nested-functions = true
-ignore-nested-classes = true
-ignore-magic = true
 
 [tool.pyrefly]
 search_path = ["."]

@@ -62,7 +62,7 @@ class PlausibilityCheckOrchestratorWorkflow:
             aggregate_and_upload_checkpoints,
             arg=aggregation_input,
             task_queue=workflow.info().task_queue,
-            start_to_close_timeout=workflow.timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
+            start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
         )
 
         return final_response

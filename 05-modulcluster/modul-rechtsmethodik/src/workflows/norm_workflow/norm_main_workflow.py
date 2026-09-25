@@ -1,5 +1,6 @@
 """Multi-agent workflow for structured norm deconstruction."""
 
+import asyncio
 from datetime import timedelta
 
 from temporal.workflows.rechtsmethodik.types import Absatz
@@ -41,7 +42,7 @@ class NormDekonstruktionWorkflow:
                 Absatz(
                     absatz_nr=absatz.absatz_nr,
                     absatz_text=absatz.absatz_text,
-                    saetze=await workflow.asyncio.gather(*[self._process_satz(satz) for satz in absatz.saetze]),
+                    saetze=await asyncio.gather(*[self._process_satz(satz) for satz in absatz.saetze]),
                 )
                 for absatz in input.absaetze
             ]
@@ -111,7 +112,7 @@ class NormDekonstruktionWorkflow:
         if _is_effectively_empty(tbms) or _is_effectively_empty(rechtsfolgen_raw):
             return None, None, None, True
 
-        atomare_tatbestandsmerkmale, rechtsfolge = await workflow.asyncio.gather(
+        atomare_tatbestandsmerkmale, rechtsfolge = await asyncio.gather(
             workflow.execute_child_workflow(
                 AtomarisierungsAgentWorkflow.run,
                 AtomarisierungsAgentInput(satz_text=satz_text, tatbestandsmerkmale=tbms),

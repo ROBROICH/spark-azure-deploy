@@ -1,5 +1,6 @@
 """Agent for retrieving and filtering relevant Drucksachen context."""
 
+import asyncio
 from datetime import datetime
 from typing import Any
 
@@ -87,7 +88,7 @@ class DrucksachenKontextRetrievalAgentWorkflow:
     async def _enrich_single_chunk(cls, chunk: FormattedDrucksachenChunk) -> FormattedDrucksachenChunk:
         """Add citation metadata to a single chunk."""
         citations = cls._extract_citations_with_rn(chunk.chunk_text)
-        results = await workflow.asyncio.gather(*[cls._fetch_citation(c) for c in citations])
+        results = await asyncio.gather(*[cls._fetch_citation(c) for c in citations])
         zitierte_urteile = [citation for result in results if result is not None for citation in result]
         return chunk.model_copy(update={"zitierte_urteile": zitierte_urteile})
 
@@ -97,7 +98,7 @@ class DrucksachenKontextRetrievalAgentWorkflow:
         chunks: list[FormattedDrucksachenChunk],
     ) -> list[FormattedDrucksachenChunk]:
         """Enrich all chunks with citation metadata in parallel."""
-        return await workflow.asyncio.gather(*[cls._enrich_single_chunk(chunk) for chunk in chunks])
+        return await asyncio.gather(*[cls._enrich_single_chunk(chunk) for chunk in chunks])
 
     @staticmethod
     async def _invoke_llm_filter(

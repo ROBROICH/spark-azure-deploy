@@ -25,6 +25,7 @@ coverage.json
 *.pdf
 *.PDF
 !docs/Technischer_Produktsteckbrief_GER_v1.pdf
+!docs/Benutzerhandbuch_GER_v1.pdf
 
 node_modules
 .pnpm

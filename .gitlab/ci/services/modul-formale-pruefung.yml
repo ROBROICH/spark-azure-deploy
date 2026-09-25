@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":modul-formale-pruefung"
       image_suffix: "modul-formale-pruefung"
-      artifact_name: "spark-workflow-modul-formale-pruefung-main-amd64"
+      artifact_name: "pkg:oci/modul-formale-pruefung"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/05-modulcluster/modul-formale-pruefung/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

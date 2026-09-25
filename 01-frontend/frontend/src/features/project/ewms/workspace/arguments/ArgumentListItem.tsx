@@ -148,8 +148,8 @@ export const ArgumentListItem = (props: ArgumentListItemProps) => {
           )}
           {onSelectArgument ? (
             <Link
-              from="/verfahren/$verfahrenId/ewms"
-              to="/verfahren/$verfahrenId/ewms"
+              from="/verfahren/$verfahrenId/ewms/"
+              to="."
               params={(prev) => prev}
               search={(prev) => ({ ...prev, selectedArgumentId: argument.id })}
               resetScroll={false}

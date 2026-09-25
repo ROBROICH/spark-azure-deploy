@@ -1649,6 +1649,7 @@ class FileService:
         self,
         file_data: UploadRequest,
         project_version: int | None = None,
+        internal: bool = False,
     ) -> tuple[str, str]:
         """
         Generate a signed URL to upload a file to storage.
@@ -1696,7 +1697,10 @@ class FileService:
 
         try:
             url = await storage.generate_upload_signed_url(
-                document_name=bucket_path, mime_type=mime_type, create_new_version=file_data.create_new_version
+                document_name=bucket_path,
+                mime_type=mime_type,
+                create_new_version=file_data.create_new_version,
+                internal=internal,
             )
             logger.info(
                 action=EventAction.UPLOAD,

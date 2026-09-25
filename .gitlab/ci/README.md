@@ -56,9 +56,12 @@ Secret scanning, static application security testing, and infrastructure-as-code
 Software composition analysis is blocking for open findings with a high or critical risk level, or a critical CVSS score:
 
 ```yaml
+devguard_artifact_name: "pkg:generic/spark-workflow-monorepo"
 fail_on_risk: "high"
 fail_on_cvss: "critical"
 ```
+
+The repository software composition analysis uses the PURL-compatible generic artifact name `pkg:generic/spark-workflow-monorepo`.
 
 Container scanning uses the same thresholds in the shared service template, so every service child pipeline fails when its image has an open high or critical risk finding, or a critical CVSS finding. Lower-severity findings remain visible without blocking the pipeline.
 
@@ -93,7 +96,11 @@ image_suffix
 artifact_name
 context
 dockerfile
+base_image_dev
+base_image
 ```
+
+`base_image_dev` and `base_image` are passed to Kaniko as the Docker build arguments `BASE_IMAGE_DEV` and `BASE_IMAGE`. This lets each service child pipeline select its build and runtime images without changing the shared template.
 
 Example service child pipeline:
 
@@ -107,22 +114,24 @@ include:
     inputs:
       job_suffix: ":frontend"
       image_suffix: "frontend"
-      artifact_name: "spark-workflow-frontend-main-amd64"
+      artifact_name: "pkg:oci/frontend"
       context: "$CI_PROJECT_DIR/01-frontend/frontend/."
       dockerfile: "$CI_PROJECT_DIR/01-frontend/frontend/Dockerfile"
+      base_image_dev: "node:24-alpine3.23"
+      base_image: "nginx:1.30-alpine3.23-slim"
 ```
 
 ## Why The DevGuard Templates Are Included Directly
 
 The DevGuard lifecycle wrapper did not reliably propagate custom artifact names into the scan and attestation jobs. Directly including the underlying templates lets the pipeline pass the same `devguard_artifact_name` to both `container-scanning.yml` and `attest.yml`.
 
-The artifact names intentionally avoid `/` characters, for example:
+DevGuard artifact names use Package URL (PURL) format. Service OCI artifacts use `pkg:oci/<service-name>`, for example:
 
 ```text
-spark-workflow-frontend-main-amd64
+pkg:oci/frontend
 ```
 
-This avoids encoded-slash routing issues when DevGuard artifact names are used in API paths.
+The repository software composition analysis uses `pkg:generic/spark-workflow-monorepo` because it represents the monorepo rather than a container image.
 
 ## Build And Push Flow
 

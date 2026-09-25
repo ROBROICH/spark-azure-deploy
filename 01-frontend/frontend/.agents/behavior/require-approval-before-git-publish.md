@@ -1,6 +1,6 @@
 # Require Approval Before Git Publish Actions
 
-- Never stage, commit, push, force-push, create a branch, or open/update a pull request unless the user explicitly asks for that exact git action.
+- Never stage, commit, push, force-push, create a branch, or open/update a merge request unless the user explicitly asks for that exact git action.
 - Before changing git history or remote state, ask for confirmation in plain language and wait for the user's approval.
 - It is okay to inspect git state with read-only commands such as `git status`, `git diff`, `git log`, and `git show` without asking first.
 - A user saying that a change "can go", "looks good", or "could be pushed later" is not enough approval; ask before running the git command.

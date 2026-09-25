@@ -7,6 +7,8 @@ include:
     inputs:
       job_suffix: ":identity-management-service"
       image_suffix: "identity-management-service"
-      artifact_name: "spark-workflow-identity-management-service-main-amd64"
+      artifact_name: "pkg:oci/identity-management-service"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/02-backend/identity_management_service/Dockerfile"
+      base_image_dev: "python:3.13-slim"
+      base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

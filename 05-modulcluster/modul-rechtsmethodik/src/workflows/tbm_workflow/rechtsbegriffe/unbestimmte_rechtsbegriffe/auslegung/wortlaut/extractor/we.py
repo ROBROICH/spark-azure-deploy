@@ -1,5 +1,7 @@
 """Agent for extracting individual words requiring Wortlaut-Auslegung."""
 
+import asyncio
+
 from temporal.utils import sliding_window
 from temporalio import workflow
 
@@ -39,7 +41,7 @@ class WortlautWordExtractorAgentWorkflow:
             )
             for entry in u_rechtsbegriffe
         ]
-        extracted_word_list = await workflow.asyncio.gather(*extractor_coros)
+        extracted_word_list = await asyncio.gather(*extractor_coros)
 
         pairs = [
             (entry, word)
@@ -48,6 +50,7 @@ class WortlautWordExtractorAgentWorkflow:
         ]
 
         if ENV.WIKTIONARY.ENABLED:
+
             async def _process(pair: tuple[WortlautProcessor, str]) -> None:
                 """Invoke LLM to extract interpretable words from a single term."""
                 entry, word = pair

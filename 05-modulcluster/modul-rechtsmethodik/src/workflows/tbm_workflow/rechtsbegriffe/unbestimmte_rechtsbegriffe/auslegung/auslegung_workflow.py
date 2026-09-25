@@ -1,5 +1,6 @@
 """Orchestrator for interpreting unbestimmte Rechtsbegriffe via canons of interpretation."""
 
+import asyncio
 from datetime import timedelta
 
 from temporal.workflows.rechtsmethodik.types import (
@@ -74,7 +75,7 @@ class AuslegungWorkflow:
 
         wa_urp, sa_urp, ha_urp, ta_urp = self._build_method_specific_urp(enriched_urp, classifications)
 
-        (wa_output, sa_output, ha_output, ta_output) = await workflow.asyncio.gather(
+        (wa_output, sa_output, ha_output, ta_output) = await asyncio.gather(
             workflow.execute_child_workflow(
                 WortlautAuslegungWorkflow.run,
                 WortlautAuslegungWorkflowInput(
@@ -140,9 +141,7 @@ class AuslegungWorkflow:
         results: list[UnbestimmterRechtsbegriff],
     ) -> list[UnbestimmterRechtsbegriff]:
         """Prefix each Wortlaut result with its source word."""
-        attribution = (
-            "Zur Analyse von Wortbedeutungen greift SPARK Workflow über die Wikimedia-API auf Wiktionary zu. Die darüber bereitgestellten Inhalte stehen unter folgender Lizenz: CC-BY-SA 3.0.\n\n"
-        )
+        attribution = "Zur Analyse von Wortbedeutungen greift SPARK Workflow über die Wikimedia-API auf Wiktionary zu. Die darüber bereitgestellten Inhalte stehen unter folgender Lizenz: CC-BY-SA 3.0.\n\n"
         for ur in results:
             for av in ur.auslegungsvorschläge:
                 if av.auslegung_methode == "wortlaut":

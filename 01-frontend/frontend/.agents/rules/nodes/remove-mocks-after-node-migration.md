@@ -8,7 +8,7 @@
 ## Why
 
 - Dual data paths rot quickly and make debugging harder.
-- Mock-era names and types keep pulling future changes back toward the wrong abstraction.
+- Mock-era names and types keep merging future changes back toward the wrong abstraction.
 - Cleaning up immediately keeps the migration scoped and reduces follow-up churn.
 
 ## Bad Example

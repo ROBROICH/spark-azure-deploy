@@ -26,7 +26,7 @@ async def sliding_window(
 
     async def schedule_one() -> None:
         nonlocal next_i, scheduled_since_flush
-        task = workflow.asyncio.ensure_future(fn(items[next_i]))
+        task = asyncio.ensure_future(fn(items[next_i]))
         in_flight[task] = items[next_i]
         next_i += 1
         scheduled_since_flush += 1
@@ -34,7 +34,7 @@ async def sliding_window(
         # force framework flush every 30 schedules
         if scheduled_since_flush >= 30:
             scheduled_since_flush = 0
-            await workflow.asyncio.sleep(1)
+            await asyncio.sleep(1)
 
     # initial fill
     while next_i < len(items) and len(in_flight) < concurrency:

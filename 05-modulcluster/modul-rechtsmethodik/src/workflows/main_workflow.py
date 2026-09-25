@@ -1,5 +1,6 @@
 """Top-level orchestrator workflow for the Rechtsmethodik pipeline."""
 
+import asyncio
 from datetime import timedelta
 from typing import Any
 
@@ -29,9 +30,11 @@ class RechtsmethodikWorkflow:
             task_timeout=timedelta(seconds=60),
         )
 
-        norm_output = await workflow.execute_child_workflow(NormDekonstruktionWorkflow.run, norm_data, task_timeout=timedelta(seconds=60))
+        norm_output = await workflow.execute_child_workflow(
+            NormDekonstruktionWorkflow.run, norm_data, task_timeout=timedelta(seconds=60)
+        )
 
-        tbm_output, rf_output = await workflow.asyncio.gather(
+        tbm_output, rf_output = await asyncio.gather(
             workflow.execute_child_workflow(
                 TatbestandsAnalyseWorkflow.run,
                 norm_output,

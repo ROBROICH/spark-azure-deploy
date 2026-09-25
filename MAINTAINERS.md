@@ -74,6 +74,6 @@ Do not report security issues in public issue trackers.
 
 # Maintainer Changes
 
-Changes to the maintainer list should be made through a pull request updating this file.
+Changes to the maintainer list should be made through a merge request updating this file.
 
 Such changes typically require approval from existing maintainers.
