@@ -79,7 +79,7 @@ Each service child pipeline includes the shared local DevGuard OCI template:
 
 ## Service Template
 
-The shared service template wraps the DevGuard `v1.6.0` OCI templates directly:
+The shared service template wraps the DevGuard `v1.14.0` OCI templates directly:
 
 - `generate-tag.yml`
 - `build-oci-image.yml`

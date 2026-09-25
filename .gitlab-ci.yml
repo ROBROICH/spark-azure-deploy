@@ -25,7 +25,7 @@ variables:
   DEVGUARD_WEB_UI: "https://devguard.opencode.de"
 
 include:
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/secret-scanning.yml"
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/secret-scanning.yml"
     inputs: &devguard-test-inputs
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_token: "$DEVGUARD_TOKEN"
@@ -34,17 +34,17 @@ include:
       pull_policy: "if-not-present"
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/static-application-security-testing.yml"
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/static-application-security-testing.yml"
     inputs:
       <<: *devguard-test-inputs
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/infrastructure-as-code-scanning.yml"
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/infrastructure-as-code-scanning.yml"
     inputs:
       <<: *devguard-test-inputs
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.6.0/templates/software-composition-analysis.yml"
+  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/software-composition-analysis.yml"
     inputs:
       <<: *devguard-test-inputs
       devguard_artifact_name: "pkg:generic/spark-workflow-monorepo"
