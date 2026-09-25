@@ -15,7 +15,7 @@ default:
   retry: 2
 
 include:
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/generate-tag.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/generate-tag.yml"
     inputs:
       stage: "oci-image"
       job_suffix: "$[[ inputs.job_suffix ]]"
@@ -26,7 +26,7 @@ include:
       upstream_version: "0"
       image_path: "$CI_REGISTRY_IMAGE"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/container-scanning.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/container-scanning.yml"
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
@@ -49,7 +49,7 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/sign-oci-image.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/sign-oci-image.yml"
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
@@ -65,7 +65,7 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.6.0/templates/attest.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/attest.yml"
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
