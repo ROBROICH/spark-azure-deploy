@@ -45,6 +45,15 @@ description:
     - "Rechtliche Prüfung und Bewertung"
     - "Unterstützung bei der Beschlusserstellung"
     - "Digitale Rechtsdogmatik"
+    screenshots:
+    - docs/assets/images/image1.jpg
+    - docs/assets/images/image2.jpg
+    - docs/assets/images/image3.jpg
+    - docs/assets/images/image4.jpg
+    - docs/assets/images/image5.jpg
+    - docs/assets/images/image6.jpg
+    - docs/assets/images/image7.jpg
+    - docs/assets/images/image8.jpg
   en:
     genericName: SPARK Workflow
     shortDescription: AI assistance solution for complex planning and approval procedures in public administration
@@ -74,6 +83,15 @@ description:
     - "Legal review and assessment"
     - "Support in decision drafting"
     - "Digital legal dogmatics"
+    screenshots:
+    - docs/assets/images/image1.jpg
+    - docs/assets/images/image2.jpg
+    - docs/assets/images/image3.jpg
+    - docs/assets/images/image4.jpg
+    - docs/assets/images/image5.jpg
+    - docs/assets/images/image6.jpg
+    - docs/assets/images/image7.jpg
+    - docs/assets/images/image8.jpg
 legal:
   license: EUPL-1.2
 maintenance:

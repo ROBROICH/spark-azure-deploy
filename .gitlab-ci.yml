@@ -81,7 +81,9 @@ frontend:
 
 .typescript:
   stage: test
-  image: node:22.23.2
+  image:
+    name: node:22.23.2
+    pull_policy: if-not-present
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
   rules:
