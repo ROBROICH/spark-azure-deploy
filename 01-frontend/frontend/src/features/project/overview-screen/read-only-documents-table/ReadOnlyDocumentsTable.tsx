@@ -15,11 +15,7 @@ import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useProjectProcessingState } from '@/features/project/data/file-processing/useProjectProcessingState';
 import { createReadOnlyColumns } from './readOnlyColumns';
-import {
-  collectFolderIds,
-  filterNodesBySearch,
-  sameFolderIdSet,
-} from './readOnlyTree.utils';
+import { collectFolderIds, sameFolderIdSet } from './readOnlyTree.utils';
 import { useSelectedDocumentVersion } from './useSelectedDocumentVersion';
 import { useReadOnlyDocumentsTree } from './useReadOnlyDocumentsTree';
 
@@ -49,10 +45,18 @@ export const ReadOnlyDocumentsTable = () => {
     });
   const { selectedDocumentVersion } = useSelectedDocumentVersion();
 
-  const { treeData, isLoading, isError, sourceDocumentsCount } =
-    useReadOnlyDocumentsTree(verfahrenId, {
-      documentVersion: selectedDocumentVersion,
-    });
+  const {
+    treeData,
+    isLoading,
+    isError,
+    sourceDocumentsCount,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useReadOnlyDocumentsTree(verfahrenId, {
+    documentVersion: selectedDocumentVersion,
+    name: search,
+  });
 
   // `useProjectProcessingState` already invalidates `['files', projectId]` on
   // the active → not-active transition; no duplicate edge-detect needed here.
@@ -74,12 +78,6 @@ export const ReadOnlyDocumentsTable = () => {
     const nextIds = collectFolderIds(treeData);
     setExpanded((prev) => (sameFolderIdSet(prev, nextIds) ? prev : nextIds));
   }, [search, treeData]);
-
-  // eslint-disable-next-line no-restricted-syntax -- passed as `data` to useReactTable, which performs referential equality checks; a new reference on each render would cause TanStack Table to rebuild its internal row model unnecessarily.
-  const filteredData = useMemo(
-    () => filterNodesBySearch(treeData, search),
-    [treeData, search],
-  );
 
   // eslint-disable-next-line no-restricted-syntax -- passed as controlled `columnVisibility` state to useReactTable; referential instability would trigger unnecessary column layout recalculations inside TanStack Table.
   const columnVisibility = useMemo(
@@ -152,7 +150,7 @@ export const ReadOnlyDocumentsTable = () => {
   );
 
   const table = useReactTable({
-    data: filteredData,
+    data: treeData,
     columns,
     state: {
       expanded,
@@ -212,7 +210,7 @@ export const ReadOnlyDocumentsTable = () => {
     );
   }
 
-  if (filteredData.length === 0) {
+  if (treeData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border border-border-primary bg-neutral-white py-12">
         <div className="mb-6 inline-block rounded-full bg-gray-100 p-5">
@@ -228,9 +226,14 @@ export const ReadOnlyDocumentsTable = () => {
   const visibleRows = table.getRowModel().rows;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border-primary bg-neutral-white">
+    <div
+      className="overflow-x-auto rounded-lg border border-border-primary bg-neutral-white"
+      role="region"
+      aria-label={t('Documents.tableAriaLabel')}
+      tabIndex={0}
+    >
       <table
-        className="w-full table-fixed border-collapse"
+        className="w-full min-w-[600px] table-fixed border-collapse"
         aria-label={t('Documents.tableAriaLabel')}
       >
         <thead className="sticky top-0 z-[5] bg-bg-secondary">
@@ -295,6 +298,17 @@ export const ReadOnlyDocumentsTable = () => {
           })}
         </tbody>
       </table>
+      {hasNextPage && (
+        <Button
+          variant="secondary"
+          size="sm"
+          className="m-3"
+          disabled={isFetchingNextPage}
+          onClick={() => void fetchNextPage()}
+        >
+          {t('Documents.loadMore')}
+        </Button>
+      )}
     </div>
   );
 };

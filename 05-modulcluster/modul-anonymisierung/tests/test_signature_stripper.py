@@ -83,6 +83,30 @@ def _create_signed_pdf(*, with_text_field: bool = False) -> bytes:
     return buf.getvalue()
 
 
+def _create_signed_pdf_without_acroform() -> bytes:
+    """Create a PDF whose signature widget is absent from AcroForm fields."""
+    pdf = pikepdf.new()
+    pdf.add_blank_page(page_size=(612, 792))
+
+    signature = pdf.make_indirect(
+        pikepdf.Dictionary(
+            FT=pikepdf.Name.Sig,
+            T="OrphanedSignature",
+            Subtype=pikepdf.Name.Widget,
+            Rect=pikepdf.Array([10, 10, 210, 50]),
+            V=pikepdf.Dictionary(
+                Type=pikepdf.Name.Sig,
+                Name="Dr. Alice Signer",
+            ),
+        )
+    )
+    pdf.pages[0][pikepdf.Name.Annots] = pikepdf.Array([signature])
+
+    buf = BytesIO()
+    pdf.save(buf)
+    return buf.getvalue()
+
+
 class TestStripSignatures:
     """Test digital signature removal."""
 
@@ -114,6 +138,19 @@ class TestStripSignatures:
 
         assert removed == 1
         assert b"Dr. Alice Signer" not in result_bytes
+
+    def test_removes_signature_annotation_without_acroform(self) -> None:
+        """A signature widget must be persisted as removed without AcroForm fields."""
+        pdf_data = _create_signed_pdf_without_acroform()
+
+        result_bytes, removed = strip_signatures(pdf_data)
+
+        assert removed == 1
+        assert result_bytes != pdf_data
+        assert b"Dr. Alice Signer" not in result_bytes
+        with pikepdf.open(BytesIO(result_bytes)) as pdf:
+            assert "/AcroForm" not in pdf.Root
+            assert "/Annots" not in pdf.pages[0]
 
     def test_preserves_non_signature_fields(self) -> None:
         """Non-signature form fields (e.g. text fields) must be kept."""

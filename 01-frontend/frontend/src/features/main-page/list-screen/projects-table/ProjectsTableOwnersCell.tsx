@@ -1,4 +1,4 @@
-import type { IdentityResponse } from '@/api-clients/identity-management-module';
+import type { IdentityResponse } from '@/api-clients/backend';
 import { getOrganizationUserDisplayName } from '@/features/access-control/organization-users/organizationUser.utils';
 import {
   AvatarBand,
@@ -32,7 +32,7 @@ function createProjectAvatarUsers(params: {
     };
   };
 
-  return (project.owners ?? []).flatMap((userId) => {
+  return project.owners.flatMap((userId) => {
     const avatarUser = toAvatarBandUser(userId);
 
     return avatarUser ? [avatarUser] : [];
@@ -55,7 +55,7 @@ function renderProjectOwnersCell(params: {
     project,
     usersById,
   } = params;
-  const ownerIds = project.owners ?? [];
+  const ownerIds = project.owners;
 
   if (ownerIds.length === 0) {
     return (
@@ -107,7 +107,10 @@ export const createProjectOwnersColumnCell = (params: {
           isPinned
             ? 'ProjectsTable.unpinPersonDetails'
             : 'ProjectsTable.pinPersonDetails',
-          { email: user.email, name: user.name },
+          {
+            email: user.email,
+            name: user.name,
+          },
         ),
       getOverflowLabel: (count) => t('ProjectsTable.moreEditors', { count }),
       isError: usersIsError,

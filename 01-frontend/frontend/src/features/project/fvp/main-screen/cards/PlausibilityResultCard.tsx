@@ -4,13 +4,16 @@ import { retryPlausibilityReads } from '@/features/project/fvp/data/fvpResultRea
 import { Card } from '@/features/ui/card/Card';
 import { InfoTooltip } from '@/features/ui/info-tooltip/InfoTooltip';
 import { Link } from '@tanstack/react-router';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { resultCardOutlinedActionClass } from './resultCardActions';
 import { ResultCardSkeleton } from './ResultCardSkeleton';
+import { ResultCardStatusFallback } from './ResultCardStatusFallback';
 import { StatusProgressRing } from './StatusProgressRing';
 
 type PlausibilityResultCardProps = {
   projectId: string;
+  statusAddon?: ReactNode;
 };
 
 type CounterTileProps = {
@@ -33,18 +36,22 @@ const CounterTile = (props: CounterTileProps) => {
 };
 
 export const PlausibilityResultCard = (props: PlausibilityResultCardProps) => {
-  const { projectId } = props;
+  const { projectId, statusAddon } = props;
   const { t } = useTranslation('FormalCompletenessCheck');
   const { summary, isLoading, isError } =
     usePlausibilityContradictionsSummary(projectId);
 
   if (isLoading) {
-    return <ResultCardSkeleton />;
+    return <ResultCardSkeleton statusAddon={statusAddon} />;
   }
 
   if (isError) {
     return (
-      <CollectionErrorAlert onRetry={() => retryPlausibilityReads(projectId)} />
+      <ResultCardStatusFallback statusAddon={statusAddon}>
+        <CollectionErrorAlert
+          onRetry={() => retryPlausibilityReads(projectId)}
+        />
+      </ResultCardStatusFallback>
     );
   }
 
@@ -67,6 +74,9 @@ export const PlausibilityResultCard = (props: PlausibilityResultCardProps) => {
         <span className="text-xs leading-4 font-medium tracking-[0.02em] text-green-900">
           {statusText}
         </span>
+        {statusAddon ? (
+          <span className="ml-auto flex shrink-0">{statusAddon}</span>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-4">

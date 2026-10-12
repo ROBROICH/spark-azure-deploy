@@ -206,7 +206,7 @@ function AvatarBandOverflowButton(props: {
         aria-describedby={overflowTooltipPos ? overflowTooltipId : undefined}
         aria-label={getOverflowLabel(count)}
         className={cn(
-          'focus-ring pointer-events-auto relative z-0 inline-flex size-7 shrink-0 cursor-default items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-[11px] leading-none font-medium text-slate-600',
+          'focus-ring pointer-events-auto relative z-0 inline-flex size-7 shrink-0 cursor-default items-center justify-center rounded-full border border-slate-300 bg-slate-100 text-[11px] leading-none font-medium text-slate-600 forced-colors:border-[CanvasText] forced-colors:text-[color:CanvasText]',
           'transition-transform duration-150 ease-out hover:z-10 hover:-translate-y-0.5 focus:z-10 focus:-translate-y-0.5',
         )}
         onPointerEnter={(e) =>

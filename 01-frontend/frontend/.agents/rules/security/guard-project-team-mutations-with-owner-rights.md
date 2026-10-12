@@ -1,3 +1,9 @@
+---
+ruleId: security/guard-project-team-mutations-with-owner-rights
+paths:
+  - "src/features/project/**"
+---
+
 # Guard Project Team Mutations With Owner Rights
 
 - Project read access is backend-enforced; frontend code may assume users can read all data for projects returned by the backend.

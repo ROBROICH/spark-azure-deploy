@@ -1,0 +1,4 @@
+# ci: smallest install — the chart's defaults with a pinned image.
+image:
+  repository: registry.example.com/spark/app
+  tag: "1.0.0"

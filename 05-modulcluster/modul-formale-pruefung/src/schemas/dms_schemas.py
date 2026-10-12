@@ -1,6 +1,7 @@
 from typing import Any
 
 from pydantic import BaseModel, Field
+from temporal.contracts_base import CamelWireModel
 
 
 class ChunkMetadata(BaseModel):
@@ -13,7 +14,7 @@ class ChunkMetadata(BaseModel):
     page_numbers: list[int] = Field(default_factory=list)
 
 
-class DocumentChunk(BaseModel):
+class DocumentChunk(CamelWireModel):
     """Represents a specific segment of text from a document."""
 
     chunk_id: str = Field(
@@ -27,7 +28,7 @@ class DocumentChunk(BaseModel):
     metadata: ChunkMetadata = Field(..., description="Associated metadata including page numbers")
 
 
-class DocumentMetadata(BaseModel):
+class DocumentMetadata(CamelWireModel):
     """High-level metadata for a document.
 
     Attributes:

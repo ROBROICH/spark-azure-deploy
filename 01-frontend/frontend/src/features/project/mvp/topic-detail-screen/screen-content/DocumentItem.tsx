@@ -50,6 +50,7 @@ export const DocumentItem = (props: DocumentItemProps) => {
     <div
       className={cn(
         'relative flex w-full items-center gap-2 rounded-lg py-1 pr-1 text-left text-[13px] font-medium',
+        '[padding-left:calc(var(--doc-depth,0)*4px+8px)] md:[padding-left:calc(var(--doc-depth,0)*16px+28px)]',
         isSelected
           ? cn(
               'selected-ring-inset text-[#1E40AF]',
@@ -61,7 +62,7 @@ export const DocumentItem = (props: DocumentItemProps) => {
             ? 'bg-[rgba(243,232,255,0.62)] text-[#1E1D49] hover:bg-[rgba(233,213,255,0.8)]'
             : 'text-[#1E1D49] hover:bg-bg-secondary',
       )}
-      style={{ paddingLeft: `${depth * 16 + 28}px` }}
+      style={{ ['--doc-depth' as string]: depth }}
     >
       <button
         type="button"
@@ -99,6 +100,7 @@ export const DocumentItem = (props: DocumentItemProps) => {
         checked={isReviewed}
         className="relative z-10 shrink-0"
         disabled={!canMutateTopic}
+        fileName={fileName}
         onCheckedChange={() => onToggleReviewed(document.id)}
       />
     </div>

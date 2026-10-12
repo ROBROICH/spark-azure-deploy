@@ -1,6 +1,0 @@
-apiVersion: v2
-name: agent-orchestration-service
-description: A Helm chart for Kubernetes deployment of agent orchestration service
-type: application
-version: 0.1.0
-appVersion: "1.16.0"

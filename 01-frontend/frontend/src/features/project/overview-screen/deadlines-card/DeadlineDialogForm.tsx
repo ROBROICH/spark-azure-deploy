@@ -1,4 +1,7 @@
-import type { DeadlineFormValues } from '@/features/project/overview-screen/schemas';
+import {
+  createDeadlineSchema,
+  type DeadlineFormValues,
+} from '@/features/project/overview-screen/schemas';
 import { Field, FieldError, FieldLabel } from '@/features/ui/form/field';
 import { Input } from '@/features/ui/input/Input';
 import { Button } from '@/features/ui/button/Button';
@@ -7,106 +10,35 @@ import {
   DialogClose,
   DialogFooter,
 } from '@/features/ui/dialog/Dialog';
-import type {
-  FormAsyncValidateOrFn,
-  FormValidateOrFn,
-  ReactFormExtendedApi,
-} from '@tanstack/react-form';
+import { useForm } from '@tanstack/react-form';
+import { useTranslation } from 'react-i18next';
 
-type DeadlineDialogFormApi<
-  TOnMount extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChange extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnBlur extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnSubmit extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnDynamic extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnServer extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TSubmitMeta,
-> = ReactFormExtendedApi<
-  DeadlineFormValues,
-  TOnMount,
-  TOnChange,
-  TOnChangeAsync,
-  TOnBlur,
-  TOnBlurAsync,
-  TOnSubmit,
-  TOnSubmitAsync,
-  TOnDynamic,
-  TOnDynamicAsync,
-  TOnServer,
-  TSubmitMeta
->;
-
-type DeadlineDialogFormLabels = {
-  cancel: string;
-  deadlineType: string;
-  endAt: string;
-  legalBasis: string;
-  save: string;
-  startAt: string;
-};
-
-type DeadlineDialogFormProps<
-  TOnMount extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChange extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnBlur extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnSubmit extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnDynamic extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnServer extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TSubmitMeta,
-> = {
-  form: DeadlineDialogFormApi<
-    TOnMount,
-    TOnChange,
-    TOnChangeAsync,
-    TOnBlur,
-    TOnBlurAsync,
-    TOnSubmit,
-    TOnSubmitAsync,
-    TOnDynamic,
-    TOnDynamicAsync,
-    TOnServer,
-    TSubmitMeta
-  >;
-  formId: string;
-  labels: DeadlineDialogFormLabels;
-};
-
-export function DeadlineDialogForm<
-  TOnMount extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChange extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnChangeAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnBlur extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnBlurAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnSubmit extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnSubmitAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnDynamic extends undefined | FormValidateOrFn<DeadlineFormValues>,
-  TOnDynamicAsync extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TOnServer extends undefined | FormAsyncValidateOrFn<DeadlineFormValues>,
-  TSubmitMeta,
->(
-  props: DeadlineDialogFormProps<
-    TOnMount,
-    TOnChange,
-    TOnChangeAsync,
-    TOnBlur,
-    TOnBlurAsync,
-    TOnSubmit,
-    TOnSubmitAsync,
-    TOnDynamic,
-    TOnDynamicAsync,
-    TOnServer,
-    TSubmitMeta
-  >,
+export function useDeadlineDialogForm(
+  defaultValues: DeadlineFormValues,
+  submitDeadline: (value: DeadlineFormValues) => Promise<void>,
 ) {
-  const { form, formId, labels } = props;
+  const { t } = useTranslation('Project');
+  return useForm({
+    defaultValues,
+    validators: { onSubmit: createDeadlineSchema(t) },
+    onSubmit: async ({ value }) => submitDeadline(value),
+  });
+}
+
+type DeadlineDialogFormProps = {
+  form: ReturnType<typeof useDeadlineDialogForm>;
+  formId: string;
+  mode: 'create' | 'edit';
+};
+
+/**
+ * Keeps validation announcements tied to fields in this dialog instance.
+ * @param props - Form state, dialog identity, and create or edit mode.
+ * @returns Deadline fields and actions with scoped error descriptions.
+ */
+export function DeadlineDialogForm(props: DeadlineDialogFormProps) {
+  const { form, formId, mode } = props;
+  const { t } = useTranslation('Project');
 
   return (
     <>
@@ -122,10 +54,11 @@ export function DeadlineDialogForm<
           <form.Field name="deadlineType">
             {(field) => {
               const isInvalid = field.state.meta.errors.length > 0;
+              const errorId = `${formId}-${field.name}-error`;
               return (
                 <Field data-invalid={isInvalid || undefined}>
                   <FieldLabel htmlFor={field.name}>
-                    {labels.deadlineType}*
+                    {t('Deadlines.form.deadlineType')}*
                   </FieldLabel>
                   <Input
                     id={field.name}
@@ -135,8 +68,11 @@ export function DeadlineDialogForm<
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-required
                     aria-invalid={isInvalid}
+                    aria-describedby={isInvalid ? errorId : undefined}
                   />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  {isInvalid && (
+                    <FieldError id={errorId} errors={field.state.meta.errors} />
+                  )}
                 </Field>
               );
             }}
@@ -144,10 +80,11 @@ export function DeadlineDialogForm<
           <form.Field name="startAt">
             {(field) => {
               const isInvalid = field.state.meta.errors.length > 0;
+              const errorId = `${formId}-${field.name}-error`;
               return (
                 <Field data-invalid={isInvalid || undefined}>
                   <FieldLabel htmlFor={field.name}>
-                    {labels.startAt}*
+                    {t('Deadlines.form.startAt')}*
                   </FieldLabel>
                   <Input
                     id={field.name}
@@ -159,8 +96,11 @@ export function DeadlineDialogForm<
                     onChange={(e) => field.handleChange(e.target.value)}
                     aria-required
                     aria-invalid={isInvalid}
+                    aria-describedby={isInvalid ? errorId : undefined}
                   />
-                  {isInvalid && <FieldError errors={field.state.meta.errors} />}
+                  {isInvalid && (
+                    <FieldError id={errorId} errors={field.state.meta.errors} />
+                  )}
                 </Field>
               );
             }}
@@ -170,10 +110,11 @@ export function DeadlineDialogForm<
               <form.Subscribe selector={(state) => state.values.startAt}>
                 {(startAt) => {
                   const isInvalid = field.state.meta.errors.length > 0;
+                  const errorId = `${formId}-${field.name}-error`;
                   return (
                     <Field data-invalid={isInvalid || undefined}>
                       <FieldLabel htmlFor={field.name}>
-                        {labels.endAt}*
+                        {t('Deadlines.form.endAt')}*
                       </FieldLabel>
                       <Input
                         id={field.name}
@@ -186,9 +127,13 @@ export function DeadlineDialogForm<
                         onChange={(e) => field.handleChange(e.target.value)}
                         aria-required
                         aria-invalid={isInvalid}
+                        aria-describedby={isInvalid ? errorId : undefined}
                       />
                       {isInvalid && (
-                        <FieldError errors={field.state.meta.errors} />
+                        <FieldError
+                          id={errorId}
+                          errors={field.state.meta.errors}
+                        />
                       )}
                     </Field>
                   );
@@ -200,7 +145,7 @@ export function DeadlineDialogForm<
             {(field) => (
               <Field>
                 <FieldLabel htmlFor={field.name}>
-                  {labels.legalBasis}
+                  {t('Deadlines.form.legalBasis')}
                 </FieldLabel>
                 <Input
                   id={field.name}
@@ -217,12 +162,16 @@ export function DeadlineDialogForm<
       <DialogFooter>
         <DialogClose asChild>
           <Button variant="ghost" type="button">
-            {labels.cancel}
+            {t(`Deadlines.${mode}Dialog.cancel`)}
           </Button>
         </DialogClose>
-        <Button type="submit" form={formId}>
-          {labels.save}
-        </Button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" form={formId} loading={isSubmitting}>
+              {t(`Deadlines.${mode}Dialog.save`)}
+            </Button>
+          )}
+        </form.Subscribe>
       </DialogFooter>
     </>
   );

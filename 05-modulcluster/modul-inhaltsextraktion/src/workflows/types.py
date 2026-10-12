@@ -3,7 +3,7 @@
 from uuid import UUID
 
 from pydantic import BaseModel
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+from temporal.contracts import BaseMetadata
 
 from src.schemas import ProcessedDocument
 

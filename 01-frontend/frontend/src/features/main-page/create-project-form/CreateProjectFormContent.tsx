@@ -1,5 +1,4 @@
-import { createProjectProjectsPostMutation } from '@/api-clients/pls-module/@tanstack/react-query.gen';
-import { useAllProjects } from '@/features/project/data/collections/projects.collection';
+import { v1ProjectLogicCreateProjectMutation as createProjectMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { DialogBody, DialogDescription } from '@/features/ui/dialog/Dialog';
 import { toast } from '@/features/ui/toast/Toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -45,14 +44,7 @@ export function CreateProjectFormContent(
   } = props;
   const { t } = useTranslation('CreateProjectForm');
   const queryClient = useQueryClient();
-  const {
-    data: existingProjects,
-    isError: existingProjectsLoadFailed,
-    isLoading: isLoadingExistingProjects,
-  } = useAllProjects();
-  const createProjectMutation = useMutation(
-    createProjectProjectsPostMutation(),
-  );
+  const createProject = useMutation(createProjectMutation());
   const formSubmit1Ref = useRef<(() => void) | null>(null);
   const formValues2Ref = useRef<(() => ApplicantStepValues) | null>(null);
   const formSubmit2Ref = useRef<(() => void) | null>(null);
@@ -75,22 +67,16 @@ export function CreateProjectFormContent(
     step2Values,
   } = state;
 
-  const isSubmitting = createProjectMutation.isPending;
+  const isSubmitting = createProject.isPending;
 
   const stepTitles: Record<Step, string> = {
     1: t('step1.title'),
     2: t('step2.title'),
   };
-  const existingInternalProjectNumbers = existingProjects.map(
-    (project) => project.internalProjectNumber,
-  );
-  const isStep1BlockedByProjectsDependency =
-    currentStep === 1 &&
-    (isLoadingExistingProjects || existingProjectsLoadFailed);
 
   const resetFormAndClose = async (projectId?: string | null) => {
     await queryClient.invalidateQueries({
-      queryKey: ['projects'],
+      queryKey: ['project-list'],
     });
     onOpenChange(false);
     dispatch({ type: 'RESET', defaults: formDefaults });
@@ -100,14 +86,14 @@ export function CreateProjectFormContent(
   const createProjectAndFinish = (applicantValues: ApplicantStepValues) => {
     // Guard against double-submission (e.g. Enter re-triggering the native
     // form) while the create request is already in flight.
-    if (createProjectMutation.isPending) {
+    if (createProject.isPending) {
       return;
     }
     dispatch({ type: 'SET_SUBMIT_ERROR', payload: null });
     // The creator identity is derived server-side from the OIDC user, so the
     // frontend intentionally omits a client-authored `createdById`.
     const body = buildCreateProjectBody(step1Values, applicantValues);
-    createProjectMutation.mutate(
+    createProject.mutate(
       { body },
       {
         onSuccess: (data) => {
@@ -161,39 +147,18 @@ export function CreateProjectFormContent(
         </DialogDescription>
 
         {currentStep === 1 && (
-          <>
-            <ProjectFormStep
-              defaultValues={step1Values}
-              existingInternalProjectNumbers={existingInternalProjectNumbers}
-              projectTypes={projectTypes}
-              projectTypesLoadFailed={projectTypesLoadFailed}
-              disableSubmit={isStep1BlockedByProjectsDependency}
-              onSubmit={(values) => {
-                dispatch({ type: 'SET_STEP1', payload: values });
-                dispatch({ type: 'GO_TO_STEP', payload: 2 });
-              }}
-              onFormReady={(methods) => {
-                formSubmit1Ref.current = methods.submit;
-              }}
-            />
-            {isLoadingExistingProjects && (
-              <div
-                className="mt-3 rounded border border-border-primary bg-neutral-white p-3 text-text-secondary"
-                aria-live="polite"
-              >
-                {t('loadingExistingProjects')}
-              </div>
-            )}
-            {existingProjectsLoadFailed && (
-              <div
-                className="mt-3 rounded border border-red-400 bg-red-100 p-3 text-red-700"
-                role="alert"
-                aria-live="assertive"
-              >
-                {t('existingProjectsLoadError')}
-              </div>
-            )}
-          </>
+          <ProjectFormStep
+            defaultValues={step1Values}
+            projectTypes={projectTypes}
+            projectTypesLoadFailed={projectTypesLoadFailed}
+            onSubmit={(values) => {
+              dispatch({ type: 'SET_STEP1', payload: values });
+              dispatch({ type: 'GO_TO_STEP', payload: 2 });
+            }}
+            onFormReady={(methods) => {
+              formSubmit1Ref.current = methods.submit;
+            }}
+          />
         )}
 
         {currentStep === 2 && (
@@ -229,7 +194,6 @@ export function CreateProjectFormContent(
 
       <CreateProjectFormFooter
         currentStep={currentStep}
-        disableNext={isStep1BlockedByProjectsDependency}
         isSubmitting={isSubmitting}
         onBack={handleBack}
         onCancel={() => handleClose(false)}

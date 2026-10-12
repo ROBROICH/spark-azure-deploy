@@ -61,7 +61,7 @@ export const useRejectDiffApproval = (approvalActions: ApprovalActions) => {
     setRejectError(false);
     try {
       await submitDecision.mutateAsync({
-        path: { file_id: zipFileId },
+        path: { fileId: zipFileId },
         query: { decision: 'reject' },
       });
     } catch (error) {

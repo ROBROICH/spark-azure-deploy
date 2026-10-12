@@ -1,7 +1,7 @@
 import {
-  listProjectTypesProjectTypesGet,
+  v1ProjectLogicListProjectTypes as listProjectTypes,
   type ProjectTypeResponse,
-} from '@/api-clients/pls-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { createCollection } from '@tanstack/react-db';
@@ -12,7 +12,7 @@ export const projectTypesCollection = createCollection(
     id: 'project-types',
     queryKey: ['project-types'],
     queryFn: async (): Promise<ProjectTypeResponse[]> => {
-      const { data } = await listProjectTypesProjectTypesGet();
+      const { data } = await listProjectTypes();
       if (!data) {
         throw new Error('Failed to fetch project types');
       }

@@ -1,7 +1,7 @@
 import {
-  listZipFilesV2ZipFilesGet,
+  v1DocumentManagementListZipFiles as listZipFiles,
   type ZipFileResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 
 const PROCESSING_FILES_PAGE_SIZE = 50;
 
@@ -20,12 +20,12 @@ export const loadProjectProcessingFiles = async (
 
   for (;;) {
     // eslint-disable-next-line no-await-in-loop -- each page number depends on the previous paginated response before the next request can be formed.
-    const { data } = await listZipFilesV2ZipFilesGet({
+    const { data } = await listZipFiles({
       query: {
         projectId,
-        project_version: projectVersion,
+        projectVersion: projectVersion,
         page,
-        page_size: PROCESSING_FILES_PAGE_SIZE,
+        pageSize: PROCESSING_FILES_PAGE_SIZE,
       },
       throwOnError: true,
     });

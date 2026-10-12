@@ -1,4 +1,4 @@
-import type { FeedbackRating as BackendFeedbackRating } from '@/api-clients/feedback-module';
+import type { V1FeedbackRating as BackendFeedbackRating } from '@/api-clients/backend';
 
 export type FeedbackRating = BackendFeedbackRating;
 export type FeedbackSelection = FeedbackRating | null;

@@ -3,7 +3,7 @@ Schemas for LLM-based document type matching within the FVP context.
 """
 
 from pydantic import BaseModel, Field
-from temporal.workflows.formale_pruefung.types import DocumentTypeDefinition
+from temporal.contracts import DocumentTypeDefinition
 
 from src.schemas.dms_schemas import DMSDocument, DMSInhaltsExtraction
 

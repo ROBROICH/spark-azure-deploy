@@ -9,6 +9,7 @@ from src.activities.dms_activities import DmsFileInfo
 from src.providers.base import ContentItemDict
 
 __all__ = [
+    "CollectMetricsInput",
     "CombineDoclingChunksInput",
     "CombineDoclingChunksOutput",
     "CompressPdfImagesInput",
@@ -18,6 +19,7 @@ __all__ = [
     "DoclingActivityInput",
     "DoclingChunkResult",
     "ExtractChunkInput",
+    "PdfMetricsOutput",
     "PreparedPdfOutput",
     "RasterizeChunkInput",
     "RasterizeChunkOutput",
@@ -179,6 +181,34 @@ class CompressPdfImagesOutput(BaseModel):
     pdf_bytes: Base64Bytes
     file_size_mb: float
     was_compressed: bool
+
+
+class CollectMetricsInput(BaseModel):
+    """Input for the structural metrics activity."""
+
+    pdf_bytes: Base64Bytes
+
+
+class PdfMetricsOutput(BaseModel):
+    """Structural cost indicators for one PDF."""
+
+    pages: int
+    text_ops: int
+    xobj_ops: int
+    max_area_a4: float
+    total_load: float
+    max_page_load: float
+    cad_creator: bool = False
+    has_usable_raster: bool = False
+    image_count: int = 0
+    max_image_px: int = 0
+    sum_image_px: int = 0
+    strip_count: int = 0
+
+    @property
+    def elements(self) -> int:
+        """Total number of drawing operations that carry content."""
+        return self.text_ops + self.xobj_ops
 
 
 class RasterizeChunkInput(BaseModel):

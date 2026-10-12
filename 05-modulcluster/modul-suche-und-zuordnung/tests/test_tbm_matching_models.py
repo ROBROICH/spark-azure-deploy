@@ -30,6 +30,7 @@ from src.tbm_matching.rule_based_matching.lookup_data import MatchingRule
 # ---------------------------------------------------------------------------
 
 EXPECTED_STAGE2_RESULT_COUNT = 2
+RELEVANCE_VALUE = 0.7
 
 # ---------------------------------------------------------------------------
 # Stage1Response
@@ -64,15 +65,27 @@ class TestChunkSentenceResult:
             node_id="n1",
             relevant_indices=[0, 2, 4],
             begruendung="Sentences 0, 2, 4 are relevant.",
+            relevance=0.7,
         )
         assert model.node_id == "n1"
         assert model.relevant_indices == [0, 2, 4]
         assert "0, 2, 4" in model.begruendung
+        assert model.relevance == RELEVANCE_VALUE
 
     def test_empty_indices(self) -> None:
         """Verify that an empty relevant_indices list is accepted."""
-        model = ChunkSentenceResult(node_id="n1", relevant_indices=[], begruendung="None")
+        model = ChunkSentenceResult(node_id="n1", relevant_indices=[], begruendung="None", relevance=0.0)
         assert model.relevant_indices == []
+
+    def test_relevance_outside_range_rejected(self) -> None:
+        """Verify that a relevance value outside 0.0 to 1.0 is rejected."""
+        with pytest.raises(ValidationError):
+            ChunkSentenceResult(node_id="n1", relevant_indices=[0], begruendung="B", relevance=1.5)
+
+    def test_relevance_defaults_to_absent(self) -> None:
+        """Verify that an omitted relevance value stays absent instead of defaulting to a number."""
+        model = ChunkSentenceResult(node_id="n1", relevant_indices=[0], begruendung="B")
+        assert model.relevance is None
 
 
 # ---------------------------------------------------------------------------
@@ -86,8 +99,8 @@ class TestStage2SentenceResponse:
     def test_construction_with_results(self) -> None:
         """Verify that Stage2SentenceResponse stores a list of ChunkSentenceResult entries."""
         results = [
-            ChunkSentenceResult(node_id="n1", relevant_indices=[0], begruendung="B"),
-            ChunkSentenceResult(node_id="n2", relevant_indices=[1, 2], begruendung="C"),
+            ChunkSentenceResult(node_id="n1", relevant_indices=[0], begruendung="B", relevance=0.5),
+            ChunkSentenceResult(node_id="n2", relevant_indices=[1, 2], begruendung="C", relevance=0.5),
         ]
         model = Stage2SentenceResponse(results=results)
         assert len(model.results) == EXPECTED_STAGE2_RESULT_COUNT

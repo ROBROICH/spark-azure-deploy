@@ -7,12 +7,15 @@ __pycache__/
 *.coverage
 coverage.json
 *.log
+*.egg-info
+requirements.txt
 
 # Environments
 .venv
 .env
 .env.*
 !.env.local
+!.env.example
 
 # IDEs
 /.vscode/*
@@ -24,8 +27,8 @@ coverage.json
 .DS_Store
 *.pdf
 *.PDF
-!docs/Technischer_Produktsteckbrief_GER_v1.pdf
-!docs/Benutzerhandbuch_GER_v1.pdf
+!docs/SPARK_Workflow_Technischer_Produktsteckbrief_v*.pdf
 
 node_modules
 .pnpm
+dist

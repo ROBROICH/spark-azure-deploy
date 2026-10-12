@@ -1,0 +1,1 @@
+preload = ["../../../packages/temporal/typescript/src/workflow-preload.ts"]

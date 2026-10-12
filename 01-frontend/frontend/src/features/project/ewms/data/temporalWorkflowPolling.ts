@@ -1,7 +1,8 @@
 import {
-  getWorkflowTemporalWorkflowsWorkflowIdGet,
+  v1TemporalJobsGetTemporalWorkflow as getTemporalWorkflow,
   type GetWorkflowResponse,
-} from '@/api-clients/temporal-jobs-module';
+} from '@/api-clients/backend';
+import { FAILED_WORKFLOW_STATUSES } from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
 
 type ClientResult<TData> = {
   data?: TData;
@@ -11,8 +12,9 @@ type ClientResult<TData> = {
 export const COMPLETED_TEMPORAL_WORKFLOW_STATUS: GetWorkflowResponse['status'] =
   'completed';
 
-export const FAILED_TEMPORAL_WORKFLOW_STATUSES: GetWorkflowResponse['status'][] =
-  ['failed', 'canceled', 'terminated', 'timed_out'];
+export const isFailedTemporalWorkflowStatus = (
+  status: GetWorkflowResponse['status'],
+): boolean => status !== null && FAILED_WORKFLOW_STATUSES.has(status);
 
 export const sleep = (durationMs: number) =>
   new Promise((resolve) => {
@@ -35,9 +37,9 @@ export const loadTemporalWorkflow = async (
     requestFailedFallback,
     workflowId,
   } = options;
-  const workflowResponse = (await getWorkflowTemporalWorkflowsWorkflowIdGet({
+  const workflowResponse = (await getTemporalWorkflow({
     path: {
-      workflow_id: workflowId,
+      workflowId,
     },
   })) as ClientResult<GetWorkflowResponse>;
 
@@ -72,9 +74,7 @@ export const waitForTemporalWorkflowCompletion = async (
 
     if (latestWorkflow.status === COMPLETED_TEMPORAL_WORKFLOW_STATUS) {
       isRunning = false;
-    } else if (
-      FAILED_TEMPORAL_WORKFLOW_STATUSES.includes(latestWorkflow.status)
-    ) {
+    } else if (isFailedTemporalWorkflowStatus(latestWorkflow.status)) {
       throw new Error(
         `${options.failedStatusMessagePrefix} ended with status ${latestWorkflow.status}.`,
       );

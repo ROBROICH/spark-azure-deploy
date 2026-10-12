@@ -7,9 +7,9 @@ import {
 } from './rpb.preload';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -17,21 +17,21 @@ const createSummary = (
 describe('collectRpbPreloadRefs', () => {
   it('does not preload source feedback as Bewertung feedback', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'bewertung-1', node_type: 'bewertung' }),
+      createSummary({ id: 'bewertung-1', nodeType: 'bewertung' }),
       createSummary({
         id: 'bewertung-quelle-1',
-        node_type: 'bewertung_quelle',
-        parents: [{ id: 'bewertung-1', node_type: 'bewertung' }],
+        nodeType: 'bewertung_quelle',
+        parents: [{ id: 'bewertung-1', nodeType: 'bewertung' }],
       }),
       createSummary({
         id: 'feedback-quelle-1',
-        node_type: 'feedback',
-        frontend_parent_ids: ['bewertung_quelle:bewertung-quelle-1'],
+        nodeType: 'feedback',
+        frontendParentIds: ['bewertung_quelle:bewertung-quelle-1'],
       }),
     ]);
 
     const refs = collectRpbFeedbackPreloadRefs(index, [
-      { id: 'bewertung-1', node_type: 'bewertung' },
+      { id: 'bewertung-1', nodeType: 'bewertung' },
     ]);
 
     expect(refs).toEqual([]);
@@ -39,96 +39,106 @@ describe('collectRpbPreloadRefs', () => {
 
   it('preloads outline nodes, topic descendants, and deep-link selections', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
-      createSummary({ id: 'topic-2', node_type: 'topic' }),
-      createSummary({ id: 'outline-1', node_type: 'vae_node' }),
-      createSummary({ id: 'outline-2', node_type: 'vae_node' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
+      createSummary({ id: 'topic-2', nodeType: 'topic' }),
+      createSummary({ id: 'outline-1', nodeType: 'vae_node' }),
+      createSummary({ id: 'outline-2', nodeType: 'vae_node' }),
       createSummary({
         id: 'topic-norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'norm-1',
-        node_type: 'norm',
+        nodeType: 'norm',
         parents: [
-          { id: 'topic-norm-1', node_type: 'topic_norm' },
-          { id: 'gesetz-1', node_type: 'gesetz' },
+          { id: 'topic-norm-1', nodeType: 'topic_norm' },
+          { id: 'gesetz-1', nodeType: 'gesetz' },
         ],
       }),
-      createSummary({ id: 'gesetz-1', node_type: 'gesetz' }),
+      createSummary({ id: 'gesetz-1', nodeType: 'gesetz' }),
       createSummary({
         id: 'satz-1',
-        node_type: 'satz',
-        parents: [{ id: 'absatz-1', node_type: 'absatz' }],
+        nodeType: 'satz',
+        parents: [{ id: 'absatz-1', nodeType: 'absatz' }],
       }),
       createSummary({
         id: 'absatz-1',
-        node_type: 'absatz',
-        parents: [{ id: 'norm-1', node_type: 'norm' }],
+        nodeType: 'absatz',
+        parents: [{ id: 'norm-1', nodeType: 'norm' }],
       }),
       createSummary({
         id: 'bewertung-1',
-        node_type: 'bewertung',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'bewertung',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
       }),
       createSummary({
         id: 'bewertung-quelle-1',
-        node_type: 'bewertung_quelle',
-        parents: [{ id: 'bewertung-1', node_type: 'bewertung' }],
+        nodeType: 'bewertung_quelle',
+        parents: [{ id: 'bewertung-1', nodeType: 'bewertung' }],
       }),
       createSummary({
         id: 'feedback-bewertung-1',
-        node_type: 'feedback',
-        parents: [{ id: 'bewertung-1', node_type: 'bewertung' }],
+        nodeType: 'feedback',
+        parents: [{ id: 'bewertung-1', nodeType: 'bewertung' }],
       }),
       createSummary({
         id: 'feedback-quelle-1',
-        node_type: 'feedback',
-        parents: [{ id: 'bewertung-quelle-1', node_type: 'bewertung_quelle' }],
+        nodeType: 'feedback',
+        parents: [{ id: 'bewertung-quelle-1', nodeType: 'bewertung_quelle' }],
       }),
       createSummary({
         id: 'tbm-1',
-        node_type: 'atomares_tbm',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'atomares_tbm',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
       }),
       createSummary({
         id: 'rechtsfolge-1',
-        node_type: 'rechtsfolge',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'rechtsfolge',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
+      }),
+      createSummary({
+        id: 'ermessensspielraum-1',
+        nodeType: 'ermessensspielraum',
+        parents: [{ id: 'rechtsfolge-1', nodeType: 'rechtsfolge' }],
+      }),
+      createSummary({
+        id: 'ermessensart-1',
+        nodeType: 'ermessensart',
+        parents: [{ id: 'rechtsfolge-1', nodeType: 'rechtsfolge' }],
       }),
       createSummary({
         id: 'dokument-1',
-        node_type: 'dokument',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'dokument',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'argument-1',
-        node_type: 'argument',
+        nodeType: 'argument',
         parents: [
-          { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-          { id: 'topic-1', node_type: 'topic' },
+          { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+          { id: 'topic-1', nodeType: 'topic' },
         ],
       }),
       createSummary({
         id: 'argument-2',
-        node_type: 'argument',
+        nodeType: 'argument',
         parents: [
-          { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-          { id: 'topic-2', node_type: 'topic' },
+          { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+          { id: 'topic-2', nodeType: 'topic' },
         ],
       }),
       createSummary({
         id: 'subtopic-1',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'subtopic-2',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-2', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-2', nodeType: 'topic' }],
       }),
-      createSummary({ id: 'dokument-2', node_type: 'dokument' }),
+      createSummary({ id: 'dokument-2', nodeType: 'dokument' }),
     ]);
 
     const refs = collectRpbPreloadRefs(index, {
@@ -139,9 +149,7 @@ describe('collectRpbPreloadRefs', () => {
       topicId: 'topic-1',
       topicNormId: 'topic-norm-1',
     });
-    const compositeKeys = refs
-      .map((ref) => `${ref.node_type}:${ref.id}`)
-      .sort();
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`).sort();
 
     expect(compositeKeys).toEqual([
       'absatz:absatz-1',
@@ -150,6 +158,8 @@ describe('collectRpbPreloadRefs', () => {
       'bewertung_quelle:bewertung-quelle-1',
       'dokument:dokument-1',
       'dokument:dokument-2',
+      'ermessensart:ermessensart-1',
+      'ermessensspielraum:ermessensspielraum-1',
       'feedback:feedback-bewertung-1',
       'feedback:feedback-quelle-1',
       'gesetz:gesetz-1',
@@ -166,30 +176,28 @@ describe('collectRpbPreloadRefs', () => {
 
   it('preloads argument descendants for a real participation subtopic deep link', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'subtopic-1',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'argument-1',
-        node_type: 'argument',
-        parents: [{ id: 'subtopic-1', node_type: 'subtopic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'subtopic-1', nodeType: 'subtopic' }],
       }),
       createSummary({
         id: 'argument-2',
-        node_type: 'argument',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 
     const refs = collectRpbPreloadRefs(index, {
       participationSubtopicId: 'subtopic-1',
     });
-    const compositeKeys = refs
-      .map((ref) => `${ref.node_type}:${ref.id}`)
-      .sort();
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`).sort();
 
     expect(compositeKeys).toEqual([
       'argument:argument-1',
@@ -199,27 +207,27 @@ describe('collectRpbPreloadRefs', () => {
 
   it('preloads only unassigned argument refs for a Sonstige participation deep link', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
-      createSummary({ id: 'topic-2', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
+      createSummary({ id: 'topic-2', nodeType: 'topic' }),
       createSummary({
         id: 'subtopic-1',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'argument-1',
-        node_type: 'argument',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'argument-assigned',
-        node_type: 'argument',
-        parents: [{ id: 'subtopic-1', node_type: 'subtopic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'subtopic-1', nodeType: 'subtopic' }],
       }),
       createSummary({
         id: 'argument-2',
-        node_type: 'argument',
-        parents: [{ id: 'topic-2', node_type: 'topic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'topic-2', nodeType: 'topic' }],
       }),
     ]);
 
@@ -227,9 +235,7 @@ describe('collectRpbPreloadRefs', () => {
       participationSubtopicId: '__sonstige__',
       topicId: 'topic-1',
     });
-    const compositeKeys = refs
-      .map((ref) => `${ref.node_type}:${ref.id}`)
-      .sort();
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`).sort();
 
     expect(compositeKeys).toEqual([
       'argument:argument-1',
@@ -240,50 +246,48 @@ describe('collectRpbPreloadRefs', () => {
 
   it('preloads selected topic norm descendants when topicId is absent', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'topic-norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'norm-1',
-        node_type: 'norm',
-        parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+        nodeType: 'norm',
+        parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
       }),
       createSummary({
         id: 'absatz-1',
-        node_type: 'absatz',
-        parents: [{ id: 'norm-1', node_type: 'norm' }],
+        nodeType: 'absatz',
+        parents: [{ id: 'norm-1', nodeType: 'norm' }],
       }),
       createSummary({
         id: 'satz-1',
-        node_type: 'satz',
-        parents: [{ id: 'absatz-1', node_type: 'absatz' }],
+        nodeType: 'satz',
+        parents: [{ id: 'absatz-1', nodeType: 'absatz' }],
       }),
       createSummary({
         id: 'bewertung-1',
-        node_type: 'bewertung',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'bewertung',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
       }),
       createSummary({
         id: 'feedback-bewertung-1',
-        node_type: 'feedback',
-        parents: [{ id: 'bewertung-1', node_type: 'bewertung' }],
+        nodeType: 'feedback',
+        parents: [{ id: 'bewertung-1', nodeType: 'bewertung' }],
       }),
       createSummary({
         id: 'tbm-1',
-        node_type: 'atomares_tbm',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'atomares_tbm',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
       }),
     ]);
 
     const refs = collectRpbPreloadRefs(index, {
       topicNormId: 'topic-norm-1',
     });
-    const compositeKeys = refs
-      .map((ref) => `${ref.node_type}:${ref.id}`)
-      .sort();
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`).sort();
 
     expect(compositeKeys).toEqual([
       'absatz:absatz-1',
@@ -295,14 +299,12 @@ describe('collectRpbPreloadRefs', () => {
 
   it('does not preload project documents without a topic or preview-document scope', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'outline-1', node_type: 'vae_node' }),
-      createSummary({ id: 'dokument-1', node_type: 'dokument' }),
+      createSummary({ id: 'outline-1', nodeType: 'vae_node' }),
+      createSummary({ id: 'dokument-1', nodeType: 'dokument' }),
     ]);
 
     const refs = collectRpbPreloadRefs(index, {});
-    const compositeKeys = refs
-      .map((ref) => `${ref.node_type}:${ref.id}`)
-      .sort();
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`).sort();
 
     expect(compositeKeys).toEqual(['vae_node:outline-1']);
   });

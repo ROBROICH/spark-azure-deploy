@@ -1,4 +1,4 @@
-import type { FileDiffResponse } from '@/api-clients/dms-module';
+import type { FileDiffResponse } from '@/api-clients/backend';
 import { useState } from 'react';
 import {
   buildDefaultSelectedKeys,
@@ -16,6 +16,7 @@ export type DiffSelection = {
   expandedPaths: Set<string>;
   selectableTotal: number;
   selectedCount: number;
+  hasIncludedChanges: boolean;
   toggleKey: (key: string) => void;
   toggleAll: () => void;
   toggleFolder: (path: string) => void;
@@ -55,6 +56,9 @@ export const useDiffSelection = (
   const selectedCount = rows.filter(
     (row) => row.selectable && selectedKeys.has(row.key),
   ).length;
+  // New files are always applied, so they count as included changes without a selectable row.
+  const hasIncludedChanges =
+    selectedCount > 0 || rows.some((row) => row.changeType === 'new');
 
   const toggleKey = (key: string) => {
     const next = new Set(selectedKeys);
@@ -91,6 +95,7 @@ export const useDiffSelection = (
     expandedPaths,
     selectableTotal,
     selectedCount,
+    hasIncludedChanges,
     toggleKey,
     toggleAll,
     toggleFolder,

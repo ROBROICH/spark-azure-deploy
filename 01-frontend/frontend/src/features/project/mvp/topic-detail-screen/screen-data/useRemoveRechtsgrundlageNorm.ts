@@ -48,7 +48,7 @@ export const useRemoveRechtsgrundlageNorm = (canMutateTopic: boolean) => {
     const jurabk = params.gesetz?.jurabk ?? params.topicNorms[0]?.jurabk ?? '';
     const selectionKey = createLegalBasisSelectionKey(
       jurabk,
-      params.norm.paragraph_nr,
+      params.norm.paragraphNr,
     );
 
     setRemovingNormId(normId);
@@ -60,7 +60,7 @@ export const useRemoveRechtsgrundlageNorm = (canMutateTopic: boolean) => {
             gesetz: params.gesetz,
             legalBasis: {
               jurabk,
-              paragraph_nr: params.norm.paragraph_nr,
+              paragraphNr: params.norm.paragraphNr,
             },
             norm: params.norm,
             projectNorm: params.norm,

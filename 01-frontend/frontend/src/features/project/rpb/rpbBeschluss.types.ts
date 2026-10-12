@@ -5,7 +5,7 @@ type BeschlussSection = {
   index: number;
   isEditable: boolean;
   order: NodePayloadByType<'vae_node'>['order'];
-  parentVaeNodeId: NodePayloadByType<'vae_node'>['parent_vae_node_id'];
+  parentVaeNodeId: NodePayloadByType<'vae_node'>['parentVaeNodeId'];
   title: string;
   text: NodePayloadByType<'vae_node'>['text'];
   vaeNodeId: NodePayloadByType<'vae_node'>['id'];

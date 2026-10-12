@@ -18,7 +18,7 @@ export function ApplicantFieldRow(props: ApplicantFieldRowProps) {
   const { labelKey, children, htmlFor, required = false } = props;
 
   return (
-    <div className="flex items-start border-b border-border-primary">
+    <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
       <FieldLabel
         htmlFor={htmlFor}
         className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"

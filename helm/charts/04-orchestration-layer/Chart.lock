@@ -1,6 +1,0 @@
-dependencies:
-- name: temporal
-  repository: file://../sources/external/temporal
-  version: 0.1.0
-digest: sha256:081d3cabe57fa865bf60a29481def642c7c566fdaedfc9f31902bdaaf8cac806
-generated: "2026-06-11T14:07:35.075954495+02:00"

@@ -1,0 +1,28 @@
+{
+  "fixtures": [
+    {
+      "name": "suz-start-and-await-success",
+      "operation": "agent-orchestration.suz-norm.start-and-await",
+      "input": {
+        "projectId": "00000000-0000-4000-8000-000000006101",
+        "projectVersion": 7,
+        "normId": "00000000-0000-4000-8000-000000006102",
+        "executionId": "suche_zuordnung_norm-00000000-0000-4000-8000-000000006101-v7-00000000-0000-4000-8000-000000006102",
+        "workflowName": "suche_zuordnung_norm",
+        "taskQueue": "orchestration",
+        "idReusePolicy": "ALLOW_DUPLICATE",
+        "idConflictPolicy": "USE_EXISTING",
+        "priority": {
+          "fairnessKey": "priority",
+          "fairnessWeight": 2
+        }
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "completed": true
+        }
+      }
+    }
+  ]
+}

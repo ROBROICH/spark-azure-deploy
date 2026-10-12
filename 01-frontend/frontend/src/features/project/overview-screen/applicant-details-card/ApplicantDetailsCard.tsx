@@ -1,4 +1,4 @@
-import type { ProjectResponse } from '@/api-clients/pls-module';
+import type { ProjectResponse } from '@/api-clients/backend';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { useProject } from '@/features/project/data/collections/projects.collection';
 import { getRouteApi } from '@tanstack/react-router';

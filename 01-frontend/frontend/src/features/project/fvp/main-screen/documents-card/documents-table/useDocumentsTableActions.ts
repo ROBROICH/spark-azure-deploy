@@ -1,9 +1,6 @@
 import { commentSidebarSearchUpdate } from '@/features/project/action-sidebar/commentSidebarNav';
-import {
-  confirmDocumentType,
-  setDocumentType,
-} from '@/features/project/fvp/main-screen/data/actions/documentActions';
-import { notifyOnPersistenceFailure } from '@/features/project/fvp/main-screen/read-status/notifyOnPersistenceFailure';
+import { setDocumentType } from '@/features/project/fvp/main-screen/data/actions/documentActions';
+import { toast } from '@/features/ui/toast/Toast';
 import { getRouteApi } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -151,37 +148,20 @@ const useDocumentTypeActions = (params: UseDocumentTypeActionsParams) => {
   const { t } = useTranslation('FormalCompletenessCheck');
 
   // eslint-disable-next-line no-restricted-syntax -- stable callback identity prevents unnecessary table column churn in this compiler-opt-out table
-  const handleConfirmDocumentType = useCallback(
-    (documentId: string) => {
-      if (!canMutateProject) {
-        return;
-      }
-
-      notifyOnPersistenceFailure(
-        confirmDocumentType(verfahrenId, documentId),
-        t('common.errors.actionFailed'),
-      );
-    },
-    [canMutateProject, t, verfahrenId],
-  );
-
-  // eslint-disable-next-line no-restricted-syntax -- stable callback identity prevents unnecessary table column churn in this compiler-opt-out table
   const handleSelectDocumentType = useCallback(
     (documentId: string, documentType: string) => {
       if (!canMutateProject) {
         return;
       }
 
-      notifyOnPersistenceFailure(
-        setDocumentType(verfahrenId, documentId, documentType),
-        t('common.errors.actionFailed'),
+      void setDocumentType(verfahrenId, documentId, documentType).catch(() =>
+        toast.error(t('common.errors.actionFailed')),
       );
     },
     [canMutateProject, t, verfahrenId],
   );
 
   return {
-    handleConfirmDocumentType,
     handleSelectDocumentType,
   };
 };

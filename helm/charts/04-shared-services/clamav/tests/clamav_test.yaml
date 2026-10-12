@@ -1,0 +1,40 @@
+suite: clamav
+release: {name: rel, namespace: ci}
+templates: [templates/statefulset.yaml, templates/configmap.yaml]
+tests:
+  - it: rolls the pods when clamd.conf changes
+    template: templates/statefulset.yaml
+    asserts:
+      - exists: {path: 'spec.template.metadata.annotations["checksum/config"]'}
+
+  - it: keeps /tmp on disk with a size limit by default
+    template: templates/statefulset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content: {name: tmp, emptyDir: {sizeLimit: 3Gi}}
+
+  - it: can still put /tmp in RAM
+    template: templates/statefulset.yaml
+    set:
+      tmpVolume: {medium: Memory, sizeLimit: 1Gi}
+    asserts:
+      - contains:
+          path: spec.template.spec.volumes
+          content: {name: tmp, emptyDir: {medium: Memory, sizeLimit: 1Gi}}
+
+  - it: merges pod annotations with the checksum
+    template: templates/statefulset.yaml
+    set:
+      podAnnotations: {example.com/a: "1"}
+    asserts:
+      - equal: {path: 'spec.template.metadata.annotations["example.com/a"]', value: "1"}
+      - exists: {path: 'spec.template.metadata.annotations["checksum/config"]'}
+
+  - it: keeps version labels out of the immutable volumeClaimTemplates
+    template: templates/statefulset.yaml
+    set:
+      persistence.enabled: true
+    asserts:
+      - notExists: {path: 'spec.volumeClaimTemplates[0].metadata.labels["helm.sh/chart"]'}
+      - notExists: {path: 'spec.volumeClaimTemplates[0].metadata.labels["app.kubernetes.io/version"]'}

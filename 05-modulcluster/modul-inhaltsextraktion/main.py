@@ -10,6 +10,7 @@ from src.activities.deletion import (
 from src.activities.hybrid_extraction import _split_pdf_by_scan_status
 from src.activities.light_on_ocr.light_on_ocr import _prepare_pdf_page_images
 from src.env import ENV
+from src.services.docling.plan_extraction import _collect_metrics
 from src.workflows.deletion.workflow import DeleteDocumentsWorkflow
 from src.workflows.extraction.hybrid_workflow import HybridExtractionWorkflow
 from src.workflows.process_documents_ewms_workflow import ProcessDocumentsEWMSWorkflow
@@ -23,9 +24,9 @@ setup_observability(
 
 import asyncio
 
+from temporal.registry import INHALTSEXTRAKTION_PROCESS_DOCUMENTS_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.inhaltsextraktion.types import TASK_QUEUE as INHALTSEXTRAKTION_TASK_QUEUE
 
 from src.activities.chunk_enrichment import _merge_all_enrichment_results
 from src.activities.dms_activities import (
@@ -163,6 +164,7 @@ ACTIVITIES = [
     _cleanup_content_extractions_dms,
     _split_pdf_by_scan_status,
     _prepare_pdf_page_images,
+    _collect_metrics,
     _injection_model_call,
     _injection_model_chunking,
     _injection_llm_chunking,
@@ -182,7 +184,7 @@ async def main() -> None:
         await asyncio.gather(
             start_temporal_worker(
                 host=ENV.TEMPORAL_SERVER_URL,
-                task_queue=INHALTSEXTRAKTION_TASK_QUEUE,
+                task_queue=INHALTSEXTRAKTION_PROCESS_DOCUMENTS_WORKFLOW.task_queue,
                 storage=storage,
                 workflows=WORKFLOWS,
                 activities=ACTIVITIES,

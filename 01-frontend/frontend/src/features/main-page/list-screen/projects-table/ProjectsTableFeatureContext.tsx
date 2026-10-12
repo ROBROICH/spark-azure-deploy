@@ -20,6 +20,9 @@ export type ProjectsTableFeatureContextValue = {
   projects: Project[];
   isLoading: boolean;
   isError: boolean;
+  hasNextPage: boolean;
+  isFetchingNextPage: boolean;
+  fetchNextPage: () => Promise<unknown>;
   retry: () => void;
   artOptions: TableOption[];
   anlageOptions: TableOption<AnlageFilterValue>[];

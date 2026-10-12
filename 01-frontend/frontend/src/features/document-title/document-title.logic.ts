@@ -28,9 +28,11 @@ export function buildDocumentTitle(options: {
   appTitle: string;
   featureTitle: string;
   projectTitle?: string | null;
+  detailTitle?: string | null;
   titleType: 'page' | 'project';
 }) {
-  const { appTitle, featureTitle, projectTitle, titleType } = options;
+  const { appTitle, featureTitle, projectTitle, detailTitle, titleType } =
+    options;
 
   if (titleType === 'project') {
     return joinTitleParts([
@@ -40,5 +42,9 @@ export function buildDocumentTitle(options: {
     ]);
   }
 
-  return joinTitleParts([featureTitle, appTitle]);
+  return joinTitleParts([
+    normalizeTitlePart(detailTitle),
+    featureTitle,
+    appTitle,
+  ]);
 }

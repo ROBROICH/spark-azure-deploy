@@ -1,0 +1,185 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots current Feedback summaries, type, parents, and deleted exclusion 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [
+          "fundstelle:44a67990-fa83-43e5-b2c1-3ed0a973bf81",
+        ],
+        "id": "f36a232c-56d2-4141-8366-e5ba8920b311",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "fundstelle:3390a5e1-ece1-4711-b5dc-202f28dd47e3",
+        ],
+        "id": "ec16a2db-28e9-410c-aa9e-4ecc1c3f8c01",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "fundstelle:15943db0-0778-41bb-aa16-42992d5f135d",
+        ],
+        "id": "09b0a088-23d4-4b73-a450-8344d6ede115",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "bewertung:93f88988-a04a-4e70-a76c-66a07be38366",
+        ],
+        "id": "26d03f9d-8bad-4062-9eb3-9adc6ad0c460",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "bewertung:3043e13b-a2b6-4173-8190-8677d16ca2e9",
+        ],
+        "id": "d155f28a-e313-4b9f-80e6-b5ba206ae913",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots a retained Testing project at version two 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [
+          "fundstelle:1e1cb9f6-f0cc-4d5a-9917-1d6330943635",
+        ],
+        "id": "1c109427-0d6e-476d-ad8c-de4cb40e92c9",
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots an explicit empty project 1`] = `
+{
+  "body": {
+    "nodes": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an empty batch 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract freezes complete payloads and incumbent ordering for known, unknown, and deleted IDs 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-05-20T07:14:10.276Z",
+        "frontendParentIds": [
+          "fundstelle:44a67990-fa83-43e5-b2c1-3ed0a973bf81",
+        ],
+        "id": "f36a232c-56d2-4141-8366-e5ba8920b311",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "projectId": "9d810167-678a-419d-b7be-cb4b0f24b625",
+        "projectVersion": 1,
+        "rating": "positive",
+        "reason": "RESULT_CORRECT",
+        "sysPeriod": "["<database-period-start>",)",
+        "text": "gut erkannt",
+        "updateType": "manual",
+        "updatedAt": "2026-05-20T07:14:10.276Z",
+        "userId": "8e8d1e5a-22a4-4eec-8adb-b33e952f3768",
+      },
+      {
+        "createdAt": "2026-05-20T07:15:16.505Z",
+        "frontendParentIds": [
+          "fundstelle:3390a5e1-ece1-4711-b5dc-202f28dd47e3",
+        ],
+        "id": "ec16a2db-28e9-410c-aa9e-4ecc1c3f8c01",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "projectId": "9d810167-678a-419d-b7be-cb4b0f24b625",
+        "projectVersion": 1,
+        "rating": "positive",
+        "reason": "RESULT_CORRECT",
+        "sysPeriod": "["<database-period-start>",)",
+        "text": null,
+        "updateType": "manual",
+        "updatedAt": "2026-05-20T07:15:16.505Z",
+        "userId": "8e8d1e5a-22a4-4eec-8adb-b33e952f3768",
+      },
+    ],
+  },
+  "requestedIds": [
+    "ec16a2db-28e9-410c-aa9e-4ecc1c3f8c01",
+    "adfc14af-250e-4134-8e66-9c65df30758a",
+    "f36a232c-56d2-4141-8366-e5ba8920b311",
+    "bd15170f-5f9f-47c1-afdc-6325c1bb5c9e",
+  ],
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an unknown-only batch 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots the retained version-two full payload 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-05-22T13:59:08.531Z",
+        "frontendParentIds": [
+          "fundstelle:1e1cb9f6-f0cc-4d5a-9917-1d6330943635",
+        ],
+        "id": "1c109427-0d6e-476d-ad8c-de4cb40e92c9",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "feedback",
+        "projectId": "6fdcaf15-bdb7-43ea-a4b7-aaa7fdf6e976",
+        "projectVersion": 2,
+        "rating": "positive",
+        "reason": "ACCELERATES_WORK",
+        "sysPeriod": "["<database-period-start>",)",
+        "text": "afasfasfd",
+        "updateType": "manual",
+        "updatedAt": "2026-05-22T13:59:08.531Z",
+        "userId": "ad2fd27f-1a53-4cb2-b646-7ef2ca2596f0",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

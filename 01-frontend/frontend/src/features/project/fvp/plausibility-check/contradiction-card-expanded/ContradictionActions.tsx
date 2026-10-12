@@ -143,7 +143,7 @@ export const ContradictionActions = (props: ContradictionActionsProps) => {
         className={
           stackActions
             ? 'grid grid-cols-1 justify-items-stretch gap-3 rounded-xl bg-slate-50 p-4'
-            : 'flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-4'
+            : 'flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4'
         }
       >
         <Button
@@ -192,7 +192,7 @@ export const ContradictionActions = (props: ContradictionActionsProps) => {
       className={
         stackActions
           ? 'grid grid-cols-1 justify-items-stretch gap-3 rounded-xl bg-slate-50 p-4'
-          : 'flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-4'
+          : 'flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4'
       }
     >
       <Button

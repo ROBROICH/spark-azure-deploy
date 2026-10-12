@@ -4,7 +4,7 @@ import asyncio
 import re
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     UnbestimmterRechtsbegriff,
 )
 from temporalio import workflow

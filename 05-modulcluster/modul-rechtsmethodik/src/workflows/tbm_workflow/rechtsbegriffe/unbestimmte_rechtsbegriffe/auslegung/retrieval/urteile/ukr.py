@@ -2,16 +2,11 @@ import asyncio
 from typing import Any
 
 from pydantic import BaseModel
+from temporal.activities.law_db import QueryKResultsUTInput, UTNorm
 from temporal.utils import sliding_window
 from temporalio import workflow
 
-from src.activities.law_api_calls import (
-    QueryChunksUTInput,
-    QueryKResultsUTInput,
-    UTNorms,
-    query_chunks_ut,
-    query_k_results_ut,
-)
+from src.activities.law_api_calls import QueryChunksUTInput, query_chunks_ut, query_k_results_ut
 from src.activities.llm_invoke import llm_invoke
 from src.env import ENV
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.auslegung.auslegung_types import (
@@ -34,6 +29,8 @@ from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.ausleg
     ukr_prompt,
     ukr_prompt_w_fq,
 )
+
+_UT_SIMILARITY_THRESHOLD = 0.3
 
 
 @workflow.defn(name="UrteileKontextRetrievalAgentWorkflow")
@@ -73,7 +70,7 @@ class UrteileKontextRetrievalAgentWorkflow:
             QueryKResultsUTInput(
                 query_text=input.begriff,
                 norms=[
-                    UTNorms(
+                    UTNorm(
                         name=input.name,
                         name_suffix=input.name_suffix,
                         paragraph=f"§ {input.paragraph_nr}",
@@ -81,6 +78,7 @@ class UrteileKontextRetrievalAgentWorkflow:
                     )
                 ],
                 k=20,
+                similarity_threshold=_UT_SIMILARITY_THRESHOLD,
             )
         )
         if not k_results_ut:
@@ -147,14 +145,21 @@ class UrteileKontextRetrievalAgentWorkflow:
         self, queries: list[str], input: UrteileKontextRetrievalWorkflowInput
     ) -> list[list[UTChunk]]:
         """Retrieve additional topic-specific chunks via follow-up queries in parallel."""
-        norm = UTNorms(
+        norm = UTNorm(
             name=input.name,
             name_suffix=input.name_suffix,
             paragraph=f"§ {input.paragraph_nr}",
             absatz=f"Abs {input.absatz_nr}",
         )
         topic_chunk_lists = await asyncio.gather(
-            *[query_k_results_ut(QueryKResultsUTInput(query_text=q, norms=[norm], k=10)) for q in queries]
+            *[
+                query_k_results_ut(
+                    QueryKResultsUTInput(
+                        query_text=q, norms=[norm], k=10, similarity_threshold=_UT_SIMILARITY_THRESHOLD
+                    )
+                )
+                for q in queries
+            ]
         )
         return [[UTChunk.model_validate(c) for c in chunks] for chunks in topic_chunk_lists]
 

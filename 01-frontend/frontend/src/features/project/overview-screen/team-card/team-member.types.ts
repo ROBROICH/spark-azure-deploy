@@ -1,4 +1,4 @@
-import type { Relation } from '@/api-clients/identity-management-module';
+import type { Relation } from '@/api-clients/backend';
 
 export type TeamMemberRole = Extract<Relation, 'owner' | 'member'>;
 

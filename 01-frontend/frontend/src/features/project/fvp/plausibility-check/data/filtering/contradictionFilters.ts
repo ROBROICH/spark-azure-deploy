@@ -1,14 +1,27 @@
-import type { PlausibilityNoteStatus } from '@/api-clients/pns-module';
+import type { PlausibilityNoteStatus } from '@/api-clients/backend';
 import type { StoredContradiction } from '@/features/project/fvp/data/plausibility/contradiction.schema';
 
 type ContradictionListItem = StoredContradiction & { isOnRequestList: boolean };
 type RatedContradiction = {
   rating?: number | null;
+  confidenceScore?: number | null;
 };
 
 export type ContradictionFilter = PlausibilityNoteStatus | 'ON_REQUEST_LIST';
-export const EXPECTED_MIN_NORMALIZED_RATING = 0.6;
+/**
+ * Sensitivity scale of the slider (normalized 0..1). The value is absolute, so "show all"
+ * must be reachable: the slider always starts at 0.
+ */
+export const MIN_NORMALIZED_RATING = 0;
 export const EXPECTED_MAX_NORMALIZED_RATING = 1;
+/**
+ * Below this sensitivity a finding is flagged as uncertain. Measured on the adjudicated
+ * notes of two reference procedures: >= 60 is true in more than every third case, below that
+ * in fewer than every fifth. The slider opens at this value; the legacy rating used the same
+ * 0.6 boundary, so older notes keep their behaviour.
+ */
+export const UNCERTAIN_SENSITIVITY_THRESHOLD = 0.6;
+export const DEFAULT_RATING_THRESHOLD = UNCERTAIN_SENSITIVITY_THRESHOLD;
 
 const statusFilterValues = new Set<PlausibilityNoteStatus>([
   'OPEN',
@@ -59,19 +72,32 @@ const getContradictionTitle = (
   contradiction: Pick<ContradictionListItem, 'description' | 'title'>,
 ) => contradiction.title?.trim() || contradiction.description;
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+/**
+ * Sensitivity of a contradiction on a 0..1 scale, used by the slider and the sort order.
+ *
+ * Prefers `confidenceScore`: the plausibility module's mean of its two evidence scores
+ * (0..100). It is an absolute property of the entry and comparable across projects
+ * (measured: >= 80 is true in four of five adjudicated cases), so it is always scaled
+ * by 100. Falls back to the legacy checker `rating` for notes produced before the
+ * confidence layer existed; that value arrives either as 0..100 or already as 0..1.
+ */
 export const getNormalizedRating = (
   contradiction: RatedContradiction,
 ): number => {
-  if (
-    typeof contradiction.rating !== 'number' ||
-    !Number.isFinite(contradiction.rating)
-  ) {
+  if (isFiniteNumber(contradiction.confidenceScore)) {
+    return contradiction.confidenceScore / 100;
+  }
+
+  const { rating } = contradiction;
+
+  if (!isFiniteNumber(rating)) {
     return Number.NEGATIVE_INFINITY;
   }
 
-  return contradiction.rating > 1
-    ? contradiction.rating / 100
-    : contradiction.rating;
+  return rating > 1 ? rating / 100 : rating;
 };
 
 export const hasUsableContradictionRatings = (

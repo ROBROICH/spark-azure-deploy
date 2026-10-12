@@ -3,12 +3,7 @@ import { useProjectFiles } from '@/features/project/data/project-files/useProjec
 import { useGraph } from '@/db/nodes/hooks/useGraph';
 import { useLiveNodes } from '@/db/nodes/hooks/useLiveNodes';
 import { getRouteApi } from '@tanstack/react-router';
-import { useCallback } from 'react';
-import {
-  buildPdfFileTree,
-  findPdfFileIdByTitle,
-  type ProjectPdfFile,
-} from '../pdfPopout.logic';
+import { buildPdfFileTree, type ProjectPdfFile } from '../pdfPopout.logic';
 
 const route = getRouteApi('/verfahren/$verfahrenId');
 
@@ -27,21 +22,21 @@ const toProjectPdfFile = (params: { id: string; filename: string }) => {
 };
 
 const isActiveDokument = (dokument: {
-  dms_file_id?: string | null;
+  dmsFileId?: string | null;
   filename?: string | null;
-  is_deleted?: boolean;
-  is_outdated?: boolean;
+  isDeleted?: boolean;
+  isOutdated?: boolean;
 }) =>
-  Boolean(dokument.dms_file_id && dokument.filename) &&
-  !dokument.is_deleted &&
-  !dokument.is_outdated;
+  Boolean(dokument.dmsFileId && dokument.filename) &&
+  !dokument.isDeleted &&
+  !dokument.isOutdated;
 
 const toActiveDokumentPdfFiles = (
   dokumente: {
-    dms_file_id?: string | null;
+    dmsFileId?: string | null;
     filename?: string | null;
-    is_deleted?: boolean;
-    is_outdated?: boolean;
+    isDeleted?: boolean;
+    isOutdated?: boolean;
   }[],
 ) => {
   const seenFileIds = new Set<string>();
@@ -50,16 +45,16 @@ const toActiveDokumentPdfFiles = (
   for (const dokument of dokumente) {
     if (
       !isActiveDokument(dokument) ||
-      !dokument.dms_file_id ||
+      !dokument.dmsFileId ||
       !dokument.filename ||
-      seenFileIds.has(dokument.dms_file_id)
+      seenFileIds.has(dokument.dmsFileId)
     ) {
       continue;
     }
 
-    seenFileIds.add(dokument.dms_file_id);
+    seenFileIds.add(dokument.dmsFileId);
     const file = toProjectPdfFile({
-      id: dokument.dms_file_id,
+      id: dokument.dmsFileId,
       filename: dokument.filename,
     });
     if (file.path.length > 0) {
@@ -85,7 +80,7 @@ export const useProjectPdfFiles = (options: { enabled?: boolean } = {}) => {
     ? []
     : getNodesByTypeFromGraph(index, 'dokument').map((summary) => ({
         id: summary.id,
-        node_type: summary.node_type,
+        nodeType: summary.nodeType,
       }));
   // useLiveNodes (non-suspending) keeps the provider from suspending when enabled flips true on a file-tree / popout click, which would otherwise tear the project tree back to the route-level ProjectRouteSkeleton fallback.
   const { data: dokumente = [], isLoading: isDokumenteLoading } =
@@ -94,7 +89,12 @@ export const useProjectPdfFiles = (options: { enabled?: boolean } = {}) => {
     files: projectFiles,
     isLoading: isProjectFilesLoading,
     isError,
-  } = useProjectFiles(verfahrenId, { enabled });
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
+  } = useProjectFiles(verfahrenId, {
+    enabled: enabled && !isDokumenteLoading && dokumente.length === 0,
+  });
   const isLoading = isDokumenteLoading || isProjectFilesLoading;
 
   const pdfFiles = (() => {
@@ -132,18 +132,15 @@ export const useProjectPdfFiles = (options: { enabled?: boolean } = {}) => {
     );
   })();
 
-  // eslint-disable-next-line no-restricted-syntax -- stable callback identity avoids re-registering title-based navigation consumers on unrelated renders.
-  const findFileIdByTitle = useCallback(
-    (title: string) => findPdfFileIdByTitle(pdfFiles, title),
-    [pdfFiles],
-  );
-
   return {
     files: pdfFiles,
     tree,
     isLoading,
     isError,
     previewById,
-    findFileIdByTitle,
+    filePagination:
+      dokumente.length === 0 && hasNextPage
+        ? { isLoading: isFetchingNextPage, onLoadMore: fetchNextPage }
+        : undefined,
   };
 };

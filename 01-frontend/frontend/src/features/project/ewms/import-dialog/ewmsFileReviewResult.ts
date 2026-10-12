@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const successfulFileSchema = z
   .object({
-    file_id: z.string(),
+    fileId: z.string(),
     filename: z.string(),
     action: z.string().optional(),
     file_size: z.union([z.number(), z.string()]).optional(),
@@ -13,7 +13,7 @@ const successfulFileSchema = z
 
 const failedFileSchema = z
   .object({
-    file_id: z.string().optional(),
+    fileId: z.string().optional(),
     filename: z.string(),
     action: z.string().optional(),
     code: z.string().optional(),

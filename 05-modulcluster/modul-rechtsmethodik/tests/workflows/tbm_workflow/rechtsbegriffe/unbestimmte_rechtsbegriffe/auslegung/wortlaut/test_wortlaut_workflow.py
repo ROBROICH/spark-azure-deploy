@@ -3,7 +3,7 @@
 
 from unittest.mock import AsyncMock, patch
 
-from temporal.workflows.rechtsmethodik.types import UnbestimmterRechtsbegriff
+from temporal.contracts import UnbestimmterRechtsbegriff
 
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.auslegung.auslegung_types import (
     UnbestimmterRechtsbegriffWithContext,

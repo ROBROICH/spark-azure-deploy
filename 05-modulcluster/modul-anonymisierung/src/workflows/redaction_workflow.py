@@ -5,14 +5,14 @@ from datetime import timedelta
 from typing import Awaitable
 
 from temporalio import workflow
+from temporalio.common import RetryPolicy
+from temporalio.exceptions import ApplicationError
 
 with workflow.unsafe.imports_passed_through():
     from temporal.activities.llm import llm_invoke_structured
     from temporal.activities.models import ChatModel
+    from temporal.registry import ANONYMISIERUNG_WORKFLOW
     from temporal.utils import sliding_window
-    from temporal.workflows.anonymisierung.anonymisierung import (
-        ANONYMISIERUNG_WORKFLOW_ID,
-    )
 
     from src.activities.redaction_activities import (
         apply_redactions,
@@ -36,6 +36,20 @@ with workflow.unsafe.imports_passed_through():
         build_multi_page_prompt,
         merge_page_pii,
     )
+
+
+PII_DETECTION_INCOMPLETE_ERROR = "PiiDetectionIncomplete"
+
+
+def _raise_for_error_pages(error_pages: list[int]) -> None:
+    """Fail closed when PII detection did not complete for every page."""
+    page_indexes = sorted(set(error_pages))
+    if page_indexes:
+        raise ApplicationError(
+            f"PII detection incomplete for zero-based page indexes {page_indexes}",
+            type=PII_DETECTION_INCOMPLETE_ERROR,
+            non_retryable=True,
+        )
 
 
 class _RedactionPipelineMixin:
@@ -168,7 +182,7 @@ class _RedactionPipelineMixin:
         return page_pii
 
 
-@workflow.defn(name=ANONYMISIERUNG_WORKFLOW_ID)
+@workflow.defn(name=ANONYMISIERUNG_WORKFLOW.name)
 class RedactionWorkflow(_RedactionPipelineMixin):
     """Single-file PDF redaction workflow."""
 
@@ -181,7 +195,8 @@ class RedactionWorkflow(_RedactionPipelineMixin):
             extract_texts,
             ExtractTextsInput(pdf_data=inp),
             start_to_close_timeout=timedelta(minutes=30),
-            heartbeat_timeout=timedelta(minutes=10),
+            heartbeat_timeout=timedelta(minutes=25),
+            retry_policy=RetryPolicy(maximum_attempts=3),
         )
 
         page_pii = await self._detect_pii_combined(extract_result.pages, llm_cfg)
@@ -196,6 +211,8 @@ class RedactionWorkflow(_RedactionPipelineMixin):
                 terms = terms - {error_token}
             all_terms.update(terms)
 
+        _raise_for_error_pages(error_pages)
+
         redaction_result = await workflow.execute_activity(
             apply_redactions,
             ApplyRedactionsInput(
@@ -204,8 +221,11 @@ class RedactionWorkflow(_RedactionPipelineMixin):
                 error_pages=error_pages,
             ),
             start_to_close_timeout=timedelta(minutes=30),
-            heartbeat_timeout=timedelta(minutes=15),
+            heartbeat_timeout=timedelta(minutes=25),
+            retry_policy=RetryPolicy(maximum_attempts=3),
         )
+
+        _raise_for_error_pages(redaction_result.error_pages)
 
         workflow.logger.info(
             "Redaction complete: %d pages, %d matches",

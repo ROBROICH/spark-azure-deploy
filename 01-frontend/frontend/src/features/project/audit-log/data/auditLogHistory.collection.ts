@@ -1,16 +1,14 @@
 import {
-  getProjectHistoryProjectsProjectIdHistoryGet,
-  type GetProjectHistoryProjectsProjectIdHistoryGetData,
+  v1ProtocolGetProjectHistory as getProjectHistory,
+  type V1ProtocolGetProjectHistoryData as GetProjectHistoryData,
   type HistoryItem,
-} from '@/api-clients/protocol-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { createCollection } from '@tanstack/react-db';
 import { stableJsonStringify } from '../stableJsonStringify';
 
-export type AuditLogHistoryQuery = NonNullable<
-  GetProjectHistoryProjectsProjectIdHistoryGetData['query']
->;
+export type AuditLogHistoryQuery = NonNullable<GetProjectHistoryData['query']>;
 
 export type AuditLogHistoryMetadata = {
   total: number;
@@ -35,28 +33,25 @@ const hashString = (value: string) => {
   return hash.toString(36);
 };
 
-export const getAuditLogHistoryRequestKey = (query: AuditLogHistoryQuery) =>
-  stableJsonStringify(query);
-
 const getCollectionCacheKey = (
   projectId: string,
   query: AuditLogHistoryQuery,
-) => `${projectId}:${getAuditLogHistoryRequestKey(query)}`;
+) => `${projectId}:${stableJsonStringify(query)}`;
 
 export const getAuditLogHistoryItemKey = (item: HistoryItem) =>
   JSON.stringify([
     item.timestamp,
-    item.entity_type,
-    item.entity_id,
+    item.entityType,
+    item.entityId,
     item.service,
-    item.change_type,
+    item.changeType,
     item.source,
-    item.actor_user_id,
-    item.triggered_by_user_id,
-    item.workflow_run_id,
-    item.request_id,
-    item.workflow_type,
-    item.action_type,
+    item.actorUserId,
+    item.triggeredByUserId,
+    item.workflowRunId,
+    item.requestId,
+    item.workflowType,
+    item.actionType,
   ]);
 
 const trimCache = () => {
@@ -75,7 +70,7 @@ const createAuditLogHistoryCollection = (
   projectId: string,
   query: AuditLogHistoryQuery,
 ) => {
-  const requestKey = getAuditLogHistoryRequestKey(query);
+  const requestKey = stableJsonStringify(query);
   const cacheKey = getCollectionCacheKey(projectId, query);
   const id = `audit-log-history-${projectId}-${hashString(requestKey)}`;
 
@@ -84,8 +79,8 @@ const createAuditLogHistoryCollection = (
       id,
       queryKey: ['audit-log-history', projectId, requestKey],
       queryFn: async (): Promise<HistoryItem[]> => {
-        const { data } = await getProjectHistoryProjectsProjectIdHistoryGet({
-          path: { project_id: projectId },
+        const { data } = await getProjectHistory({
+          path: { projectId: projectId },
           query,
           throwOnError: true,
         });

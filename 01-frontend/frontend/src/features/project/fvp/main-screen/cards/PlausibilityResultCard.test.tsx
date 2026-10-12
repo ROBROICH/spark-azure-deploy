@@ -1,5 +1,5 @@
-import { render, screen } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, render, screen } from '@testing-library/react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { PlausibilityResultCard } from './PlausibilityResultCard';
 
@@ -20,6 +20,7 @@ vi.mock('@/features/ui/info-tooltip/InfoTooltip', () => ({
 
 describe('PlausibilityResultCard', () => {
   beforeEach(() => useSummaryMock.mockReset());
+  afterEach(() => cleanup());
 
   it('renders a retryable error alert instead of empty counts when the read fails', () => {
     useSummaryMock.mockReturnValue({
@@ -38,6 +39,24 @@ describe('PlausibilityResultCard', () => {
     expect(
       screen.queryByText('redesign.plausibilityCard.counters.open'),
     ).toBeNull();
+  });
+
+  it('keeps the status addon visible when the read fails', () => {
+    useSummaryMock.mockReturnValue({
+      summary: { total: 0, open: 0, onRequestList: 0, ignored: 0, resolved: 0 },
+      isLoading: false,
+      isError: true,
+    });
+
+    render(
+      <PlausibilityResultCard
+        projectId="p1"
+        statusAddon={<button type="button">failure chip</button>}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'failure chip' })).toBeTruthy();
+    expect(screen.getByRole('alert')).toBeTruthy();
   });
 
   it('disables the contradictions link when the completed result has zero findings', () => {

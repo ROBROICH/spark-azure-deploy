@@ -1,6 +1,0 @@
-apiVersion: v2
-name: rechtsaenderungs-monitoring
-description: Helm chart for 04-shared-services/rechtsaenderungs-monitoring (from kustomize)
-type: application
-version: 0.1.0
-appVersion: "1.0.0"

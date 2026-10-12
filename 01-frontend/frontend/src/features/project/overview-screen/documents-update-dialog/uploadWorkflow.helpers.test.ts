@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => ({
   captureException: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  listZipFilesV2ZipFilesGet: mocks.listZipFiles,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementListZipFiles: mocks.listZipFiles,
 }));
 
 vi.mock(
@@ -71,7 +71,7 @@ describe('lookupOpenWorkflow', () => {
 
     await expect(lookupOpenWorkflow('project-1', 4)).resolves.toBeNull();
     expect(mocks.listZipFiles).toHaveBeenCalledWith({
-      query: { projectId: 'project-1', project_version: 4 },
+      query: { projectId: 'project-1', projectVersion: 4 },
       throwOnError: true,
     });
   });
@@ -185,6 +185,21 @@ describe('resolveOpenWorkflow', () => {
 });
 
 describe('runStartUpload', () => {
+  it('rejects multiple ZIPs before issuing an upload or starting processing', async () => {
+    const deps = makeDeps({
+      files: [
+        zipFile(),
+        zipFile({ id: 'file-2', file: new File(['b'], 'b.zip') }),
+      ],
+    });
+
+    await runStartUpload(deps)();
+
+    expect(deps.uploadZip).not.toHaveBeenCalled();
+    expect(deps.setPhase).not.toHaveBeenCalled();
+    expect(deps.setGlobalError).toHaveBeenCalledWith('single-zip-required');
+  });
+
   beforeEach(() => {
     mocks.listZipFiles.mockReset();
     mocks.captureException.mockReset();

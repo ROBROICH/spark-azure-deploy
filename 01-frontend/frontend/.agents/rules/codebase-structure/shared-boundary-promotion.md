@@ -1,3 +1,9 @@
+---
+ruleId: codebase-structure/shared-boundary-promotion
+paths:
+  - "src/**"
+---
+
 # Shared Boundary Promotion
 
 Use when reviewing or restructuring `src/features/shared`, nested `shared/` folders, or any folder that has become a loose collection of unrelated capabilities.

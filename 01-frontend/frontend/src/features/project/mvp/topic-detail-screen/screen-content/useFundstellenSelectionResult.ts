@@ -45,10 +45,10 @@ const useFundstelleIdSet = (fundstellenRefs: ReadonlyArray<{ id: string }>) => {
 
 const useSelectionFundstelleRefs = (params: FundstellenSelectionParams) => {
   const documentRef = params.selectedDocumentId
-    ? { id: params.selectedDocumentId, node_type: 'dokument' as const }
+    ? { id: params.selectedDocumentId, nodeType: 'dokument' as const }
     : null;
   const normRef = params.selectedNormId
-    ? { id: params.selectedNormId, node_type: 'norm' as const }
+    ? { id: params.selectedNormId, nodeType: 'norm' as const }
     : null;
   const documentFundstellenRefs = useDescendants('fundstelle', documentRef);
   const normFundstellenRefs = useDescendants('fundstelle', normRef);

@@ -16,14 +16,9 @@ from sqlmodel import Session, create_engine, func, select, text
 from sqlalchemy import Engine
 from sqlmodel.pool import StaticPool
 
-from db_pipelines.config import (
-    BaseRelevantLaws,
-    PipelineConfig,
-    RelevantLaws,
-    StateRelevantLaws,
-    app_config,
-)
-from db_pipelines.constants import Bundesland, Hierarchy
+from db_pipelines.config import PipelineConfig, app_config
+from db_pipelines.constants import Hierarchy
+from db_pipelines.norm_specs import collect_norm_specs
 from db_pipelines.schemas.db import DocType, Legaldefinition, TechnischeNorm
 from db_pipelines.schemas.temporal import NormSpec, ParseNormInput
 from db_pipelines.workflows.update_rechtsgrundlage.activities import (
@@ -55,53 +50,6 @@ def download_law(
     parser.fetch_doc()
 
 
-def _specs_for_block(
-    block: BaseRelevantLaws,
-    source: Hierarchy,
-    location: Bundesland | None,
-) -> list[NormSpec]:
-    """Build a ``NormSpec`` per slug in a single config block."""
-    specs: list[NormSpec] = []
-    for doctype in DocType:
-        for slug in getattr(block, doctype.value, None) or []:
-            specs.append(
-                NormSpec(
-                    source=source,
-                    parser=block.parser,
-                    base_url=block.base_url,
-                    extra=block.extra,
-                    slug=slug.strip(),
-                    doctype=doctype,
-                    bundesland=location,
-                )
-            )
-    return specs
-
-
-def _collect_specs(relevant: RelevantLaws) -> list[NormSpec]:
-    """Flatten the configured EU/Bund/Bundeslaender laws into ``NormSpec``s.
-
-    Mirrors the fan-out performed by ``UpdateRechtsgrundlageWorkflow`` so the
-    CLI and the Temporal workflow ingest the exact same set of norms.
-    """
-    specs: list[NormSpec] = []
-    if relevant.eu:
-        specs += _specs_for_block(relevant.eu, Hierarchy.EU, None)
-    if relevant.bund:
-        specs += _specs_for_block(relevant.bund, Hierarchy.BUND, None)
-
-    # State laws: support both singular (legacy) and plural config
-    state_configs: list[StateRelevantLaws] = []
-    if relevant.bundeslaender:
-        state_configs = relevant.bundeslaender
-    elif relevant.bundesland:
-        state_configs = [relevant.bundesland]
-    for state_config in state_configs:
-        specs += _specs_for_block(state_config, Hierarchy.BUNDESLAND, state_config.name)
-
-    return specs
-
-
 @app.command()
 def parse_to_db(
     config_file: Annotated[
@@ -126,7 +74,7 @@ def parse_to_db(
     """
     init_database(app_config)
     activities = UpdateRechtsgrundlageActivities(get_async_session_factory())
-    specs = _collect_specs(PipelineConfig(json_location=config_file).relevant_laws)
+    specs = collect_norm_specs(PipelineConfig(json_location=config_file).relevant_laws)
 
     async def _run() -> None:
         for spec in specs:

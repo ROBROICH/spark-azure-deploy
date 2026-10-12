@@ -1,8 +1,6 @@
 import re
 from xml.etree.ElementTree import Element
 
-import defusedxml.ElementTree as ET
-
 from db_pipelines.parsers.utils.sentence_split import get_absatz_nr, smart_split_sentences
 from db_pipelines.parsers.utils.xml import xml_html_elem_to_md
 from db_pipelines.schemas.db import Absatz, Satz
@@ -37,6 +35,20 @@ def split_absatz_into_xml_fragments(p_elem) -> list[Element]:
     # Step 1: extract top-level sequence (text / DL)
     parts = []
 
+    def append_text(text: str) -> None:
+        """Add `text` to the running text run instead of starting a new part.
+
+        Every part is sentence-split on its own, so starting a new one cuts the
+        sentence at that point. Inline markup may sit inside a single word -
+        `CO<SUB>2</SUB>-Preis` - where a cut is plainly wrong.
+        """
+        if not text:
+            return
+        if parts and parts[-1][0] == "text":
+            parts[-1] = ("text", parts[-1][1] + text)
+        elif text.strip():
+            parts.append(("text", text))
+
     if p_elem.text and p_elem.text.strip():
         parts.append(("text", p_elem.text))
 
@@ -47,9 +59,10 @@ def split_absatz_into_xml_fragments(p_elem) -> list[Element]:
         if child.tag == "DL":
             parts.append(("dl", child))
         else:
-            parts.append(("text", ET.tostring(child, encoding="unicode")))
-        if child.tail and child.tail.strip():
-            parts.append(("text", child.tail))
+            append_text("".join(child.itertext()))
+
+        if child.tail:
+            append_text(child.tail)
 
     i = 0
     while i < len(parts):

@@ -1,9 +1,6 @@
+import { createProjectDetailsSchema } from '@/features/project/data/project-details-form/projectForm.schema';
 import { describe, expect, it } from 'vitest';
-import {
-  createDeadlineSchema,
-  editApplicantSchema,
-  editProjectSchema,
-} from './schemas';
+import { createDeadlineSchema, editApplicantSchema } from './schemas';
 
 const t = (key: string) => key;
 
@@ -43,7 +40,7 @@ describe('createDeadlineSchema', () => {
   });
 });
 
-describe('editProjectSchema', () => {
+describe('project details entry date validation', () => {
   const validProjectValues = {
     name: 'Verfahren',
     projectTypeId: 'type-1',
@@ -51,31 +48,8 @@ describe('editProjectSchema', () => {
     internalProjectNumber: 'AZ-001',
   };
 
-  it('accepts the current internal project number when it is excluded from duplicate candidates', () => {
-    const schema = editProjectSchema(t, ['AZ-002']);
-
-    expect(schema.safeParse(validProjectValues).success).toBe(true);
-  });
-
-  it('rejects a duplicate internal project number from other projects', () => {
-    const schema = editProjectSchema(t, ['az-001']);
-    const result = schema.safeParse(validProjectValues);
-
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({
-            path: ['internalProjectNumber'],
-            message: 'internalProjectNumberDuplicate',
-          }),
-        ]),
-      );
-    }
-  });
-
   it('rejects malformed project entry dates', () => {
-    const schema = editProjectSchema(t);
+    const schema = createProjectDetailsSchema(t);
     const result = schema.safeParse({
       ...validProjectValues,
       entryDate: '2026-02-31',

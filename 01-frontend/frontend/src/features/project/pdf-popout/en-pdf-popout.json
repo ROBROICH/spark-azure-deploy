@@ -19,6 +19,8 @@
     "loadError": "Failed to load documents."
   },
   "PdfFileTree": {
+    "loadMore": "Load more documents",
+    "loading": "Loading documents …",
     "recentlyOpened": "Recently opened",
     "connectedBadge": "Connected",
     "closeLaneAria": "Close panel for this document",
@@ -43,6 +45,8 @@
     "filterTablistLabel": "Document filter",
     "filterAll": "All ({{count}})",
     "filterTopic": "{{label}} ({{count}})",
+    "filterAllPartial": "All ({{count}} loaded)",
+    "filterTopicPartial": "{{label}} ({{count}} loaded)",
     "collapseSidebarAria": "Collapse sidebar",
     "expandSidebarAria": "Expand sidebar",
     "loadError": "Failed to load documents."

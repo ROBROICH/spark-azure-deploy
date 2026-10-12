@@ -1,14 +1,19 @@
 import { useProject } from '@/features/project/data/collections/projects.collection';
 import {
-  PROJECT_SWITCHER_OPTIONS,
+  getProductSwitcherOptions,
   type ProjectStepValue,
 } from '@/features/project/route/routeStepMapping';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import { getProjectAvatarLabel } from '@/features/project/route/projectAvatarLabel';
 import { ProjectIndicator } from '@/features/ui/project-indicator/ProjectIndicator';
 import { StepSelect } from '@/features/ui/step-select/StepSelect';
 import { Skeleton } from '@/features/ui/skeleton/Skeleton';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { useSidebar } from '@/features/ui/sidebar/Sidebar';
+import { MOBILE_ACTION_SIDEBAR_ID } from '@/features/project/action-sidebar/ActionSidebar';
+import { Button } from '@/features/ui/button/Button';
+import { PanelRightOpen, PanelRightClose } from 'lucide-react';
 import { useProjectEntryAction } from '../project-entry/useProjectEntryAction';
 
 const route = getRouteApi('/verfahren/$verfahrenId');
@@ -41,6 +46,7 @@ export const ProjectNavbar = (props: ProjectNavbarProps) => {
     useProjectEntryAction();
 
   const { t } = useTranslation('shared');
+  const { openMobile, toggleSidebar } = useSidebar();
   const { data: project } = useProject(verfahrenId);
   const projectName = project?.name;
   const internalProjectNumber = project?.internalProjectNumber;
@@ -51,13 +57,19 @@ export const ProjectNavbar = (props: ProjectNavbarProps) => {
     });
   const selectedSwitcherValue = selectedStep === 'pp' ? 'fvp' : selectedStep;
 
-  const stepOptions = PROJECT_SWITCHER_OPTIONS.map((option) => ({
-    value: option.value,
-    code: option.code,
-    title: t(option.labelKey),
-    to: option.to,
-    params: { verfahrenId },
-  }));
+  const effectiveMode = getConfiguredProductMode();
+
+  const stepOptions = getProductSwitcherOptions(effectiveMode).map(
+    (option) => ({
+      value: option.value,
+      code: option.code,
+      title: t(option.labelKey),
+      to: option.to,
+      params: { verfahrenId },
+    }),
+  );
+
+  const showStepper = effectiveMode === 'ewms' ? true : hasStartedFvpProcess;
 
   return (
     <header
@@ -70,19 +82,43 @@ export const ProjectNavbar = (props: ProjectNavbarProps) => {
             {isProjectEntryActionLoading && (
               <Skeleton className="h-3 w-40 rounded" />
             )}
-            {showStepSelect &&
-              hasStartedFvpProcess &&
-              !isProjectEntryActionLoading && (
-                <StepSelect
-                  value={selectedSwitcherValue}
-                  options={stepOptions}
-                  triggerAriaLabel={t('projectNavbar.stepSelectLabel')}
-                  navAriaLabel={t('projectNavbar.stepSelectNavAriaLabel')}
-                />
-              )}
+
+            <div className="flex flex-wrap items-center justify-between md:justify-start">
+              <div>
+                {showStepSelect &&
+                  showStepper &&
+                  !isProjectEntryActionLoading && (
+                    <StepSelect
+                      value={selectedSwitcherValue}
+                      options={stepOptions}
+                      triggerAriaLabel={t('projectNavbar.stepSelectLabel')}
+                      navAriaLabel={t('projectNavbar.stepSelectNavAriaLabel')}
+                    />
+                  )}
+              </div>
+
+              <div className="md:hidden">
+                <Button
+                  iconOnly
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleSidebar}
+                  aria-haspopup="dialog"
+                  aria-expanded={openMobile}
+                  aria-controls={MOBILE_ACTION_SIDEBAR_ID}
+                  aria-label={
+                    openMobile
+                      ? t('sidebar.closeActionSidebar')
+                      : t('sidebar.openActionSidebar')
+                  }
+                >
+                  {openMobile ? <PanelRightClose /> : <PanelRightOpen />}
+                </Button>
+              </div>
+            </div>
           </div>
 
-          <h1 className="order-first min-w-0 text-center text-[13px] leading-[18px] font-medium tracking-[-0.13px] [overflow-wrap:anywhere] break-words text-neutral-600 md:order-none">
+          <h1 className="min-w-0 text-center text-[13px] leading-[18px] font-medium tracking-[-0.13px] [overflow-wrap:anywhere] break-words text-neutral-600">
             {title}
           </h1>
 

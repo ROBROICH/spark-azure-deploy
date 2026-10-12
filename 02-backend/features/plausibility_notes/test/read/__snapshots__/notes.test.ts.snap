@@ -1,0 +1,44 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /plausibility-notes/{project_id} HTTP contract snapshots the retained Testing project's latest notes 1`] = `
+{
+  "body": {
+    "contradictions": [
+      {
+        "description": "In den beiden Textauszügen wird dieselbe Trassenvariante 2 unterschiedlich beschrieben. Der eine Abschnitt gibt eine westliche Abknickung mit einer Länge von etwa 740 m an, der andere eine südwärts gerichtete Abknickung westlich der Bundesautobahn 31 mit nur ca. 170 m. Die Angaben zu Richtung und Streckenlänge stehen somit im Widerspruch zueinander.",
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "occurrences": [],
+        "rating": 80,
+        "status": "IGNORED",
+        "title": "Variante 2 – unterschiedliche Richtungs‑ und Längenangaben",
+      },
+      {
+        "description": "Die beiden Textauszüge behandeln dieselbe Wasserstoffleitung, unterscheiden sich jedoch grundlegend in ihrer Bewertung. Der Regionalplan Musterregion schließt die Leitung aus, weil sie nicht mit der Rohstoffgewinnung vereinbar sei. Ein anderer Abschnitt betont, dass ein Verzicht auf den Ausbau die termingerechte Realisierung des gesamten Wasserstoffnetzes unmöglich mache.",
+        "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+        "occurrences": [],
+        "rating": 85,
+        "status": "IGNORED",
+        "title": "Ausschluss der Wasserstoffleitung im Regionalplan vs. ihre Notwendigkeit für termingerechte Umsetzung",
+      },
+      {
+        "description": "Die dargestellten Inhalte unterscheiden sich hinsichtlich der Bewertung der Querungsstelle der Bahnstrecke 1234 Musterstadt‑Beispielort im Bereich der Musterstraße. In einem Textauszug wird die Querungsstelle als geeignet beschrieben, während ein anderer Textauszug sie aus technischer Sicht als nicht erstrebenswert einstuft. Damit liegen widersprüchliche Darstellungen zur Eignung derselben Infrastruktur vor.",
+        "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+        "occurrences": [],
+        "rating": 80,
+        "status": "IGNORED",
+        "title": "Uneinigkeit über die Eignung der Querungsstelle",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /plausibility-notes/{project_id} HTTP contract snapshots a latest project with no notes 1`] = `
+{
+  "body": {
+    "contradictions": [],
+  },
+  "status": 200,
+}
+`;

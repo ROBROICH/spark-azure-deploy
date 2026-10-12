@@ -1,0 +1,18 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "gesetzesbegruendung-db-service.fullname" . }}
+  namespace: {{ include "gesetzesbegruendung-db-service.namespace" . }}
+  labels:
+    {{- include "gesetzesbegruendung-db-service.labels" . | nindent 4 }}
+spec:
+  {{- if not (kindIs "invalid" .Values.podDisruptionBudget.maxUnavailable) }}
+  maxUnavailable: {{ .Values.podDisruptionBudget.maxUnavailable }}
+  {{- else }}
+  minAvailable: {{ .Values.podDisruptionBudget.minAvailable | default 1 }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "gesetzesbegruendung-db-service.selectorLabels" . | nindent 6 }}
+{{- end }}

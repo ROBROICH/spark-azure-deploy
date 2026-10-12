@@ -23,21 +23,20 @@ const createAbsatz = (
   const id = overrides.id ?? 'absatz-1';
 
   return {
-    absatz_nr: '1',
-    compositeKey: toCompositeKey({ id, node_type: 'absatz' }),
-    created_at: '2026-01-01T00:00:00Z',
-    frontend_parent_ids: [],
+    absatzNr: '1',
+    compositeKey: toCompositeKey({ id, nodeType: 'absatz' }),
+    createdAt: '2026-01-01T00:00:00Z',
+    frontendParentIds: [],
     id,
-    is_deleted: false,
-    is_outdated: false,
-    norm_id: 'norm-1',
-    node_type: 'absatz',
-    project_id: 'project-1',
-    project_version: 1,
-    sys_period: null,
+    isDeleted: false,
+    isOutdated: false,
+    normId: 'norm-1',
+    nodeType: 'absatz',
+    projectId: 'project-1',
+    projectVersion: 1,
     text: '',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00Z',
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00Z',
     ...overrides,
   } satisfies NodePayloadByType<'absatz'>;
 };
@@ -48,28 +47,28 @@ const createSatz = (
   const id = overrides.id ?? 'satz-1';
 
   return {
-    absatz_id: 'absatz-1',
-    compositeKey: toCompositeKey({ id, node_type: 'satz' }),
-    created_at: '2026-01-01T00:00:00Z',
+    absatzId: 'absatz-1',
+    compositeKey: toCompositeKey({ id, nodeType: 'satz' }),
+    createdAt: '2026-01-01T00:00:00Z',
     formel: null,
-    frontend_parent_ids: [],
+    frontendParentIds: [],
     id,
-    is_deleted: false,
-    is_outdated: false,
+    isDeleted: false,
+    isOutdated: false,
     markers: [],
-    node_type: 'satz',
-    norm_typ_lvl_1: null,
-    norm_typ_lvl_2: null,
+    nodeType: 'satz',
+    normTypLvl1: null,
+    normTypLvl2: null,
     position: 42,
-    project_id: 'project-1',
-    project_version: 1,
-    satz_nr: '1',
-    sys_period: null,
+    projectId: 'project-1',
+    projectVersion: 1,
+    satzNr: '1',
+    lastSuzResultId: null,
     tatbestandsmerkmale: null,
     text: '',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00Z',
-    wenn_dann: null,
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00Z',
+    wennDann: null,
     ...overrides,
   } satisfies NodePayloadByType<'satz'>;
 };
@@ -78,7 +77,7 @@ describe('formatSatzTitle', () => {
   it('uses markers as the rendered sentence label', () => {
     const absatz = createAbsatz();
     const satz = createSatz({
-      satz_nr: '99',
+      satzNr: '99',
       markers: ['3', 'ii'],
     });
     const title = formatSatzTitle(t, absatz, satz);
@@ -89,7 +88,7 @@ describe('formatSatzTitle', () => {
   it('trims and skips empty markers', () => {
     const absatz = createAbsatz();
     const satz = createSatz({
-      satz_nr: '99',
+      satzNr: '99',
       markers: [' ', ' 3 ', '', ' ii '],
     });
     const title = formatSatzTitle(t, absatz, satz);
@@ -112,7 +111,7 @@ describe('formatSatzTitle', () => {
   it('falls back to the sentence number when markers are not available', () => {
     const absatz = createAbsatz();
     const satz = createSatz({
-      satz_nr: '7',
+      satzNr: '7',
     });
     const title = formatSatzTitle(t, absatz, satz);
 
@@ -133,7 +132,7 @@ describe('formatSatzTitle', () => {
   it('ignores invalid marker formats', () => {
     const absatz = createAbsatz();
     const satz = createSatz({
-      satz_nr: '4',
+      satzNr: '4',
       markers: ['Nr 5', 'iii'],
     });
     const title = formatSatzTitle(t, absatz, satz);

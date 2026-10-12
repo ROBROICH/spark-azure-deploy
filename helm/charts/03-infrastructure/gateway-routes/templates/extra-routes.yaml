@@ -1,0 +1,47 @@
+{{- /*
+extraRoutes: further routes of a host group that are NOT behind the chart's
+OIDC/JWT policies (opt-in; the backend authenticates the request itself).
+Route <key>-route on the group's hostnames and listener sections (or the
+entry's own hosts / sectionNames), matches passed through, optional full-path
+rewrite, one backend chart's Service.
+*/ -}}
+{{- range $r := include "gateway-routes.extraRoutes" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $r.key }}-route
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- if and $r.sectionNames (not $.Values.listenerSet.enabled) }}
+    {{- range $r.sectionNames }}
+    - name: {{ $.Values.gateway.name }}
+      namespace: {{ $.Values.gateway.namespace }}
+      sectionName: {{ . }}
+    {{- end }}
+    {{- else }}
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $r.group) | nindent 4 }}
+    {{- end }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $r.hosts | nindent 4 }}
+  rules:
+    - matches:
+        {{- toYaml $r.matches | nindent 8 }}
+      {{- with $r.rewrite }}
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: {{ . }}
+      {{- end }}
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" $r.chart) }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" $r.chart) }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $r.port }}
+{{- end }}

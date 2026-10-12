@@ -9,12 +9,13 @@ logic, not the LLM itself.
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.formale_pruefung.types import DocumentTypeDefinition
+from temporal.contracts import DocumentTypeDefinition
 
 from src.activities.llm_matching_activities import (
     llm_document_grouping,
     llm_match_document_to_list,
 )
+from src.config.config import config
 from src.schemas.llm_matching_schemas import (
     DocumentClassificationMatchResult,
     DocumentGroup,
@@ -109,19 +110,18 @@ async def test_grouping_mixed_valid_and_invalid_keeps_only_valid():
     with p1, p2:
         result = await llm_document_grouping(params)
 
-    assert len(result) == 2
     assert [g.group_name for g in result] == ["Reports", "Appendices"]
 
 
 @pytest.mark.asyncio
 async def test_grouping_all_valid_groups_pass_through():
-    """Ensure all valid groups are correctly passed through without modification."""
+    """With an already sorted input list, valid groups pass through unchanged."""
     params = DocumentGroupingActivityParams(
-        document_names=["report.pdf", "appendix_a.pdf", "appendix_b.pdf"],
+        document_names=["appendix_a.pdf", "appendix_b.pdf", "report.pdf"],
     )
     groups = [
-        DocumentGroup(group_name="Reports", document_indices=[0], representative_index=0),
-        DocumentGroup(group_name="Appendices", document_indices=[1, 2], representative_index=1),
+        DocumentGroup(group_name="Appendices", document_indices=[0, 1], representative_index=0),
+        DocumentGroup(group_name="Reports", document_indices=[2], representative_index=2),
     ]
     llm_response = DocumentGroupingResult(groups=groups)
 
@@ -129,9 +129,52 @@ async def test_grouping_all_valid_groups_pass_through():
     with p1, p2:
         result = await llm_document_grouping(params)
 
-    assert len(result) == 2
+    assert result == groups
+
+
+@pytest.mark.asyncio
+async def test_grouping_remaps_indices_of_unsorted_input() -> None:
+    """The LLM sees the sorted list; returned indices map back to input order."""
+    params = DocumentGroupingActivityParams(
+        document_names=["bericht.pdf", "plan.pdf", "appendix.pdf"],
+    )
+    llm_response = DocumentGroupingResult(
+        groups=[
+            DocumentGroup(group_name="Bericht", document_indices=[0, 1], representative_index=1),
+            DocumentGroup(group_name="Plan", document_indices=[2], representative_index=2),
+        ]
+    )
+    p1, p2 = _patch_workflow(llm_response)
+    with p1, p2:
+        result = await llm_document_grouping(params)
+
+    assert result[0].document_indices == [2, 0]
     assert result[0].representative_index == 0
-    assert result[1].document_indices == [1, 2]
+    assert result[1].document_indices == [1]
+    assert result[1].representative_index == 1
+
+
+@pytest.mark.asyncio
+async def test_grouping_chunks_large_lists_and_merges_results() -> None:
+    """Lists above GROUPING_CHUNK_SIZE are split; each chunk gets its own call."""
+    chunk_size = config.LLM_MATCHING.GROUPING_CHUNK_SIZE
+    params = DocumentGroupingActivityParams(
+        document_names=[f"doc_{i:03d}.pdf" for i in range(chunk_size + 10)],
+    )
+    llm_response = DocumentGroupingResult(
+        groups=[DocumentGroup(group_name="Pair", document_indices=[0, 1], representative_index=0)]
+    )
+    with patch(
+        "temporalio.workflow.execute_activity",
+        AsyncMock(return_value=llm_response.model_dump_json()),
+    ), patch("temporalio.workflow.logger"):
+        result = await llm_document_grouping(params)
+
+    assert [group.document_indices for group in result] == [
+        [0, 1],
+        [chunk_size, chunk_size + 1],
+    ]
+    assert [group.representative_index for group in result] == [0, chunk_size]
 
 
 # ---------------------------------------------------------------------------
@@ -165,9 +208,10 @@ def _matching_params(
 async def test_matching_valid_index_passes_through():
     """Verify that a valid match index is preserved in the output."""
     params = _matching_params()
+    expected_confidence = 0.92
     llm_response = DocumentClassificationMatchResult(
         reasoning="Strong match to environmental report",
-        confidence=0.92,
+        confidence=expected_confidence,
         match_index=1,
     )
     p1, p2 = _patch_workflow(llm_response)
@@ -175,8 +219,51 @@ async def test_matching_valid_index_passes_through():
         result = await llm_match_document_to_list(params)
 
     assert result.match_index == 1
-    assert result.confidence == 0.92
+    assert result.confidence == expected_confidence
     assert result.reasoning == "Strong match to environmental report"
+
+
+@pytest.mark.asyncio
+async def test_matching_prompt_contains_generated_document_type_fields():
+    params = _matching_params()
+    llm_response = DocumentClassificationMatchResult(
+        reasoning="First candidate matches",
+        confidence=0.9,
+        match_index=0,
+    )
+
+    with patch(
+        "temporal.activities.llm_guarded.llm_invoke_structured",
+        AsyncMock(return_value=llm_response),
+    ) as invoke:
+        await llm_match_document_to_list(params)
+
+    prompt = invoke.await_args.args[0]
+    assert "Erläuterungsbericht" in prompt
+    assert "Explanatory report for the project" in prompt
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("env_no_cache", [False, True])
+async def test_matching_forwards_module_llm_no_cache_switch(env_no_cache: bool):
+    llm_response = DocumentClassificationMatchResult(
+        reasoning="First candidate matches",
+        confidence=0.9,
+        match_index=0,
+    )
+
+    with (
+        patch("src.activities.llm_matching_activities.ENV.LLM_NO_CACHE", env_no_cache),
+        patch(
+            "temporal.activities.llm_guarded.llm_invoke_structured",
+            AsyncMock(return_value=llm_response),
+        ) as invoke,
+    ):
+        await llm_match_document_to_list(_matching_params())
+
+    call = invoke.await_args
+    assert call is not None
+    assert call.kwargs["no_cache"] is env_no_cache
 
 
 @pytest.mark.asyncio
@@ -247,9 +334,10 @@ async def test_matching_index_equal_to_length_reset_to_negative_one():
 async def test_matching_large_hallucinated_index_reset():
     """Reset very large out-of-bounds indices to -1 while preserving metadata."""
     params = _matching_params()
+    expected_confidence = 0.85
     llm_response = DocumentClassificationMatchResult(
         reasoning="Matched to item 42",
-        confidence=0.85,
+        confidence=expected_confidence,
         match_index=42,
     )
     p1, p2 = _patch_workflow(llm_response)
@@ -258,7 +346,7 @@ async def test_matching_large_hallucinated_index_reset():
 
     assert result.match_index == -1
     assert result.reasoning == "Matched to item 42"
-    assert result.confidence == 0.85
+    assert result.confidence == expected_confidence
 
 
 @pytest.mark.asyncio

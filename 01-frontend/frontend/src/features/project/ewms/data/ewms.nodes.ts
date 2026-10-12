@@ -1,5 +1,5 @@
 import type { NodePayloadByType } from '@/db/nodes/types';
-import type { BeteiligungTyp } from '@/api-clients/oms-module';
+import type { BeteiligungTyp } from '@/api-clients/backend';
 import { isEwmsUnassignedSubtopicSelection } from './ewmsSubtopicSelection';
 
 export type ObjectionsFilter = BeteiligungTyp[] | undefined;
@@ -21,7 +21,7 @@ export type EwmsObjectionListItem = {
 };
 
 export const isEwmsVisibleTopic = (topic: EwmsTopicNode) =>
-  topic.show_in_ewm !== false;
+  topic.showInEwm !== false;
 
 export const EWMS_ARGUMENT_STATUS_SUBTOPIC_REVIEWED =
   'subtopic_reviewed' satisfies EwmsArgumentStatus;
@@ -61,7 +61,7 @@ export const matchesBeteiligungsEingangFilter = (
     return true;
   }
 
-  return entry.beteiligung_typ ? filter.includes(entry.beteiligung_typ) : false;
+  return entry.beteiligungTyp !== null && filter.includes(entry.beteiligungTyp);
 };
 
 export const groupArgumentsByBeteiligungsEingangId = (
@@ -70,8 +70,8 @@ export const groupArgumentsByBeteiligungsEingangId = (
   const grouped = new Map<string, EwmsArgumentNode[]>();
 
   for (const argument of argumentsList) {
-    const existing = grouped.get(argument.beteiligungs_eingang_id) ?? [];
-    grouped.set(argument.beteiligungs_eingang_id, [...existing, argument]);
+    const existing = grouped.get(argument.beteiligungsEingangId) ?? [];
+    grouped.set(argument.beteiligungsEingangId, [...existing, argument]);
   }
 
   return grouped;
@@ -80,7 +80,7 @@ export const groupArgumentsByBeteiligungsEingangId = (
 export const resolveEwmsClassificationState = (
   item: EwmsObjectionListItem | undefined,
 ): EwmsClassificationState => {
-  const status = item?.entry.classification_status;
+  const status = item?.entry.classificationStatus;
 
   if (status === 'done' || status === 'failed') {
     return status;
@@ -96,7 +96,7 @@ export const findEwmsObjectionItemBySelection = (
   selectedId
     ? items.find(
         (item) =>
-          item.entry.id === selectedId || item.entry.file_id === selectedId,
+          item.entry.id === selectedId || item.entry.fileId === selectedId,
       )
     : undefined;
 
@@ -112,10 +112,10 @@ export const matchesEwmsObjectionItemFilter = (
 };
 
 export const getEwmsTopicIdForArgument = (argument: EwmsArgumentNode) =>
-  argument.topic_id;
+  argument.topicId;
 
 export const getEwmsSubtopicIdForArgument = (argument: EwmsArgumentNode) =>
-  argument.sub_topic_id;
+  argument.subTopicId;
 
 export const groupArgumentsByTopicId = (argumentsList: EwmsArgumentNode[]) => {
   const grouped = new Map<string, EwmsArgumentNode[]>();
@@ -150,16 +150,16 @@ export const getEwmsArgumentsForTopicSelection = (
   }
 
   if (isEwmsUnassignedSubtopicSelection(selectedSubtopicId)) {
-    return topicArguments.filter((argument) => !argument.sub_topic_id);
+    return topicArguments.filter((argument) => !argument.subTopicId);
   }
 
   return topicArguments.filter(
-    (argument) => argument.sub_topic_id === selectedSubtopicId,
+    (argument) => argument.subTopicId === selectedSubtopicId,
   );
 };
 
 export const resolveEwmsReferenceId = (argument: EwmsArgumentNode) =>
-  argument.argument_id ?? argument.id;
+  argument.argumentId ?? argument.id;
 
 const EWMS_ARGUMENT_COMPARE_OPTIONS = {
   numeric: true,
@@ -191,7 +191,7 @@ export const getEwmsObjectionDisplayName = (item: EwmsObjectionListItem) => {
     return getEwmsPathDisplayName(item.entry.filename);
   }
 
-  return item.entry.file_id;
+  return item.entry.fileId;
 };
 
 const getEwmsObjectionFilename = (item: EwmsObjectionListItem) => {
@@ -228,7 +228,7 @@ const compareEwmsObjectionDisplayNames = (
   ) || left.entry.id.localeCompare(right.entry.id, 'de');
 
 const getSortableCreatedAt = (item: EwmsObjectionListItem) => {
-  const timestamp = Date.parse(item.entry.created_at);
+  const timestamp = Date.parse(item.entry.createdAt);
 
   return Number.isNaN(timestamp) ? null : timestamp;
 };

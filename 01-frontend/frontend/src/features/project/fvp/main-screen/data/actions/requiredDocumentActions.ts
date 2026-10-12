@@ -1,5 +1,4 @@
 import { requiredDocumentsCollection } from '../collections/requiredDocuments.collection';
-import { documentAssignmentsCollection } from '../collections/documentAssignments.collection';
 import type {
   RequiredDocument,
   RequiredDocumentNode,
@@ -36,37 +35,9 @@ const getCurrentCustomIds = (projectId: string, customCategoryId: string) =>
       .map((d) => d.id),
   );
 
-const clearAssignmentsForRemovedCustomIds = (
-  projectId: string,
-  removedCustomIds: Set<string>,
-): PersistenceTransaction[] => {
-  const transactions: PersistenceTransaction[] = [];
-
-  for (const result of documentAssignmentsCollection.state.values()) {
-    if (
-      result.projectId !== projectId ||
-      !result.documentTypeId ||
-      !removedCustomIds.has(result.documentTypeId)
-    ) {
-      continue;
-    }
-
-    transactions.push(
-      documentAssignmentsCollection.update(result.documentId, (draft) => {
-        draft.humanRequiredDocumentTypeId = null;
-        draft.documentTypeId = null;
-        draft.documentTypeName = null;
-      }),
-    );
-  }
-
-  return transactions;
-};
-
 /**
- * Synchronizes the custom required-documents subtree into collection state.
- * Performs insert/update/delete for custom entries and clears assignments that
- * still point to custom types removed by the new structure.
+ * Synchronizes the custom required-documents subtree. Deleting a type clears
+ * its assignments atomically in the backend.
  *
  * @returns The optimistic transactions, so callers can await persistence and
  * surface a failure instead of closing as if the save succeeded.
@@ -144,10 +115,6 @@ export const setRequiredDocumentsStructure = (
   for (const id of currentCustomIds) {
     transactions.push(requiredDocumentsCollection.delete(id));
   }
-
-  transactions.push(
-    ...clearAssignmentsForRemovedCustomIds(projectId, currentCustomIds),
-  );
 
   return transactions;
 };

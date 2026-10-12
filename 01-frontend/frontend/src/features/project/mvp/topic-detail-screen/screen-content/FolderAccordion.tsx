@@ -36,8 +36,8 @@ export const FolderAccordion = (props: FolderAccordionProps) => {
     >
       <AccordionItem value={folder.id}>
         <AccordionTrigger
-          className="flex w-full items-center gap-2 py-1"
-          style={{ paddingLeft: `${depth * 16 + 4}px` }}
+          className="flex w-full items-center gap-2 py-1 [padding-left:calc(var(--doc-depth,0)*8px+4px)] md:[padding-left:calc(var(--doc-depth,0)*16px+4px)]"
+          style={{ ['--doc-depth' as string]: depth }}
         >
           <ChevronRight
             className={cn(
@@ -47,7 +47,7 @@ export const FolderAccordion = (props: FolderAccordionProps) => {
             aria-hidden="true"
           />
           <Folder
-            className="size-4 shrink-0 text-text-secondary"
+            className="hidden size-4 shrink-0 text-text-secondary md:block"
             aria-hidden="true"
           />
           <span className="flex-1 truncate text-left text-[13px] text-text-secondary">

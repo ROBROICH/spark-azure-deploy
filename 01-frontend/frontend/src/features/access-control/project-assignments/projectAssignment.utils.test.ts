@@ -53,9 +53,9 @@ describe('projectAssignment.utils', () => {
       }),
     ).toEqual({
       assignments: [
-        { role: 'owner', user_id: 'owner-1' },
-        { role: 'member', user_id: 'member-1' },
-        { role: 'member', user_id: 'member-2' },
+        { role: 'owner', userId: 'owner-1' },
+        { role: 'member', userId: 'member-1' },
+        { role: 'member', userId: 'member-2' },
       ],
     });
   });

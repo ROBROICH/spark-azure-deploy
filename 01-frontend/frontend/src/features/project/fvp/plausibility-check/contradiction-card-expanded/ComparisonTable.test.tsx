@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type {
   Contradiction,
   ContradictionOccurrence,
-} from '@/api-clients/pns-module';
+} from '@/api-clients/backend';
 import { ComparisonTable } from './ComparisonTable';
 
 type ComparisonTableSearchState = {
@@ -88,7 +88,9 @@ const makeContradiction = (
   occurrences: ContradictionOccurrence[],
 ): Contradiction => ({
   id: 'contradiction-1',
+  title: null,
   description: 'Summary',
+  rating: null,
   status: 'OPEN',
   occurrences,
 });

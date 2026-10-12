@@ -138,7 +138,7 @@ export function NodeUuidSearch(props: NodeUuidSearchProps) {
       {showStatus &&
         (selectedNode ? (
           <span className="h-4 truncate text-xs leading-4 text-slate-500">
-            Selected {selectedNode.node_type} node.
+            Selected {selectedNode.nodeType} node.
           </span>
         ) : hasUnresolvedSearch ? (
           <span className="h-4 truncate text-xs leading-4 text-red-600">

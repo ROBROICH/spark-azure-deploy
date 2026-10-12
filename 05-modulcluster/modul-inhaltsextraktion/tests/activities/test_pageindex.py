@@ -117,9 +117,9 @@ async def test_generate_summaries_for_structure(mock_chunk):
         """Return a fake summary based on node_id."""
         return f"summary-{node.node_id}"
 
-    with patch(
-        "src.activities.pageindex.get_node_summary",
-        side_effect=fake_summary,
+    with (
+        patch("src.activities.pageindex.get_node_summary", side_effect=fake_summary),
+        patch("src.activities.pageindex.workflow.patched", return_value=True),
     ):
         result = await generate_summaries_for_structure(
             nodes,

@@ -14,6 +14,7 @@ type PdfFileTreePopoverProps = {
   isLoading: boolean;
   isError?: boolean;
   nodes: ComponentProps<typeof PdfFileTree>['nodes'];
+  pagination?: ComponentProps<typeof PdfFileTree>['pagination'];
   selectedDocumentId?: string;
   recentDocuments?: ComponentProps<typeof PdfFileTree>['recentDocuments'];
   onSelectDocument: (documentId: string) => void;
@@ -27,6 +28,7 @@ export const PdfFileTreePopover = (props: PdfFileTreePopoverProps) => {
     isLoading,
     isError = false,
     nodes,
+    pagination,
     selectedDocumentId,
     recentDocuments,
     onSelectDocument,
@@ -75,6 +77,7 @@ export const PdfFileTreePopover = (props: PdfFileTreePopoverProps) => {
           >
             <PdfFileTree
               nodes={nodes}
+              pagination={pagination}
               selectedDocumentId={selectedDocumentId}
               recentDocuments={recentDocuments}
               onSelectDocument={(documentId) => {

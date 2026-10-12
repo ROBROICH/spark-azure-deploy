@@ -7,12 +7,12 @@ import type * as ProjectVersioning from '@/features/project/versioning/projectVe
 import { useUploadCompletionPolling } from './useUploadCompletionPolling';
 
 const mocks = vi.hoisted(() => ({
-  listZipFilesV2ZipFilesGet: vi.fn(),
+  listZipFiles: vi.fn(),
   useProjectRouteVersion: vi.fn(() => 4),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  listZipFilesV2ZipFilesGet: mocks.listZipFilesV2ZipFilesGet,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementListZipFiles: mocks.listZipFiles,
 }));
 
 vi.mock(
@@ -42,7 +42,7 @@ const makeWrapper = () => {
 
 describe('useUploadCompletionPolling', () => {
   beforeEach(() => {
-    mocks.listZipFilesV2ZipFilesGet.mockReset();
+    mocks.listZipFiles.mockReset();
     mocks.useProjectRouteVersion.mockClear();
   });
 
@@ -60,7 +60,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('reports incomplete while the workflow is still active', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [{ id: 'zip-1', type: 'zip', workflowStatus: 'RUNNING' }],
     });
 
@@ -75,12 +75,12 @@ describe('useUploadCompletionPolling', () => {
     );
 
     await waitFor(() => expect(result.current.terminalStatus).toBe('RUNNING'));
-    expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalledWith({
+    expect(mocks.listZipFiles).toHaveBeenCalledWith({
       query: {
         projectId: 'proj-1',
-        project_version: 4,
+        projectVersion: 4,
         page: 1,
-        page_size: 50,
+        pageSize: 50,
       },
       throwOnError: true,
     });
@@ -88,7 +88,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('reports complete when the workflow has left the active set', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [{ id: 'zip-1', type: 'zip', workflowStatus: 'COMPLETED' }],
     });
 
@@ -106,7 +106,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('exposes APPROVING approval status for the version initialization step', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [
         {
           id: 'zip-1',
@@ -134,7 +134,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('stays incomplete when the polled zip is missing from the response', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [{ id: 'other', workflowStatus: 'COMPLETED' }],
     });
 
@@ -148,9 +148,7 @@ describe('useUploadCompletionPolling', () => {
       { wrapper: makeWrapper() },
     );
 
-    await waitFor(() =>
-      expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mocks.listZipFiles).toHaveBeenCalled());
     await waitFor(() =>
       expect(
         queryClients.every((queryClient) => queryClient.isFetching() === 0),
@@ -160,7 +158,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('does not call the API when disabled', () => {
-    mocks.listZipFilesV2ZipFilesGet.mockReset();
+    mocks.listZipFiles.mockReset();
 
     renderHook(
       () =>
@@ -172,11 +170,11 @@ describe('useUploadCompletionPolling', () => {
       { wrapper: makeWrapper() },
     );
 
-    expect(mocks.listZipFilesV2ZipFilesGet).not.toHaveBeenCalled();
+    expect(mocks.listZipFiles).not.toHaveBeenCalled();
   });
 
   it('reports failure when the polled query errors', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockRejectedValue(new Error('network'));
+    mocks.listZipFiles.mockRejectedValue(new Error('network'));
 
     const { result } = renderHook(
       () =>
@@ -193,8 +191,15 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('reports failure when the polled zip transitions to a failed status', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
-      data: [{ id: 'zip-1', type: 'zip', workflowStatus: 'FAILED' }],
+    mocks.listZipFiles.mockResolvedValue({
+      data: [
+        {
+          id: 'zip-1',
+          type: 'zip',
+          workflowStatus: 'FAILED',
+          workflowFailureCode: 'ZIP_INVALID',
+        },
+      ],
     });
 
     const { result } = renderHook(
@@ -210,10 +215,11 @@ describe('useUploadCompletionPolling', () => {
     await waitFor(() => expect(result.current.isProcessingFailed).toBe(true));
     expect(result.current.isProcessingComplete).toBe(false);
     expect(result.current.terminalStatus).toBe('FAILED');
+    expect(result.current.terminalWorkflowFailureCode).toBe('ZIP_INVALID');
   });
 
   it('reports failure after the soft timeout when the target zip never appears', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [{ id: 'other', workflowStatus: 'COMPLETED' }],
     });
 
@@ -235,7 +241,7 @@ describe('useUploadCompletionPolling', () => {
   });
 
   it('starts the missing-poll timeout from zero when the polling session changes', async () => {
-    mocks.listZipFilesV2ZipFilesGet.mockResolvedValue({
+    mocks.listZipFiles.mockResolvedValue({
       data: [{ id: 'other', workflowStatus: 'COMPLETED' }],
     });
 
@@ -258,9 +264,7 @@ describe('useUploadCompletionPolling', () => {
       throw new Error('Expected test query client');
     }
 
-    await waitFor(() =>
-      expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalledTimes(1),
-    );
+    await waitFor(() => expect(mocks.listZipFiles).toHaveBeenCalledTimes(1));
 
     await act(async () => {
       await pollingQueryClient.invalidateQueries({
@@ -268,9 +272,7 @@ describe('useUploadCompletionPolling', () => {
       });
     });
 
-    await waitFor(() =>
-      expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalledTimes(2),
-    );
+    await waitFor(() => expect(mocks.listZipFiles).toHaveBeenCalledTimes(2));
 
     await act(async () => {
       await pollingQueryClient.invalidateQueries({
@@ -278,9 +280,7 @@ describe('useUploadCompletionPolling', () => {
       });
     });
 
-    await waitFor(() =>
-      expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalledTimes(3),
-    );
+    await waitFor(() => expect(mocks.listZipFiles).toHaveBeenCalledTimes(3));
     await waitFor(() => expect(result.current.isProcessingFailed).toBe(true));
 
     rerender({ zipFileId: 'zip-2' });
@@ -292,9 +292,7 @@ describe('useUploadCompletionPolling', () => {
       });
     });
 
-    await waitFor(() =>
-      expect(mocks.listZipFilesV2ZipFilesGet).toHaveBeenCalledTimes(4),
-    );
+    await waitFor(() => expect(mocks.listZipFiles).toHaveBeenCalledTimes(4));
     expect(result.current.isProcessingFailed).toBe(false);
   });
 });

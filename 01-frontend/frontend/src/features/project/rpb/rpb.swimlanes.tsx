@@ -104,8 +104,8 @@ export const RpbSwimlanes = () => {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-1 self-stretch">
-      <div className="flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden border border-border-primary bg-neutral-white">
-        <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-[var(--reflow-min-h)] w-full min-w-0 flex-1 flex-col overflow-hidden border border-border-primary bg-neutral-white lg:h-full">
+        <div className="min-h-[var(--reflow-min-h)] flex-1 overflow-y-auto lg:min-h-0">
           <RpbFeatureProvider>
             <RpbOutlineProvider>
               <Swimlanes className="h-full">

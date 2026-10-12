@@ -1,6 +1,9 @@
+import { toCompositeKey } from '@/db/nodes/compositeKey';
+import type { NodePayloadByType, NodeTypeLiteral } from '@/db/nodes/types';
 import { describe, expect, it } from 'vitest';
 import {
   getBestimmteRechtsbegriffe,
+  getRechtsfolgeBadges,
   getUnbestimmteRechtsbegriffe,
   getVerweise,
   type RechtsmethodikBestimmterRechtsbegriffNode,
@@ -41,7 +44,7 @@ const createLegaldefinition = (
 ): RechtsmethodikLegaldefinition => {
   return {
     id,
-    bestimmter_rechtsbegriff_id: bestimmterRechtsbegriffId,
+    bestimmterRechtsbegriffId: bestimmterRechtsbegriffId,
     definition: `Definition ${id}`,
   } satisfies RechtsmethodikLegaldefinition;
 };
@@ -65,13 +68,13 @@ const createAuslegungsvorschlag = (
   id: string;
   methode: string;
   text: string;
-  unbestimmter_rechtsbegriff_id: string;
+  unbestimmterRechtsbegriffId: string;
 } => {
   return {
     id,
     methode: 'Wortlaut',
     text: `Auslegung ${id}`,
-    unbestimmter_rechtsbegriff_id: unbestimmterRechtsbegriffId,
+    unbestimmterRechtsbegriffId: unbestimmterRechtsbegriffId,
   };
 };
 
@@ -84,13 +87,52 @@ const createVerweis = (
   untergliederung: unknown[] | null = null,
 ): RechtsmethodikExpliziterVerweisNode => {
   return {
-    absatz_nr: absatzNr ?? null,
+    absatzNr: absatzNr ?? null,
     id,
     gesetz,
-    paragraph_nr: paragraphNr,
-    satz_nr: satzNr ?? null,
+    paragraphNr: paragraphNr,
+    satzNr: satzNr ?? null,
     untergliederung,
   } satisfies RechtsmethodikExpliziterVerweisNode;
+};
+
+const createRechtsfolgeChildBase = (nodeType: NodeTypeLiteral, id: string) => ({
+  compositeKey: toCompositeKey({ id, nodeType: nodeType }),
+  createdAt: '2026-01-01T00:00:00Z',
+  frontendParentIds: [],
+  id,
+  isDeleted: false,
+  isOutdated: false,
+  projectId: 'project-1',
+  projectVersion: 1,
+  reasoning: null,
+  rechtsfolgeId: 'rechtsfolge-1',
+  updateType: null,
+  updatedAt: '2026-01-01T00:00:00Z',
+});
+
+const createSollensanordnung = (id: string, kategorie: string) => {
+  return {
+    ...createRechtsfolgeChildBase('sollensanordnungen', id),
+    kategorie,
+    nodeType: 'sollensanordnungen',
+  } satisfies NodePayloadByType<'sollensanordnungen'>;
+};
+
+const createErmessensspielraum = (id: string, entscheidung: string) => {
+  return {
+    ...createRechtsfolgeChildBase('ermessensspielraum', id),
+    entscheidung,
+    nodeType: 'ermessensspielraum',
+  } satisfies NodePayloadByType<'ermessensspielraum'>;
+};
+
+const createErmessensart = (id: string, art: string) => {
+  return {
+    ...createRechtsfolgeChildBase('ermessensart', id),
+    art,
+    nodeType: 'ermessensart',
+  } satisfies NodePayloadByType<'ermessensart'>;
 };
 
 describe('aiSatzDetailViewModel', () => {
@@ -202,5 +244,103 @@ describe('aiSatzDetailViewModel', () => {
     expect(references.map((reference) => reference.label)).toEqual([
       '§ 12 Bundesartenschutzverordnung',
     ]);
+  });
+
+  it('shows the discretion scope and the discretion type after the deontic category', () => {
+    const badges = getRechtsfolgeBadges(
+      [createSollensanordnung('soll-1', 'verbot')],
+      [createErmessensspielraum('spielraum-1', 'ermessensentscheidung')],
+      [createErmessensart('art-1', 'auswahlermessen')],
+    );
+
+    expect(badges).toEqual([
+      'Verbot',
+      'Ermessensentscheidung',
+      'Auswahlermessen',
+    ]);
+  });
+
+  it('shows the discretion scope alone when no discretion type is stored', () => {
+    const badges = getRechtsfolgeBadges(
+      [createSollensanordnung('soll-1', 'gebot')],
+      [createErmessensspielraum('spielraum-1', 'gebundene entscheidung')],
+      [],
+    );
+
+    expect(badges).toEqual(['Gebot', 'Gebundene entscheidung']);
+  });
+
+  it('shows the deontic categories alone when no discretion is stored', () => {
+    const badges = getRechtsfolgeBadges(
+      [createSollensanordnung('soll-1', 'erlaubnis')],
+      [],
+      [],
+    );
+
+    expect(badges).toEqual(['Erlaubnis']);
+  });
+
+  it('shows a repeated discretion value once', () => {
+    const badges = getRechtsfolgeBadges(
+      [],
+      [
+        createErmessensspielraum('spielraum-1', 'ermessensentscheidung'),
+        createErmessensspielraum('spielraum-2', ' ermessensentscheidung '),
+      ],
+      [
+        createErmessensart('art-1', 'auswahlermessen'),
+        createErmessensart('art-2', 'auswahlermessen'),
+      ],
+    );
+
+    expect(badges).toEqual(['Ermessensentscheidung', 'Auswahlermessen']);
+  });
+
+  it('shows a value repeated across two badge sources once', () => {
+    const badges = getRechtsfolgeBadges(
+      [createSollensanordnung('soll-1', 'auswahlermessen')],
+      [createErmessensspielraum('spielraum-1', 'ermessensentscheidung')],
+      [createErmessensart('art-1', 'auswahlermessen')],
+    );
+
+    expect(badges).toEqual(['Auswahlermessen', 'Ermessensentscheidung']);
+  });
+
+  it('names both kinds of discretion when the stored type is beides', () => {
+    const badges = getRechtsfolgeBadges(
+      [],
+      [createErmessensspielraum('spielraum-1', 'ermessensentscheidung')],
+      [createErmessensart('art-1', 'beides')],
+    );
+
+    expect(badges).toEqual([
+      'Ermessensentscheidung',
+      'Auswahlermessen',
+      'Entschließungsermessen',
+    ]);
+  });
+
+  it('shows no combined value when the stored type is beides', () => {
+    const badges = getRechtsfolgeBadges(
+      [],
+      [],
+      [createErmessensart('art-1', ' Beides ')],
+    );
+
+    expect(badges).not.toContain('Beides');
+    expect(badges).toEqual(['Auswahlermessen', 'Entschließungsermessen']);
+  });
+
+  it('names both kinds only once when two legal effects report beides', () => {
+    const badges = getRechtsfolgeBadges(
+      [],
+      [],
+      [
+        createErmessensart('art-1', 'beides'),
+        createErmessensart('art-2', 'beides'),
+      ],
+    );
+
+    expect(badges).toEqual(['Auswahlermessen', 'Entschließungsermessen']);
   });
 });

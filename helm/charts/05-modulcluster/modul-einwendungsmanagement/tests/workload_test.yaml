@@ -1,0 +1,187 @@
+# Behaviour of the standard leaf template set (identical in every standard
+# leaf chart).
+suite: standard leaf workload
+templates:
+  - templates/deployment.yaml
+release:
+  name: rel
+  namespace: relns
+set:
+  fullnameOverride: app
+  image:
+    repository: registry.example.com/spark/app
+    tag: "1.0.0"
+tests:
+  - it: renders into the release namespace by default
+    asserts:
+      - isKind: {of: Deployment}
+      - equal: {path: metadata.name, value: app}
+      - equal: {path: metadata.namespace, value: relns}
+
+  - it: global.namespaceOverride moves the workload, a chart-local override wins
+    set:
+      global.namespaceOverride: shared
+    asserts:
+      - equal: {path: metadata.namespace, value: shared}
+
+  - it: chart-local namespaceOverride wins over the global one
+    set:
+      global.namespaceOverride: shared
+      namespaceOverride: own
+    asserts:
+      - equal: {path: metadata.namespace, value: own}
+
+  - it: uses image.tag
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:1.0.0"}
+
+  - it: global.imageTag wins over image.tag
+    set:
+      global.imageTag: mr-1
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:mr-1"}
+
+  - it: image.followGlobalTag false keeps the pinned tag
+    set:
+      global.imageTag: mr-1
+      image.followGlobalTag: false
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:1.0.0"}
+
+  - it: imageTagRestrict applies the global tag only to listed images
+    set:
+      global.imageTag: mr-1
+      global.imageTagRestrict: true
+      global.imageTagServices: "web,other"
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:1.0.0"}
+
+  - it: imageTagRestrict keeps the global tag for a listed image
+    set:
+      global.imageTag: mr-1
+      global.imageTagRestrict: true
+      global.imageTagServices: "web,app"
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:mr-1"}
+
+  - it: sets replicas without autoscaling
+    set:
+      replicaCount: 3
+    asserts:
+      - equal: {path: spec.replicas, value: 3}
+
+  - it: omits replicas when the HPA owns them
+    set:
+      autoscaling.enabled: true
+    asserts:
+      - notExists: {path: spec.replicas}
+
+  - it: omits replicas when KEDA owns them
+    set:
+      keda:
+        enabled: true
+        triggers: [{type: cpu, metricType: Utilization, metadata: {value: "70"}}]
+    asserts:
+      - notExists: {path: spec.replicas}
+
+  - it: merges env in precedence order, renders tpl and scalars as strings
+    set:
+      env: null
+      global:
+        env:
+          - {name: A, value: global}
+          - {name: B, value: global}
+        extraEnv:
+          - {name: B, value: global-extra}
+          - {name: C, value: global-extra}
+      extraEnv:
+        - {name: C, value: extra}
+        - {name: N, value: 5432}
+        - {name: T, value: "{{ .Release.Name }}-x"}
+    asserts:
+      - contains: {path: "spec.template.spec.containers[0].env", content: {name: A, value: global}}
+      - contains: {path: "spec.template.spec.containers[0].env", content: {name: B, value: global-extra}}
+      - contains: {path: "spec.template.spec.containers[0].env", content: {name: C, value: extra}}
+      - contains: {path: "spec.template.spec.containers[0].env", content: {name: N, value: "5432"}}
+      - contains: {path: "spec.template.spec.containers[0].env", content: {name: T, value: rel-x}}
+
+  - it: pod labels cannot override the selector labels
+    set:
+      podLabels:
+        app.kubernetes.io/name: evil
+        team: platform
+    asserts:
+      - equal: {path: 'spec.selector.matchLabels["app.kubernetes.io/instance"]', value: app}
+      - equal: {path: spec.template.metadata.labels.team, value: platform}
+      - notEqual: {path: 'spec.template.metadata.labels["app.kubernetes.io/name"]', value: evil}
+
+  - it: legacyAppSelector switches to the kustomize-era selector
+    set:
+      global.legacyAppSelector: true
+    asserts:
+      - equal: {path: spec.selector.matchLabels, value: {app: app}}
+
+  - it: selectorLabelsOverride may not reuse a chart label
+    set:
+      selectorLabelsOverride:
+        type: x
+    asserts:
+      - failedTemplate:
+          errorPattern: must not set "type"
+
+  - it: uses the chart's own ServiceAccount by default
+    asserts:
+      - equal: {path: spec.template.spec.serviceAccountName, value: app}
+
+  - it: uses the shared ServiceAccount when global.serviceAccount.name is set
+    set:
+      global.serviceAccount.name: shared-sa
+    asserts:
+      - equal: {path: spec.template.spec.serviceAccountName, value: shared-sa}
+
+  - it: merges global and chart pull secrets without duplicates
+    set:
+      imagePullSecrets: [{name: a}, {name: b}]
+      global.imagePullSecrets: [{name: b}, {name: c}]
+    asserts:
+      - equal:
+          path: spec.template.spec.imagePullSecrets
+          value: [{name: b}, {name: c}, {name: a}]
+
+  - it: prefixes image.registry
+    set:
+      image: {registry: mirror.example.com, repository: spark/app}
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "mirror.example.com/spark/app:1.0.0"}
+
+  - it: prefixes global.imageRegistry to a repository without a registry
+    set:
+      global.imageRegistry: mirror.example.com/
+      image.repository: spark/app
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "mirror.example.com/spark/app:1.0.0"}
+
+  - it: leaves a full repository path alone under global.imageRegistry
+    set:
+      global.imageRegistry: mirror.example.com
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:1.0.0"}
+
+  - it: appends image.digest to the chart's own tag
+    set:
+      image.digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:1.0.0@sha256:0000000000000000000000000000000000000000000000000000000000000000"}
+
+  - it: drops the digest when a global tag applies
+    set:
+      global.imageTag: mr-1
+      image.digest: "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+    asserts:
+      - equal: {path: "spec.template.spec.containers[0].image", value: "registry.example.com/spark/app:mr-1"}
+
+  - it: rejects values of the wrong type (values.schema.json)
+    set:
+      image.pullPolicy: Sometimes
+    asserts:
+      - failedTemplate: {errorPattern: pullPolicy}

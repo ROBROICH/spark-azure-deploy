@@ -7,6 +7,7 @@ import {
   useTocData,
 } from '@/features/project/fvp/data/useFvpCategoryData';
 import { useSystemLoad } from '@/features/workflow-runtime/system-load/useSystemLoad';
+import { useFvpWorkflowContext } from '@/features/workflow-runtime/workflow-status/FvpWorkflowContext';
 import { useProjectRouteVersion } from '@/features/project/versioning/projectVersioning';
 import { getStartButtonDisabledReason } from './startButtonDisabledReason';
 
@@ -19,6 +20,32 @@ const getWorkflowProgress = (
   requiredDocuments,
   plausibility,
 });
+
+// A failed category is settled: it shows its own failure and no longer holds
+// back categories that wait for it.
+export const isCategorySettled = (state: FvpCategoryState<unknown>) =>
+  state.isDone || state.status === 'failed';
+
+// A rerun that failed after an earlier success keeps that result, so the
+// documents stay visible.
+const hasCategoryResult = (state: FvpCategoryState<unknown>) =>
+  state.isDone || (state.status === 'failed' && state.hasResult);
+
+// A parent failure that no category owns, such as a failed content-extraction
+// follow-up step, still leaves the analysis incomplete.
+const getAiAnalysisCompletion = (args: {
+  hasParentFailure: boolean;
+  progress: ReturnType<typeof getWorkflowProgress>;
+}) => {
+  const categories = Object.values(args.progress);
+  const isAiAnalysisRunning = categories.some(({ isRunning }) => isRunning);
+  const isAiAnalysisIncomplete =
+    categories.some(({ status }) => status === 'failed') ||
+    (args.hasParentFailure && !isAiAnalysisRunning);
+  const isAiAnalysisComplete =
+    categories.every(({ isDone }) => isDone) && !isAiAnalysisIncomplete;
+  return { isAiAnalysisComplete, isAiAnalysisIncomplete, isAiAnalysisRunning };
+};
 
 /** Derives the FVP start, running-progress, result-card, and document-tree gates. */
 export const useFvpAiWorkflowState = (verfahrenId: string) => {
@@ -37,20 +64,25 @@ export const useFvpAiWorkflowState = (verfahrenId: string) => {
   const tableOfContentsState = useTocData(verfahrenId);
   const requiredDocumentsState = useFcsData(verfahrenId);
   const plausibilityState = usePpData(verfahrenId, {
-    fcsReady: requiredDocumentsState.isDone,
-    tocReady: tableOfContentsState.isDone,
+    fcsReady: isCategorySettled(requiredDocumentsState),
+    tocReady: isCategorySettled(tableOfContentsState),
   });
-  const isTocDone = tableOfContentsState.isDone;
-  const isFcsDone = requiredDocumentsState.isDone;
-  const isPpDone = plausibilityState.isDone;
-  const canShowDocuments = isTocDone && isFcsDone;
+  const progress = getWorkflowProgress(
+    tableOfContentsState,
+    requiredDocumentsState,
+    plausibilityState,
+  );
+  const canShowDocuments =
+    hasCategoryResult(tableOfContentsState) &&
+    hasCategoryResult(requiredDocumentsState);
   const { isLoading: isDocumentsSectionLoading } =
     useFvpDocumentsSectionReadiness(verfahrenId);
-  const isAiAnalysisComplete = isTocDone && isFcsDone && isPpDone;
-  const isAiAnalysisRunning =
-    tableOfContentsState.isRunning ||
-    requiredDocumentsState.isRunning ||
-    plausibilityState.isRunning;
+  const { workflowState } = useFvpWorkflowContext();
+  const completion = getAiAnalysisCompletion({
+    hasParentFailure: workflowState.latestFailure !== null,
+    progress,
+  });
+  const { isAiAnalysisComplete, isAiAnalysisRunning } = completion;
   const isAiAnalysisDecisionLoading =
     !isAiAnalysisRunning &&
     ((!isAiAnalysisComplete &&
@@ -77,22 +109,17 @@ export const useFvpAiWorkflowState = (verfahrenId: string) => {
   });
 
   return {
-    isAiAnalysisComplete,
+    ...completion,
     isAiAnalysisDecisionLoading,
     canShowDocuments,
     canStartProcess,
     disableThresholdPercentage,
-    isAiAnalysisRunning,
     isStartBlockedBySystemLoad: isSystemLoadHigh,
     isStartButtonDisabled: isStartButtonLoading || !canStartProcess,
     isStartButtonLoading,
     shouldShowStartAction,
     startButtonDisabledReason,
-    progress: getWorkflowProgress(
-      tableOfContentsState,
-      requiredDocumentsState,
-      plausibilityState,
-    ),
+    progress,
   };
 };
 

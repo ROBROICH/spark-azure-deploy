@@ -1,0 +1,294 @@
+{{- /*
+dashboard.<domain>/api/* proxies; the /api/me userinfo proxy uses the external Keycloak Backend rendered by
+this chart into the env namespace, with the realm segment templated per env.
+The Spark modulith (spark-backend) serves every module under its full
+/api/<module>/... path, so its rules forward the path unchanged and also match
+/api/v2/<module>/. Only rechtsaenderungs-monitoring (not part of the modulith)
+strips its prefix.
+*/ -}}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $site.prefix }}-api-route
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $site.group) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $site.hosts | nindent 4 }}
+  rules:
+    # ===================================================================
+    # /api/me — Proxies to Keycloak userinfo endpoint
+    # Uses Backend CRD for external FQDN — no backend service involved
+    # ===================================================================
+    - matches:
+        - method: GET
+          path:
+            type: Exact
+            value: /api/me
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /realms/{{ include "gateway-routes.realm" $ }}/protocol/openid-connect/userinfo
+      backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: keycloak-external
+          port: 443
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # ===================================================================
+    # Backend service proxies
+    # ===================================================================
+
+    # identity-management-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/identity/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "identity-management-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "identity-management-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # project-logic-service (PLS)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/pls/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/pls/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "project-logic-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "project-logic-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # document-management-service (DMS)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/dms/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/dms/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "document-management-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "document-management-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "120s"
+        backendRequest: "120s"
+    # formal-completeness-check (FCS)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/fcs/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/fcs/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "formal-completeness-check") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "formal-completeness-check") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # agent-orchestration-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/agent-orchestration/v1/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "agent-orchestration-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "agent-orchestration-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # objections-management-service (OMS)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/oms/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/oms/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "objections-management-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "objections-management-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # examination-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/examination/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/examination/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "examination-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "examination-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # administrative-file-draft (VAE)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/vae/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/vae/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "administrative-file-draft") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "administrative-file-draft") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # supplementary-requests-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/supplementary-requests/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/supplementary-requests/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "supplementary-requests-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "supplementary-requests-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # plausibility-notes
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/plausibility-notes/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/plausibility-notes/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "plausibility-notes") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "plausibility-notes") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # comment-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/comment/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/comment/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "comment-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "comment-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # temporal-job-service (no v1 prefix, longer timeout)
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/temporal/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "temporal-job-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "temporal-job-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "125s"
+        backendRequest: "120s"
+    # rechtsaenderungs-monitoring
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/law-changes/v1/
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "rechtsaenderungs-monitoring") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "rechtsaenderungs-monitoring") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # protocol-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/protocol/v1/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "protocol-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "protocol-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+    # fpp-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/fpp/v1/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "fpp-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "fpp-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+      timeouts:
+        request: "60s"
+        backendRequest: "60s"
+{{- end }}

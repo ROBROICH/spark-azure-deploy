@@ -4,8 +4,9 @@
     "checkboxAriaLabel": "Include {{title}} in the supplementary request letter",
     "close": "Close",
     "emptyState": "No supplementary requests.",
-    "itemCountBadge_one": "{{count}} supplementary request",
-    "itemCountBadge_other": "{{count}} supplementary requests",
+    "itemCountBadge_one": "{{count}} supplementary request loaded",
+    "itemCountBadge_other": "{{count}} supplementary requests loaded",
+    "loadMore": "Load more",
     "title": "Supplementary requests list",
     "priority": {
       "must": "Must",
@@ -46,6 +47,7 @@
     "retry": "Try again"
   },
   "SupplementaryRequestLetter": {
+    "loadError": "The complete set of requests for the letter could not be loaded.",
     "downloadPdf": "Export as PDF",
     "downloadWord": "Export as Word",
     "emptyState": "Select supplementary requests from the list to create the letter.",

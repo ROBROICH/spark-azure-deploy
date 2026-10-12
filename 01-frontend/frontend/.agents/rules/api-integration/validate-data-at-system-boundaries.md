@@ -1,3 +1,7 @@
+---
+ruleId: api-integration/validate-data-at-system-boundaries
+---
+
 # Validate Data at System Boundaries
 
 - Do not use `as any` or `as unknown as`.

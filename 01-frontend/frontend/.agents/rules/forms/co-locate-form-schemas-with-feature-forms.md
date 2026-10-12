@@ -1,3 +1,7 @@
+---
+ruleId: forms/co-locate-form-schemas-with-feature-forms
+---
+
 # Co-Locate Form Schemas with Feature Forms
 
 - Keep the Zod schema next to the form that uses it inside the feature folder.

@@ -1,4 +1,4 @@
-import { startSuzNormWorkflowWorkflowsSuzNormIdPostMutation } from '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen';
+import { v1AgentOrchestrationStartSuzNormWorkflowMutation as startSuzNormWorkflowMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { useDescendants } from '@/db/nodes/hooks/useDescendants';
 import { useHasTopicMutationRights } from '@/features/access-control/topic-permissions/hasTopicMutationRights';
 import {
@@ -26,7 +26,7 @@ export const useMvpNormRefreshAction = (normId: string) => {
   const canMutateTopic = hasTopicMutationRights(topicName);
   const atomareTbmRefs = useDescendants('atomares_tbm', {
     id: normId,
-    node_type: 'norm' as const,
+    nodeType: 'norm' as const,
   });
   const hasAtomareTbmDescendant = atomareTbmRefs.length > 0;
   const {
@@ -46,11 +46,9 @@ export const useMvpNormRefreshAction = (normId: string) => {
     workflowType: WORKFLOW_TYPE_BEWERTUNG,
     matchIdsInWorkflowId: [verfahrenId, normId],
   });
-  const startSuzNormWorkflowMutation = useMutation(
-    startSuzNormWorkflowWorkflowsSuzNormIdPostMutation(),
-  );
+  const startSuzNormWorkflow = useMutation(startSuzNormWorkflowMutation());
   const isRefreshRunning =
-    startSuzNormWorkflowMutation.isPending ||
+    startSuzNormWorkflow.isPending ||
     isSuzWorkflowRunning ||
     isBewertungWorkflowRunning;
   const isRefreshStatusUnavailable =
@@ -72,9 +70,9 @@ export const useMvpNormRefreshAction = (normId: string) => {
         return;
       }
 
-      startSuzNormWorkflowMutation.mutate(
+      startSuzNormWorkflow.mutate(
         {
-          path: { norm_id: normId },
+          path: { normId },
           body: { projectId: verfahrenId },
         },
         {

@@ -3,17 +3,17 @@ import { URL, fileURLToPath } from 'node:url';
 import babel from '@rolldown/plugin-babel';
 import tailwindcss from '@tailwindcss/vite';
 import viteReact, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type ProxyOptions } from 'vite';
 
 import { tanstackRouter } from '@tanstack/router-plugin/vite';
 
 const env = loadEnv('development', process.cwd(), '');
 
 const DEFAULT_APP_BASE_PATH = '/app';
+const apiProxyTarget = env.VITE_API_URL || '';
 type ApiProxyService = {
   prefix: string;
-  localTarget: string | undefined;
-  stripPrefix?: boolean;
+  localTarget: string;
 };
 
 function normalizeAppBasePath(value?: string): string {
@@ -26,42 +26,57 @@ function normalizeAppBasePath(value?: string): string {
   return withLeadingSlash.replace(/\/+$/, '') || DEFAULT_APP_BASE_PATH;
 }
 
-/**
- * Creates Vite proxy rules for local port-forwarding mode.
- *
- * Requests are forwarded to local service ports.
- */
+function getProxyRewritePrefix(service: ApiProxyService): string {
+  const targetPath = new URL(service.localTarget).pathname.replace(
+    /\/openapi\.json$/,
+    '',
+  );
+  const preservedPrefix = service.prefix.startsWith('/api')
+    ? service.prefix
+    : '';
+
+  if (!targetPath || targetPath === '/') {
+    return preservedPrefix;
+  }
+
+  return `${targetPath}${preservedPrefix}`;
+}
+
 function createApiProxyConfig(
   apiMode: string,
   apiProxyServices: ApiProxyService[],
 ) {
-  const proxy: Record<string, any> = {};
+  const proxy: Record<string, ProxyOptions> = {};
+
+  if (apiMode === 'testing') {
+    return proxy;
+  }
 
   for (const service of apiProxyServices) {
-    if (apiMode === 'testing') {
-      continue;
-    }
-
     if (!service.localTarget) {
       throw new Error(
         `You need to set ${service.prefix} in your environment variables. See vite.config.ts`,
       );
     }
 
-    const proxyConfig: Record<string, unknown> = {
+    const proxyConfig: ProxyOptions = {
       target: new URL(service.localTarget).origin,
       changeOrigin: true,
-      configure(proxyServer: any) {
-        proxyServer.on('proxyReq', (proxyReq: any) => {
+      configure(proxyServer) {
+        proxyServer.on('proxyReq', (proxyReq) => {
           proxyReq.removeHeader('authorization');
+          if (apiMode === 'session-proxy') {
+            proxyReq.removeHeader('origin');
+          }
         });
       },
     };
 
-    if (service.stripPrefix !== false) {
-      proxyConfig.rewrite = (requestPath: string) =>
-        requestPath.replace(new RegExp(`^${service.prefix}`), '');
-    }
+    proxyConfig.rewrite = (requestPath: string) =>
+      requestPath.replace(
+        new RegExp(`^${service.prefix}`),
+        getProxyRewritePrefix(service),
+      );
 
     proxy[service.prefix] = proxyConfig;
   }
@@ -70,71 +85,88 @@ function createApiProxyConfig(
 }
 
 const apiProxyServices: ApiProxyService[] = [
-  { prefix: '/pls/v1', localTarget: env.VITE_PLS_OPENAPI_URL || '' },
-  { prefix: '/dms/v1', localTarget: env.VITE_DMS_OPENAPI_URL || '' },
-  { prefix: '/fcs/v1', localTarget: env.VITE_FCS_OPENAPI_URL || '' },
   {
-    prefix: '/agent-orchestration/v1',
-    localTarget: env.VITE_AOM_OPENAPI_URL || '',
+    prefix: '/api/agent-orchestration/v1',
+    localTarget: env.API_AOM_ORIGIN || apiProxyTarget,
   },
   {
-    prefix: '/temporal',
-    localTarget: env.VITE_TEMPORAL_JOBS_OPENAPI_URL || '',
-    stripPrefix: false,
+    prefix: '/api/plausibility-notes/v1',
+    localTarget: env.API_PNS_ORIGIN || apiProxyTarget,
   },
   {
-    prefix: '/plausibility-notes/v1',
-    localTarget: env.VITE_PNS_OPENAPI_URL || '',
-  },
-  { prefix: '/oms/v1', localTarget: env.VITE_OMS_OPENAPI_URL || '' },
-  {
-    prefix: '/supplementary-requests/v1',
-    localTarget: env.VITE_SUPPLEMENTARY_REQUESTS_OPENAPI_URL || '',
+    prefix: '/api/supplementary-requests/v1',
+    localTarget: env.API_SUPPLEMENTARY_REQUESTS_ORIGIN || apiProxyTarget,
   },
   {
-    prefix: '/comment/v1',
-    localTarget: env.VITE_COMMENTS_OPENAPI_URL || '',
+    prefix: '/api/internal/workflows',
+    localTarget: env.API_TEMPORAL_JOBS_ORIGIN || apiProxyTarget,
   },
   {
-    prefix: '/examination/v1',
-    localTarget: env.VITE_EXAMINATION_OPENAPI_URL || '',
+    prefix: '/api/examination/v1',
+    localTarget: env.API_EXAMINATION_ORIGIN || apiProxyTarget,
   },
   {
-    prefix: '/vae/v1',
-    localTarget: env.VITE_VAE_OPENAPI_URL || '',
+    prefix: '/api/feedback/v1',
+    localTarget: env.API_FEEDBACK_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/comment/v1',
+    localTarget: env.API_COMMENTS_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/protocol/v1',
+    localTarget: env.API_PROTOCOL_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/temporal',
+    localTarget: env.API_TEMPORAL_JOBS_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/identity',
+    localTarget: env.API_IDENTITY_MANAGEMENT_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/fpp/v1',
+    localTarget: env.API_FPP_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/dms/v1',
+    localTarget: env.API_DMS_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/fcs/v1',
+    localTarget: env.API_FCS_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/oms/v1',
+    localTarget: env.API_OMS_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api/pls/v1',
+    localTarget: apiProxyTarget,
+  },
+  {
+    prefix: '/api/vae/v1',
+    localTarget: env.API_VAE_ORIGIN || apiProxyTarget,
+  },
+  {
+    prefix: '/api',
+    localTarget: apiProxyTarget,
   },
   {
     prefix: '/law-changes/v1',
     localTarget: env.VITE_LAW_CHANGES_OPENAPI_URL || '',
   },
-  {
-    prefix: '/identity',
-    localTarget: env.VITE_IDENTITY_MANAGEMENT_OPENAPI_URL || '',
-  },
-  {
-    prefix: '/feedback/v1',
-    localTarget: env.VITE_FEEDBACK_OPENAPI_URL || '',
-  },
-  {
-    prefix: '/protocol/v1',
-    localTarget: env.VITE_PROTOCOL_OPENAPI_URL || '',
-  },
 ];
 
-// https://vitejs.dev/config/
 export default defineConfig(({ command }) => {
   const apiMode = (env.VITE_DEV_API_MODE || 'port-forwarding').toLowerCase();
   const appBasePath = normalizeAppBasePath(env.VITE_APP_BASE_PATH);
   const appBasePathWithTrailingSlash = `${appBasePath}/`;
-
-  // Vite blocks requests whose Host header it does not recognise. Behind an authenticating
-  // reverse proxy the forwarded Host is the proxy's public domain, so allow it via
-  // VITE_DEV_ALLOWED_HOSTS (comma-separated; a leading dot matches all subdomains of a
-  // domain). localhost and IP hosts are always allowed.
-  const devAllowedHosts = (env.VITE_DEV_ALLOWED_HOSTS || '')
-    .split(',')
-    .map((host) => host.trim())
-    .filter(Boolean);
+  const proxy =
+    command === 'build'
+      ? undefined
+      : createApiProxyConfig(apiMode, apiProxyServices);
 
   return {
     base: appBasePathWithTrailingSlash,
@@ -153,20 +185,8 @@ export default defineConfig(({ command }) => {
             },
           }
         : undefined,
-    server:
-      command === 'build'
-        ? undefined
-        : {
-            allowedHosts: devAllowedHosts,
-            proxy: createApiProxyConfig(apiMode, apiProxyServices),
-          },
-    preview:
-      command === 'build'
-        ? undefined
-        : {
-            allowedHosts: devAllowedHosts,
-            proxy: createApiProxyConfig(apiMode, apiProxyServices),
-          },
+    server: proxy === undefined ? undefined : { proxy },
+    preview: proxy === undefined ? undefined : { proxy },
     envPrefix: ['VITE_', 'ALLOW_DEV_MODE'],
     plugins: [
       tanstackRouter({

@@ -66,7 +66,7 @@ export const FavoritesSection = (props: FavoritesSectionProps) => {
       {hasContent ? (
         <>
           <div
-            className="grid grid-cols-[repeat(auto-fill,minmax(190px,calc(25%-12px)))] gap-4"
+            className="grid grid-cols-1 gap-4 sm:grid-cols-[repeat(auto-fill,minmax(190px,calc(25%-12px)))]"
             {...(isLoading
               ? {
                   ...skeletonListProps,

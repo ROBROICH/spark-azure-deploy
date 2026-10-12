@@ -24,11 +24,11 @@ const getTopicIdForRisk = (
   topicIdByVaeNodeId: ReadonlyMap<string, string | null | undefined>,
   risk: Risk,
 ) => {
-  if (!topicIdByVaeNodeId.has(risk.vae_node_id)) {
+  if (!topicIdByVaeNodeId.has(risk.vaeNodeId)) {
     return undefined;
   }
 
-  return topicIdByVaeNodeId.get(risk.vae_node_id);
+  return topicIdByVaeNodeId.get(risk.vaeNodeId);
 };
 
 const useRiskWarningsMutationContextLogic = (

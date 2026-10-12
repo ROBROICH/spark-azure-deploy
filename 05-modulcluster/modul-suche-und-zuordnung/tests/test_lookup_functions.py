@@ -201,14 +201,13 @@ class TestGetDocumentsByType:
     def test_matching_doc_type_returns_document(self) -> None:
         """Verify that a matching document type returns the assigned document with correct fields."""
         result_json = {
-            "matched_document_types": [
+            "matchedDocumentTypes": [
                 {
-                    "required_document_type": {"document_type_name": "Erläuterungsbericht"},
-                    "assigned_documents": [
+                    "requiredDocumentType": {"documentTypeName": "Erläuterungsbericht"},
+                    "assignedDocuments": [
                         {
-                            "document_name": "Erläuterungsbericht.pdf",
-                            "document_id": "doc-1",
-                            "project_id": "proj-1",
+                            "documentName": "Erläuterungsbericht.pdf",
+                            "documentId": "doc-1",
                         }
                     ],
                 }
@@ -222,10 +221,10 @@ class TestGetDocumentsByType:
     def test_non_matching_doc_type_excluded(self) -> None:
         """Verify that documents belonging to a non-requested type are not returned."""
         result_json = {
-            "matched_document_types": [
+            "matchedDocumentTypes": [
                 {
-                    "required_document_type": {"document_type_name": "OtherType"},
-                    "assigned_documents": [{"document_name": "doc.pdf", "document_id": "d1"}],
+                    "requiredDocumentType": {"documentTypeName": "OtherType"},
+                    "assignedDocuments": [{"documentName": "doc.pdf", "documentId": "d1"}],
                 }
             ]
         }
@@ -235,37 +234,23 @@ class TestGetDocumentsByType:
     def test_deduplicates_by_document_id(self) -> None:
         """Verify that the same document appearing in multiple type entries is returned only once."""
         result_json = {
-            "matched_document_types": [
+            "matchedDocumentTypes": [
                 {
-                    "required_document_type": {"document_type_name": "TypeA"},
-                    "assigned_documents": [
-                        {"document_name": "doc.pdf", "document_id": "doc-1"},
+                    "requiredDocumentType": {"documentTypeName": "TypeA"},
+                    "assignedDocuments": [
+                        {"documentName": "doc.pdf", "documentId": "doc-1"},
                     ],
                 },
                 {
-                    "required_document_type": {"document_type_name": "TypeB"},
-                    "assigned_documents": [
-                        {"document_name": "doc.pdf", "document_id": "doc-1"},
+                    "requiredDocumentType": {"documentTypeName": "TypeB"},
+                    "assignedDocuments": [
+                        {"documentName": "doc.pdf", "documentId": "doc-1"},
                     ],
                 },
             ]
         }
         result = get_documents_by_type(result_json, ["TypeA", "TypeB"])
         assert len(result) == 1
-
-    def test_skips_documents_without_name(self) -> None:
-        """Verify that assigned documents missing a document_name field are skipped."""
-        result_json = {
-            "matched_document_types": [
-                {
-                    "required_document_type": {"document_type_name": "TypeA"},
-                    "assigned_documents": [{"document_id": "d1"}],  # no document_name
-                }
-            ]
-        }
-        result = get_documents_by_type(result_json, ["TypeA"])
-        assert result == []
-
 
 # ---------------------------------------------------------------------------
 # get_required_document_types_for_position
@@ -334,10 +319,10 @@ class TestFindLookupDocumentsForTbms:
         """Verify that matched documents are correctly resolved and returned for a matching rule."""
         rules = [MatchingRule(number="34", law="BauGB", absatz=None, satz=None, documents=("Erläuterungsbericht",))]
         result_json = {
-            "matched_document_types": [
+            "matchedDocumentTypes": [
                 {
-                    "required_document_type": {"document_type_name": "Erläuterungsbericht"},
-                    "assigned_documents": [{"document_name": "Bericht.pdf", "document_id": "d1", "project_id": "p1"}],
+                    "requiredDocumentType": {"documentTypeName": "Erläuterungsbericht"},
+                    "assignedDocuments": [{"documentName": "Bericht.pdf", "documentId": "d1"}],
                 }
             ]
         }

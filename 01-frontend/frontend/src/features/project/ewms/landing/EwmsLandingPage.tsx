@@ -42,9 +42,9 @@ export const EwmsLandingPage = (props: EwmsLandingPageProps) => {
           <div className="rounded-lg bg-slate-200 p-2">
             <Mail className="size-4 text-brand-950" aria-hidden />
           </div>
-          <p className="flex-1 text-base leading-5 font-medium text-brand-950">
+          <h2 className="flex-1 text-base leading-5 font-medium text-brand-950">
             {t('importPage.pageTitle')}
-          </p>
+          </h2>
           <Button
             variant="primary"
             size="sm"

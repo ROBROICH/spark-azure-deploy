@@ -1,3 +1,4 @@
+import type { SupplementaryRequestResponse } from '@/api-clients/backend';
 import { z } from 'zod';
 
 /**
@@ -55,6 +56,36 @@ export const requestItemSchema = z.object({
 });
 
 export type RequestItem = z.infer<typeof requestItemSchema>;
+const fromApiSourceRef = (
+  sourceRef: SupplementaryRequestResponse['sourceRef'],
+): RequestItemSourceRef | undefined => {
+  if (sourceRef === null) {
+    return undefined;
+  }
+  const parsed = requestItemSourceRefSchema.safeParse({
+    type: sourceRef.type,
+    itemId: sourceRef.itemId,
+  });
+  if (!parsed.success) {
+    return undefined;
+  }
+  return parsed.data;
+};
+export const requestItemFromApi = (
+  item: SupplementaryRequestResponse,
+): RequestItem =>
+  requestItemSchema.parse({
+    id: item.id,
+    projectId: item.projectId,
+    sourceRef: fromApiSourceRef(item.sourceRef),
+    priority: item.priority,
+    title: item.title,
+    reason: item.reason,
+    createdAt: new Date(String(item.createdAt)),
+    topicId: item.topicId ?? undefined,
+    documentId: item.documentId ?? undefined,
+    includedInLetter: item.includedInLetter,
+  });
 
 type RequestSourceLike = {
   sourceRef?: RequestItemSourceRef;

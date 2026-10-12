@@ -90,7 +90,7 @@ export const ObjectionsList = (props: ObjectionsListProps) => {
                 objection={objection}
                 argumentsList={argumentsByEntryId.get(objection.entry.id) ?? []}
                 isSelected={
-                  selectedObjectionId === objection.entry.file_id ||
+                  selectedObjectionId === objection.entry.fileId ||
                   selectedObjectionId === objection.entry.id
                 }
                 onSelect={onSelectObjection}

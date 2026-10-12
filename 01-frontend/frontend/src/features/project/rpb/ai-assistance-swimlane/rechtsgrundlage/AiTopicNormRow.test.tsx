@@ -79,18 +79,18 @@ vi.mock('react-i18next', () => ({
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (nodeType: string) => {
     if (nodeType === 'norm') {
-      return [{ id: 'norm-1', node_type: 'norm' }];
+      return [{ id: 'norm-1', nodeType: 'norm' }];
     }
 
     if (nodeType === 'satz') {
       return [
-        { id: 'satz-1', node_type: 'satz' },
-        { id: 'satz-2', node_type: 'satz' },
+        { id: 'satz-1', nodeType: 'satz' },
+        { id: 'satz-2', nodeType: 'satz' },
       ];
     }
 
     if (nodeType === 'bewertung') {
-      return [{ id: 'bewertung-1', node_type: 'bewertung' }];
+      return [{ id: 'bewertung-1', nodeType: 'bewertung' }];
     }
 
     return [];
@@ -98,14 +98,14 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | undefined) => {
-    if (nodeRef?.node_type === 'topic_norm') {
+  useNode: (nodeRef: { id: string; nodeType: string } | undefined) => {
+    if (nodeRef?.nodeType === 'topic_norm') {
       return {
         data: {
           id: nodeRef.id,
           jurabk: 'BNatSchG',
-          paragraph_nr: '44',
-          satz_statuses: {
+          paragraphNr: '44',
+          satzStatuses: {
             'satz-1': 'checked',
           },
           type: testState.topicNormType,
@@ -113,10 +113,10 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
       };
     }
 
-    if (nodeRef?.node_type === 'norm') {
+    if (nodeRef?.nodeType === 'norm') {
       return {
         data: {
-          paragraph_titel: 'Test norm',
+          paragraphTitel: 'Test norm',
         },
       };
     }
@@ -126,11 +126,11 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
-  useLiveNode: (nodeRef: { id: string; node_type: string } | undefined) => {
-    if (nodeRef?.node_type === 'norm') {
+  useLiveNode: (nodeRef: { id: string; nodeType: string } | undefined) => {
+    if (nodeRef?.nodeType === 'norm') {
       return {
         data: {
-          paragraph_titel: 'Test norm',
+          paragraphTitel: 'Test norm',
         },
       };
     }
@@ -183,7 +183,7 @@ describe('AiTopicNormRow', () => {
   it('preserves the selected left swimlane tab when opening a norm detail', () => {
     render(
       <AiTopicNormRow
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       />,
     );
 
@@ -203,7 +203,7 @@ describe('AiTopicNormRow', () => {
 
     render(
       <AiTopicNormRow
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       />,
     );
 

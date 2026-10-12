@@ -3,7 +3,7 @@
 import asyncio
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Rechtsbegriffe,
 )
 from temporalio import workflow

@@ -1,97 +1,41 @@
-import { getWorkflowTemporalWorkflowsWorkflowIdGet } from '@/api-clients/temporal-jobs-module';
-import type {
-  GetWorkflowResponse,
-  WorkflowsBase,
-} from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
 import { WORKFLOW_TYPE_FILE_PROCESSING } from '@/features/workflow-runtime/workflow-status/useRunningWorkflow';
+import { useSubWorkflow } from '@/features/workflow-runtime/workflow-status/useSubWorkflow';
 import { useWorkflow } from '@/features/workflow-runtime/workflow-status/useWorkflow';
-import { useQuery } from '@tanstack/react-query';
 import {
-  getLatestRunningEwmsWorkflow,
-  getRunningEwmsWorkflowCandidates,
-  isRunningEwmsWorkflowStatus,
-} from './ewmsWorkflowStatus';
+  RUNNING_WORKFLOW_STATUSES,
+  WORKFLOW_TYPE_EWMS,
+} from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
 
-const EWMS_WORKFLOW_DETAIL_REFETCH_INTERVAL_MS = 10_000;
-
-const toWorkflowFromDetail = (detail: GetWorkflowResponse): WorkflowsBase => ({
-  ...detail,
-  run_id: detail.workflow_id,
-});
-
-const toWorkflowFromCandidate = (
-  candidate: ReturnType<typeof getRunningEwmsWorkflowCandidates>[number],
-): WorkflowsBase => ({
-  run_id: candidate.workflow_id,
-  workflow_id: candidate.workflow_id,
-  workflow_start_time: candidate.workflow_start_time,
-  workflow_type: candidate.workflow_type,
-  status: candidate.status as WorkflowsBase['status'],
-});
-
-const loadEwmsWorkflowDetails = async (
-  candidates: ReturnType<typeof getRunningEwmsWorkflowCandidates>,
-) => {
-  const details = await Promise.all(
-    candidates.map(async (candidate) => {
-      try {
-        const { data } = await getWorkflowTemporalWorkflowsWorkflowIdGet({
-          path: {
-            workflow_id: candidate.workflow_id,
-          },
-          throwOnError: true,
-        });
-
-        return toWorkflowFromDetail(data);
-      } catch {
-        return toWorkflowFromCandidate(candidate);
-      }
-    }),
-  );
-
-  return details;
+export type EwmsImportJobState = {
+  isEwmsFileImportWorkflowRunning: boolean;
+  isEwmsWorkflowRunning: boolean;
+  isError: boolean;
+  isFileProcessingWorkflowRunning: boolean;
+  isLoading: boolean;
+  latestRunningWorkflow: WorkflowsBase | undefined;
 };
 
-export const useEwmsImportJobState = (projectId: string) => {
+export const useEwmsImportJobState = (
+  projectId: string,
+): EwmsImportJobState => {
   const fileProcessingWorkflowState = useWorkflow({
-    includeSubWorkflows: true,
     matchIdsInWorkflowId: [projectId],
     workflowType: WORKFLOW_TYPE_FILE_PROCESSING,
   });
-  const runningCandidateWorkflowIds = getRunningEwmsWorkflowCandidates(
-    fileProcessingWorkflowState.workflows,
-  );
-  const runningCandidateIds = runningCandidateWorkflowIds.map(
-    (workflow) => workflow.workflow_id,
-  );
-  const { data: ewmsWorkflowDetails = [], isError: isEwmsDetailsError } =
-    useQuery({
-      queryKey: ['ewms-running-workflow-details', runningCandidateIds],
-      queryFn: () => loadEwmsWorkflowDetails(runningCandidateWorkflowIds),
-      enabled: runningCandidateIds.length > 0,
-      refetchInterval: EWMS_WORKFLOW_DETAIL_REFETCH_INTERVAL_MS,
-    });
-  const runningEwmsWorkflows = ewmsWorkflowDetails.filter((workflow) =>
-    isRunningEwmsWorkflowStatus(workflow.status),
-  );
-  const latestRunningWorkflow =
-    getLatestRunningEwmsWorkflow(runningEwmsWorkflows);
-  const isEwmsWorkflowRunning = runningEwmsWorkflows.length > 0;
-  const isFileProcessingWorkflowRunning = fileProcessingWorkflowState.isRunning;
-
+  const ewms = useSubWorkflow({
+    workflowState: fileProcessingWorkflowState,
+    subWorkflowType: WORKFLOW_TYPE_EWMS,
+  });
   return {
     isEwmsFileImportWorkflowRunning:
-      isEwmsWorkflowRunning || isFileProcessingWorkflowRunning,
-    isEwmsWorkflowRunning,
-    isError: fileProcessingWorkflowState.isError || isEwmsDetailsError,
-    isFileProcessingWorkflowRunning,
-    isLoading:
-      fileProcessingWorkflowState.isLoading ||
-      (runningCandidateIds.length > 0 &&
-        ewmsWorkflowDetails.length === 0 &&
-        !isEwmsDetailsError),
-    latestRunningWorkflow,
+      ewms.isRunning || fileProcessingWorkflowState.isRunning,
+    isEwmsWorkflowRunning: ewms.isRunning,
+    isError: ewms.isError,
+    isFileProcessingWorkflowRunning: fileProcessingWorkflowState.isRunning,
+    isLoading: ewms.isStatusLoading,
+    latestRunningWorkflow: ewms.subWorkflows.find((workflow) =>
+      RUNNING_WORKFLOW_STATUSES.has(workflow.status ?? ''),
+    ),
   };
 };
-
-export type EwmsImportJobState = ReturnType<typeof useEwmsImportJobState>;

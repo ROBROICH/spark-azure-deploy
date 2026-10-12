@@ -1,0 +1,181 @@
+{{- if and .Values.networkPolicy.enabled (not .Values.mesh.enabled) -}}
+# =============================================================================
+# No-mesh variant: GKE Dataplane V2 NetworkPolicies.
+# Default-deny ingress for the whole namespace plus explicit allows.
+# Rendered when networkPolicy.enabled and mesh.enabled=false; the Cloud Service
+# Mesh variant lives in authorizationpolicies.yaml. Service-to-service auth
+# stays JWT-based.
+# =============================================================================
+---
+# Baseline: deny all ingress to every pod in the namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow all pod-to-pod traffic inside the environment namespace.
+# This also covers ClamAV (:6000) and unoserver, which run in-namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-intra-namespace
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector: {}
+---
+# Allow the shared Envoy Gateway (gateway -> services: HTTPRoute backends).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-envoy-gateway
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ .Values.gateway.namespace }}
+---
+# Allow Google Managed Prometheus collectors to scrape /metrics (managed
+# collection runs in gke-gmp-system on Autopilot, gmp-system on Standard).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-gmp
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        {{- range .Values.networkPolicy.gmpNamespaces }}
+        # Both namespaces are admitted because the collectors' namespace
+        # differs between GKE Standard (gmp-system) and Autopilot
+        # (gke-gmp-system); admitting only one silently blocks every scrape.
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . }}
+        {{- end }}
+---
+# Egress allowlist. Selecting every pod with policyTypes Egress makes any
+# egress not listed here denied (default-deny egress by construction).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-egress
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    # Intra-namespace (peers, otel-collector :4317/:4318, in-namespace ClamAV).
+    - to:
+        - podSelector: {}
+    # DNS: unrestricted on port 53. Narrower selectors (kube-system +
+    # 169.254.169.254/32) do not work on a Cloud-DNS-cluster-scope Autopilot
+    # cluster: the resolver path involves link-local/node endpoints that
+    # Dataplane V2 does not match via those selectors, so lookups time out
+    # cluster-wide (incl. metadata.google.internal, which also breaks
+    # ADC/Workload Identity). Port-scoped to 53, so the exposure is DNS only.
+    - ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    {{- if .Values.networkPolicy.metadataServer }}
+    # GCE metadata server (Workload Identity token exchange, resource
+    # detection): pipeline startup of the otel googlecloud exporter blocks
+    # without it and liveness kills the pod.
+    - to:
+        - ipBlock:
+            cidr: 169.254.169.254/32
+      ports:
+        - protocol: TCP
+          port: 80
+    {{- end }}
+    {{- with .Values.networkPolicy.qdrantNamespace }}
+    # Central Qdrant (:6333 HTTP, :6334 gRPC).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ . }}
+      ports:
+        - protocol: TCP
+          port: 6333
+        - protocol: TCP
+          port: 6334
+    {{- end }}
+    # HTTPS egress: Vault, Keycloak, the image registry, storage.googleapis.com
+    # (GCS), LiteLLM, Docling and the Google telemetry APIs are all external
+    # hosts. Plain NetworkPolicy cannot express FQDN allows, so :443 is open to
+    # any destination — a documented limitation (FQDNNetworkPolicy or per-CIDR
+    # allows would be the tightening path).
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+    # PostgreSQL server (:5432), e.g. a Cloud SQL private IP. Set
+    # networkPolicy.cloudsqlCidr to the instance's /32.
+    - to:
+        - ipBlock:
+            cidr: {{ .Values.networkPolicy.cloudsqlCidr }}
+      ports:
+        - protocol: TCP
+          port: 5432
+{{- if or .Values.networkPolicy.extraIngress .Values.networkPolicy.extraEgress }}
+---
+# Environment-specific allows (networkPolicy.extraIngress / extraEgress),
+# additive to the policies above.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-extra
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    {{- if .Values.networkPolicy.extraIngress }}
+    - Ingress
+    {{- end }}
+    {{- if .Values.networkPolicy.extraEgress }}
+    - Egress
+    {{- end }}
+  {{- with .Values.networkPolicy.extraIngress }}
+  ingress:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+  {{- with .Values.networkPolicy.extraEgress }}
+  egress:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+{{- end }}
+{{- end }}

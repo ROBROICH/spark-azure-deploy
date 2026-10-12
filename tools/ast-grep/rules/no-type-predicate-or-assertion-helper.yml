@@ -1,0 +1,95 @@
+id: no-type-predicate-or-assertion-helper
+language: TypeScript
+severity: error
+message: "Do not hide runtime checks behind named TypeScript predicate/assertion helpers."
+note: |
+  Type predicates and assertion signatures create reusable validation aliases.
+  Validate at the boundary, then pass typed data inward.
+rule:
+  any:
+    - pattern: |
+        function $F($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        function $F($VALUE): $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        function $F($$$PARAMS): asserts $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        function $F($$$PARAMS): asserts $VALUE {
+          $$$BODY
+        }
+
+    - pattern: |
+        const $F = ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        let $F = ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        var $F = ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        const $F = ($VALUE): $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        let $F = ($VALUE): $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        var $F = ($VALUE): $VALUE is $TARGET_TYPE => $EXPR
+
+    - pattern: |
+        const $F = ($$$PARAMS): asserts $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        let $F = ($$$PARAMS): asserts $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        var $F = ($$$PARAMS): asserts $VALUE is $TARGET_TYPE => $EXPR
+    - pattern: |
+        const $F = ($$$PARAMS): asserts $VALUE => $EXPR
+    - pattern: |
+        let $F = ($$$PARAMS): asserts $VALUE => $EXPR
+    - pattern: |
+        var $F = ($$$PARAMS): asserts $VALUE => $EXPR
+
+    - pattern: |
+        const $F = function ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        let $F = function ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        var $F = function ($VALUE: $VALUE_TYPE): $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        const $F = function ($$$PARAMS): asserts $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        let $F = function ($$$PARAMS): asserts $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        var $F = function ($$$PARAMS): asserts $VALUE is $TARGET_TYPE {
+          $$$BODY
+        }
+    - pattern: |
+        const $F = function ($$$PARAMS): asserts $VALUE {
+          $$$BODY
+        }
+    - pattern: |
+        let $F = function ($$$PARAMS): asserts $VALUE {
+          $$$BODY
+        }
+    - pattern: |
+        var $F = function ($$$PARAMS): asserts $VALUE {
+          $$$BODY
+        }
+
+    - all:
+        - kind: method_definition
+        - regex: '^[^{]*:[^{\n]*\bis\s+'
+    - all:
+        - kind: method_definition
+        - regex: '^[^{]*:[^{\n]*\basserts\s+'

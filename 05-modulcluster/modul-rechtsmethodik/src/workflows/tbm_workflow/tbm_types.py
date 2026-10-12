@@ -3,13 +3,14 @@
 from typing import Any
 
 from pydantic import BaseModel
-from temporal.workflows.rechtsmethodik.types import (
-    Absatz,
+from temporal.contracts import (
     AtomaresTBM,
     NormTyp,
     SatzKategorie,
     Verweise,
 )
+
+from src.absatz import Absatz
 
 
 class TBMWorkflowRechtsfolge(BaseModel):
@@ -25,8 +26,8 @@ class TBMWorkflowSatzOutput(BaseModel):
     satz_nr: str
     markers: list[str]
     satz_text: str
-    norm_typ_lvl_1: NormTyp
-    norm_typ_lvl_2: SatzKategorie | None = None
+    norm_typ_lvl1: NormTyp
+    norm_typ_lvl2: SatzKategorie | None = None
     tatbestandsmerkmale: list[str] | None = None
     rechtsfolge: TBMWorkflowRechtsfolge | None = None
     atomare_tatbestandsmerkmale: list[AtomaresTBM] | None = None

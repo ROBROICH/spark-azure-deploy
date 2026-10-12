@@ -1,4 +1,7 @@
-import type { FvpAiWorkflowState } from '@/features/project/fvp/main-screen/useFvpAiWorkflowState';
+import {
+  isCategorySettled,
+  type FvpAiWorkflowState,
+} from '@/features/project/fvp/main-screen/useFvpAiWorkflowState';
 import { AiSparklesChip } from '@/features/ui/ai/AiSparklesChip';
 import { Button } from '@/features/ui/button/Button';
 import { invariant } from 'es-toolkit/util';
@@ -7,6 +10,7 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AiAnalysisStatusAnnouncer } from './AiAnalysisStatusAnnouncer';
 import { AiAnalysisTaskCard } from './AiAnalysisTaskCard';
+import { FailedAiAnalysisTaskSlot } from './FailedAiAnalysisTaskSlot';
 import {
   AI_ANALYSIS_TASKS,
   RESULT_CARD_BY_TASK_ID,
@@ -24,6 +28,7 @@ type AiAnalysisWorkflowState = Pick<
   FvpAiWorkflowState,
   | 'isAiAnalysisRunning'
   | 'isAiAnalysisComplete'
+  | 'isAiAnalysisIncomplete'
   | 'disableThresholdPercentage'
   | 'isStartBlockedBySystemLoad'
   | 'isStartButtonDisabled'
@@ -156,6 +161,20 @@ export const AiAnalysisSection = (props: AiAnalysisSectionProps) => {
   };
 
   const renderTaskSlot = (task: AiAnalysisTaskConfig) => {
+    const ownProgress = workflow.progress[task.id];
+    if (ownProgress.status === 'failed' && ownProgress.failureCode !== null) {
+      return (
+        <FailedAiAnalysisTaskSlot
+          failureCode={ownProgress.failureCode}
+          hasReadError={ownProgress.hasReadError}
+          hasResult={ownProgress.hasResult}
+          iconStroke={iconStroke}
+          projectId={projectId}
+          task={task}
+        />
+      );
+    }
+
     const dependencyProgress = AI_ANALYSIS_TASK_DEPENDENCIES[task.id].map(
       (dependencyId) => workflow.progress[dependencyId],
     );
@@ -165,7 +184,7 @@ export const AiAnalysisSection = (props: AiAnalysisSectionProps) => {
       'Expected AI task dependency',
     );
     const taskProgress = {
-      isDone: dependencyProgress.every((progress) => progress.isDone),
+      isDone: dependencyProgress.every(isCategorySettled),
       isLoading: dependencyProgress.some((progress) => progress.isLoading),
       workflow:
         dependencyProgress.find((progress) => progress.isLoading)?.workflow ??
@@ -191,7 +210,10 @@ export const AiAnalysisSection = (props: AiAnalysisSectionProps) => {
       aria-label={t('redesign.aiAnalysis.title')}
       className="flex flex-col gap-4"
     >
-      <AiAnalysisStatusAnnouncer isRunning={workflow.isAiAnalysisRunning} />
+      <AiAnalysisStatusAnnouncer
+        isIncomplete={workflow.isAiAnalysisIncomplete}
+        isRunning={workflow.isAiAnalysisRunning}
+      />
 
       <svg width="0" height="0" className="absolute" aria-hidden="true">
         <defs>
@@ -221,6 +243,11 @@ export const AiAnalysisSection = (props: AiAnalysisSectionProps) => {
           <p className="text-sm leading-[18px] text-purple-900">
             {t('redesign.aiAnalysis.description')}
           </p>
+          {workflow.isAiAnalysisIncomplete && (
+            <p className="text-sm leading-[18px] font-medium text-red-700">
+              {t('redesign.aiAnalysis.incomplete')}
+            </p>
+          )}
           {startDisabledReasonText && (
             <p
               id={START_DISABLED_REASON_ID}

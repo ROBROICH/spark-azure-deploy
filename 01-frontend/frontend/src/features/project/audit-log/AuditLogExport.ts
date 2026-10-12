@@ -1,25 +1,28 @@
 import {
-  exportProjectHistoryProjectsProjectIdHistoryExportGet,
+  v1ProtocolExportProjectHistory as exportProjectHistory,
   type SourceFilter,
-} from '@/api-clients/protocol-module';
+} from '@/api-clients/backend';
 import type { AuditLogHistoryQuery } from './data/auditLogHistory.collection';
 
 type AuditLogExportQuery = {
-  from?: string | null;
-  request_id?: string | null;
-  to?: string | null;
-  source?: SourceFilter | null;
-  service?: string | null;
+  from?: string;
+  requestId?: string;
+  to?: string;
+  source?: SourceFilter;
+  service?: string;
 };
 
+/**
+ * Copies only the exportable audit-log query fields into the download payload.
+ */
 export const createAuditLogExportQuery = (
   query: AuditLogHistoryQuery,
 ): AuditLogExportQuery => ({
-  from: query.from,
-  request_id: query.request_id,
-  to: query.to,
-  source: query.source,
-  service: query.service,
+  ...(query.from ? { from: query.from } : {}),
+  ...(query.requestId ? { requestId: query.requestId } : {}),
+  ...(query.to ? { to: query.to } : {}),
+  ...(query.source ? { source: query.source } : {}),
+  ...(query.service ? { service: query.service } : {}),
 });
 
 const createExportFilename = (projectId: string) => {
@@ -45,8 +48,8 @@ export const exportAuditLogHistory = async (
   projectId: string,
   query: AuditLogHistoryQuery,
 ) => {
-  const { data } = await exportProjectHistoryProjectsProjectIdHistoryExportGet({
-    path: { project_id: projectId },
+  const { data } = await exportProjectHistory({
+    path: { projectId: projectId },
     query: createAuditLogExportQuery(query),
     throwOnError: true,
   });

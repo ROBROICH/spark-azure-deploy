@@ -4,12 +4,14 @@ Tests for _create_summary_from_results activity in postprocessing.py.
 """
 
 import json
+from datetime import UTC, datetime
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+import httpx
 import pytest
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+from temporal.contracts import BaseMetadata, SummaryData
 
 from src.activities.postprocessing.schemas import CreateSummaryFromResultsInput, SummaryResult
 from src.activities.postprocessing.summary import _create_summary_from_results
@@ -43,22 +45,26 @@ def _make_base_metadata() -> BaseMetadata:
     )
 
 
-def _make_dms_file(filename: str, file_id: Any = None) -> Any:
+def _make_dms_file(filename: str, file_id: Any = None, created_at: datetime | None = None) -> Any:
     """Build a MagicMock that mimics a DMS file row."""
     obj = MagicMock()
     obj.id = file_id if file_id is not None else uuid4()
     obj.filename = filename
+    obj.created_at = created_at or datetime(2026, 1, 1, tzinfo=UTC)
     return obj
 
 
 def _make_existing_summary_bytes(processed_files: list[dict[str, Any]]) -> bytes:
     """Build raw bytes for a synthetic existing summary.json payload."""
-    payload = {
-        "base_metadata": None,
-        "total_duration_seconds": 0.0,
-        "processed_files": processed_files,
-    }
-    return json.dumps(payload).encode("utf-8")
+    return (
+        SummaryData(
+            base_metadata=None,
+            total_duration_seconds=0.0,
+            processed_files=processed_files,
+        )
+        .model_dump_json()
+        .encode("utf-8")
+    )
 
 
 def _make_list_files_side_effect(
@@ -90,8 +96,8 @@ class TestCreateSummaryFromResults:
     """Tests for _create_summary_from_results DMS summary activity."""
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_creates_new_summary_when_none_exists(
         self, mock_list: Any, mock_upload: Any, mock_activity: Any
     ) -> None:
@@ -126,15 +132,15 @@ class TestCreateSummaryFromResults:
         assert result.filename == "summary.json"
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert len(uploaded_data["processed_files"]) == 2
-        assert uploaded_data["total_duration_seconds"] == 42.5
-        assert uploaded_data["base_metadata"]["planned_project"] == "Autobahn A100"
+        assert len(uploaded_data["processedFiles"]) == 2
+        assert uploaded_data["totalDurationSeconds"] == 42.5
+        assert uploaded_data["baseMetadata"]["plannedProject"] == "Autobahn A100"
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_merges_existing_summary_with_new_results(
         self,
         mock_list: Any,
@@ -181,16 +187,16 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        paths = {entry["document_path"] for entry in uploaded_data["processed_files"]}
+        paths = {entry["documentPath"] for entry in uploaded_data["processedFiles"]}
         assert paths == {"old_doc.pdf", "new_doc.pdf"}
-        assert uploaded_data["total_duration_seconds"] == 20.0
+        assert uploaded_data["totalDurationSeconds"] == 20.0
         mock_delete.assert_awaited_once_with(existing_file_id)
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_new_entry_overrides_existing_with_same_path(
         self,
         mock_list: Any,
@@ -233,16 +239,16 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert len(uploaded_data["processed_files"]) == 1
-        entry = uploaded_data["processed_files"][0]
-        assert entry["document_path"] == "doc.pdf"
-        assert entry["processed_json_file_id"] != stale_json_id
+        assert len(uploaded_data["processedFiles"]) == 1
+        entry = uploaded_data["processedFiles"][0]
+        assert entry["documentPath"] == "doc.pdf"
+        assert entry["processedJsonFileId"] != stale_json_id
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_reconcile_drops_entries_not_in_active_documents(
         self,
         mock_list: Any,
@@ -292,14 +298,14 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        paths = [entry["document_path"] for entry in uploaded_data["processed_files"]]
+        paths = [entry["documentPath"] for entry in uploaded_data["processedFiles"]]
         assert paths == ["kept.pdf"]
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_corrupt_existing_summary_logs_and_proceeds(
         self,
         mock_list: Any,
@@ -332,15 +338,15 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert [e["document_path"] for e in uploaded_data["processed_files"]] == ["doc.pdf"]
-        mock_activity.logger.warning.assert_called()
+        assert [e["documentPath"] for e in uploaded_data["processedFiles"]] == ["doc.pdf"]
+        mock_activity.logger.exception.assert_called_once()
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
-    async def test_delete_old_summary_failure_is_non_fatal(
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_schema_invalid_existing_summary_logs_and_proceeds(
         self,
         mock_list: Any,
         mock_download: Any,
@@ -348,8 +354,117 @@ class TestCreateSummaryFromResults:
         mock_delete: Any,
         mock_activity: Any,
     ) -> None:
-        """Failure to delete the old summary must not raise."""
         mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[_make_dms_file("summary.json")],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.return_value = b'{"processedFiles": "not-a-list"}'
+        upload_result = MagicMock()
+        upload_result.id = uuid4()
+        mock_upload.return_value = upload_result
+
+        await _create_summary_from_results(
+            CreateSummaryFromResultsInput(
+                results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                project_id=uuid4(),
+                base_metadata=None,
+                total_duration_seconds=1.0,
+            )
+        )
+
+        mock_upload.assert_awaited_once()
+        mock_activity.logger.exception.assert_called_once()
+
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_existing_summary_download_failure_propagates(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
+    ) -> None:
+        mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[_make_dms_file("summary.json")],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.side_effect = httpx.ConnectError("DMS unreachable")
+
+        with pytest.raises(httpx.ConnectError):
+            await _create_summary_from_results(
+                CreateSummaryFromResultsInput(
+                    results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                    project_id=uuid4(),
+                    base_metadata=None,
+                    total_duration_seconds=1.0,
+                )
+            )
+
+        mock_upload.assert_not_awaited()
+        mock_delete.assert_not_awaited()
+
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_existing_summary_missing_in_storage_proceeds(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
+    ) -> None:
+        mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[_make_dms_file("summary.json")],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.side_effect = FileNotFoundError("DMS file not found")
+        upload_result = MagicMock()
+        upload_result.id = uuid4()
+        mock_upload.return_value = upload_result
+
+        await _create_summary_from_results(
+            CreateSummaryFromResultsInput(
+                results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                project_id=uuid4(),
+                base_metadata=None,
+                total_duration_seconds=1.0,
+            )
+        )
+
+        uploaded_data = json.loads(mock_upload.call_args.args[0].data)
+        assert [e["documentPath"] for e in uploaded_data["processedFiles"]] == ["doc.pdf"]
+        mock_activity.logger.warning.assert_called()
+
+    @patch("src.utils.summary_file.activity")
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_delete_old_summary_failure_is_non_fatal(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
+        mock_helper_activity: Any,
+    ) -> None:
+        mock_activity.logger = MagicMock()
+        mock_helper_activity.logger = MagicMock()
 
         delete_doc_id = uuid4()
         mock_list.side_effect = _make_list_files_side_effect(
@@ -361,7 +476,7 @@ class TestCreateSummaryFromResults:
         upload_result = MagicMock()
         upload_result.id = uuid4()
         mock_upload.return_value = upload_result
-        mock_delete.side_effect = Exception("DMS delete failed")
+        mock_delete.side_effect = httpx.ConnectError("DMS delete failed")
 
         input_data = CreateSummaryFromResultsInput(
             results=[_make_result("doc.pdf", "doc.pdf", file_id=delete_doc_id)],
@@ -372,14 +487,126 @@ class TestCreateSummaryFromResults:
 
         result = await _create_summary_from_results(input_data)
         assert isinstance(result, SummaryResult)
-        mock_activity.logger.warning.assert_called()
+        assert result.summary_file_id == str(upload_result.id)
+        mock_helper_activity.logger.exception.assert_called_once()
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
-    async def test_no_base_metadata(
-        self, mock_list: Any, mock_upload: Any, mock_activity: Any
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_unexpected_delete_old_summary_error_propagates(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
     ) -> None:
+        mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[_make_dms_file("summary.json")],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.return_value = _make_existing_summary_bytes([])
+        upload_result = MagicMock()
+        upload_result.id = uuid4()
+        mock_upload.return_value = upload_result
+        mock_delete.side_effect = ValueError("bug")
+
+        with pytest.raises(ValueError, match="bug"):
+            await _create_summary_from_results(
+                CreateSummaryFromResultsInput(
+                    results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                    project_id=uuid4(),
+                    base_metadata=None,
+                    total_duration_seconds=1.0,
+                )
+            )
+
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_upload_failure_propagates_and_keeps_old_summary(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
+    ) -> None:
+        mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[_make_dms_file("summary.json")],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.return_value = _make_existing_summary_bytes([])
+        mock_upload.side_effect = RuntimeError("DMS upload failed")
+
+        with pytest.raises(RuntimeError, match="DMS upload failed"):
+            await _create_summary_from_results(
+                CreateSummaryFromResultsInput(
+                    results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                    project_id=uuid4(),
+                    base_metadata=None,
+                    total_duration_seconds=1.0,
+                )
+            )
+
+        mock_delete.assert_not_awaited()
+
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_multiple_summaries_merge_newest_and_delete_all_old_after_upload(
+        self,
+        mock_list: Any,
+        mock_download: Any,
+        mock_upload: Any,
+        mock_delete: Any,
+        mock_activity: Any,
+    ) -> None:
+        mock_activity.logger = MagicMock()
+        doc_id = uuid4()
+        older = _make_dms_file("summary.json", created_at=datetime(2026, 1, 1, tzinfo=UTC))
+        newest = _make_dms_file("summary.json", created_at=datetime(2026, 2, 1, tzinfo=UTC))
+        mock_list.side_effect = _make_list_files_side_effect(
+            summary_files=[older, newest],
+            document_files=[_make_dms_file("doc.pdf", file_id=doc_id)],
+        )
+        mock_download.return_value = _make_existing_summary_bytes([])
+        mock_upload.return_value = MagicMock(id=uuid4())
+        call_order = MagicMock()
+        call_order.attach_mock(mock_upload, "upload_file")
+        call_order.attach_mock(mock_delete, "delete_file")
+
+        await _create_summary_from_results(
+            CreateSummaryFromResultsInput(
+                results=[_make_result("doc.pdf", "doc.pdf", file_id=doc_id)],
+                project_id=uuid4(),
+                base_metadata=None,
+                total_duration_seconds=1.0,
+            )
+        )
+
+        mock_download.assert_awaited_once_with(newest.id)
+        assert [name for name, _args, _kwargs in call_order.mock_calls] == [
+            "upload_file",
+            "delete_file",
+            "delete_file",
+        ]
+        assert [c.args[0] for c in mock_delete.await_args_list] == [newest.id, older.id]
+
+    @patch("src.activities.postprocessing.summary.activity")
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_no_base_metadata(self, mock_list: Any, mock_upload: Any, mock_activity: Any) -> None:
         """Summary is created with null base_metadata when not provided."""
         mock_activity.logger = MagicMock()
         no_meta_doc_id = uuid4()
@@ -402,13 +629,13 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert uploaded_data["base_metadata"] is None
+        assert uploaded_data["baseMetadata"] is None
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_reconcile_refreshes_paths_after_rename(
         self,
         mock_list: Any,
@@ -456,19 +683,19 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert len(uploaded_data["processed_files"]) == 1
-        entry = uploaded_data["processed_files"][0]
-        assert entry["document_path"] == "renamed_doc.pdf"
-        assert entry["document_name"] == "renamed_doc.pdf"
-        assert entry["source_file_id"] == str(renamed_doc_id)
+        assert len(uploaded_data["processedFiles"]) == 1
+        entry = uploaded_data["processedFiles"][0]
+        assert entry["documentPath"] == "renamed_doc.pdf"
+        assert entry["documentName"] == "renamed_doc.pdf"
+        assert entry["sourceFileId"] == str(renamed_doc_id)
         # processed_json_file_id is unchanged — only display fields are refreshed
-        assert entry["processed_json_file_id"] == stale_json_id
+        assert entry["processedJsonFileId"] == stale_json_id
 
     @patch("src.activities.postprocessing.summary.activity")
-    @patch("src.activities.postprocessing.summary.delete_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
     @patch("src.activities.postprocessing.summary.download_file", new_callable=AsyncMock)
-    @patch("src.activities.postprocessing.summary.list_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_existing_entry_without_source_file_id_is_dropped(
         self,
         mock_list: Any,
@@ -518,7 +745,7 @@ class TestCreateSummaryFromResults:
         await _create_summary_from_results(input_data)
 
         uploaded_data = json.loads(mock_upload.call_args.args[0].data)
-        assert len(uploaded_data["processed_files"]) == 1
-        entry = uploaded_data["processed_files"][0]
-        assert entry["processed_json_file_id"] == str(new_json_id)
-        assert entry["source_file_id"] == str(doc_id)
+        assert len(uploaded_data["processedFiles"]) == 1
+        entry = uploaded_data["processedFiles"][0]
+        assert entry["processedJsonFileId"] == str(new_json_id)
+        assert entry["sourceFileId"] == str(doc_id)

@@ -14,15 +14,17 @@ def _bare_client() -> PlausibilityQdrantClient:
 
 class TestInitClaimCollection:
     @pytest.mark.asyncio
-    async def test_skips_creation_when_collection_exists(self) -> None:
+    async def test_skips_creation_but_ensures_indexes_when_collection_exists(self) -> None:
         client = _bare_client()
         client.collection_exists = AsyncMock(return_value=True)  # type: ignore[method-assign]
         create_mock = AsyncMock()
         client.create_collection = create_mock  # type: ignore[method-assign]
+        client.create_payload_index = AsyncMock()  # type: ignore[method-assign]
 
         await client.init_claim_collection()
 
         create_mock.assert_not_awaited()
+        assert client.create_payload_index.await_count > 0  # indexes added later (e.g. superseded) get created
 
     @pytest.mark.asyncio
     async def test_creates_collection_and_indexes(self) -> None:
@@ -34,9 +36,7 @@ class TestInitClaimCollection:
         await client.init_claim_collection()
 
         total_indexes = (
-            len(Config.QDRANT.INDEX_KEYWORDS)
-            + len(Config.QDRANT.INDEX_TEXT)
-            + len(Config.QDRANT.INDEX_BOOLS)
+            len(Config.QDRANT.INDEX_KEYWORDS) + len(Config.QDRANT.INDEX_TEXT) + len(Config.QDRANT.INDEX_BOOLS)
         )
         client.create_collection.assert_awaited_once()
         assert client.create_payload_index.await_count == total_indexes

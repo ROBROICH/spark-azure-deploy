@@ -30,7 +30,7 @@ export function useAction() {
     updater: (draft: NodePayloadByType<T>) => void,
   ) => {
     payloadsCollection.update(node.compositeKey, (draft) => {
-      if (draft.node_type !== node.node_type) {
+      if (draft.nodeType !== node.nodeType) {
         return;
       }
       updater(draft as NodePayloadByType<T>);
@@ -39,17 +39,17 @@ export function useAction() {
 
   const insert = <T extends InsertNodeAction>(action: T) => {
     const id = action.id ?? crypto.randomUUID();
-    const nodeRef = { id, node_type: action.node_type } as const;
+    const nodeRef = { id, nodeType: action.nodeType } as const;
     const now = new Date().toISOString();
 
     const optimisticPayload = {
-      node_type: action.node_type,
+      nodeType: action.nodeType,
       id,
       compositeKey: toCompositeKey(nodeRef),
-      project_id: verfahrenId,
-      is_deleted: false,
-      created_at: now,
-      updated_at: now,
+      projectId: verfahrenId,
+      isDeleted: false,
+      createdAt: now,
+      updatedAt: now,
       ...action.payload,
     };
 

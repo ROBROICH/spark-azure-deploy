@@ -16,6 +16,9 @@ export const SWIMLANE_BREAKPOINTS = {
 
 export type SwimlanesBreakpointToken = keyof typeof SWIMLANE_BREAKPOINTS;
 
+/** Minimum lane width (px) before the swimlane row scrolls instead of shrinking. */
+export const SWIMLANE_MIN_LANE_WIDTH = 330;
+
 // ---------------------------------------------------------------------------
 // Component props
 // ---------------------------------------------------------------------------
@@ -69,6 +72,8 @@ export type SwimlanesLaneProps = {
   /** Content rendered in the lane body. */
   children?: ReactNode;
   className?: string;
+  /** Optional className merged into the lane header container (e.g. `flex-wrap`). */
+  headerClassName?: string;
 };
 
 export type SwimlanesLaneElement = ReactElement<SwimlanesLaneProps>;

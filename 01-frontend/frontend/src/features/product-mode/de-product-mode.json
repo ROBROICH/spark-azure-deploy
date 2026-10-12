@@ -1,0 +1,6 @@
+{
+  "adminMenu": "Admin-Optionen",
+  "openEwms": "In EWMS öffnen",
+  "openSpark": "In SPARK Workflow öffnen",
+  "unavailable": "Der App-Wechsel ist nur auf den Deployments von SPARK Workflow und EWMS verfügbar."
+}

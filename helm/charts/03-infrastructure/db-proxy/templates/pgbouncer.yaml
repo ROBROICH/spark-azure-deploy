@@ -1,0 +1,79 @@
+{{- with .Values.pgbouncer }}
+{{- if .enabled }}
+{{- $name := include "db-proxy.pgbouncerName" $ }}
+{{- $component := "pgbouncer" }}
+{{- $host := required "db-proxy: pgbouncer.server.host is required" .server.host }}
+{{- $secret := required "db-proxy: pgbouncer.auth.existingSecret is required (a Secret with the auth file)" .auth.existingSecret }}
+{{- $config := include "db-proxy.pgbouncerIni" (dict "values" . "host" $host) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "db-proxy.namespace" $ }}
+  labels:
+    {{- include "db-proxy.labels" (dict "root" $ "component" $component) | nindent 4 }}
+data:
+  pgbouncer.ini: |
+    {{- $config | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "db-proxy.namespace" $ }}
+  labels:
+    {{- include "db-proxy.labels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  replicas: {{ .replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "db-proxy.selectorLabels" (dict "root" $ "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      {{- include "db-proxy.podMetadata" (dict "root" $ "component" $component "annotations" (dict "checksum/config" ($config | sha256sum))) | nindent 6 }}
+    spec:
+      {{- include "db-proxy.podCommon" (dict "root" $ "component" $component "values" . "extraPodSecurity" (dict "runAsUser" (int .runAsUser) "runAsGroup" (int .runAsGroup))) | nindent 6 }}
+      containers:
+        - name: pgbouncer
+          image: {{ include "db-proxy.image" (dict "root" $ "image" .image) | quote }}
+          imagePullPolicy: {{ .image.pullPolicy }}
+          command: [/usr/sbin/pgbouncer, /etc/pgbouncer/pgbouncer.ini]
+          ports:
+            - {name: postgres, containerPort: {{ .port }}}
+          readinessProbe:
+            tcpSocket: {port: postgres}
+            periodSeconds: 5
+          livenessProbe:
+            tcpSocket: {port: postgres}
+            periodSeconds: 10
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- include "db-proxy.containerSecurity" (dict "root" $ "values" .) | nindent 12 }}
+          volumeMounts:
+            - {name: config, mountPath: /etc/pgbouncer/pgbouncer.ini, subPath: pgbouncer.ini}
+            - {name: auth, mountPath: /etc/pgbouncer/auth, readOnly: true}
+      volumes:
+        - name: config
+          configMap: {name: {{ $name }}}
+        - name: auth
+          secret: {secretName: {{ $secret }}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "db-proxy.namespace" $ }}
+  labels:
+    {{- include "db-proxy.labels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  selector:
+    {{- include "db-proxy.selectorLabels" (dict "root" $ "component" $component) | nindent 4 }}
+  ports:
+    - {name: tcp-postgres, port: {{ .port }}, targetPort: postgres}
+{{- include "db-proxy.pdb" (dict "root" $ "component" $component "name" $name "values" .) }}
+{{- end }}
+{{- end }}
+

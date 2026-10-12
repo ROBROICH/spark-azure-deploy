@@ -1,5 +1,7 @@
 """Prompt template for Auslegungsergebnis formulation."""
 
+from src.activities.prompt_blocks import closing_block
+
 ef_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht. Deine Aufgabe besteht darin, die Ergebnisse verschiedener juristischer Auslegungsmethoden zu einem konsistenten Gesamtverständnis eines unbestimmten Rechtsbegriffs zusammenzuführen.
@@ -35,23 +37,20 @@ Unbestimmte Rechtsbegriffe sind in ihrer Bedeutung in besonderem Maße unklar, w
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmter Rechtsbegriff:
-{unbestimmter_rechtsbegriff}
-
-Wortlautauslegung:
-{wortlaut}
-
-Systematische Auslegung:
-{systematik}
-
-Historische Auslegung:
-{historie}
-
-Teleologische Auslegung:
-{telos}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Das JSON-Objekt muss ausschließlich den Schlüssel `auslegung` mit einem String-Wert enthalten. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmter Rechtsbegriff:",
+    "{unbestimmter_rechtsbegriff}",
+    "",
+    "Wortlautauslegung:",
+    "{wortlaut}",
+    "",
+    "Systematische Auslegung:",
+    "{systematik}",
+    "",
+    "Historische Auslegung:",
+    "{historie}",
+    "",
+    "Teleologische Auslegung:",
+    "{telos}",
+    output_constraint="Das JSON-Objekt muss ausschließlich den Schlüssel `auslegung` mit einem String-Wert enthalten.",
+)

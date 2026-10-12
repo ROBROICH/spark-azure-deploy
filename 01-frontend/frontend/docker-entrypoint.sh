@@ -19,6 +19,8 @@ SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE_PLACEHOLDER="__VITE_SYSTEM_LOAD_DISABLE
 ENABLE_DOCUMENT_VERSIONING_FEATURE_PLACEHOLDER="__VITE_ENABLE_DOCUMENT_VERSIONING_FEATURE__"
 DANGEROUS_ENABLE_ROLE_SWITCHER_PLACEHOLDER="__VITE_DANGEROUS_ENABLE_ROLE_SWITCHER__"
 ALLOW_DEV_MODE_PLACEHOLDER="__ALLOW_DEV_MODE__"
+PRODUCT_MODE_PLACEHOLDER="__VITE_PRODUCT_MODE__"
+PRODUCT_DOMAIN_PLACEHOLDER="__VITE_PRODUCT_DOMAIN__"
 
 # 1) Validate required runtime env var.
 if [ -z "${VITE_API_BASE_URL:-}" ]; then
@@ -29,6 +31,20 @@ fi
 # 2) Validate expected HTML file exists.
 if [ ! -f "$INDEX_HTML_PATH" ]; then
   echo "ERROR: Cannot find $INDEX_HTML_PATH"
+  exit 1
+fi
+
+# 2b) Validate the optional product mode before any substitution.
+# Missing or blank means the SPARK default; any other nonempty value must be
+# exactly 'spark' or 'ewms'. Surrounding whitespace is trimmed the same way
+# the frontend resolver trims it: newlines and tabs are mapped to spaces
+# first so sed can see them, then edge spaces are removed. Internal
+# whitespace stays part of the value and fails validation below.
+PRODUCT_MODE=$(printf '%s' "${VITE_PRODUCT_MODE:-}" | tr '\n\t\r' '   ' | sed 's/^ *//; s/ *$//')
+if [ -z "$PRODUCT_MODE" ]; then
+  PRODUCT_MODE="spark"
+elif [ "$PRODUCT_MODE" != "spark" ] && [ "$PRODUCT_MODE" != "ewms" ]; then
+  echo "ERROR: VITE_PRODUCT_MODE must be 'spark' or 'ewms', got '${VITE_PRODUCT_MODE}'"
   exit 1
 fi
 
@@ -49,6 +65,7 @@ ALLOW_DEV_MODE=${ALLOW_DEV_MODE:-false}
 TEMPORAL_UI_BASE_URL=${VITE_TEMPORAL_UI_BASE_URL:-}
 ALLOWED_DOWNLOAD_ORIGINS=${VITE_ALLOWED_DOWNLOAD_ORIGINS:-}
 ALLOWED_UPLOAD_ORIGINS=${VITE_ALLOWED_UPLOAD_ORIGINS:-}
+PRODUCT_DOMAIN=${VITE_PRODUCT_DOMAIN:-}
 
 ESCAPED_SENTRY_DSN=$(printf '%s' "$SENTRY_DSN" | sed 's/[&|]/\\&/g')
 ESCAPED_SENTRY_ENVIRONMENT=$(printf '%s' "$SENTRY_ENVIRONMENT" | sed 's/[&|]/\\&/g')
@@ -62,6 +79,8 @@ ESCAPED_ALLOW_DEV_MODE=$(printf '%s' "$ALLOW_DEV_MODE" | sed 's/[&|]/\\&/g')
 ESCAPED_TEMPORAL_UI_BASE_URL=$(printf '%s' "$TEMPORAL_UI_BASE_URL" | sed 's/[&|]/\\&/g')
 ESCAPED_ALLOWED_DOWNLOAD_ORIGINS=$(printf '%s' "$ALLOWED_DOWNLOAD_ORIGINS" | sed 's/[&|]/\\&/g')
 ESCAPED_ALLOWED_UPLOAD_ORIGINS=$(printf '%s' "$ALLOWED_UPLOAD_ORIGINS" | sed 's/[&|]/\\&/g')
+ESCAPED_PRODUCT_MODE=$(printf '%s' "$PRODUCT_MODE" | sed 's/[&|]/\\&/g')
+ESCAPED_PRODUCT_DOMAIN=$(printf '%s' "$PRODUCT_DOMAIN" | sed 's/[&|]/\\&/g')
 
 # 4) Replace placeholder in index.html with the runtime value.
 sed -i "s|$API_BASE_URL_PLACEHOLDER|$ESCAPED_API_BASE_URL|g" "$INDEX_HTML_PATH"
@@ -78,6 +97,8 @@ sed -i "s|$SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE_PLACEHOLDER|$ESCAPED_SYSTEM_
 sed -i "s|$ENABLE_DOCUMENT_VERSIONING_FEATURE_PLACEHOLDER|$ESCAPED_ENABLE_DOCUMENT_VERSIONING_FEATURE|g" "$INDEX_HTML_PATH"
 sed -i "s|$DANGEROUS_ENABLE_ROLE_SWITCHER_PLACEHOLDER|$ESCAPED_DANGEROUS_ENABLE_ROLE_SWITCHER|g" "$INDEX_HTML_PATH"
 sed -i "s|$ALLOW_DEV_MODE_PLACEHOLDER|$ESCAPED_ALLOW_DEV_MODE|g" "$INDEX_HTML_PATH"
+sed -i "s|$PRODUCT_MODE_PLACEHOLDER|$ESCAPED_PRODUCT_MODE|g" "$INDEX_HTML_PATH"
+sed -i "s|$PRODUCT_DOMAIN_PLACEHOLDER|$ESCAPED_PRODUCT_DOMAIN|g" "$INDEX_HTML_PATH"
 
 # 5) Start nginx in foreground.
 exec nginx -g 'daemon off;'

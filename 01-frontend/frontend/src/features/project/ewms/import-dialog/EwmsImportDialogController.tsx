@@ -96,7 +96,6 @@ export const EwmsImportDialogController = (
 
     await Promise.allSettled([
       workflowsManager.refetch({
-        includeChildren: true,
         workflowType: WORKFLOW_TYPE_FILE_PROCESSING,
       }),
       workflowsManager.refetchRunning(),
@@ -127,6 +126,10 @@ export const EwmsImportDialogController = (
     processingWorkflow: EwmsZipProcessingWorkflow,
   ) => {
     setIsReviewingStartedImport(true);
+
+    if (!processingWorkflow.workflowId) {
+      throw new Error('EWMS ZIP processing did not start a workflow.');
+    }
 
     await workflowsManager.observeStartedWorkflow(
       processingWorkflow.workflowId,

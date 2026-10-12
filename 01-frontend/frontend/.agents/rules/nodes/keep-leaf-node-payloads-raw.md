@@ -1,3 +1,7 @@
+---
+ruleId: nodes/keep-leaf-node-payloads-raw
+---
+
 # Keep Leaf Node Payloads Raw
 
 - For actual renderable node items such as `topic`, `dokument`, or `fundstelle`, pass the raw node payload object to the leaf component instead of decomposing it into temporary scalar props.

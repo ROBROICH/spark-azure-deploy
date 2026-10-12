@@ -1,0 +1,219 @@
+# =============================================================================
+# db-init — base values
+# =============================================================================
+#
+# Opt-in initialization of the environment's PostgreSQL databases and of
+# SpiceDB. NOTHING happens unless asked: a database gets a Job only when at
+# least one of its switches is set:
+#
+#   create   create the database (owned by `owner`) when it is missing
+#   drop     none | database | tables — the dedicated destructive switch:
+#              database  DROP DATABASE … WITH (FORCE), then CREATE DATABASE
+#              tables    drop every non-system schema (CASCADE) inside the
+#                        database and recreate an empty `public` schema
+#   restore  true: load the database's `dump` after create/drop.
+#   extensions  list of extensions the admin creates in the database
+#            (CREATE EXTENSION IF NOT EXISTS … CASCADE) — for extensions the
+#            owner role may not create itself (managed servers reserve most
+#            of them to the admin). Requests a Job on its own as well.
+#
+# `dump` is where the database's dump lives (gs://… via Workload Identity, or
+# https://… e.g. a signed URL) — configuring it requests nothing. Format is
+# detected:
+#              pg_dump custom (-Fc)   → pg_restore --no-owner --no-privileges
+#              plain SQL (.sql[.gz])  → psql as the owner role (dump with
+#                                       --no-owner --no-privileges)
+#            A restore into a database that still holds tables fails unless
+#            drop is set — nothing is merged silently.
+#
+# The Jobs run as pre-install/pre-upgrade hooks (ArgoCD: PreSync), i.e. before
+# the workloads start; they use the admin credentials (see admin). The SpiceDB
+# restore (a `zed backup` file) runs as post-install/post-upgrade hook once
+# SpiceDB answers.
+#
+# Temporal databases are recreated rather than restored: list them with
+# create (and drop: database to rebuild) but no restore.
+# =============================================================================
+
+global:
+  stage:
+    name: ''
+
+# Chart-local namespace override; default: global.namespaceOverride, else the
+# release namespace.
+namespaceOverride: ''
+
+# Safety guard: every database with drop or restore must match this regular
+# expression (rendered with tpl). The default only admits databases carrying
+# the environment's stage name as prefix (e.g. <stage>-application), so an
+# environment can never drop another environment's data. Empty disables the
+# guard.
+guard:
+  namePattern: '^{{ .Values.global.stage.name | regexQuoteMeta }}[-_]'
+  # Trusted dump locations (regular expression on the URL, tpl): a dump runs
+  # in the admin's session on a server shared by environments. Required as
+  # soon as anything is restored. Dumps that switch roles or reconnect
+  # (SET/RESET ROLE, SESSION AUTHORIZATION, \connect) are refused regardless.
+  dumpPattern: ''
+
+# PostgreSQL server all databases live on. sslmode is libpq's: require
+# (default) encrypts without verifying the server, verify-full also checks its
+# certificate; disable only for servers reached over a private, trusted path.
+connection:
+  host: ''
+  port: 5432
+  sslmode: require
+
+# Admin credentials, materialized from the secret store by a hook ExternalSecret (the
+# normal ExternalSecrets of the release do not exist yet when pre-install
+# hooks run). The admin must be able to act as the database owners (member
+# of the owner roles) and to create databases.
+admin:
+  # Use an existing Secret (in the release namespace) instead of the
+  # ExternalSecret below: {name, usernameKey (default username),
+  # passwordKey (default password)}. It must exist before the pre-install hooks
+  # run.
+  existingSecret:
+    name: ''
+    usernameKey: username
+    passwordKey: password
+  secretStore:
+    name: ''
+    kind: ClusterSecretStore
+  remoteKey: ''
+  usernameProperty: admin_username
+  passwordProperty: admin_password
+
+# ServiceAccount of the Jobs (a hook ServiceAccount, for the same reason).
+# Dumps are fetched over https:// (e.g. presigned/signed URLs) on any
+# cluster. gs:// URLs and the teardown's object removal use the GCS client
+# with the pod's Google identity, which on GKE comes from Workload Identity:
+# gcpServiceAccount: GSA bound to this KSA (rendered as the
+#   iam.gke.io/gcp-service-account annotation) — it needs
+#   storage.objectViewer on the dump bucket (storage.objectAdmin for the
+#   teardown) and a workloadIdentityUser binding for
+#   <namespace>/<release>-db-init.
+# annotations: any further ServiceAccount annotations (e.g. the identity
+#   binding of another platform).
+serviceAccount:
+  gcpServiceAccount: ''
+  annotations: {}
+
+images:
+  postgres: postgres:16-bookworm
+  fetch: gcr.io/google.com/cloudsdktool/google-cloud-cli:slim
+  # zed ≥ 1.0 (`zed backup create|restore`); the -debug variant has the
+  # shell the act-once check needs
+  zedDebug: authzed/zed:v1.2.1-debug
+
+imagePullSecrets: []
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: '1'
+    memory: 1Gi
+
+# Scratch volume for the downloaded dump.
+workVolume:
+  sizeLimit: 20Gi
+
+# Drop/restore requests act once per database: the Job records the request
+# (drop mode + dump URL + runId) as the database comment and skips an
+# identical request later, so a request left in the values (or re-applied
+# on every GitOps sync) does not wipe the database again. Set a new runId
+# to repeat the same request deliberately.
+runId: ''
+
+# Job retries / timeout.
+backoffLimit: 1
+activeDeadlineSeconds: 3600
+
+# Defaults merged into every database entry.
+# Switch whole requests here (e.g. --set defaults.restore=true,
+# defaults.drop=database); a database's own keys win.
+# A chart-wide restore skips databases without a dump; give such databases
+# (e.g. Temporal, which is recreated by its schema jobs) drop: none to keep
+# them out of a chart-wide drop as well.
+defaults:
+  owner: ''
+  create: false
+  drop: none
+  restore: false
+
+# One entry per database, keyed freely. Per entry: name (tpl), owner (tpl;
+# default defaults.owner), dump (tpl), create, drop, restore, extensions,
+# enabled (default true). Example:
+#   databases:
+#     application:
+#       name: '{{ .Values.global.stage.name }}-application'
+#       dump: gs://my-db-dumps/application.dump
+#       create: true
+databases: {}
+
+# Qdrant collections: restore a snapshot (Qdrant's snapshot file, e.g. from
+# POST /collections/<name>/snapshots) into the collection — the upload
+# replaces it. A collection acts only on a restore request (its own restore,
+# or defaults.restore); defaults.drop / drop additionally deletes it first.
+# Collections without a snapshot are left alone (the writer modules create
+# them lazily). Acts once per request like the databases (marker: the alias
+# <collection>--db-init-<id>). Names must match guard.namePattern, snapshot
+# URLs guard.dumpPattern.
+#   collections:
+#     data:
+#       name: '{{ .Values.global.stage.name }}-data'
+#       snapshot: gs://my-db-dumps/qdrant/data.snapshot
+qdrant:
+  url: ''
+  # Secret with the API key (optional): {name, key}
+  apiKeySecret: {}
+  collections: {}
+
+# Teardown of an environment (e.g. from a CI job once the environment's
+# workloads have been removed): with
+# teardown.enabled the chart renders ONLY a teardown Job, which drops every
+# database listed under databases, deletes every collection listed under
+# qdrant.collections and removes every object below objectPrefixes — GCS
+# only (gs://, through the pod's Google identity, see serviceAccount; leave
+# objectPrefixes empty elsewhere). Safety: confirm must repeat
+# global.stage.name, every name must match guard.namePattern, every prefix
+# prefixPattern.
+teardown:
+  enabled: false
+  confirm: ''
+  objectPrefixes: []
+  prefixPattern: '^gs://[^/]+/{{ .Values.global.stage.name | regexQuoteMeta }}/'
+
+# SpiceDB relationships (zed backup file, e.g. from `zed backup create`
+# against another environment's SpiceDB), restored with
+# --conflict-strategy touch into the running SpiceDB once it answers.
+spicedb:
+  dump: ''
+  restore: false
+  # database whose comment records the applied restore request (act-once):
+  # the SpiceDB datastore database. Never give it drop/restore in databases —
+  # the spicedb-operator does not migrate a dropped datastore again.
+  markerDatabase: ''
+  endpoint: spicedb:50051
+  insecure: true
+  tokenSecret:
+    name: spicedb-config
+    key: preshared_key
+  # how long to wait for SpiceDB to accept connections before failing (Helm
+  # CLI users: run with --timeout 60m, the 5m default is too short for large
+  # restores)
+  waitSeconds: 900
+  # restore attempts while SpiceDB finishes starting (Job backoffLimit)
+  backoffLimit: 6
+
+# Restricted Pod Security Standard for the Jobs (map): non-root uid/gid 65532,
+# RuntimeDefault seccomp, no privilege escalation, all capabilities dropped,
+# read-only root filesystem with /tmp as an emptyDir and HOME=/tmp.
+# restricted: null follows global.podSecurity.restricted (default true);
+# podSecurityContext / securityContext override single keys.
+podSecurity:
+  restricted: null
+podSecurityContext: {}
+securityContext: {}

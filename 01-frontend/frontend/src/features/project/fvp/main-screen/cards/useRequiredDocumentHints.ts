@@ -1,8 +1,6 @@
-import { documentAssignmentsCollection } from '@/features/project/fvp/main-screen/data/collections/documentAssignments.collection';
+import { useFormalDocumentSummary } from '../data/read-model/useDocuments';
 import { useRequiredDocumentTypes } from '@/features/project/fvp/main-screen/data/read-model/useRequiredDocuments';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import { getRequestItemSourceRef } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { useRequestSources } from '@/features/project/nachforderungen/data/requestQueries';
 
 export type RequiredDocumentHintStatus =
   | 'open'
@@ -33,38 +31,20 @@ export const useRequiredDocumentHints = (projectId: string) => {
     data: assignments,
     isLoading: assignmentsLoading,
     isError: assignmentsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ rows: documentAssignmentsCollection })
-      .where(({ rows }) => eq(rows.projectId, projectId)),
-  );
+  } = useFormalDocumentSummary(projectId);
 
   const {
-    data: requestItems,
+    data: sources = [],
     isLoading: requestItemsLoading,
     isError: requestItemsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, projectId)),
-  );
+  } = useRequestSources(projectId);
 
-  const assignedTypeIds = new Set(
-    assignments
-      .map((row) => row.documentTypeId)
-      .filter((id): id is string => id !== null),
-  );
+  const assignedTypeIds = new Set(assignments?.assignedTypeIds);
 
   const requestedTypeIds = new Set(
-    requestItems
-      .map((item) => {
-        const ref = getRequestItemSourceRef(item);
-        if (!ref || ref.type !== 'requiredDocuments') {
-          return null;
-        }
-        return ref.itemId ?? null;
-      })
-      .filter((id): id is string => id !== null),
+    sources.flatMap((ref) =>
+      ref.type === 'requiredDocuments' ? [ref.itemId] : [],
+    ),
   );
 
   const hints: RequiredDocumentHint[] = documentTypes.map((type) => {

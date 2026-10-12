@@ -107,14 +107,11 @@ vi.mock(
   }),
 );
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    orchestrateFvpWorkflowWorkflowsFormalePruefungPostMutation: vi.fn(
-      () => ({}),
-    ),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartFormalCompletenessWorkflowMutation: vi.fn(
+    () => ({}),
+  ),
+}));
 
 vi.mock(
   '@/features/workflow-runtime/workflow-status/useRunningWorkflow',

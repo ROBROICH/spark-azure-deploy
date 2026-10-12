@@ -14,31 +14,29 @@ import {
 const buildSummaries = (): NodeSummary[] => [
   {
     id: 'topic-1',
-    node_type: 'topic',
+    nodeType: 'topic',
     parents: [],
   },
   {
     id: 'topic-norm-1',
-    node_type: 'topic_norm',
-    parents: [{ id: 'topic-1', node_type: 'topic' }],
+    nodeType: 'topic_norm',
+    parents: [{ id: 'topic-1', nodeType: 'topic' }],
   },
   {
     id: 'norm-1',
-    node_type: 'norm',
-    parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+    nodeType: 'norm',
+    parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
   },
   {
     id: 'satz-1',
-    node_type: 'satz',
-    parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+    nodeType: 'satz',
+    parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
   },
   {
     id: 'dokument-1',
-    node_type: 'dokument',
+    nodeType: 'dokument',
     parents: [],
-    frontend_parent_ids: [
-      toCompositeKey({ id: 'topic-1', node_type: 'topic' }),
-    ],
+    frontendParentIds: [toCompositeKey({ id: 'topic-1', nodeType: 'topic' })],
   },
 ];
 
@@ -47,16 +45,16 @@ describe('projectNodeGraph logic', () => {
     const index = buildProjectNodeIndex([
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         parents: [],
       },
       {
         id: 'topic-norm-1',
-        node_type: 'topic_norm',
-        frontend_parent_ids: [
-          toCompositeKey({ id: 'topic-1', node_type: 'topic' }),
+        nodeType: 'topic_norm',
+        frontendParentIds: [
+          toCompositeKey({ id: 'topic-1', nodeType: 'topic' }),
         ],
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       },
     ]);
 

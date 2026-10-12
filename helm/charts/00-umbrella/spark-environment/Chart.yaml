@@ -1,0 +1,23 @@
+apiVersion: v2
+name: spark-environment
+description: Top-level umbrella chart for the full SPARK Workflow environment
+type: application
+version: 0.4.0
+appVersion: "1.0.0"
+dependencies:
+  - name: agent-services
+    version: "0.3.0"
+    repository: "file://../agent-services"
+    condition: agent-services.enabled
+  - name: backend-services
+    version: "0.4.0"
+    repository: "file://../backend-services"
+    condition: backend-services.enabled
+  - name: frontend-services
+    version: "0.3.0"
+    repository: "file://../frontend-services"
+    condition: frontend-services.enabled
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

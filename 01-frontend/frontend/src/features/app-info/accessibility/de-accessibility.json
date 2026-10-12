@@ -2,36 +2,14 @@
   "title": "Erklärung zur Barrierefreiheit",
   "introduction": {
     "applicationPrefix": "Diese Erklärung zur Barrierefreiheit gilt für die unter",
-    "applicationSuffix": "veröffentlichte SPARK Workflow Applikation.",
+    "applicationSuffix": "veröffentlichte Applikation des BMDS.",
     "legalBasis": "Als öffentliche Stelle im Sinne der Richtlinie (EU) 2016/2102 sind wir bemüht, unsere Websites und mobilen Anwendungen im Einklang mit den Bestimmungen des Behindertengleichstellungsgesetzes des Bundes (BGG) sowie der Barrierefreien-Informationstechnik-Verordnung (BITV 2.0) zur Umsetzung der Richtlinie (EU) 2016/2102 barrierefrei zugänglich zu machen."
   },
   "conformance": {
     "heading": "Stand der Vereinbarkeit mit den Anforderungen",
     "requirements": "Die Anforderungen der Barrierefreiheit ergeben sich aus §§ 3 Absätze 1 bis 4 und 4 der BITV 2.0, die auf der Grundlage von § 12d BGG erlassen wurde.",
-    "review": "Die Überprüfung der Einhaltung der Anforderungen beruht auf einer im Mai 2026 vorgenommenen Bewertung nach den gesetzlichen Vorgaben und weltweiten Normen (EN 301 549, BITV 2.0).",
-    "result": "Aufgrund der Überprüfung ist die Website mit den zuvor genannten Anforderungen wegen der folgenden Ausnahmen teilweise vereinbar.",
-    "exceptionsIntro": "Die nachstehend aufgeführten Inhalte sind zum Stand 25.05.2025 noch nicht vollständig barrierefrei:",
-    "exceptions": {
-      "visualHeadings": "Visuell erkennbare Überschriften wurden teilweise nicht als solche ausgezeichnet.",
-      "lists": "Listen sind teilweise nicht als solche ausgezeichnet.",
-      "formLabels": "Formularfelder haben teilweise keine technisch hinterlegte Beschriftung.",
-      "autocomplete": "Technische Ausfüllhilfen werden nicht ausreichend unterstützt (autocomplete-Funktion).",
-      "textContrast": "Der Kontrast zwischen Text- und Hintergrundfarbe ist teilweise nicht ausreichend.",
-      "graphicContrast": "Die Kontrastanforderungen für grafische Inhalte sind teilweise nicht erfüllt.",
-      "zoom": "Nach der Vergrößerung des Textes mit Hilfe der Zoom-Funktion des Browsers sind Inhalte und Funktionen der Website teilweise nicht nutzbar.",
-      "skipLinks": "Die Seitenstruktur ist nicht vollständig durch Sprungmarken oder andere Mechanismen zum Überspringen von Bereichen abgebildet.",
-      "keyboardFocus": "Bei der Navigation mittels Tastatur ist der Fokus teilweise nicht gut oder gar nicht sichtbar.",
-      "keyboardScreenreaderControls": "Funktionen und Bedienelemente sind teilweise nicht erwartungskonform mit Tastatur bzw. Screenreader bedienbar (z. B. Editor, Dokumentenverzeichnis).",
-      "timeLimit": "Es ist eine Zeitbegrenzung vorhanden, die nicht verlängert oder deaktiviert werden kann.",
-      "formErrorsDetectable": "Fehlermeldungen in Formularen sind für assistive Technologien nicht ermittelbar.",
-      "formErrorsPersistent": "Fehlermeldungen in Formularen verschwinden vor der Behebung der Fehler.",
-      "controlNameRoleValue": "Für Bedienelemente sind die erforderlichen Informationen zu Name, Rolle oder Wert für assistive Technologien teilweise nicht ermittelbar.",
-      "pdf": "Nicht alle PDF-Dokumente sind barrierefrei."
-    }
-  },
-  "reason": {
-    "heading": "Begründung",
-    "text": "Die Applikation „SPARK Workflow“ befindet sich aktuell im Aufbau. Es wird aktiv an den bekannten Hürden gearbeitet. Potentiell sind zum jetzigen Zeitpunkt einige der genannten Inhalte bereits behoben. Wir sind bemüht, alle Hürden für Menschen mit Behinderung zeitnah zu beseitigen."
+    "review": "Die Überprüfung der Einhaltung der Anforderungen erfolgte durch das ITZBund und beruht auf einer zwischen Juni und September 2026 vorgenommenen Bewertung nach den gesetzlichen Vorgaben und weltweiten Normen (EN 301 549, BITV 2.0).",
+    "result": "Aufgrund der Überprüfung ist die Website mit den zuvor genannten Anforderungen vereinbar und somit BITV-konform."
   },
   "feedback": {
     "heading": "Kontakt und Feedback-Möglichkeit",
@@ -41,7 +19,7 @@
   },
   "creation": {
     "heading": "Datum der Erstellung",
-    "text": "Diese Erklärung wurde am 26.05.2026 erstellt."
+    "text": "Diese Erklärung wurde am 06.10.2026 erstellt."
   },
   "arbitration": {
     "heading": "Schlichtungsverfahren",

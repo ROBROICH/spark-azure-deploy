@@ -1,3 +1,7 @@
+---
+ruleId: api-integration/use-usequery-only-when-tanstack-db-collection-does-not-fit
+---
+
 # Use useQuery Only When a TanStack DB Collection Does Not Fit
 
 - Do not fetch data with `useEffect` and `fetch`.

@@ -1,4 +1,17 @@
+import defusedxml.ElementTree as ET
+import pytest
 from db_pipelines.parsers.utils.xml_sentence_split import process_absatz
+
+# Reported verbatim in #223: § 13 Absatz 1 KSG, whose last sentence carries a
+# subscripted 2 inside the word "CO2". Kept inline rather than in the shared
+# test_saetze.xml fixture so the exact reported wording stays next to the
+# assertion about it.
+KSG_13_ABSATZ_1_SATZ_3 = (
+    "<P>Bei der Planung, Auswahl und Durchführung von Investitionen und bei der "
+    "Beschaffung auf Bundesebene ist für die Vermeidung oder Verursachung von "
+    "Treibhausgasemissionen ein CO<SUB>2</SUB>-Preis, mindestens der nach § 10 Absatz 2 "
+    "Brennstoff-Emissionshandelsgesetz gültige Mindestpreis oder Festpreis zugrunde zu legen.</P>"
+)
 
 
 def test_process_absatz_nested(load_absatz):
@@ -34,7 +47,7 @@ def test_process_absatz_end_text(load_absatz):
     result = process_absatz(test_absatz)
     sentences = result.saetze
     assert len(sentences) == 2
-    assert "des Projekts Spark Workflow eingehalten worden sind" in sentences[0].satz_text
+    assert "des Projekts SPARK Workflow eingehalten worden sind" in sentences[0].satz_text
     assert "der Auftraggeber eingehalten worden sind" in sentences[1].satz_text
 
     # § 2 Abs. 2: list with a shared endtext, followed by a new sentence
@@ -107,3 +120,54 @@ def test_process_satz_split(load_absatz):
     # dates and ALL CAPS references stay within a single sentence
     assert "20. Juli 2022 (BGBl. I S. 1353)" in sentences[1].satz_text
     assert "8. Mai 2024 (BGBl. 2024 I Nr. 151)" in sentences[1].satz_text
+
+
+def test_subscript_inside_a_word_does_not_split_the_sentence():
+    """§ 13 Absatz 1 KSG must end with one complete Satz 3 (#223)
+
+    The subscripted 2 of "CO2" used to cut the sentence at the element
+    boundary, producing "... ein CO", a fragment carrying the raw "<SUB>2</SUB>"
+    markup, and a duplicate of the remainder.
+    """
+    absatz = process_absatz(ET.fromstring(KSG_13_ABSATZ_1_SATZ_3))
+    saetze = absatz.saetze
+
+    assert len(saetze) == 1
+    assert saetze[0].satz_text == (
+        "Bei der Planung, Auswahl und Durchführung von Investitionen und bei der "
+        "Beschaffung auf Bundesebene ist für die Vermeidung oder Verursachung von "
+        "Treibhausgasemissionen ein CO2-Preis, mindestens der nach § 10 Absatz 2 "
+        "Brennstoff-Emissionshandelsgesetz gültige Mindestpreis oder Festpreis "
+        "zugrunde zu legen."
+    )
+
+
+def test_inline_markup_is_never_stored_verbatim():
+    """no inline element may reach the stored text as markup"""
+    absatz = process_absatz(ET.fromstring("<P>Der <B>Antrag</B> wurde geprüft.</P>"))
+
+    assert [s.satz_text for s in absatz.saetze] == ["Der Antrag wurde geprüft."]
+
+
+def test_real_sentence_boundaries_still_split():
+    """the fix must not glue genuinely separate sentences together"""
+    absatz = process_absatz(ET.fromstring("<P>Erster Satz. Zweiter Satz mit CO<SUB>2</SUB>-Wert.</P>"))
+
+    assert [s.satz_text for s in absatz.saetze] == [
+        "Erster Satz.",
+        "Zweiter Satz mit CO2-Wert.",
+    ]
+
+
+@pytest.mark.parametrize(
+    ("xml", "expected"),
+    [
+        ("<P>(1) Der <B>Antrag</B> wurde geprüft.</P>", "Der Antrag wurde geprüft."),
+        ("<P>(1) Ein CO<SUB>2</SUB>-Preis gilt.</P>", "Ein CO2-Preis gilt."),
+    ],
+)
+def test_numbered_paragraph_preserves_inline_word_boundaries(xml: str, expected: str) -> None:
+    absatz = process_absatz(ET.fromstring(xml))
+
+    assert absatz.absatz_nr == "1"
+    assert [satz.satz_text for satz in absatz.saetze] == [expected]

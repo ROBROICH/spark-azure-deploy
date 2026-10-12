@@ -33,7 +33,7 @@ vi.mock('@/db/nodes/transactions/payloadUpdate.transaction', () => ({
 
 describe('useAction', () => {
   it('deletes node payloads by the payload composite key', () => {
-    const nodeRef = { id: 'topic-1', node_type: 'topic' } as const;
+    const nodeRef = { id: 'topic-1', nodeType: 'topic' } as const;
     const node = {
       ...nodeRef,
       compositeKey: toCompositeKey(nodeRef),

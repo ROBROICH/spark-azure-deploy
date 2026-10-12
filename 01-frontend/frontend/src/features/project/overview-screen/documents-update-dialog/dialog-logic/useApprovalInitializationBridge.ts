@@ -1,8 +1,7 @@
 import type {
   WorkflowStatusEnum,
-  ZipApprovalStatus,
   ZipFileResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 import { experimentalRouteRemount } from '@/integrations/router/routeRemount';
 import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
@@ -26,7 +25,7 @@ export type UseApprovalInitializationBridgeParams = {
   verfahrenId: string;
   workflowsManager: RunningWorkflowsRefetcher;
   terminalStatus: WorkflowStatusEnum | undefined;
-  terminalApprovalStatus: ZipApprovalStatus | null | undefined;
+  terminalApprovalStatus: ZipFileResponse['approvalStatus'] | undefined;
   setPhase: (phase: UploadPhase) => void;
   setProjectId: (id: string | null) => void;
   setZipFileId: (id: string | null) => void;
@@ -39,14 +38,14 @@ export type UseApprovalInitializationBridgeParams = {
 type CompletionInvalidationParams = {
   phase: UploadPhase;
   terminalStatus: WorkflowStatusEnum | undefined;
-  terminalApprovalStatus: ZipApprovalStatus | null | undefined;
+  terminalApprovalStatus: ZipFileResponse['approvalStatus'] | undefined;
   zipFileId: string | null;
   projectId: string | null;
   workflowsManager: RunningWorkflowsRefetcher;
 };
 
 const hasCommittedProjectVersion = (
-  approvalStatus: ZipApprovalStatus | null | undefined,
+  approvalStatus: ZipFileResponse['approvalStatus'] | undefined,
 ) =>
   approvalStatus === null ||
   approvalStatus === undefined ||

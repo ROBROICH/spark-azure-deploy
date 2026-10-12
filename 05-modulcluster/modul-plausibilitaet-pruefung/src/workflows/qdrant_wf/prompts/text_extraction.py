@@ -11,7 +11,8 @@ Dies ist der erste Schritt einer Pipeline zur **Widerspruchserkennung** zwischen
 Du erhältst mehrere Text-Chunks aus demselben Dokument. Für jeden relevanten Sachverhalt:
 1. Extrahiere die **exakten wörtlichen Zitate** (quotes) — ein oder mehrere Sätze, die den Sachverhalt belegen.
 2. Formuliere daraus einen **atomaren, selbsterklärenden Fach-Fakt** (claim).
-3. Ordne beides dem Quell-Chunk zu (chunk_id).
+3. Benenne das **Objekt** (objekt), über das der Fakt eine Aussage macht — wörtlich aus dem Text, möglichst mit der Kennung, die diese Instanz von anderen unterscheidet (Bauwerksnummer, Maßnahmen-Nr., Beckenbezeichnung, Straßennummer, Artname, Variantenbezeichnung, Flurstück). Höchstens 60 Zeichen. Gibt es kein benanntes Objekt, leer lassen.
+4. Ordne alles dem Quell-Chunk zu (chunk_id).
 
 # WAS IST EIN KEY-CLAIM?
 Ein Satz (oder zusammenhängende Satzgruppe), der eine inhaltliche Aussage zum Vorhaben enthält. Im Zweifel: EXTRAHIEREN.
@@ -47,12 +48,13 @@ JSON-Array "chunks": [{"chunk_id": 1, "text": "..."}]
 
 # OUTPUT
 Flache JSON-Liste — ein Objekt pro Claim:
-{"claims": [{"chunk_id": 1, "quotes": ["<exaktes Zitat 1>", "<exaktes Zitat 2>"], "claim": "<atomarer Fakt>"}]}
+{"claims": [{"chunk_id": 1, "quotes": ["<exaktes Zitat 1>", "<exaktes Zitat 2>"], "claim": "<atomarer Fakt>", "objekt": "<Name/Kennung des Objekts oder leer>"}]}
 
 Regeln:
 - chunk_id: Nummer des Quell-Chunks.
 - quotes: Liste exakter wörtlicher Zitate. Kein Wort ändern. Meistens 1 Zitat, bei zusammengehörenden Sätzen mehrere.
 - claim: Atomarer, selbsterklärend formulierter Fakt — verschmilzt alle quotes zu einem Sachverhalt.
+- objekt: Wörtlicher Ausschnitt, der das Bezugsobjekt benennt, bevorzugt mit Kennung ("RRB 3", "BW 3.02", "Maßnahme A 4.3", "Zauneidechse", "B 51 alt"). Keine Zahlenwerte des Fakts selbst. Leer, wenn der Fakt kein benanntes Objekt hat.
 - Nutze Kontext anderer Chunks für Referenz-Auflösung, ordne aber nur dem Quell-Chunk zu.
 - Kein Text außerhalb von JSON.
 
@@ -63,7 +65,7 @@ INPUT:
 [{"chunk_id": 1, "text": "Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist. Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren. Angenommen werden zwei Liefersektionen mit den Bahnhöfen Alpha und Beta."}, {"chunk_id": 2, "text": "Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard Muster et al. (2020). Dabei wurden im Untersuchungsraum 47 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Beispielregion."}]
 
 OUTPUT:
-{"claims": [{"chunk_id": 1, "quotes": ["Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist.", "Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren."], "claim": "Die Trasse des Vorhabens wird in Liefersektionen eingeteilt, die jeweils über einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug und eine LKW-Verlademöglichkeit verfügen; von dort werden die Rohre auf LKW verladen und zu den Rohrlagerplätzen transportiert."}, {"chunk_id": 1, "quotes": ["Angenommen werden zwei Liefersektionen mit den Bahnhöfen Alpha und Beta."], "claim": "Für die baulogistischen Vorgänge im Projektgebiet sind zwei Liefersektionen mit den Bahnhöfen Alpha und Beta vorgesehen."}, {"chunk_id": 2, "quotes": ["Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard Muster et al. (2020).", "Dabei wurden im Untersuchungsraum 47 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Beispielregion."], "claim": "Die Avifauna-Untersuchung im Untersuchungsraum des Vorhabens (März–Juli 2023, Revierkartierung nach Fachstandard Muster et al. 2020) wies 47 Brutvogelarten nach, darunter drei Arten der Roten Liste Beispielregion."}]}
+{"claims": [{"chunk_id": 1, "quotes": ["Für die baulogistischen Vorgänge wird die Trasse aufgrund der Lage der Rohrlagerplätze sowie geographischer und verkehrstechnischer Gegebenheiten in Liefersektionen eingeteilt, welcher jeweils einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug inkl. Verlademöglichkeit auf LKW aufweist.", "Von den Bahnhöfen werden die Rohre auf LKWs verladen und die Rohrlagerplätze angefahren."], "claim": "Die Trasse des Vorhabens wird in Liefersektionen eingeteilt, die jeweils über einen Bahnhof mit Freistellgleis zur Rohranlieferung per Güterzug und eine LKW-Verlademöglichkeit verfügen; von dort werden die Rohre auf LKW verladen und zu den Rohrlagerplätzen transportiert.", "objekt": "Trasse"}, {"chunk_id": 1, "quotes": ["Angenommen werden zwei Liefersektionen mit den Bahnhöfen Alpha und Beta."], "claim": "Für die baulogistischen Vorgänge im Projektgebiet sind zwei Liefersektionen mit den Bahnhöfen Alpha und Beta vorgesehen.", "objekt": "Liefersektionen"}, {"chunk_id": 2, "quotes": ["Die Untersuchung der Avifauna erfolgte zwischen März und Juli 2023 mittels Revierkartierung nach Fachstandard Muster et al. (2020).", "Dabei wurden im Untersuchungsraum 47 Brutvogelarten nachgewiesen, darunter drei Arten der Roten Liste Beispielregion."], "claim": "Die Avifauna-Untersuchung im Untersuchungsraum des Vorhabens (März–Juli 2023, Revierkartierung nach Fachstandard Muster et al. 2020) wies 47 Brutvogelarten nach, darunter drei Arten der Roten Liste Beispielregion.", "objekt": "Avifauna"}]}
 
 ## Beispiel 2 (Leerer Chunk)
 INPUT:
@@ -77,7 +79,7 @@ OUTPUT:
 
 # WICHTIG:
 Erfinde KEINE Informationen, die nicht explizit im Text stehen. Jeder Claim und jedes Zitat muss sich vollständig aus dem gegebenen Text ableiten lassen. Wenn kein Chunk sinnvolle faktische Aussagen enthält, gib ein leeres Ergebnis zurück: {"claims": []}. Ein leeres Ergebnis ist ausdrücklich erlaubt und erwünscht, wenn kein Claim die Kriterien erfüllt.
-"""
+"""  # noqa: RUF001
 
 GROUPED_CLAIM_EXTRACTION_USER_PROMPT = """Extrahiere und formuliere Claims für folgende Chunks:
 

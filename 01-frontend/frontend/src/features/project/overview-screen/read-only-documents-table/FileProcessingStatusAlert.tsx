@@ -1,6 +1,10 @@
 import { Alert, AlertDescription, AlertTitle } from '@/features/ui/alert/Alert';
 import { Button } from '@/features/ui/button/Button';
 import { useLocalStorage } from '@/features/shared/browser-storage/useLocalStorage';
+import {
+  type ZipWorkflowFailureCode,
+  zipProcessingFailureMessageKey,
+} from '@/features/project/data/file-processing/zipProcessingFailureMessages';
 import { AlertTriangle, CircleX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
@@ -25,6 +29,7 @@ type FileProcessingAlertStatus = 'loading' | 'error';
 type FileProcessingStatusAlertProps = {
   status: FileProcessingAlertStatus | null;
   dismissKey: string | null;
+  workflowFailureCode?: ZipWorkflowFailureCode | null;
 };
 
 /**
@@ -35,6 +40,7 @@ export const FileProcessingStatusAlert = (
   props: FileProcessingStatusAlertProps,
 ) => {
   const { status, dismissKey } = props;
+  const workflowFailureCode = props.workflowFailureCode ?? null;
   const { t } = useTranslation('Project');
   const [dismissedAlerts, setDismissedAlerts] = useLocalStorage({
     key: DISMISSED_FILE_PROCESSING_ALERTS_STORAGE_KEY,
@@ -78,7 +84,12 @@ export const FileProcessingStatusAlert = (
       <CircleX className="text-red-700" />
       <AlertTitle>{t('Documents.processingError.title')}</AlertTitle>
       <AlertDescription>
-        {t('Documents.processingError.description')}
+        {t(
+          zipProcessingFailureMessageKey(
+            workflowFailureCode,
+            'Documents.processingError.description',
+          ),
+        )}
       </AlertDescription>
       <DismissButton
         ariaLabel={t('Documents.processingError.dismissAriaLabel')}

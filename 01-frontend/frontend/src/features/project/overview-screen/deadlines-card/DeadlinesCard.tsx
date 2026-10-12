@@ -1,4 +1,7 @@
-import { type DeadlineResponse } from '@/api-clients/pls-module';
+import {
+  v1ProjectLogicGetDeadline,
+  type DeadlineResponse,
+} from '@/api-clients/backend';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { deadlinesCollection } from '@/features/project/overview-screen/data/collections/deadlines.collection';
 import {
@@ -8,12 +11,12 @@ import {
   ActionMenuTrigger,
 } from '@/features/ui/action-menu/ActionMenu';
 import { Button } from '@/features/ui/button/Button';
-import { Skeleton, skeletonListProps } from '@/features/ui/skeleton/Skeleton';
 import { toast } from '@/features/ui/toast/Toast';
 import { getDateLocale } from '@/i18n/dateLocale';
 import { cn } from '@/features/ui/style/cn';
-import { eq, useLiveQuery } from '@tanstack/react-db';
-import { useIsFetching, useQueryClient } from '@tanstack/react-query';
+import * as Sentry from '@sentry/react';
+import { eq, useLiveInfiniteQuery } from '@tanstack/react-db';
+import { skipToken, useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { isBefore, parseISO, startOfDay } from 'date-fns';
 import { Calendar, EllipsisVertical, Plus } from 'lucide-react';
@@ -22,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 
 import { CreateDeadlineDialog } from './CreateDeadlineDialog';
 import { DeadlineReadRow } from './DeadlineReadRow';
+import { DeadlinesCardSkeleton } from './DeadlinesCardSkeleton';
 import { DeleteDeadlineDialog } from './DeleteDeadlineDialog';
 import { EditDeadlineDialog } from './EditDeadlineDialog';
 
@@ -29,40 +33,6 @@ const route = getRouteApi('/verfahren/$verfahrenId/');
 
 const isDeadlinePastDue = (deadline: DeadlineResponse, today = new Date()) =>
   isBefore(startOfDay(parseISO(deadline.endAt)), startOfDay(today));
-
-const DeadlinesCardSkeleton = () => (
-  <div className="mt-6 flex flex-col gap-4 p-2">
-    <div className="flex items-center gap-2">
-      <Skeleton className="size-8 shrink-0 rounded-lg" aria-hidden />
-      <Skeleton className="h-5 flex-1" aria-hidden />
-      <Skeleton className="h-8 w-28 rounded-lg" aria-hidden />
-    </div>
-    <div
-      className="overflow-clip rounded-lg border border-border-primary"
-      {...skeletonListProps}
-    >
-      <div className="flex border-b border-border-primary bg-bg-secondary">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="flex-1 px-3 py-[11px]">
-            <Skeleton className="h-[18px] w-16" aria-hidden />
-          </div>
-        ))}
-      </div>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex border-b border-border-primary last:border-b-0"
-        >
-          {Array.from({ length: 5 }).map((_cell, j) => (
-            <div key={j} className="flex-1 px-3 py-[11px]">
-              <Skeleton className="h-[18px] w-20" aria-hidden />
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 /** Fetches deadlines via on-demand collection and coordinates create/edit/delete UI flows. */
 export const DeadlinesCard = () => {
@@ -74,22 +44,33 @@ export const DeadlinesCard = () => {
   });
   const { editDeadlineId } = route.useSearch();
   const navigate = route.useNavigate();
-  const queryClient = useQueryClient();
-  const deadlinesQueryKey = ['deadlines', verfahrenId] as const;
-  const fetchingDeadlinesCount = useIsFetching({ queryKey: deadlinesQueryKey });
 
-  const deadlines = useLiveQuery((q) =>
-    q
-      .from({ d: deadlinesCollection })
-      .where(({ d }) => eq(d.projectId, verfahrenId)),
+  const deadlines = useLiveInfiniteQuery(
+    (q) =>
+      q
+        .from({ d: deadlinesCollection })
+        .where(({ d }) => eq(d.projectId, verfahrenId))
+        .orderBy(({ d }) => d.endAt, 'asc')
+        .orderBy(({ d }) => d.id, 'asc'),
+    { pageSize: 50 },
+    [verfahrenId],
   );
-
-  const deadlinesQueryState = queryClient.getQueryState(deadlinesQueryKey);
-  const hasLoadedCurrentProjectDeadlines = Boolean(
-    deadlinesQueryState &&
-    (deadlinesQueryState.dataUpdatedAt > 0 ||
-      deadlinesQueryState.status === 'error'),
-  );
+  const selectedDeadline = useQuery({
+    queryKey: ['deadline-detail', verfahrenId, editDeadlineId],
+    queryFn:
+      editDeadlineId && canMutateProject
+        ? async () => {
+            const { data } = await v1ProjectLogicGetDeadline({
+              path: { deadlineId: editDeadlineId },
+              throwOnError: true,
+            });
+            if (data.projectId !== verfahrenId) {
+              throw new Error('Deadline belongs to another project');
+            }
+            return data;
+          }
+        : skipToken,
+  });
 
   // eslint-disable-next-line no-restricted-syntax -- ephemeral UI toggle for create dialog
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -98,8 +79,7 @@ export const DeadlinesCard = () => {
     // eslint-disable-next-line no-restricted-syntax -- ephemeral UI state for delete confirmation target
     useState<DeadlineResponse | null>(null);
 
-  const editingDeadline =
-    deadlines.data.find((d) => d.id === editDeadlineId) ?? null;
+  const editingDeadline = selectedDeadline.data ?? null;
   const today = new Date();
 
   const openEditDialog = (deadlineId: string) => {
@@ -120,27 +100,36 @@ export const DeadlinesCard = () => {
     });
   };
 
-  if (
-    deadlines.data.length === 0 &&
-    !hasLoadedCurrentProjectDeadlines &&
-    fetchingDeadlinesCount > 0
-  ) {
+  if (deadlines.isLoading) {
     return <DeadlinesCardSkeleton />;
   }
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!deletingDeadline || !canMutateProject) {
       return;
     }
-    deadlinesCollection.delete(deletingDeadline.id);
+    try {
+      // `delete` throws synchronously when a refetch already dropped the row,
+      // so it has to stay inside the guarded block.
+      const transaction = deadlinesCollection.delete(deletingDeadline.id);
+      setDeletingDeadline(null);
+      await transaction.isPersisted.promise;
+    } catch (error) {
+      // A rejected persistence rolls the optimistic delete back, so the row
+      // returns to the list. A synchronous throw means a refetch already
+      // removed the row; the toast then reports a stale dialog, not data loss.
+      Sentry.captureException(error);
+      toast.error(t('Deadlines.deleteError'));
+      return;
+    }
+
     toast.success(t('Deadlines.deleteSuccess'));
-    setDeletingDeadline(null);
   };
 
   return (
     <>
       <div className="mt-6 flex flex-col gap-4 p-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span aria-hidden className="rounded-lg bg-bg-quaternary p-2">
             <Calendar className="size-4" />
           </span>
@@ -161,13 +150,40 @@ export const DeadlinesCard = () => {
           ) : null}
         </div>
 
+        {(deadlines.isError || selectedDeadline.isError) && (
+          <div
+            role="alert"
+            className="flex items-center gap-3 rounded-md bg-highlight-error p-3"
+          >
+            <p>{t('Deadlines.loadError')}</p>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                void deadlinesCollection.utils.refetch();
+                if (editDeadlineId) {
+                  void selectedDeadline.refetch();
+                }
+              }}
+            >
+              {t('Deadlines.retry')}
+            </Button>
+          </div>
+        )}
         {deadlines.data.length === 0 ? (
-          <p className="text-sm text-text-secondary">
-            {t('Deadlines.emptyState')}
-          </p>
+          !deadlines.isError && (
+            <p className="text-sm text-text-secondary">
+              {t('Deadlines.emptyState')}
+            </p>
+          )
         ) : (
-          <div className="overflow-clip rounded-lg border border-border-primary">
-            <table className="w-full">
+          <div
+            className="overflow-x-auto rounded-lg border border-border-primary"
+            role="region"
+            aria-label={t('Deadlines.tableAriaLabel')}
+            tabIndex={0}
+          >
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-border-primary bg-bg-secondary">
                   <th className="px-3 py-[11px] text-left text-sm font-medium tracking-tight text-text-primary">
@@ -244,6 +260,18 @@ export const DeadlinesCard = () => {
             </table>
           </div>
         )}
+        {deadlines.hasNextPage && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={deadlines.isFetchingNextPage}
+            onClick={() => void deadlines.fetchNextPage()}
+          >
+            {deadlines.isFetchingNextPage
+              ? t('Deadlines.loading')
+              : t('Deadlines.loadMore')}
+          </Button>
+        )}
       </div>
 
       {canMutateProject ? (
@@ -257,6 +285,7 @@ export const DeadlinesCard = () => {
 
       {canMutateProject ? (
         <EditDeadlineDialog
+          key={editingDeadline?.id}
           canMutateProject={canMutateProject}
           deadline={editingDeadline}
           onOpenChange={(open) => {
@@ -275,7 +304,7 @@ export const DeadlinesCard = () => {
               setDeletingDeadline(null);
             }
           }}
-          onConfirm={handleDelete}
+          onConfirm={() => void handleDelete()}
         />
       ) : null}
     </>

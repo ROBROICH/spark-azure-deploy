@@ -1,6 +1,8 @@
 # ruff: noqa: RUF001
 """Prompt template for formula extraction."""
 
+from src.activities.prompt_blocks import closing_block
+
 formelextrahierer_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit besonderer Expertise in der strukturierten Auswertung von Gesetzestexten. Du analysierst juristische Sätze präzise, systematisch und nachvollziehbar und leitest daraus prädikatenlogische Aussagen ab.
@@ -124,20 +126,18 @@ Ausgabe:
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und erstelle eine prädikatenlogische Formel für den folgenden juristischen Satz und die gegebenen Tatbestandsmerkmale:
 
-{external_data_tag_open}
-juristischer Satz: {satz_text}
-Tatbestandsmerkmale: {atomare_tatbestandsmerkmale}
-Rechtsfolge: {rechtsfolge}
-
-Es liegen insgesamt {number_of_tbms} Tatbestandsmerkmale vor. Alle {number_of_tbms} Tatbestandsmerkmale müssen in der prädikatenlogischen Formel enthalten sein.
-{external_data_tag_close}
-
-**Formatierung**
-Die "formel" darf ausschließlich folgende Zeichen enthalten:
-- Tatbestandsmerkmale in der Form TBM_{{index}} (z.B. TBM_1, TBM_2, ...)
-- Logische Operatoren: ∧ (UND), ∨ (ODER), ¬ (NICHT)
-- Runde Klammern: ( )
-- Leerzeichen zur Lesbarkeit
-Jeglicher andere Text, Sonderzeichen, Buchstaben oder Symbole sind in der "formel" strikt verboten.
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "juristischer Satz: {satz_text}",
+    "Tatbestandsmerkmale: {atomare_tatbestandsmerkmale}",
+    "Rechtsfolge: {rechtsfolge}",
+    "",
+    "Es liegen insgesamt {number_of_tbms} Tatbestandsmerkmale vor. Alle {number_of_tbms} Tatbestandsmerkmale müssen in der prädikatenlogischen Formel enthalten sein.",
+    format_rules=(
+        'Die "formel" darf ausschließlich folgende Zeichen enthalten:\n'
+        "- Tatbestandsmerkmale in der Form TBM_{{index}} (z.B. TBM_1, TBM_2, ...)\n"
+        "- Logische Operatoren: ∧ (UND), ∨ (ODER), ¬ (NICHT)\n"
+        "- Runde Klammern: ( )\n"
+        "- Leerzeichen zur Lesbarkeit\n"
+        'Jeglicher andere Text, Sonderzeichen, Buchstaben oder Symbole sind in der "formel" strikt verboten.'
+    ),
+)

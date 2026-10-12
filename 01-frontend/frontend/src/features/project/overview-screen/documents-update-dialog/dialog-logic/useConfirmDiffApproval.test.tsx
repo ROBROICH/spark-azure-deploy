@@ -1,4 +1,4 @@
-import type { FileDiffResponse } from '@/api-clients/dms-module';
+import type { FileDiffResponse } from '@/api-clients/backend';
 import { resetProjectPermissionTestMocks } from '@/features/project/test/projectPermissionTestMocks';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -59,7 +59,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {
@@ -80,7 +82,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {
@@ -114,7 +118,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {
@@ -122,11 +128,11 @@ describe('useConfirmDiffApproval', () => {
     });
 
     expect(mocks.setFileDiffMutate).toHaveBeenCalledWith({
-      path: { file_id: 'zip-1' },
+      path: { fileId: 'zip-1' },
       body: expect.any(Object),
     });
     expect(mocks.submitDecisionMutate).toHaveBeenCalledWith({
-      path: { file_id: 'zip-1' },
+      path: { fileId: 'zip-1' },
       query: { decision: 'approve' },
     });
     expect(mocks.routerInvalidate).toHaveBeenCalledWith({
@@ -156,7 +162,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {
@@ -177,7 +185,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {
@@ -201,7 +211,9 @@ describe('useConfirmDiffApproval', () => {
     const onApproved = vi.fn();
     const { result } = renderHook(
       () => useConfirmDiffApproval(makeApprovalActions()),
-      { wrapper: makeApprovalTestQueryWrapper() },
+      {
+        wrapper: makeApprovalTestQueryWrapper(),
+      },
     );
 
     await act(async () => {

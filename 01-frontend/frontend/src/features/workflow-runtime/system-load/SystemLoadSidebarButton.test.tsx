@@ -1,22 +1,22 @@
 import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { GetSystemLoadResponse } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { GetSystemLoadResponse } from '@/api-clients/backend/types.gen';
 import { SidebarProvider } from '@/features/ui/sidebar/Sidebar';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { SystemLoadSidebarButton } from './SystemLoadSidebarButton';
 
 const systemLoadData: GetSystemLoadResponse = {
-  load_percentage: 42,
-  running_workflows: 12,
-  current_complexity: 18,
-  max_complexity: 30,
+  loadPercentage: 42,
+  runningWorkflows: 12,
+  currentComplexity: 18,
+  maxComplexity: 30,
   breakdown: [
     {
-      workflow_type: 'FVPWorkflow',
-      running_count: 3,
-      complexity_weight: 2,
-      total_complexity: 6,
+      workflowType: 'FVPWorkflow',
+      runningCount: 3,
+      complexityWeight: 2,
+      totalComplexity: 6,
     },
   ],
 };
@@ -113,7 +113,7 @@ function setSystemLoadState(state: Partial<MockSystemLoadState> = {}) {
 function makeSystemLoadData(loadPercentage: number): GetSystemLoadResponse {
   return {
     ...systemLoadData,
-    load_percentage: loadPercentage,
+    loadPercentage: loadPercentage,
   };
 }
 

@@ -1,0 +1,169 @@
+id: no-return-local-alias-function
+language: TypeScript
+severity: error
+message: "Do not disguise a one-expression helper by assigning to a local and returning it."
+note: |
+  `const x = expr; return x;` is still a one-expression helper.
+  Inline the expression at the call site.
+rule:
+  all:
+    - matches: supported-local-alias-target-and-declaration
+    - matches: local-alias-body
+utils:
+  supported-local-alias-target-and-declaration:
+    any:
+      - all:
+          - matches: untyped-return-function-declaration
+          - matches: any-local-alias-declaration
+      - all:
+          - matches: typed-return-function-declaration
+          - matches: const-local-alias-declaration
+      - all:
+          - any:
+              - kind: lexical_declaration > variable_declarator > arrow_function
+              - kind: variable_declaration > variable_declarator > arrow_function
+          - matches: supported-local-alias-arrow
+          - matches: untyped-const-local-alias-declaration
+      - all:
+          - any:
+              - kind: lexical_declaration > variable_declarator > function_expression
+              - kind: variable_declaration > variable_declarator > function_expression
+          - matches: untyped-return-anonymous-function-expression
+          - matches: untyped-const-local-alias-declaration
+      - all:
+          - kind: method_definition
+          - matches: any-local-alias-declaration
+  untyped-return-function-declaration:
+    pattern:
+      context: |
+        function $F($$$PARAMS) {
+          $$$BODY
+        }
+      selector: function_declaration
+  typed-return-function-declaration:
+    pattern:
+      context: |
+        function $F($$$PARAMS): $RET {
+          $$$BODY
+        }
+      selector: function_declaration
+  untyped-return-anonymous-function-expression:
+    pattern:
+      context: |
+        const f = function ($$$PARAMS) {
+          $$$BODY
+        }
+      selector: function_expression
+  untyped-const-local-alias-declaration:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            pattern: |
+              const $X = $EXPR
+  const-local-alias-declaration:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            any:
+              - pattern: |
+                  const $X = $EXPR
+              - pattern: |
+                  const $X: $X_TYPE = $EXPR
+  any-local-alias-declaration:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            any:
+              - pattern: |
+                  const $X = $EXPR
+              - pattern: |
+                  const $X: $X_TYPE = $EXPR
+              - pattern: |
+                  let $X = $EXPR
+              - pattern: |
+                  var $X = $EXPR
+  local-alias-body:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            all:
+              - has:
+                  stopBy: neighbor
+                  all:
+                    - kind: variable_declarator
+                    - has:
+                        field: name
+                        stopBy: neighbor
+                        all:
+                          - kind: identifier
+                          - pattern: $X
+              - any:
+                  - pattern: |
+                      const $X = $EXPR
+                  - pattern: |
+                      const $X: $X_TYPE = $EXPR
+                  - pattern: |
+                      let $X = $EXPR
+                  - pattern: |
+                      var $X = $EXPR
+              - nthChild:
+                  position: 1
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+        - has:
+            stopBy: neighbor
+            all:
+              - pattern:
+                  context: |
+                    function f() {
+                      return $X
+                    }
+                  selector: return_statement
+              - nthChild:
+                  position: 2
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+              - nthChild:
+                  position: 1
+                  reverse: true
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+  supported-local-alias-arrow:
+    any:
+      - pattern:
+          context: |
+            const f = ($$$PARAMS) => {
+              $$$BODY
+            }
+          selector: arrow_function
+      - pattern:
+          context: |
+            const f = ($$$PARAMS): $RET => {
+              $$$BODY
+            }
+          selector: arrow_function

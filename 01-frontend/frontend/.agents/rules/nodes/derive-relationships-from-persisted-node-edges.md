@@ -1,3 +1,7 @@
+---
+ruleId: nodes/derive-relationships-from-persisted-node-edges
+---
+
 # Derive Relationships from Persisted Node Edges
 
 - Treat node relationships as data owned by persisted edge fields such as `frontend_parent_ids`, `parents`, `dokument_id`, and `chunk_id`.

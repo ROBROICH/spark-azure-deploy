@@ -1,5 +1,7 @@
 """Prompt template for Rechtsfolgen-Adressat identification."""
 
+from src.activities.prompt_blocks import closing_block
+
 rechtsfolgen_adressaten_agent_prompt_template = """
 **Rolle**
 Du bist ein juristischer Assistent, spezialisiert auf die Analyse von Normen im öffentlichen Recht.
@@ -56,10 +58,6 @@ Ausgabe:
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und beurteile, ob die folgende Rechtsfolge eine behördliche Handlungsermächtigung enthält oder nicht.  
-{external_data_tag_open}
--> Rechtsfolge: {rechtsfolge}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "-> Rechtsfolge: {rechtsfolge}",
+)

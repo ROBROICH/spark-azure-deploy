@@ -1,0 +1,209 @@
+{
+  "fixtures": [
+    {
+      "name": "zip-processing-running",
+      "operation": "document-management.file-processing.start-and-describe",
+      "input": {
+        "request": {
+          "kind": "zip",
+          "workflowName": "FileProcessingWorkflow",
+          "executionId": "FileProcessingWorkflow-00000000-0000-4000-8000-000000000101",
+          "taskQueue": "dms",
+          "projectId": "00000000-0000-4000-8000-000000000101",
+          "projectVersion": 7,
+          "idReusePolicy": "REJECT_DUPLICATE",
+          "idConflictPolicy": "USE_EXISTING",
+          "workflowInput": {
+            "fileId": "00000000-0000-4000-8000-000000000201",
+            "filename": "documents.zip",
+            "projectId": "00000000-0000-4000-8000-000000000101",
+            "fileType": "zip",
+            "zipPath": "fixtures/projects/101/documents.zip",
+            "entryFileType": "document",
+            "sourceProjectVersion": 7,
+            "workflowActor": {
+              "actorUserId": "00000000-0000-4000-8000-000000000301",
+              "triggeredByUserId": null,
+              "workflowType": "FileProcessingWorkflow"
+            }
+          }
+        }
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "FileProcessingWorkflow-00000000-0000-4000-8000-000000000101",
+          "runId": "00000000-0000-4000-8000-000000000401",
+          "workflowStatus": "RUNNING"
+        }
+      }
+    },
+    {
+      "name": "zip-processing-already-started",
+      "operation": "document-management.file-processing.start-and-describe",
+      "input": {
+        "request": {
+          "kind": "zip",
+          "workflowName": "FileProcessingWorkflow",
+          "executionId": "FileProcessingWorkflow-00000000-0000-4000-8000-000000000108",
+          "taskQueue": "dms",
+          "projectId": "00000000-0000-4000-8000-000000000108",
+          "projectVersion": 5,
+          "idReusePolicy": "REJECT_DUPLICATE",
+          "idConflictPolicy": "USE_EXISTING",
+          "workflowInput": {
+            "fileId": "00000000-0000-4000-8000-000000000208",
+            "filename": "already-running.zip",
+            "projectId": "00000000-0000-4000-8000-000000000108",
+            "fileType": "zip",
+            "zipPath": "fixtures/projects/108/already-running.zip",
+            "entryFileType": "document",
+            "sourceProjectVersion": 5,
+            "workflowActor": {
+              "actorUserId": null,
+              "triggeredByUserId": null,
+              "workflowType": null
+            }
+          }
+        }
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "kind": "already_started",
+          "code": "WorkflowAlreadyStartedError",
+          "message": "the ZIP workflow is already running"
+        }
+      }
+    },
+    {
+      "name": "single-processing-already-started",
+      "operation": "document-management.file-processing.start-and-describe",
+      "input": {
+        "request": {
+          "kind": "single_file",
+          "workflowName": "SingleFileProcessingWorkflow",
+          "executionId": "00000000-0000-4000-8000-000000000202",
+          "taskQueue": "dms",
+          "projectId": "00000000-0000-4000-8000-000000000102",
+          "projectVersion": 3,
+          "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+          "idConflictPolicy": "USE_EXISTING",
+          "workflowInput": {
+            "fileId": "00000000-0000-4000-8000-000000000202",
+            "bucketPath": "fixtures/projects/102/statement.pdf",
+            "filename": "statement.pdf",
+            "fileType": "document",
+            "projectId": "00000000-0000-4000-8000-000000000102",
+            "workflowActor": {
+              "actorUserId": null,
+              "triggeredByUserId": null,
+              "workflowType": null
+            }
+          }
+        }
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "kind": "already_started",
+          "code": "WorkflowAlreadyStartedError",
+          "message": "the single-file workflow is already running"
+        }
+      }
+    },
+    {
+      "name": "approval-created-version",
+      "operation": "document-management.project-version-approval.start-and-result",
+      "input": {
+        "workflowName": "CreateProjectVersionWorkflow",
+        "executionId": "CreateProjectVersionWorkflow-00000000-0000-4000-8000-000000000203",
+        "taskQueue": "project_logic_service",
+        "projectId": "00000000-0000-4000-8000-000000000103",
+        "zipFileId": "00000000-0000-4000-8000-000000000203",
+        "sourceProjectVersion": 9,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "USE_EXISTING"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "newVersion": 10
+        }
+      }
+    },
+    {
+      "name": "approval-completed-without-version",
+      "operation": "document-management.project-version-approval.start-and-result",
+      "input": {
+        "workflowName": "CreateProjectVersionWorkflow",
+        "executionId": "CreateProjectVersionWorkflow-00000000-0000-4000-8000-000000000204",
+        "taskQueue": "project_logic_service",
+        "projectId": "00000000-0000-4000-8000-000000000104",
+        "zipFileId": "00000000-0000-4000-8000-000000000204",
+        "sourceProjectVersion": null,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "USE_EXISTING"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "newVersion": null
+        }
+      }
+    },
+    {
+      "name": "approval-temporal-failure",
+      "operation": "document-management.project-version-approval.start-and-result",
+      "input": {
+        "workflowName": "CreateProjectVersionWorkflow",
+        "executionId": "CreateProjectVersionWorkflow-00000000-0000-4000-8000-000000000206",
+        "taskQueue": "project_logic_service",
+        "projectId": "00000000-0000-4000-8000-000000000106",
+        "zipFileId": "00000000-0000-4000-8000-000000000206",
+        "sourceProjectVersion": 4,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "USE_EXISTING"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "kind": "operation_failed",
+          "code": "ApplicationError",
+          "message": "project version creation failed"
+        }
+      }
+    },
+    {
+      "name": "cancel-processing",
+      "operation": "document-management.file-processing.cancel",
+      "input": {
+        "workflowId": "00000000-0000-4000-8000-000000000205",
+        "runId": "00000000-0000-4000-8000-000000000405"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "00000000-0000-4000-8000-000000000205",
+          "cancelled": true
+        }
+      }
+    },
+    {
+      "name": "cancel-processing-failure",
+      "operation": "document-management.file-processing.cancel",
+      "input": {
+        "workflowId": "00000000-0000-4000-8000-000000000207",
+        "runId": "00000000-0000-4000-8000-000000000405"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "kind": "operation_failed",
+          "code": "RPCError",
+          "message": "workflow cancellation failed"
+        }
+      }
+    }
+  ]
+}

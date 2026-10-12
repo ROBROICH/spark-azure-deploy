@@ -1,16 +1,14 @@
 import {
-  confirmUploadV2FilesConfirmUploadPost,
-  generateUploadUrlV2FilesGenerateUploadUrlPost,
-  startFileProcessingV2FilesStartFileProcessingPost,
-  type ConfirmUploadV2FilesConfirmUploadPostResponse,
-  type FileUploadUrlResponse,
-  type StartFileProcessingResponse,
+  v1DocumentManagementConfirmFileUpload as confirmFileUpload,
+  v1DocumentManagementGenerateFileUploadUrl as generateFileUploadUrl,
+  v1DocumentManagementStartFileProcessing as startFileProcessing,
+  type V1DocumentManagementConfirmFileUploadResponse as ConfirmFileUploadResponse,
+  type UploadUrlResponse,
+  type V1DocumentManagementStartFileProcessingResponse as StartFileProcessingResponse,
   type WorkflowStatusEnum,
-} from '@/api-clients/dms-module';
-import {
-  importArgumentsProjectIdArgumentsImportPost,
-  type ErwiderungImportResponse,
-} from '@/api-clients/oms-module';
+  v1ObjectionsManagementImportObjectionsArguments as importObjectionsArguments,
+  type V1ObjectionsManagementImportObjectionsArgumentsResponse as ImportObjectionsArgumentsResponse,
+} from '@/api-clients/backend';
 import { uploadFileToStorage } from '@/features/shared/remote-files/uploadFileToStorage';
 import { waitForTemporalWorkflowCompletion } from '../data/temporalWorkflowPolling';
 
@@ -53,7 +51,7 @@ const getImportErrorMessage = (error: unknown, fallback: string) => {
 };
 
 const getConfirmedFileId = (
-  confirmedUpload: ConfirmUploadV2FilesConfirmUploadPostResponse,
+  confirmedUpload: NonNullable<ConfirmFileUploadResponse>,
 ) => {
   if ('id' in confirmedUpload && typeof confirmedUpload.id === 'string') {
     return confirmedUpload.id;
@@ -69,13 +67,12 @@ const startErwiderungImportScan = async (params: {
   const { fileId, projectId } = params;
   // The generated endpoint docs mention ZIPs, but DMS also accepts
   // erwiderungs_import CSV files here for the virus-scan step.
-  const processingResponse =
-    (await startFileProcessingV2FilesStartFileProcessingPost({
-      body: {
-        fileId,
-        projectId,
-      },
-    })) as ClientResult<StartFileProcessingResponse>;
+  const processingResponse = (await startFileProcessing({
+    body: {
+      fileId,
+      projectId,
+    },
+  })) as ClientResult<StartFileProcessingResponse>;
 
   if (processingResponse.error) {
     throw new Error(
@@ -113,6 +110,9 @@ const waitForErwiderungImportScan = async (
   if (processingWorkflow.workflowStatus === COMPLETED_DMS_WORKFLOW_STATUS) {
     return;
   }
+  if (!processingWorkflow.workflowId) {
+    throw new Error('Erwiderung import scan did not start a workflow.');
+  }
 
   await waitForTemporalWorkflowCompletion({
     emptyResponseMessage: 'Erwiderung import scan status response is empty.',
@@ -131,17 +131,16 @@ const waitForErwiderungImportScan = async (
 export const uploadErwiderungImportFile = async (params: {
   file: File;
   projectId: string;
-}): Promise<ErwiderungImportResponse> => {
+}): Promise<ImportObjectionsArgumentsResponse> => {
   const { file, projectId } = params;
-  const uploadTargetResponse =
-    (await generateUploadUrlV2FilesGenerateUploadUrlPost({
-      body: {
-        type: 'erwiderungs_import',
-        projectId,
-        filename: file.name,
-        createNewVersion: true,
-      },
-    })) as ClientResult<FileUploadUrlResponse>;
+  const uploadTargetResponse = (await generateFileUploadUrl({
+    body: {
+      type: 'erwiderungs_import',
+      projectId,
+      filename: file.name,
+      createNewVersion: true,
+    },
+  })) as ClientResult<UploadUrlResponse>;
   const { data: uploadTarget, error: uploadTargetError } = uploadTargetResponse;
 
   if (uploadTargetError) {
@@ -163,14 +162,14 @@ export const uploadErwiderungImportFile = async (params: {
     uploadUrl: uploadTarget.uploadUrl,
   });
 
-  const confirmUploadResponse = (await confirmUploadV2FilesConfirmUploadPost({
+  const confirmUploadResponse = (await confirmFileUpload({
     body: {
       type: 'erwiderungs_import',
       projectId,
       filename: file.name,
       createNewVersion: true,
     },
-  })) as ClientResult<ConfirmUploadV2FilesConfirmUploadPostResponse>;
+  })) as ClientResult<ConfirmFileUploadResponse>;
   const { data: confirmedUpload, error: confirmUploadError } =
     confirmUploadResponse;
 
@@ -192,14 +191,14 @@ export const uploadErwiderungImportFile = async (params: {
     await startErwiderungImportScan({ fileId, projectId }),
   );
 
-  const importResponse = (await importArgumentsProjectIdArgumentsImportPost({
+  const importResponse = (await importObjectionsArguments({
     path: {
-      project_id: projectId,
+      projectId: projectId,
     },
     body: {
-      file_id: fileId,
+      fileId: fileId,
     },
-  })) as ClientResult<ErwiderungImportResponse>;
+  })) as ClientResult<ImportObjectionsArgumentsResponse>;
   const { data: importResult, error: importError } = importResponse;
 
   if (importError) {

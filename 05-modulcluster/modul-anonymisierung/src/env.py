@@ -2,9 +2,10 @@
 
 import os
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel
+from temporal.connection_config import TemporalConfig as SharedTemporalConfig
 
 SKIP_DOTENV = os.getenv("SKIP_DOTENV")
 
@@ -21,17 +22,9 @@ class LLMConfig(BaseModel):
     PAGES_PER_CALL: int = Field(default=3, ge=1)
 
 
-class TemporalConfig(BaseModel):
-    """Temporal server connection and runtime parameters."""
-
-    HOST: str = Field(min_length=1)
+class TemporalConfig(SharedTemporalConfig):
     MAX_CONCURRENT_ACTIVITIES: int = Field(default=2)
     THREAD_MAX_WORKERS: int = Field(default=4)
-    S3_BUCKET_NAME: str = Field(min_length=1)
-    S3_ENDPOINT_URL: str = Field(min_length=1)
-    S3_ACCESS_KEY_ID: SecretStr = Field(min_length=1)
-    S3_SECRET_ACCESS_KEY: SecretStr = Field(min_length=1)
-    S3_REGION: str = Field(min_length=1)
 
 
 class Settings(BaseSettings):
@@ -69,6 +62,7 @@ class Settings(BaseSettings):
 
     # --- OCR ---
     OCR_JOBS: int = Field(default=2, ge=1)
+    OCR_TIMEOUT_SECONDS: int = Field(default=1200, ge=1)
 
 
 ENV = Settings()

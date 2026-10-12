@@ -17,8 +17,8 @@ _TEST_ENV_VARS = {
     "TEMPORAL_LLM_MAX_PER_SECOND": "3",
     "TEMPORAL_S3_BUCKET_NAME": "test-bucket",
     "TEMPORAL_S3_ENDPOINT_URL": "http://localhost:9000",
-    "TEMPORAL_S3_ACCESS_KEY_ID": "minioadmin",
-    "TEMPORAL_S3_SECRET_ACCESS_KEY": "minioadmin",
+    "TEMPORAL_S3_ACCESS_KEY_ID": "test-access-key",
+    "TEMPORAL_S3_SECRET_ACCESS_KEY": "test-secret-key",
     "TEMPORAL_S3_REGION": "eu-west-1",
     "TEMPORAL_JOB_SERVICE_URL": "http://localhost:18011",
 }

@@ -13,23 +13,26 @@ import asyncio
 import logging
 from datetime import timedelta
 
-from temporal.workflows.modul_suche_und_zuordnung.satz_orchestrator_workflow import (
-    SATZ_ORCHESTRATOR_WORKFLOW_ID,
-)
-from temporal.workflows.modul_suche_und_zuordnung.types import (
-    Document,
-    DocumentNode,
-    PageIndexSVMWorkflowOutput,
+from temporal.contracts import (
     SatzOrchestratorWorkflowInput,
     SatzOrchestratorWorkflowOutput,
 )
+from temporal.contracts import (
+    SucheZuordnungDocument as Document,
+)
+from temporal.contracts import (
+    SucheZuordnungDocumentNode as DocumentNode,
+)
+from temporal.contracts import (
+    SucheZuordnungPageIndexSVMWorkflowOutput as PageIndexSVMWorkflowOutput,
+)
+from temporal.registry import SUCHE_ZUORDNUNG_SATZ_ORCHESTRATOR_WORKFLOW
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from src.config import CONFIG
 from src.satz_orchestrator_helpers import extract_satz_data
 from src.workflows.match_single_tbm_workflow import (
-    MatchedDocument,
     MatchSingleTBMWorkflow,
     MatchSingleTBMWorkflowInput,
 )
@@ -51,7 +54,7 @@ logger = logging.getLogger(__name__)
 async def _run_pageindex_svm_for_doc(
     sem: asyncio.Semaphore,
     doc_idx: int,
-    doc: "MatchedDocument",
+    document_id: str,
     job_id: str,
     project_id: str,
     norm: str,
@@ -60,13 +63,11 @@ async def _run_pageindex_svm_for_doc(
     document_nodes: list[Document],
 ) -> PageIndexSVMWorkflowOutput:
     """Execute a PageIndexSVMWorkflow child for a single matched document, respecting the concurrency semaphore."""
-    svm_child_id = f"{job_id}-pageindex_svm-{doc.document_id}-{doc_idx}"
-    matched_document = next((d for d in document_nodes if d.file_id == doc.document_id), None)
+    svm_child_id = f"{job_id}-pageindex_svm-{document_id}-{doc_idx}"
+    matched_document = next((document for document in document_nodes if document.file_id == document_id), None)
     child_input = PageIndexSVMWorkflowInput(
         project_id=project_id,
-        document_id=doc.document_id or "unset",
-        file_id=doc.document_id or "unset",
-        filename=doc.title or "unset",
+        file_id=document_id,
         norm=norm,
         tbm=tbm,
         research_report=research_report,
@@ -99,7 +100,7 @@ def _remove_node_duplicates(nodes: list[DocumentNode]) -> list[DocumentNode]:
 # =============================================================================
 # WORKFLOW DEFINITION
 # =============================================================================
-@workflow.defn(name=SATZ_ORCHESTRATOR_WORKFLOW_ID)
+@workflow.defn(name=SUCHE_ZUORDNUNG_SATZ_ORCHESTRATOR_WORKFLOW.name)
 class SatzOrchestratorWorkflow:
     """Orchestrates per-Satz document matching and PageIndex SVM ranking for a single norm clause."""
 
@@ -179,32 +180,32 @@ class SatzOrchestratorWorkflow:
 
         # Deduplicate matched documents by document_id for SVM execution
         seen_doc_ids: set[str] = set()
-        unique_docs: list[MatchedDocument] = []
+        unique_document_ids: list[str] = []
         for doc in match_output.matched_documents:
             if doc.document_id and doc.document_id not in seen_doc_ids:
                 seen_doc_ids.add(doc.document_id)
-                unique_docs.append(doc)
-            if len(unique_docs) >= CONFIG.MATCHING.DEFAULT_TOP_K:
+                unique_document_ids.append(doc.document_id)
+            if len(unique_document_ids) >= CONFIG.MATCHING.DEFAULT_TOP_K:
                 break
 
         workflow.logger.info(
             "[STEP 1+2 COMPLETE] TBM DB Research and Match finished -- %d matched documents (%d unique)",
             len(match_output.matched_documents),
-            len(unique_docs),
+            len(unique_document_ids),
         )
 
         # ------------------------------------------------------------------
         # STEP 3 -- PageIndex SVM (all children run concurrently)
         # ------------------------------------------------------------------
         svm_outputs: list[PageIndexSVMWorkflowOutput] = []
-        if not unique_docs:
+        if not unique_document_ids:
             workflow.logger.warning("[STEP 3 SKIPPED] No matched documents to process")
         else:
-            max_concurrent = input.max_concurrent_pageindex_svm or len(unique_docs)
+            max_concurrent = input.max_concurrent_pageindex_svm or len(unique_document_ids)
             sem = asyncio.Semaphore(max_concurrent)
             workflow.logger.info(
                 "[STEP 3] Starting PageIndex SVM for %d documents (max %d concurrent)",
-                len(unique_docs),
+                len(unique_document_ids),
                 max_concurrent,
             )
             svm_outputs = list(
@@ -213,7 +214,7 @@ class SatzOrchestratorWorkflow:
                         _run_pageindex_svm_for_doc(
                             sem=sem,
                             doc_idx=idx,
-                            doc=doc,
+                            document_id=document_id,
                             job_id=job_id,
                             project_id=input.project_id,
                             norm=input.norm,
@@ -221,7 +222,7 @@ class SatzOrchestratorWorkflow:
                             research_report=research_report,
                             document_nodes=document_nodes,
                         )
-                        for idx, doc in enumerate(unique_docs)
+                        for idx, document_id in enumerate(unique_document_ids)
                     ]
                 )
             )

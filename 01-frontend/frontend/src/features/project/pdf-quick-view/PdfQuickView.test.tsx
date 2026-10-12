@@ -23,7 +23,7 @@ afterEach(() => {
 
 describe('PdfQuickView', () => {
   it('adds a page hash when pageNumber is provided', () => {
-    render(
+    const { container } = render(
       <PdfQuickView
         title="Preview document"
         pdfUrl="https://example.test/document.pdf"
@@ -32,7 +32,8 @@ describe('PdfQuickView', () => {
       />,
     );
 
-    const iframe = screen.getByTitle('Preview document');
+    const iframe = container.querySelector('iframe[title="Preview document"]');
+    expect(iframe).toBeInTheDocument();
 
     expect(iframe).toHaveAttribute(
       'src',
@@ -53,11 +54,13 @@ describe('PdfQuickView', () => {
     );
 
     expect(container.querySelector('[data-slot="skeleton"]')).toBeTruthy();
-    expect(screen.queryByTitle('Preview document')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('iframe[title="Preview document"]'),
+    ).not.toBeInTheDocument();
   });
 
   it('renders the missing-document empty state when no PDF URL is available', () => {
-    render(
+    const { container } = render(
       <PdfQuickView
         title="Preview document"
         pdfUrl={undefined}
@@ -68,6 +71,8 @@ describe('PdfQuickView', () => {
     expect(
       screen.getByText('PdfQuickView.documentNotFound'),
     ).toBeInTheDocument();
-    expect(screen.queryByTitle('Preview document')).not.toBeInTheDocument();
+    expect(
+      container.querySelector('iframe[title="Preview document"]'),
+    ).not.toBeInTheDocument();
   });
 });

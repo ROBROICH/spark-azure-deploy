@@ -12,8 +12,8 @@ const mocks = vi.hoisted(() => ({
   useQuery: vi.fn(),
 }));
 
-vi.mock('@/api-clients/temporal-jobs-module/@tanstack/react-query.gen', () => ({
-  getSystemLoadTemporalLoadGetOptions: () => mocks.generatedQueryOptions,
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1TemporalJobsGetTemporalSystemLoadOptions: () => mocks.generatedQueryOptions,
 }));
 
 vi.mock('@tanstack/react-query', async (importOriginal) => {
@@ -30,7 +30,7 @@ describe('useSystemLoad', () => {
     vi.stubEnv('VITE_SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE', '');
     window.__APP_CONFIG__ = undefined;
     mocks.useQuery.mockImplementation(() => ({
-      data: { load_percentage: mocks.loadPercentage },
+      data: { loadPercentage: mocks.loadPercentage },
       isError: false,
       isFetching: false,
       isLoading: false,

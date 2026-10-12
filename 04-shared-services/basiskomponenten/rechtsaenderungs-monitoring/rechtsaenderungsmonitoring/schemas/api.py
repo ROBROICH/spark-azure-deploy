@@ -1,10 +1,9 @@
+from datetime import date, timedelta
+
 from pydantic import BaseModel
-from datetime import timedelta
+from temporal.contracts import MonitorRechtsaenderungenInput
 
 from rechtsaenderungsmonitoring.schemas.db import BaseNorm
-from temporal.workflows.rechtsaenderungs_monitoring.types import MonitorRechtsaenderungenInput
-
-from datetime import date
 
 
 class UpdateResponse(BaseModel):
@@ -44,4 +43,3 @@ class UpdateScheduleRequest(BaseModel):
 
 class PauseScheduleRequest(BaseModel):
     note: str | None = None
-

@@ -21,6 +21,7 @@ from src.services.docling.pdf_compression import compress_pdf_images
 from src.services.docling.pdf_preparation import _sanitize_stem, download_and_prepare_pdf
 from src.services.docling.pdf_rasterization import rasterize_chunk
 from src.services.docling.pdf_splitting import split_pdf_for_docling
+from src.services.docling.plan_extraction import collect_metrics, is_plan_document
 from src.services.docling.schemas import DoclingActivityInput, DoclingChunkResult
 
 __all__ = [
@@ -423,6 +424,17 @@ async def process_pdf_with_docling(
     file_size_mb = prepared.file_size_mb
 
     workflow.logger.info(f"PDF prepared: {prepared.filename} ({file_size_mb:.2f} MB)")
+
+    # Existing histories must retain the direct prepare → compression schedule.
+    if workflow.patched("docling-plan-fast-path"):
+        # Lagepläne / CAD sheets: rasterize first. Native Docling sees empty text
+        # and no images on vector plots, or spends an hour on CAD paths.
+        metrics = await collect_metrics(pdf_bytes)
+        if metrics is not None and is_plan_document(metrics):
+            workflow.logger.info(f"Plan sheet {filename}: rasterize then Docling")
+            raster_result = await rasterize_chunk(chunk_bytes=pdf_bytes, chunk_index=0, total_chunks=1)
+            pdf_bytes = raster_result.rasterized_bytes
+            file_size_mb = raster_result.rasterized_size_mb
 
     # Step 2: Compress embedded images (reduces memory pressure on docling-serve)
     compression_result = await compress_pdf_images(pdf_bytes, file_size_mb)

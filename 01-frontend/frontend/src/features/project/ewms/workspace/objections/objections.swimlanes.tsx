@@ -97,7 +97,7 @@ export const ObjectionsContent = (props: ObjectionsContentProps) => {
   const selectedItem = selectedObjectionId
     ? objections.find(
         (item) =>
-          item.entry.file_id === selectedObjectionId ||
+          item.entry.fileId === selectedObjectionId ||
           item.entry.id === selectedObjectionId,
       )
     : undefined;

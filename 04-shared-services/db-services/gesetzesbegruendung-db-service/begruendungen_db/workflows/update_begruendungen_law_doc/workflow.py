@@ -6,16 +6,14 @@ then fans out one process_law_doc activity per document and aggregates results.
 
 from typing import Any
 
-from temporal.utils import sliding_window
-from temporal.workflows.begruendungen.types import (
+from temporal.contracts import (
     ProcessLawDocInput,
     ProcessLawDocResult,
     ProcessSingleDocInput,
-    ProcessSingleDocResult
+    ProcessSingleDocResult,
 )
-from temporal.workflows.begruendungen.update_begruendungen_law_doc import (
-    UPDATE_BEGRUENDUNGEN_LAW_DOC_WORKFLOW_ID,
-)
+from temporal.registry import BEGRUENDUNGEN_UPDATE_LAW_DOC_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from begruendungen_db.workflows.update_begruendungen.activities import (
@@ -24,7 +22,7 @@ from begruendungen_db.workflows.update_begruendungen.activities import (
 )
 
 
-@workflow.defn(name=UPDATE_BEGRUENDUNGEN_LAW_DOC_WORKFLOW_ID)
+@workflow.defn(name=BEGRUENDUNGEN_UPDATE_LAW_DOC_WORKFLOW.name)
 class UpdateBegruendungenLawDocWorkflow:
     """Fetch document metadata for one law_doc, then fan out one process_law_doc per document."""
 
@@ -33,7 +31,12 @@ class UpdateBegruendungenLawDocWorkflow:
         document_metas = await fetch_law_docs(input)
 
         if not document_metas:
-            return ProcessLawDocResult(jurabk=input.law_doc.jurabk, written=0, skipped=0, failed=0)
+            return ProcessLawDocResult(
+                jurabk=input.law_doc.jurabk,
+                written=0,
+                skipped=0,
+                failed=0,
+            )
 
         async def process_single(doc_meta: dict[str, Any]) -> ProcessSingleDocResult:
             return await process_law_doc(

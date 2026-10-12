@@ -1,5 +1,7 @@
 """Prompt template for atomarisierung."""
 
+from src.activities.prompt_blocks import closing_block
+
 atomarisierungs_agent_prompt = """
 **Rolle**  
 Du bist ein spezialisierter Jurist mit ausgeprägter Expertise in der rechtslogischen Zerlegung von Normvoraussetzungen in atomare Tatbestandsmerkmale.
@@ -195,17 +197,14 @@ Es enthält nur eine Bedingung - ohne Verknüpfungen wie „und“, „oder“, 
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und überprüfe und ggf. umformuliere die folgende Liste in atomare Tatbestandsmerkmale, die aus dem nachstehenden juristischen Satz stammen:
-{external_data_tag_open}
-Tatbestandsmerkmale: {tatbestandsmerkmale}
-Der juristische Satz: {satz_text}
-{external_data_tag_close}
-
-**Wichtige Einschränkung:**  
-Die atomaren Tatbestandsmerkmale sind ausschließlich aus den in der Liste bereitgestellten Tatbestandsmerkmalen zu bilden.
-Der juristische Satz dient nur zur inhaltlichen Orientierung, darf aber nicht als Quelle für zusätzliche oder neue Tatbestandsmerkmale verwendet werden.
-
-*Ein atomares Tatbestandsmerkmal darf keinerlei Pronomen oder vergleichbare Rückbezüge enthalten, um die Eindeutigkeit und Klarheit zu gewährleisten.*
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Tatbestandsmerkmale: {tatbestandsmerkmale}",
+    "Der juristische Satz: {satz_text}",
+    notes=(
+        "**Wichtige Einschränkung:**  \n"
+        "Die atomaren Tatbestandsmerkmale sind ausschließlich aus den in der Liste bereitgestellten Tatbestandsmerkmalen zu bilden.\n"
+        "Der juristische Satz dient nur zur inhaltlichen Orientierung, darf aber nicht als Quelle für zusätzliche oder neue Tatbestandsmerkmale verwendet werden.\n"
+        "\n"
+        "*Ein atomares Tatbestandsmerkmal darf keinerlei Pronomen oder vergleichbare Rückbezüge enthalten, um die Eindeutigkeit und Klarheit zu gewährleisten.*"
+    ),
+)

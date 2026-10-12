@@ -1,9 +1,4 @@
-"""Non-LLM Temporal activities for context-checking data preparation.
-
-The conflict-check LLM call itself lives in workflow code (see
-``screening_context_batch_workflow``); this module only contains the Qdrant
-data-gathering activities used to assemble the prompt input.
-"""
+"""Non-LLM activities that gather chunk contexts from Qdrant for the context checker prompt."""
 
 from temporalio import activity
 
@@ -17,13 +12,7 @@ from src.workflows.clients import qdrant_client
 
 
 def _chunk_to_text(chunk: ChunkPayload) -> str:
-    """
-    Convert a ChunkPayload to text for downstream LLM prompts.
-
-    - Text chunks: return the verbatim chunk text.
-    - Non-text chunks: include the (LLM-generated) summary wrapped in LLM-generated markers
-      so it's obvious where the non-verbatim section starts and ends.
-    """
+    """Verbatim text for text chunks; the LLM summary between markers for all other chunks."""
     if chunk.chunk_type == "text":
         return chunk.chunk_content.strip()
 
@@ -36,15 +25,10 @@ def _chunk_to_text(chunk: ChunkPayload) -> str:
 
 
 @activity.defn
-async def build_chunk_contexts_batch(  # noqa: C901 -- phased pipeline (prev/next/build), splitting would add coupling
+async def build_chunk_contexts_batch(  # noqa: C901, PLR0912, PLR0915
     inp: BuildChunkContextsInput,
 ) -> dict[str, ChunkWithContext]:
-    """Build chunk contexts for all given chunk IDs using batched Qdrant fetches.
-
-    Instead of fetching neighbors one-by-one per chunk (up to 12 sequential calls
-    each), resolves the entire neighbor chain level-by-level in batch calls.
-    This reduces O(N × depth) Qdrant calls to O(depth) batch calls.
-    """
+    """Build chunk contexts for all given chunk IDs, resolving neighbour chains level by level in batches."""
     project_id = inp.project_id
     if not inp.chunk_ids:
         return {}
@@ -123,11 +107,8 @@ async def build_chunk_contexts_batch(  # noqa: C901 -- phased pipeline (prev/nex
         preceding_payloads = [chunk_cache[pid] for pid in prev_chains[chunk_id] if pid in chunk_cache]
         following_payloads = [chunk_cache[nid] for nid in next_chains[chunk_id] if nid in chunk_cache]
 
-        # Keep only neighbors from the same top-level chapter (toc_path[0]) as the base
-        # chunk. This is intentionally broader than an exact full-path match: it allows
-        # context to flow across sub-sections within the same chapter, giving the LLM
-        # more surrounding material to work with. Chunks with no TOC path (empty list)
-        # are treated as section-less and included regardless of the base chunk's path.
+        # Keep neighbours from the same top-level chapter (deliberately broader than the full path, so
+        # context crosses sub-sections); chunks without a TOC path always count.
         preceding_payloads = [
             p for p in preceding_payloads if not p.toc_path or not base.toc_path or p.toc_path[0] == base.toc_path[0]
         ]

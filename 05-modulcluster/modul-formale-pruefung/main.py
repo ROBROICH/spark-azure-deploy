@@ -18,24 +18,14 @@ import asyncio
 import logging
 import sys
 
-from temporal.s3_payload_storage import S3PayloadStorage
+from temporal.registry import FORMALE_PRUEFUNG_LLM_MATCHING_WORKFLOW
 from temporal.worker import start_temporal_worker
-from temporal.workflows.formale_pruefung.types import TASK_QUEUE as FORMALE_PRUEFUNG_TASK_QUEUE
 
 from src.activities import activities
+from src.services.payload_storage import create_payload_storage
 from src.workflows import workflows
 
 logger = logging.getLogger(__name__)
-
-
-def _create_storage() -> S3PayloadStorage:
-    return S3PayloadStorage(
-        bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
-        endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
-        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
-        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY,
-        region=ENV.TEMPORAL.S3_REGION,
-    )
 
 
 async def main():
@@ -47,7 +37,7 @@ async def main():
     with limited concurrency to prevent overloading.
     """
     target_host = ENV.TEMPORAL.HOST
-    task_queue = FORMALE_PRUEFUNG_TASK_QUEUE
+    task_queue = FORMALE_PRUEFUNG_LLM_MATCHING_WORKFLOW.task_queue
 
     logger.info("Initializing Temporal Worker Process....")
     logger.info(f"Target Temporal Host: {target_host}")
@@ -56,7 +46,7 @@ async def main():
     logger.info(f"Activities: {len(activities)}")
     logger.info(f"LLM max concurrent activities: {config.TEMPORAL.LLM_MAX_CONCURRENT_ACTIVITIES}")
 
-    main_storage = _create_storage()
+    main_storage = create_payload_storage()
 
     try:
         async with asyncio.TaskGroup() as tg:

@@ -1,13 +1,15 @@
 """bundesgesetzblatt specific parser"""
 
-from event_logging import EventAction, EventCategory, EventOutcome
+from pathlib import Path
+
+from db_services_shared.utils.gesetze_normen import GesetzeNormenDB
+from event_logging import EventAction, EventCategory, EventLogger, EventOutcome
 from event_logging.enums import LogEventDefault
 
 from rechtsaenderungsmonitoring.config import app_config
-from rechtsaenderungsmonitoring.parser.base import RSSParser, Entry
+from rechtsaenderungsmonitoring.parser.base import Entry, RSSParser
 from rechtsaenderungsmonitoring.schemas.db import Document
 from rechtsaenderungsmonitoring.utils.pdf import extract_pages_text
-from db_services_shared.utils.gesetze_normen import GesetzeNormenDB
 
 
 class BGBLParser(RSSParser):
@@ -20,7 +22,12 @@ class BGBLParser(RSSParser):
     _feed_url = "https://www.gesetze-im-internet.de/aktuDienst-rss-feed.xml"
     gn_client = None
 
-    def __init__(self, cache_dir=None, logger=None, gesetze_normen_client=None):
+    def __init__(
+        self,
+        cache_dir: Path,
+        logger: EventLogger | None = None,
+        gesetze_normen_client: GesetzeNormenDB | None = None,
+    ) -> None:
         """initialise class"""
         super().__init__(cache_dir, logger)
         self.gn_client = gesetze_normen_client or GesetzeNormenDB(app_config.gesetze_normen_url)

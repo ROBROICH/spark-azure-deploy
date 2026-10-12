@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/features/ui/dialog/Dialog';
+import { selectActiveProjectTypes } from '@/features/project/data/project-types/projectTypeOptions.logic';
 import { projectTypesCollection } from '@/features/project/data/project-types/projectTypes.collection';
 import { useLiveQuery } from '@tanstack/react-db';
 import type React from 'react';
@@ -26,15 +27,16 @@ export const CreateProjectForm = (
   const { data: projectTypes, isLoading: isLoadingProjectTypes } = useLiveQuery(
     (q) => q.from({ projectTypes: projectTypesCollection }),
   );
+  const activeProjectTypes = selectActiveProjectTypes(projectTypes);
   const projectTypesLoadFailed =
     !isLoadingProjectTypes && projectTypes.length === 0;
+  const [firstActiveProjectType] = activeProjectTypes;
 
   const formReady =
     open &&
     !isLoadingProjectTypes &&
     !projectTypesLoadFailed &&
-    projectTypes.length > 0;
-  const firstProjectType = projectTypes.at(0);
+    activeProjectTypes.length > 0;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -48,11 +50,11 @@ export const CreateProjectForm = (
         <DialogHeader>
           <DialogTitle>{t('title')}</DialogTitle>
         </DialogHeader>
-        {open && formReady && firstProjectType && (
+        {open && formReady && firstActiveProjectType && (
           <CreateProjectFormContent
-            key={firstProjectType.id}
-            defaultProjectTypeId={firstProjectType.id}
-            projectTypes={projectTypes}
+            key={firstActiveProjectType.id}
+            defaultProjectTypeId={firstActiveProjectType.id}
+            projectTypes={activeProjectTypes}
             projectTypesLoadFailed={projectTypesLoadFailed}
             onOpenChange={onOpenChange}
             onSuccess={onSuccess}
@@ -73,6 +75,13 @@ export const CreateProjectForm = (
                 {t('projectTypesLoadError')}
               </DialogDescription>
             )}
+            {!isLoadingProjectTypes &&
+              !projectTypesLoadFailed &&
+              activeProjectTypes.length === 0 && (
+                <DialogDescription className="text-foreground text-body-m">
+                  {t('noActiveProjectTypes')}
+                </DialogDescription>
+              )}
           </div>
         )}
       </DialogContent>

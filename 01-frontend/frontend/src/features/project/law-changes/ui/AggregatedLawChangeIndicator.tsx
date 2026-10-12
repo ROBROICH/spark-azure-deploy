@@ -3,7 +3,10 @@ import { formatDate } from '@/i18n/formatDate';
 import { useLiveQuery } from '@tanstack/react-db';
 import { TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { lawChangesCollection } from '../data/collections/lawChanges.collection';
+import {
+  lawChangesCollection,
+  useLawChangesServiceUnavailable,
+} from '../data/collections/lawChanges.collection';
 import type {
   AggregatedLawChangeNormRef,
   LawChangeRecord,
@@ -21,14 +24,26 @@ type AggregatedLawChangeIndicatorProps = {
 export type AggregatedLawChangeIndicatorViewProps =
   AggregatedLawChangeIndicatorProps & {
     isErrorLawChanges?: boolean;
+    isServiceUnavailable?: boolean;
     lawChanges: LawChangeRecord[];
   };
 
 export function AggregatedLawChangeIndicatorView(
   props: AggregatedLawChangeIndicatorViewProps,
 ) {
-  const { isErrorLawChanges = false, lawChanges, norms } = props;
+  const {
+    isErrorLawChanges = false,
+    isServiceUnavailable = false,
+    lawChanges,
+    norms,
+  } = props;
   const { t, i18n } = useTranslation('Rpb');
+
+  // Hide silently while the backend is down; only surface the error chip for
+  // genuine (non-outage) load failures.
+  if (isServiceUnavailable) {
+    return null;
+  }
 
   if (isErrorLawChanges) {
     return <LawChangeCollectionStatusChip />;
@@ -89,11 +104,13 @@ export function AggregatedLawChangeIndicator(
   const { data: lawChanges, isError } = useLiveQuery((q) =>
     q.from({ lawChanges: lawChangesCollection }),
   );
+  const isServiceUnavailable = useLawChangesServiceUnavailable();
 
   return (
     <AggregatedLawChangeIndicatorView
       {...props}
       isErrorLawChanges={isError}
+      isServiceUnavailable={isServiceUnavailable}
       lawChanges={lawChanges}
     />
   );

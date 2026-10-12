@@ -63,7 +63,7 @@ export const MvpTopicCard = (props: MvpTopicCardProps) => {
     deriveTopicProgress(topicNorms);
   const topicLawChangeNorms = topicNorms.map((topicNorm) => ({
     jurabk: topicNorm.jurabk,
-    paragraphNr: topicNorm.paragraph_nr,
+    paragraphNr: topicNorm.paragraphNr,
   }));
 
   const colors = CARD_COLORS_BY_STATUS[status];
@@ -144,7 +144,7 @@ export const MvpTopicCard = (props: MvpTopicCardProps) => {
           className="pointer-events-auto flex min-w-0 shrink-0 items-center justify-end"
         >
           <AvatarHeader
-            assignedUserIds={topic.mvp_assignees}
+            assignedUserIds={topic.mvpAssignees}
             disabled={!canChangeAssignedUsers}
             onChange={(assignedUserIds) =>
               onChangeAssignedUsers(topic.id, assignedUserIds)

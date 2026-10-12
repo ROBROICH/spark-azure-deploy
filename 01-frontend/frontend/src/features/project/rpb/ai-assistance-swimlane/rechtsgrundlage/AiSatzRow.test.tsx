@@ -122,13 +122,11 @@ vi.mock(
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (nodeType: string) => {
     if (nodeType === 'norm') {
-      return [{ id: 'norm-1', node_type: 'norm' }];
+      return [{ id: 'norm-1', nodeType: 'norm' }];
     }
 
     if (nodeType === 'bewertung') {
-      return hasBewertung
-        ? [{ id: 'bewertung-1', node_type: 'bewertung' }]
-        : [];
+      return hasBewertung ? [{ id: 'bewertung-1', nodeType: 'bewertung' }] : [];
     }
 
     return [];
@@ -142,19 +140,19 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         data: [
           {
             id: 'quelle-1',
-            node_type: 'bewertung_quelle',
-            dokument_id: 'dokument-1',
+            nodeType: 'bewertung_quelle',
+            dokumentId: 'dokument-1',
             title: 'Beispieldokument A',
-            chunk_ids: ['chunk-1'],
-            page_numbers: [5, 7],
+            chunkIds: ['chunk-1'],
+            pageNumbers: [5, 7],
           },
           {
             id: 'quelle-2',
-            node_type: 'bewertung_quelle',
-            dokument_id: 'dokument-1',
+            nodeType: 'bewertung_quelle',
+            dokumentId: 'dokument-1',
             title: 'Bearbeiter:',
-            chunk_ids: ['chunk-2'],
-            page_numbers: [11],
+            chunkIds: ['chunk-2'],
+            pageNumbers: [11],
           },
         ],
       };
@@ -167,29 +165,29 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | undefined) => {
+  useNode: (nodeRef: { id: string; nodeType: string } | undefined) => {
     if (!nodeRef) {
       return {
         data: null,
       };
     }
 
-    if (nodeRef.node_type === 'absatz') {
+    if (nodeRef.nodeType === 'absatz') {
       return {
         data: {
           id: nodeRef.id,
-          node_type: 'absatz',
-          absatz_nr: '1',
+          nodeType: 'absatz',
+          absatzNr: '1',
         },
       };
     }
 
-    if (nodeRef.node_type === 'satz') {
+    if (nodeRef.nodeType === 'satz') {
       return {
         data: {
           id: nodeRef.id,
-          node_type: 'satz',
-          satz_nr: satzNr,
+          nodeType: 'satz',
+          satzNr: satzNr,
           position: 99,
           markers: satzMarkers,
           text: 'Der Satztext',
@@ -197,11 +195,11 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
       };
     }
 
-    if (nodeRef.node_type === 'bewertung') {
+    if (nodeRef.nodeType === 'bewertung') {
       return {
         data: {
           id: nodeRef.id,
-          node_type: 'bewertung',
+          nodeType: 'bewertung',
           kurzform: 'nichterfuellt [42]',
           result: 'nicht_erfuellt',
         },
@@ -216,9 +214,9 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
     data: [
       {
         id: 'dokument-1',
-        node_type: 'dokument',
+        nodeType: 'dokument',
         filename: 'Beispieldokument A.pdf',
-        dms_file_id: 'project-file-1',
+        dmsFileId: 'project-file-1',
       },
     ],
   }),
@@ -230,8 +228,8 @@ vi.mock('./AiTopicNormContext', () => ({
     getSatzReviewStatus: () => 'unchecked',
     isSatzChecked: () => false,
     topicNorm: {
-      satz_statuses: {},
-      topic_id: 'topic-1',
+      satzStatuses: {},
+      topicId: 'topic-1',
     },
     toggleSatzChecked: mocks.toggleSatzCheckedMock,
   }),
@@ -324,10 +322,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
         showMissingAssessmentTooltip={true}
       />,
@@ -368,10 +366,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
         showMissingAssessmentTooltip={true}
       />,
@@ -400,10 +398,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );
@@ -440,10 +438,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );
@@ -471,10 +469,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );
@@ -512,10 +510,10 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );
@@ -555,12 +553,12 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={true}
         requestTitlePrefix="§ 15"
         requestTitleSuffix="BNatSchG"
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );
@@ -585,12 +583,12 @@ describe('AiSatzRow', () => {
 
     render(
       <AiSatzRow
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         hasMultipleSaetze={false}
         requestTitlePrefix="§ 31"
         requestTitleSuffix="BNatSchG"
-        satzRef={{ id: 'satz-1', node_type: 'satz' }}
+        satzRef={{ id: 'satz-1', nodeType: 'satz' }}
         showDivider={false}
       />,
     );

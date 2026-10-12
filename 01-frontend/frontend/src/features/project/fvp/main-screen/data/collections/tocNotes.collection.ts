@@ -1,10 +1,10 @@
 import {
-  createProjectTocNotesProjectIdTocNotesPost,
-  getProjectTocNotesProjectIdTocNotesGet,
-  updateProjectTocNoteResolvedProjectIdTocNotesNoteIdPatch,
+  v1FormalCompletenessCreateTocNotes as createTocNotes,
+  v1FormalCompletenessGetTocNotes as getTocNotes,
+  v1FormalCompletenessUpdateTocNote as updateTocNote,
   type TableContentNotesResponse,
   type TocNotesWithStatusResponse,
-} from '@/api-clients/fcs-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryOptions } from '@tanstack/react-query';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
@@ -40,11 +40,11 @@ const createTocNotesFetchError = (
 const mapApiNoteToTocNote = (note: TableContentNotesResponse): TocNote =>
   tocNoteSchema.parse({
     id: note.id,
-    projectId: note.project_id,
+    projectId: note.projectId,
     content: note.content,
-    isResolved: note.is_resolved,
-    createdAt: note.created_at,
-    updatedAt: note.updated_at,
+    isResolved: note.isResolved,
+    createdAt: note.createdAt,
+    updatedAt: note.updatedAt,
   });
 
 const mapTocNotesResponseToTocNotes = (
@@ -55,8 +55,8 @@ export const getTocNotesResponseQueryOptions = (projectId: string) =>
   queryOptions({
     queryKey: ['toc-notes-response', projectId],
     queryFn: async (): Promise<TocNotesWithStatusResponse> => {
-      const result = (await getProjectTocNotesProjectIdTocNotesGet({
-        path: { project_id: projectId },
+      const result = (await getTocNotes({
+        path: { projectId: projectId },
       })) as {
         data?: TocNotesWithStatusResponse | null;
         error?: unknown;
@@ -126,8 +126,8 @@ export const tocNotesCollection = createCollection(
     onInsert: async ({ transaction }) => {
       const results = await Promise.all(
         transaction.mutations.map(async (m) => {
-          const { data } = await createProjectTocNotesProjectIdTocNotesPost({
-            path: { project_id: m.modified.projectId },
+          const { data } = await createTocNotes({
+            path: { projectId: m.modified.projectId },
             body: [{ content: m.modified.content }],
           });
           if (!data) {
@@ -156,16 +156,15 @@ export const tocNotesCollection = createCollection(
             };
           }
 
-          const { data } =
-            await updateProjectTocNoteResolvedProjectIdTocNotesNoteIdPatch({
-              path: {
-                project_id: m.original.projectId,
-                note_id: m.original.id,
-              },
-              body: {
-                is_resolved: m.changes.isResolved as boolean,
-              },
-            });
+          const { data } = await updateTocNote({
+            path: {
+              projectId: m.original.projectId,
+              noteId: m.original.id,
+            },
+            body: {
+              isResolved: m.changes.isResolved as boolean,
+            },
+          });
           if (!data) {
             throw new Error('Failed to update TOC note');
           }

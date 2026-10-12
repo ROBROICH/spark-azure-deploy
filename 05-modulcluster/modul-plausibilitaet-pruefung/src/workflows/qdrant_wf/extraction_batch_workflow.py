@@ -1,11 +1,11 @@
 """Child workflow that processes a batch of chunks for claim extraction.
 
-LLM calls run as shared ``llm_invoke_structured`` activities — invoked here directly
-from the workflow so the task queue is auto-resolved from the configured model.
+LLM activities are invoked directly from the workflow so the task queue resolves from the model.
 """
 
 import json
 import re
+from typing import TypedDict
 
 from prompt_injection.prompt_defense import sanitize_and_wrap_external_data, wrap_system_prompt
 from temporal.activities.llm import llm_invoke_structured
@@ -13,6 +13,7 @@ from temporal.activities.models import ChatModel
 from temporal.utils import sliding_window
 from temporalio import workflow
 
+from src.activities.evidence import is_superseded
 from src.config.config import config
 from src.config.env import ENV
 from src.qdrant.schemas import ChunkPayload, ClaimEvidence, ClaimMetadata, ClaimPayload
@@ -38,7 +39,7 @@ def _group_text_chunks(chunks: list[ChunkPayload], group_size: int, max_chars: i
     chars = 0
 
     for chunk in chunks:
-        size = len(chunk.chunk_content) + 120  # approximate JSON overhead per chunk
+        size = len(chunk.chunk_content) + _JSON_OVERHEAD_CHARS
         if current and (len(current) >= group_size or chars + size > max_chars):
             groups.append(current)
             current = []
@@ -51,6 +52,9 @@ def _group_text_chunks(chunks: list[ChunkPayload], group_size: int, max_chars: i
     return groups
 
 
+# Approximate JSON overhead per chunk in an extraction batch.
+_JSON_OVERHEAD_CHARS = 120
+_OBJECT_MAX_CHARS = 60
 _TR_PATTERN = re.compile(r"(<tr[\s>].*?</tr>)", re.IGNORECASE | re.DOTALL)
 
 
@@ -77,18 +81,9 @@ def _split_by_chars(chunk: ChunkPayload, max_chars: int) -> list[ChunkPayload]:
 
 
 def _split_large_table(chunk: ChunkPayload, max_chars: int) -> list[ChunkPayload]:
-    """Split an HTML table chunk into smaller chunks when it exceeds *max_chars*.
+    """Split an HTML table chunk by rows (header repeated) when it exceeds *max_chars*.
 
-    Splitting strategy:
-    1. Extract all ``<tr>`` elements from the HTML.
-    2. Treat the first ``<tr>`` as the header row (kept in every split).
-    3. Distribute remaining rows into sub-tables so that each stays below the
-       character budget.  A single row that already exceeds the budget is never
-       dropped — it gets its own chunk.
-    4. Each sub-table is wrapped in ``<table>…</table>`` tags.
-
-    Falls back to character-based splitting if the HTML cannot be parsed
-    into rows (e.g. malformed HTML from docling).
+    An over-budget row gets its own chunk instead of being dropped; unparseable HTML is split by characters.
     """
     html = chunk.chunk_content
     if len(html) <= max_chars:
@@ -206,7 +201,7 @@ async def _extract_text_claims_grouped(
         model=model,
         temperature=0.0,
         top_p=1.0,
-        reasoning_effort="medium",
+        reasoning_effort=config.QDRANT_BUILDER.EXTRACTION_REASONING_EFFORT,
         retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
     )
 
@@ -238,10 +233,27 @@ async def _extract_text_claims_grouped(
                     claim_content=item.claim,
                 ),
                 vector=None,
+                objekt=item.objekt[:_OBJECT_MAX_CHARS],
+                **_extraction_evidence_fields(chunk),
             )
         )
 
     return claims
+
+
+class _ExtractionEvidenceFields(TypedDict):
+    instance_identifiers: dict[str, list[str]]
+    object_ids: list[str]
+    superseded: bool
+
+
+def _extraction_evidence_fields(chunk: ChunkPayload) -> _ExtractionEvidenceFields:
+    """Evidence captured at extraction time."""
+    return _ExtractionEvidenceFields(
+        instance_identifiers=chunk.instance_identifiers,
+        object_ids=chunk.object_ids,
+        superseded=is_superseded(chunk.title),
+    )
 
 
 async def _extract_table_claims(
@@ -264,7 +276,7 @@ async def _extract_table_claims(
         model=model,
         temperature=0.0,
         top_p=1.0,
-        reasoning_effort="medium",
+        reasoning_effort=config.QDRANT_BUILDER.EXTRACTION_REASONING_EFFORT,
         retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
     )
 
@@ -283,6 +295,7 @@ async def _extract_table_claims(
                 claim_content=t,
             ),
             vector=None,
+            **_extraction_evidence_fields(chunk),
         )
         for t in result.claims
     ]

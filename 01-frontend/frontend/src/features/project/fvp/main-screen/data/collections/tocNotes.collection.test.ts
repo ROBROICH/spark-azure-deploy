@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { TocNotesWithStatusResponse } from '@/api-clients/fcs-module';
+import type { TocNotesWithStatusResponse } from '@/api-clients/backend';
 import {
   getTocNotesResponseQueryOptions,
   tocNotesCollection,
@@ -25,11 +25,11 @@ const mocks = vi.hoisted(() => ({
   ),
 }));
 
-vi.mock('@/api-clients/fcs-module', () => ({
-  createProjectTocNotesProjectIdTocNotesPost: vi.fn(),
-  getProjectTocNotesProjectIdTocNotesGet: (...args: unknown[]) =>
+vi.mock('@/api-clients/backend', () => ({
+  v1FormalCompletenessCreateTocNotes: vi.fn(),
+  v1FormalCompletenessGetTocNotes: (...args: unknown[]) =>
     mocks.getTocNotes(...args),
-  updateProjectTocNoteResolvedProjectIdTocNotesNoteIdPatch: vi.fn(),
+  v1FormalCompletenessUpdateTocNote: vi.fn(),
 }));
 
 vi.mock('@/integrations/tanstack-query/root-provider', () => ({
@@ -128,11 +128,11 @@ describe('tocNotesCollection queryFn projection', () => {
       notes: [
         {
           id: 'note-1',
-          project_id: projectId,
+          projectId: projectId,
           content: 'Unterlage 1',
-          is_resolved: false,
-          created_at: '2026-01-01T00:00:00Z',
-          updated_at: '2026-01-02T00:00:00Z',
+          isResolved: false,
+          createdAt: '2026-01-01T00:00:00Z',
+          updatedAt: '2026-01-02T00:00:00Z',
         },
       ],
     });

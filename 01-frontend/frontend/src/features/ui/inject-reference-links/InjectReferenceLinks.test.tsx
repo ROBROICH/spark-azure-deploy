@@ -19,11 +19,11 @@ vi.mock('react-i18next', () => ({
 
 const references: InjectReferenceMap = {
   '0001': {
-    document_id: 'document-1',
+    documentId: 'document-1',
     node_id: 'node-1',
     title: 'Source document',
-    chunk_ids: ['chunk-1'],
-    page_numbers: [1],
+    chunkIds: ['chunk-1'],
+    pageNumbers: [1],
   },
 };
 

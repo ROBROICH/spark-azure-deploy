@@ -1,5 +1,5 @@
 import { Button } from '@/features/ui/button/Button';
-import type { UserOidcRole } from '@/api-clients/identity-management-module/types.gen';
+import type { UserOidcRole } from '@/api-clients/backend/types.gen';
 import { isRoleSwitcherFeatureEnabled } from '@/features/shared/config/roleSwitcherFeature';
 import { isRuntimeEnvironment } from '@/features/shared/config/runtimeEnvironment';
 import { useDevMode } from '@/features/dev-mode/useDevMode';
@@ -72,7 +72,7 @@ function CurrentUserContextProvider(props: {
   );
 }
 
-function CurrentUserLoadingScreen(): ReactElement {
+export function CurrentUserLoadingScreen(): ReactElement {
   const { t } = useTranslation('shared');
 
   return (

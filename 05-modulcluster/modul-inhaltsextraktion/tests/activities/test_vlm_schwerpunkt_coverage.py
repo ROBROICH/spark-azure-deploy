@@ -2,9 +2,9 @@
 """
 Comprehensive tests for pure functions in:
 - src/activities/vlm_invoke.py (cache, compression, VLMInvokeInput)
-- src/activities/schwerpunkt_extraction.py (cleaning, context building, topic resolution)
-- src/activities/species_scale_extraction.py (empty result, cleaning, dataclass)
-- src/activities/hypothetical_questions.py (cleaning, dataclass)
+- src/activities/schwerpunkt_extraction.py (topic resolution, dataclass)
+- src/activities/species_scale_extraction.py (dataclass)
+- src/activities/hypothetical_questions.py (dataclass)
 """
 
 import io
@@ -16,16 +16,13 @@ from PIL import Image
 
 from src.activities.hypothetical_questions import (
     ProcessHypotheticalQuestionsBatchInput,
-    _clean_content_for_hypothetical_questions,
 )
 from src.activities.schwerpunkt_extraction import (
     ProcessSchwerpunktBatchInput,
-    _clean_content_for_schwerpunktthema,
     _resolve_topic_name,
 )
 from src.activities.species_scale_extraction import (
     ProcessSpeciesScaleBatchInput,
-    _clean_content_for_species_scale,
 )
 from src.activities.vlm_invoke import (
     _IMAGE_CACHE_MAX_SIZE,
@@ -296,65 +293,6 @@ class TestPrepareVlmImageInput:
 
 
 # ===========================================================================
-# 5. schwerpunkt_extraction.py -- _clean_content_for_schwerpunktthema
-# ===========================================================================
-
-
-class TestCleanContentForSchwerpunktthema:
-    """Tests for _clean_content_for_schwerpunktthema."""
-
-    def test_replaces_bild_with_summary(self) -> None:
-        """Test that BILD tags are replaced with their summary text."""
-        content = '<BILD id="img1"><summary>A bird</summary><description>Long description</description></BILD>'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert result == "A bird"
-
-    def test_replaces_bild_without_summary_returns_empty(self) -> None:
-        """Test that BILD tags without a summary are replaced with an empty string."""
-        content = '<BILD id="img1"><description>Some description</description></BILD>'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert result == ""
-
-    def test_replaces_tabelle_with_summary(self) -> None:
-        """Test that TABELLE tags are replaced with their summary text."""
-        content = '<TABELLE id="t1"><summary>Revenue table</summary><raw_table><table><tr><td>100</td></tr></table></raw_table></TABELLE>'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert result == "Revenue table"
-
-    def test_replaces_tabelle_falls_back_to_table_text(self) -> None:
-        """When TABELLE has no summary, extract_table_text should be used."""
-        content = '<TABELLE id="t1"><raw_table><table><tr><td>Cell value</td></tr></table></raw_table></TABELLE>'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert "Cell value" in result
-
-    def test_mixed_content_preserves_text(self) -> None:
-        """Test that plain text surrounding BILD and TABELLE tags is preserved."""
-        content = 'Before <BILD id="1"><summary>Pic</summary></BILD> after <TABELLE id="2"><summary>Tab</summary></TABELLE> end'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert "Before" in result
-        assert "Pic" in result
-        assert "after" in result
-        assert "Tab" in result
-        assert "end" in result
-
-    def test_no_tags_returns_content_unchanged(self) -> None:
-        """Test that content without BILD or TABELLE tags is returned unchanged."""
-        content = "Just plain text with no tags."
-        result = _clean_content_for_schwerpunktthema(content)
-        assert result == content
-
-    def test_empty_string(self) -> None:
-        """Test that an empty string input returns an empty string."""
-        assert _clean_content_for_schwerpunktthema("") == ""
-
-    def test_bild_with_attributes(self) -> None:
-        """Test that BILD tags with extra attributes are cleaned correctly."""
-        content = '<BILD type="photo" page="3"><summary>Landscape</summary></BILD>'
-        result = _clean_content_for_schwerpunktthema(content)
-        assert result == "Landscape"
-
-
-# ===========================================================================
 # 7. schwerpunkt_extraction.py -- _resolve_topic_name
 # ===========================================================================
 
@@ -405,62 +343,6 @@ class TestProcessSchwerpunktBatchInput:
 
 
 # ===========================================================================
-# 10. species_scale_extraction.py -- _clean_content_for_species_scale
-# ===========================================================================
-
-
-class TestCleanContentForSpeciesScale:
-    """Tests for _clean_content_for_species_scale."""
-
-    def test_replaces_bild_with_summary(self) -> None:
-        """Test that BILD tags are replaced with their summary text."""
-        content = '<BILD id="1"><summary>A forest</summary></BILD>'
-        result = _clean_content_for_species_scale(content)
-        assert result == "A forest"
-
-    def test_replaces_bild_without_summary_returns_empty(self) -> None:
-        """Test that BILD tags without a summary are replaced with an empty string."""
-        content = '<BILD id="1"><description>Desc</description></BILD>'
-        result = _clean_content_for_species_scale(content)
-        assert result == ""
-
-    def test_replaces_tabelle_with_summary(self) -> None:
-        """Test that TABELLE tags are replaced with their summary text."""
-        content = '<TABELLE id="1"><summary>Species list</summary></TABELLE>'
-        result = _clean_content_for_species_scale(content)
-        assert result == "Species list"
-
-    def test_replaces_tabelle_falls_back_to_table_text(self) -> None:
-        """Test that TABELLE without summary falls back to extracted table text."""
-        content = '<TABELLE id="1"><raw_table><table><tr><td>Feldhase</td></tr></table></raw_table></TABELLE>'
-        result = _clean_content_for_species_scale(content)
-        assert "Feldhase" in result
-
-    def test_tabelle_with_empty_summary_uses_table_text(self) -> None:
-        """Test that TABELLE with a whitespace-only summary falls back to table text."""
-        content = '<TABELLE id="1"><summary>  </summary><raw_table><table><tr><td>Rotmilan</td></tr></table></raw_table></TABELLE>'
-        result = _clean_content_for_species_scale(content)
-        assert "Rotmilan" in result
-
-    def test_plain_text_unchanged(self) -> None:
-        """Test that plain text without tags is returned unchanged."""
-        content = "No special tags here."
-        assert _clean_content_for_species_scale(content) == content
-
-    def test_empty_string(self) -> None:
-        """Test that an empty string input returns an empty string."""
-        assert _clean_content_for_species_scale("") == ""
-
-    def test_mixed_content(self) -> None:
-        """Test that mixed plain text and BILD tags are cleaned correctly."""
-        content = 'Text before <BILD id="1"><summary>Image summary</summary></BILD> text after'
-        result = _clean_content_for_species_scale(content)
-        assert "Text before" in result
-        assert "Image summary" in result
-        assert "text after" in result
-
-
-# ===========================================================================
 # 11. species_scale_extraction.py -- ProcessSpeciesScaleBatchInput
 # ===========================================================================
 
@@ -478,128 +360,6 @@ class TestProcessSpeciesScaleBatchInput:
         """Test that ProcessSpeciesScaleBatchInput accepts an empty chunk list."""
         inp = ProcessSpeciesScaleBatchInput(chunks=[])
         assert inp.chunks == []
-
-
-# ===========================================================================
-# 12. hypothetical_questions.py -- _clean_content_for_hypothetical_questions
-# ===========================================================================
-
-
-class TestCleanContentForHypotheticalQuestions:
-    """Tests for _clean_content_for_hypothetical_questions."""
-
-    def test_bild_with_summary(self) -> None:
-        """Test that BILD with summary produces '[Bild: summary]'."""
-        content = '<BILD id="1"><summary>Sunrise view</summary></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: Sunrise view]"
-
-    def test_bild_with_description_no_summary(self) -> None:
-        """Test that BILD without summary falls back to description."""
-        content = '<BILD id="1"><description>A mountain landscape</description></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: A mountain landscape]"
-
-    def test_bild_with_caption_no_summary_no_description(self) -> None:
-        """Test that BILD without summary or description falls back to caption."""
-        content = '<BILD id="1"><caption_text>Figure 1: Map</caption_text></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: Figure 1: Map]"
-
-    def test_bild_fallback_no_metadata(self) -> None:
-        """Test that BILD with no usable metadata produces a bare '[Bild]' placeholder."""
-        content = '<BILD id="1"><raw_image>base64data</raw_image></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild]"
-
-    def test_bild_summary_takes_priority_over_description(self) -> None:
-        """Test that summary is preferred over description when both are present."""
-        content = '<BILD id="1"><summary>Summary text</summary><description>Desc text</description></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: Summary text]"
-
-    def test_bild_empty_summary_falls_back_to_description(self) -> None:
-        """Test that a whitespace-only summary causes fallback to description."""
-        content = '<BILD id="1"><summary>  </summary><description>Desc text</description></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: Desc text]"
-
-    def test_tabelle_with_summary(self) -> None:
-        """Test that TABELLE with summary produces '[Tabelle: summary]'."""
-        content = '<TABELLE id="1"><summary>Revenue overview</summary></TABELLE>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Tabelle: Revenue overview]"
-
-    def test_tabelle_with_caption_and_table_content(self) -> None:
-        """Test that TABELLE with caption and raw table includes both in output."""
-        content = (
-            '<TABELLE id="1">'
-            "<caption_text>Table 1</caption_text>"
-            "<raw_table><table><tr><td>Data</td></tr></table></raw_table>"
-            "</TABELLE>"
-        )
-        result = _clean_content_for_hypothetical_questions(content)
-        assert "[Tabelle 'Table 1':" in result
-        assert "Data" in result
-
-    def test_tabelle_with_caption_no_raw_table(self) -> None:
-        """Caption present but no <table> tag -- extract_table_text still finds
-        text from the inner HTML (caption_text tag is stripped), so the
-        'caption + table_text' branch is taken."""
-        content = '<TABELLE id="1"><caption_text>Table 1</caption_text></TABELLE>'
-        result = _clean_content_for_hypothetical_questions(content)
-        # extract_table_text strips all tags from inner content, yielding "Table 1"
-        # so the result is "[Tabelle 'Table 1': Table 1]"
-        assert "Table 1" in result
-        assert "[Tabelle" in result
-
-    def test_tabelle_fallback_to_raw_html(self) -> None:
-        """Test that TABELLE without summary falls back to extracted table text."""
-        content = (
-            '<TABELLE id="1"><raw_table><table><tr><td>Cell A</td><td>Cell B</td></tr></table></raw_table></TABELLE>'
-        )
-        result = _clean_content_for_hypothetical_questions(content)
-        assert "[Tabelle:" in result
-        assert "Cell A" in result
-
-    def test_tabelle_fallback_no_content(self) -> None:
-        """Test that an empty TABELLE tag produces a bare '[Tabelle]' placeholder."""
-        content = '<TABELLE id="1"></TABELLE>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Tabelle]"
-
-    def test_plain_text_unchanged(self) -> None:
-        """Test that plain text without tags is returned unchanged."""
-        content = "Regular text without any tags."
-        assert _clean_content_for_hypothetical_questions(content) == content
-
-    def test_empty_string(self) -> None:
-        """Test that an empty string input returns an empty string."""
-        assert _clean_content_for_hypothetical_questions("") == ""
-
-    def test_multiple_elements_in_sequence(self) -> None:
-        """Test that multiple BILD and TABELLE elements in sequence are all cleaned."""
-        content = (
-            '<BILD id="1"><summary>Photo</summary></BILD> '
-            "middle text "
-            '<TABELLE id="2"><summary>Data table</summary></TABELLE>'
-        )
-        result = _clean_content_for_hypothetical_questions(content)
-        assert "[Bild: Photo]" in result
-        assert "middle text" in result
-        assert "[Tabelle: Data table]" in result
-
-    def test_bild_with_attributes(self) -> None:
-        """Test that BILD with extra attributes is cleaned correctly."""
-        content = '<BILD type="photo" page="5"><summary>Attr test</summary></BILD>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Bild: Attr test]"
-
-    def test_tabelle_with_attributes(self) -> None:
-        """Test that TABELLE with extra attributes is cleaned correctly."""
-        content = '<TABELLE type="data" page="2"><summary>Attr table</summary></TABELLE>'
-        result = _clean_content_for_hypothetical_questions(content)
-        assert result == "[Tabelle: Attr table]"
 
 
 # ===========================================================================
@@ -668,34 +428,6 @@ class TestImageCacheEdgeCases:
         assert _image_cache_get("k0") is None
         assert _image_cache_get("new_key") == (b"new", "image/jpeg")
         assert len(_image_cache) == _IMAGE_CACHE_MAX_SIZE
-
-
-class TestCleanContentCrossModule:
-    """Cross-module tests to verify consistent cleaning behavior."""
-
-    def test_schwerpunkt_and_species_scale_same_bild_behavior(self) -> None:
-        """Both modules should handle BILD tags the same way (extract summary)."""
-        content = '<BILD id="x"><summary>Same summary</summary></BILD>'
-        schwerpunkt_result = _clean_content_for_schwerpunktthema(content)
-        species_result = _clean_content_for_species_scale(content)
-        assert schwerpunkt_result == "Same summary"
-        assert species_result == "Same summary"
-
-    def test_hypo_questions_wraps_in_brackets_unlike_others(self) -> None:
-        """Hypothetical questions wraps output in [Bild: ...], others do not."""
-        content = '<BILD id="x"><summary>A photo</summary></BILD>'
-        hypo_result = _clean_content_for_hypothetical_questions(content)
-        schwerpunkt_result = _clean_content_for_schwerpunktthema(content)
-
-        assert hypo_result == "[Bild: A photo]"
-        assert schwerpunkt_result == "A photo"
-
-    def test_multiline_content_in_tags(self) -> None:
-        """Tags with multiline content should be handled correctly."""
-        content = '<BILD id="1"><summary>\n  Line 1\n  Line 2\n</summary></BILD>'
-        schwerpunkt = _clean_content_for_schwerpunktthema(content)
-        assert "Line 1" in schwerpunkt
-        assert "Line 2" in schwerpunkt
 
 
 class TestResolveTopicNameEdgeCases:

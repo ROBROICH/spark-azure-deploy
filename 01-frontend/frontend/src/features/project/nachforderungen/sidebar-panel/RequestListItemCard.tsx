@@ -15,9 +15,11 @@ import { ChevronDown, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { RequestForm } from './RequestForm';
+import type { requestItemsCollection } from '../data/collections/requestItems.collection';
 
 type RequestListItemCardProps = {
   item: RequestItem;
+  collection?: typeof requestItemsCollection;
   isEditing: boolean;
   canMutateProject: boolean;
   onStartEditing: (item: RequestItem) => void;
@@ -28,6 +30,7 @@ type RequestListItemCardProps = {
 export const RequestListItemCard = (props: RequestListItemCardProps) => {
   const {
     item,
+    collection,
     isEditing,
     canMutateProject,
     onStartEditing,
@@ -48,6 +51,7 @@ export const RequestListItemCard = (props: RequestListItemCardProps) => {
       <RequestForm
         onClose={onCloseEditing}
         editItem={item}
+        collection={collection}
         canMutateProject={canMutateProject}
       />
     );

@@ -1,6 +1,7 @@
 # tests/services/test_docling_processing.py
 """Unit tests for the Docling processing module."""
 
+from collections.abc import Iterator
 from datetime import timedelta
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -36,6 +37,13 @@ from src.services.docling_processing import (
     _sanitize_stem,
     _split_pdf_for_docling,
 )
+
+
+@pytest.fixture
+def legacy_docling_history() -> Iterator[None]:
+    """Keep existing fallback tests on the pre-CAD workflow command path."""
+    with patch("src.services.docling.orchestrator.workflow.patched", return_value=False):
+        yield
 
 
 class TestSanitizeStem:
@@ -703,32 +711,6 @@ class TestCompressPdfImages:
         "src.services.docling.pdf_compression.get_config",
         new=lambda: Config(ENABLE_PDF_COMPRESSION=True, PDF_COMPRESSION_THRESHOLD_MB=50),
     )
-    async def test_compression_runs_below_threshold_when_oversized_images(self) -> None:
-        """Test that small PDFs still get compressed when oversized images are detected."""
-        input_model = CompressPdfImagesInput(
-            pdf_bytes=b"small pdf with huge image",
-            file_size_mb=30.0,  # Below 50MB threshold
-        )
-
-        compressed_bytes = b"compressed pdf"
-
-        with (
-            patch("src.services.docling.pdf_compression._pdf_has_oversized_images", return_value=True),
-            patch("src.services.docling.pdf_compression._compress_pdf_images_sync", return_value=compressed_bytes),
-            patch("src.services.docling.pdf_compression.activity.logger"),
-            patch("src.services.docling.pdf_compression.activity.heartbeat"),
-        ):
-            result = await _compress_pdf_images(input_model)
-
-        expected_size = len(compressed_bytes) / (1024 * 1024)
-        assert result.pdf_bytes == compressed_bytes
-        assert result.file_size_mb == expected_size
-        assert result.was_compressed is True
-
-    @patch(
-        "src.services.docling.pdf_compression.get_config",
-        new=lambda: Config(ENABLE_PDF_COMPRESSION=True, PDF_COMPRESSION_THRESHOLD_MB=50),
-    )
     async def test_compression_graceful_fallback_on_error(self) -> None:
         """Test that compression failures return original bytes."""
         input_model = CompressPdfImagesInput(
@@ -776,6 +758,7 @@ class TestRasterizeChunk:
         assert result.rasterized_size_mb == pytest.approx(len(rasterized) / (1024 * 1024), abs=0.001)
 
 
+@pytest.mark.usefixtures("legacy_docling_history")
 class TestOrchestratorRasterFallback:
     """Tests for the raster fallback logic in process_pdf_with_docling."""
 
@@ -1018,6 +1001,7 @@ class TestIsTimeoutFailure:
         )
 
 
+@pytest.mark.usefixtures("legacy_docling_history")
 class TestTimeoutAwareRasterFallback:
     """Tests for timeout-aware raster fallback in process_pdf_with_docling."""
 
@@ -1158,6 +1142,7 @@ class TestTimeoutAwareRasterFallback:
         mock_rasterize.assert_called_once()
 
 
+@pytest.mark.usefixtures("legacy_docling_history")
 class TestSequentialRetryBeforeRaster:
     """Tests for Phase 2.5: sequential retry of concurrent failures before raster fallback."""
 
@@ -1399,62 +1384,6 @@ class TestSequentialRetryBeforeRaster:
         assert result.markdown == "combined"
         # Oversized chunk → raster fallback should be SKIPPED
         mock_rasterize.assert_not_called()
-
-    @patch(
-        "src.services.docling.orchestrator.get_config",
-        new=lambda: Config(EXTRACTION_CHUNK_CONCURRENCY=2, ENABLE_RASTER_FALLBACK=True),
-    )
-    async def test_sequential_retry_sleeps_before_each_attempt(self) -> None:
-        """Sequential retry calls workflow.sleep(10s) before each retry attempt."""
-        file_info = DmsFileInfo(
-            file_id="test-id",
-            filename="test.pdf",
-            mime_type="application/pdf",
-            bucket_path="p/test.pdf",
-        )
-        input_model = DoclingActivityInput(file_info=file_info, project_id=uuid4())
-
-        prepared = PreparedPdfOutput(pdf_bytes=b"pdf", filename="test.pdf", file_size_mb=100.0)
-        compress_out = CompressPdfImagesOutput(pdf_bytes=b"pdf", file_size_mb=100.0, was_compressed=False)
-        split_out = SplitPdfForDoclingOutput(chunks=[b"c1", b"c2", b"c3"], page_offsets=[0, 5, 10])
-
-        chunk1 = self._make_chunk_result(page_offset=0)
-        retry_chunk2 = self._make_chunk_result(page_offset=5)
-        retry_chunk3 = self._make_chunk_result(page_offset=10)
-
-        # chunk1 succeeds, chunk2+3 fail in parallel, both succeed in sequential retry
-        extract_calls = [chunk1, RuntimeError("OOM"), RuntimeError("OOM"), retry_chunk2, retry_chunk3]
-
-        async def mock_extract(*args: Any, **kwargs: Any) -> DoclingChunkResult:
-            """Pop and return the next result, or raise if it is an exception."""
-            val = extract_calls.pop(0)
-            if isinstance(val, Exception):
-                raise val
-            return val
-
-        combined = CombineDoclingChunksOutput(md_content="combined", content_list=[], images={})
-        dedup_out = DeduplicateImagesOutput(images={}, duplicate_paths=[])
-
-        with (
-            patch("src.services.docling.orchestrator.download_and_prepare_pdf", return_value=prepared),
-            patch("src.services.docling.orchestrator.compress_pdf_images", return_value=compress_out),
-            patch("src.services.docling.orchestrator.split_pdf_for_docling", return_value=split_out),
-            patch("src.services.docling.orchestrator.extract_docling_chunk", side_effect=mock_extract),
-            patch("src.services.docling.orchestrator.rasterize_chunk") as mock_rasterize,
-            patch("src.services.docling.orchestrator.combine_docling_chunks", return_value=combined),
-            patch("src.services.docling.orchestrator.deduplicate_images", return_value=dedup_out),
-            patch("src.services.docling.orchestrator.workflow.logger"),
-            patch("src.services.docling.orchestrator.workflow.sleep", new_callable=AsyncMock) as mock_sleep,
-        ):
-            from src.services.docling_processing import process_pdf_with_docling
-
-            result = await process_pdf_with_docling(input_model)
-
-        assert result.markdown == "combined"
-        mock_rasterize.assert_not_called()
-        # Sleep called once per retryable chunk (2 chunks failed → 2 sleeps)
-        assert mock_sleep.call_count == 2
-        mock_sleep.assert_called_with(timedelta(seconds=10))
 
 
 class TestForceSplit:

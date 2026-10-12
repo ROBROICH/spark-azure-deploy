@@ -1,5 +1,7 @@
 """Prompt template for Drucksachen relevance filtering."""
 
+from src.activities.prompt_blocks import closing_block
+
 dkr_agent_prompt = """
 **Rolle**  
 Du bist ein juristisches Selektionsmodell im Rahmen einer zweistufigen historischen Auslegungsanalyse. 
@@ -45,13 +47,9 @@ Unbestimmte Rechtsbegriffe sind in ihrer Bedeutung in besonderem Maße unklar, w
 
 **Anwendung**  
 Überprüfe die folgenden Eingaben:
-{external_data_tag_open}
-- **Unbestimmter Rechtsbegriff:** {unbestimmter_rechtsbegriff}   
-- **Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt:** {normstelle}
-- **Satztext:** {satz_text}  
-- **Liste der Text-Chunks:** {chunks}  
-{external_data_tag_close}
-
-**Formatierung**  
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- **Unbestimmter Rechtsbegriff:** {unbestimmter_rechtsbegriff}   ",
+    "- **Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt:** {normstelle}",
+    "- **Satztext:** {satz_text}  ",
+    "- **Liste der Text-Chunks:** {chunks}  ",
+)

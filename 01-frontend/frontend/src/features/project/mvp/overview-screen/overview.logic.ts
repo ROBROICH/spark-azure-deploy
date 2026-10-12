@@ -62,7 +62,7 @@ export const deriveTopicProgress = (
 ): TopicProgress => {
   const totalNormCount = topicNorms.length;
   const checkedNormCount = topicNorms.filter((topicNorm) =>
-    isReviewCompleted(topicNorm.mvp_status),
+    isReviewCompleted(topicNorm.mvpStatus),
   ).length;
   const status =
     totalNormCount > 0 && checkedNormCount === totalNormCount
@@ -95,7 +95,7 @@ export const groupTopicNormRefsByTopicId = (
 
     const topicNormRefs = getDescendantNodeRefs(index, topic.id).filter(
       (descendantRef): descendantRef is NodeRefByType<'topic_norm'> =>
-        descendantRef.node_type === 'topic_norm',
+        descendantRef.nodeType === 'topic_norm',
     );
     topicNormRefsByTopicId.set(topic.id, topicNormRefs);
   }
@@ -165,7 +165,7 @@ export const countTopicDocuments = (
       return [
         topic.id,
         getDescendantNodeRefs(index, topic.id).filter(
-          (descendantRef) => descendantRef.node_type === 'dokument',
+          (descendantRef) => descendantRef.nodeType === 'dokument',
         ).length,
       ];
     }),
@@ -187,7 +187,7 @@ export const countCompletedTopics = (
 export const hasNeedsRevisionTopicNorm = (
   topicNorms: NodePayloadByType<'topic_norm'>[],
 ) => {
-  return topicNorms.some((topicNorm) => isNeedsRevision(topicNorm.mvp_status));
+  return topicNorms.some((topicNorm) => isNeedsRevision(topicNorm.mvpStatus));
 };
 
 export const filterTopicsByStatus = (
@@ -225,11 +225,11 @@ export const filterTopicsByAssignees = (
   );
 
   return topics.filter((topic) => {
-    if (includeUnassignedTopics && topic.mvp_assignees.length === 0) {
+    if (includeUnassignedTopics && topic.mvpAssignees.length === 0) {
       return true;
     }
 
-    return topic.mvp_assignees.some((assigneeId) =>
+    return topic.mvpAssignees.some((assigneeId) =>
       selectedAssigneeIds.has(assigneeId),
     );
   });

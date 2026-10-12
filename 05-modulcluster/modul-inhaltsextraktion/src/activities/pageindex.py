@@ -11,7 +11,10 @@ import tiktoken
 from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
 from pydantic import BaseModel
 from temporal.activities.llm import llm_invoke_structured
+from temporal.utils import sliding_window
+from temporalio import workflow
 
+from src.config import get_config
 from src.env import ENV
 from src.processors.text_splitters import RecursiveCharacterTextSplitter
 from src.schemas import Chunk, PageIndexNode
@@ -152,20 +155,38 @@ async def get_node_summary(node: PageNode) -> str:
     return node_summary
 
 
+async def _summarize_node(node: PageNode) -> PageNode:
+    """Summarize one node in place and return it."""
+    node.summary = await get_node_summary(node)
+    return node
+
+
 async def generate_summaries_for_structure(
     nodes: list[PageNode],
 ) -> list[PageNode]:
-    """Generate summaries for all nodes in the structure tree concurrently."""
+    """Generate summaries for all nodes with a bounded concurrency window.
 
-    tasks_results = []
-    async with asyncio.TaskGroup() as tg:
-        for node in nodes:
-            tasks_results.append(tg.create_task(get_node_summary(node)))
-    summaries = [t.result() for t in tasks_results]
+    Every node above the token threshold schedules its own LLM activity. Doing
+    that for all nodes at once puts their payloads into a single workflow task,
+    whose size can exceed the server's gRPC message limit on documents with many
+    chapters. The shared sliding window keeps the in-flight count bounded and
+    yields every TEMPORAL_FLUSH_INTERVAL scheduled tasks, so the commands per
+    workflow task stay bounded regardless of the configured concurrency.
 
-
-    for node, summary in zip(nodes, summaries, strict=True):
-        node.summary = summary
+    A failing node propagates, as before: pageindex feeds retrieval, so a partial
+    structure must not pass silently.
+    """
+    if workflow.patched("pageindex-summary-window"):
+        await sliding_window(nodes, _summarize_node, get_config().PAGE_INDEX_SUMMARY_CONCURRENCY)
+    else:
+        # Unmarked histories scheduled every summary in the same workflow task.
+        tasks_results = []
+        async with asyncio.TaskGroup() as tg:
+            for node in nodes:
+                tasks_results.append(tg.create_task(get_node_summary(node)))
+        summaries = [t.result() for t in tasks_results]
+        for node, summary in zip(nodes, summaries, strict=True):
+            node.summary = summary
     return nodes
 
 

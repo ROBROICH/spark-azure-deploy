@@ -7,8 +7,8 @@ using a batch-based parallel LLM inference strategy.
 
 from uuid import UUID
 
-from temporal.utils import sliding_window
-from temporal.workflows.einwendungsmanagement.types import (
+from temporal.activities.llm_guarded import llm_invoke_structured_guarded
+from temporal.contracts import (
     ArgumentClassificationOutput,
     ArgumentClassificationParams,
     ArgumentRecord,
@@ -16,9 +16,9 @@ from temporal.workflows.einwendungsmanagement.types import (
     ArgumentTopic,
     ClassifiedArgument,
 )
+from temporal.utils import sliding_window
 from temporalio import workflow
 
-from src.activities.llm_call import llm_invoke_structured_guarded
 from src.config.config import config
 from src.prompts.argument_classification_prompts import (
     ARGUMENT_SUBTOPIC_CLASSIFICATION_SYSTEM_PROMPT,
@@ -104,6 +104,8 @@ class ArgumentClassificationSingleBatchWorkflow:
                         subtopic=None,
                         reasoning=best_item.reasoning,
                         confidence=best_item.confidence,
+                        topic_confidence=best_item.confidence,
+                        subtopic_confidence=None,
                     )
                 )
             else:
@@ -116,6 +118,8 @@ class ArgumentClassificationSingleBatchWorkflow:
                         subtopic=None,
                         reasoning="Themen-Prüfung:\n" + "\n".join(reasonings),
                         confidence=avg_conf,
+                        topic_confidence=None,
+                        subtopic_confidence=None,
                     )
                 )
 
@@ -209,6 +213,8 @@ class ArgumentClassificationSingleBatchWorkflow:
                     subtopic=best_subtopic,
                     reasoning=f"{arg.reasoning}\n\nUnterthema Begründung:\n{best_item.reasoning}",
                     confidence=(arg.confidence + best_item.confidence) / 2.0,
+                    topic_confidence=arg.topic_confidence,
+                    subtopic_confidence=best_item.confidence,
                 )
             else:
                 avg_conf = sum(confidences) / len(confidences) if confidences else 0.0
@@ -218,6 +224,8 @@ class ArgumentClassificationSingleBatchWorkflow:
                     subtopic=None,
                     reasoning=f"{arg.reasoning}\n\nUnterthema abgelehnt:\n" + "\n".join(reasonings),
                     confidence=(arg.confidence + avg_conf) / 2.0,
+                    topic_confidence=arg.topic_confidence,
+                    subtopic_confidence=None,
                 )
 
         # 6. Return mapped results in exact original order

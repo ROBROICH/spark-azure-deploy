@@ -4,7 +4,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import Auslegungsvorschlag, UnbestimmterRechtsbegriff
+from temporal.contracts import Auslegungsvorschlag, UnbestimmterRechtsbegriff
 
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.auslegung.ergebnis.ef import (
     ErgebnisFormuliererAgentWorkflow,

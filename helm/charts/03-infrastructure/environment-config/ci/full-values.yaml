@@ -1,0 +1,13 @@
+# ci: namespace, mesh and network policy on.
+global:
+  stage: {name: ci}
+externalSecrets:
+  pathPrefix: ci
+namespace:
+  create: true
+  labels: {istio-injection: enabled}
+mesh:
+  enabled: true
+networkPolicy:
+  enabled: true
+  qdrantNamespace: qdrant

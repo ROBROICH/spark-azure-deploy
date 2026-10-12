@@ -12,7 +12,7 @@ from typing import Any
 
 from prompt_injection.prompt_defense import render_prompt_format, wrap_system_prompt
 from temporal.activities.llm import llm_invoke_structured
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+from temporal.contracts import BaseMetadata
 from temporalio import workflow
 
 from src.config import get_config
@@ -51,9 +51,20 @@ async def consolidate_base_metadata(
         )
 
         consolidated_data = llm_output.model_dump()
-        consolidated_data["application_id"] = project_id
-
-        return BaseMetadata(**consolidated_data)
+        return BaseMetadata(
+            application_id=project_id,
+            project_applicant=consolidated_data.get("project_applicant"),
+            planned_project=consolidated_data.get("planned_project"),
+            project_location=consolidated_data.get("project_location"),
+            affected_municipalities=consolidated_data.get("affected_municipalities") or [],
+            affected_federal_states=consolidated_data.get("affected_federal_states") or [],
+            planning_company=consolidated_data.get("planning_company"),
+            application_subject=consolidated_data.get("application_subject"),
+            pipeline_length=consolidated_data.get("pipeline_length"),
+            pipeline_diameter=consolidated_data.get("pipeline_diameter"),
+            application_receipt_date=consolidated_data.get("application_receipt_date"),
+            responsible_planning_authority=consolidated_data.get("responsible_planning_authority"),
+        )
     except Exception:
         return BaseMetadata(application_id=project_id)
 

@@ -1,5 +1,6 @@
 {
   "DocumentsCard": {
+    "loadMore": "Weitere laden",
     "processing": {
       "description": "Die Daten werden aktuell bereitgestellt. Die Unterlagentabelle wird aktualisiert, sobald die Verarbeitung abgeschlossen ist.",
       "title": "Die Daten werden bereitgestellt"
@@ -71,7 +72,8 @@
     "customCategoryLabel": "Benutzerdefiniert",
     "manageLabel": "+ Unterlagentyp anlegen oder verwalten",
     "emptyCustomTypes": "Keine benutzerdefinierten Unterlagentypen vorhanden",
-    "emptyTypes": "Keine Typen verfügbar"
+    "emptyTypes": "Keine Typen verfügbar",
+    "assignmentUncertain": "Zuordnung unsicher"
   },
   "EditRequiredDocumentsDialog": {
     "title": "Benötigte Unterlagen bearbeiten",
@@ -218,9 +220,11 @@
       "startDisabledFilesErrorTooltip": "Die Unterlagen konnten nicht geladen werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.",
       "startDisabledSystemLoadErrorTooltip": "Die Systemlast konnte nicht ermittelt werden. Bitte aktualisieren Sie die Seite und versuchen Sie es erneut.",
       "indicator": "KI-Analyse läuft …",
+      "incomplete": "Die KI-Analyse ist unvollständig. Mindestens ein Prüfbereich ist fehlgeschlagen.",
       "announcer": {
         "started": "Die KI-Analyse wurde gestartet.",
-        "completed": "Die KI-Analyse ist abgeschlossen."
+        "completed": "Die KI-Analyse ist abgeschlossen.",
+        "incomplete": "Die KI-Analyse ist beendet, aber unvollständig."
       },
       "cards": {
         "tableOfContents": {

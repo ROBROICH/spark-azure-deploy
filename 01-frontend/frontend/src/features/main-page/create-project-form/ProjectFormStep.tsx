@@ -1,3 +1,4 @@
+import { v1ProjectLogicCheckInternalProjectNumber } from '@/api-clients/backend';
 import {
   Field,
   FieldError,
@@ -28,42 +29,30 @@ const ADD_PROJECT_FEDERAL_STATE_LABEL_ID = 'add-project-federal-state-label';
 
 type ProjectFormStepProps = {
   defaultValues: ProjectStepValues;
-  existingInternalProjectNumbers?: Iterable<string>;
   projectTypes: { id: string; name: string }[];
   projectTypesLoadFailed?: boolean;
-  /**
-   * Blocks advancing while duplicate-check dependencies (existing projects) are
-   * still loading or failed to load. Gates both native and parent-triggered
-   * submits so Enter cannot bypass the footer's disabled state.
-   */
-  disableSubmit?: boolean;
   onSubmit: (values: ProjectStepValues) => void;
   onFormReady?: (methods: { submit: () => void }) => void;
 };
 
 /**
- * Owns the project-detail validation step and exposes the guarded submit handle
- * used by the parent stepper so native and footer-triggered submits share the
- * same duplicate-check gate.
+ * Project-number validation must not depend on the currently loaded list page.
+ * @param props - Step values, available project types, and stepper callbacks.
+ * @returns The project step with server-backed, fail-closed submission validation.
  */
 export function ProjectFormStep(
   props: ProjectFormStepProps,
 ): React.ReactElement {
   const {
     defaultValues,
-    existingInternalProjectNumbers,
     projectTypes,
     projectTypesLoadFailed,
-    disableSubmit = false,
     onSubmit: handleStepSubmit,
     onFormReady,
   } = props;
   const { t } = useTranslation('CreateProjectForm');
   const formRef = useRef<HTMLFormElement>(null);
-  const verfahrenSchema = createProjectSchema(
-    t,
-    existingInternalProjectNumbers,
-  );
+  const verfahrenSchema = createProjectSchema(t);
   const form = useForm({
     defaultValues,
     validationLogic: revalidateLogic({
@@ -72,6 +61,37 @@ export function ProjectFormStep(
     }),
     validators: {
       onDynamic: verfahrenSchema,
+      onSubmitAsync:
+        /**
+         * An unavailable number check must block submission just like a conflict.
+         * @param submission - Candidate project values from TanStack Form.
+         * @returns A field error for a conflict or failed check; otherwise no error.
+         */
+        async ({ value }) => {
+          try {
+            const { data } = await v1ProjectLogicCheckInternalProjectNumber({
+              query: { value: value.internalProjectNumber.trim() },
+              throwOnError: true,
+            });
+            if (!data.available) {
+              return {
+                fields: {
+                  internalProjectNumber: {
+                    message: t('internalProjectNumberDuplicate'),
+                  },
+                },
+              };
+            }
+          } catch {
+            return {
+              fields: {
+                internalProjectNumber: {
+                  message: t('internalProjectNumberCheckError'),
+                },
+              },
+            };
+          }
+        },
     },
     onSubmit: ({ value }) => {
       handleStepSubmit(value);
@@ -81,35 +101,20 @@ export function ProjectFormStep(
     },
   });
 
-  const submitWhenAllowed = () => {
-    if (disableSubmit) {
-      return;
-    }
-    form.handleSubmit();
-  };
-
-  // Keep the latest guarded submit reachable from the once-registered handle
-  // below without re-registering it (or duplicating the guard) on every render.
-  const submitWhenAllowedRef = useRef<() => void>(() => undefined);
-
-  // eslint-disable-next-line no-restricted-syntax -- keeps the parent-registered imperative submit handle current without re-registering it on every render.
-  useEffect(() => {
-    submitWhenAllowedRef.current = submitWhenAllowed;
-  });
-
   // eslint-disable-next-line no-restricted-syntax -- registers the committed imperative submit handle with the stepper parent after render.
   useEffect(() => {
-    // eslint-disable-next-line react-you-might-not-need-an-effect/no-pass-data-to-parent -- registers a committed imperative submit handle with the stepper parent.
     onFormReady?.({
-      submit: () => submitWhenAllowedRef.current(),
+      submit: () => {
+        void form.handleSubmit();
+      },
     });
-  }, [onFormReady]);
+  }, [form, onFormReady]);
 
   return (
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        submitWhenAllowed();
+        void form.handleSubmit();
       }}
       id="add-project-step1-form"
       ref={formRef}

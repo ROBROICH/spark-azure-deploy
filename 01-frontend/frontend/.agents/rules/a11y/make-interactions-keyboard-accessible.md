@@ -1,3 +1,7 @@
+---
+ruleId: a11y/make-interactions-keyboard-accessible
+---
+
 # Make Interactions Keyboard Accessible
 
 - Use semantic interactive elements such as `button`, `a`, `input`, and `label`.

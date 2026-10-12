@@ -5,14 +5,12 @@ snapshot the already-ingested doc_ids, then download + parse + persist each
 entry through the activities defined alongside this module.
 """
 
-from temporal.utils import sliding_window
-from temporal.workflows.jura_db.types import (
+from temporal.contracts import (
     UpdateRechtsprechungInput,
     UpdateRechtsprechungOutput,
 )
-from temporal.workflows.jura_db.update_rechtsprechung import (
-    UPDATE_RECHTSPRECHUNG_WORKFLOW_ID,
-)
+from temporal.registry import JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from jura_db.schemas.temporal import (
@@ -27,30 +25,25 @@ from jura_db.workflows.update_rechtsprechung.activities import (
 )
 
 
-@workflow.defn(name=UPDATE_RECHTSPRECHUNG_WORKFLOW_ID)
+@workflow.defn(name=JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.name)
 class UpdateRechtsprechungWorkflow:
     """Ingest the full RII TOC of court decisions into the database."""
 
     @workflow.run
     async def run(self, input: UpdateRechtsprechungInput) -> UpdateRechtsprechungOutput:
         specs: list[RechtsprechungSpec] = await list_rechtsprechung()
-        if (input.max_documents is not None
-                or input.offset is not None):
+        if input.max_documents is not None or input.offset is not None:
             start = input.offset or 0
             if input.max_documents is not None:
                 end = start + input.max_documents
             else:
                 end = len(specs)
-            specs = specs[start: end]
+            specs = specs[start:end]
         existing_doc_ids = await query_existing_doc_ids()
 
         async def process(spec: RechtsprechungSpec) -> ProcessRechtsprechungResult:
             return await process_rechtsprechung(
-                ProcessRechtsprechungInput(
-                    spec=spec,
-                    overwrite=input.overwrite,
-                    existing_doc_ids=existing_doc_ids
-                )
+                ProcessRechtsprechungInput(spec=spec, overwrite=input.overwrite, existing_doc_ids=existing_doc_ids)
             )
 
         results = await sliding_window(items=specs, fn=process, concurrency=5)

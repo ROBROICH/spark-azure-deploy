@@ -1,13 +1,18 @@
-import { createSupplementaryRequestProjectsProjectIdSupplementaryRequestsPost } from '@/api-clients/supplementary-requests-module';
+import { requestItemFromApi } from '../schemas/requestItem.schema';
+import {
+  v1SupplementaryRequestsCreateSupplementaryRequest as createSupplementaryRequest,
+  v1SupplementaryRequestsDeleteSupplementaryRequest,
+} from '@/api-clients/backend';
 import {
   requestItemsCollection,
-  requestItemFromApi,
   requestItemToCreatePayload,
 } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
 import type {
   RequestItemPriority,
   RequestItemSourceRef,
 } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
+
+import { invalidateRequestReads } from '../requestQueries';
 
 export const addRequestItem = async (
   projectId: string,
@@ -31,15 +36,14 @@ export const addRequestItem = async (
     includedInLetter: false,
   } as const;
 
-  const { data } =
-    await createSupplementaryRequestProjectsProjectIdSupplementaryRequestsPost({
-      path: { project_id: projectId },
-      body: requestItemToCreatePayload(item),
-      throwOnError: true,
-    });
+  const { data } = await createSupplementaryRequest({
+    path: { projectId },
+    body: requestItemToCreatePayload(item),
+    throwOnError: true,
+  });
 
   requestItemsCollection.utils.writeInsert(requestItemFromApi(data));
-  await requestItemsCollection.utils.refetch();
+  await invalidateRequestReads(projectId);
 };
 
 /**
@@ -50,8 +54,9 @@ export const editRequestItem = async (
   priority: RequestItemPriority,
   title: string,
   reason: string,
+  collection = requestItemsCollection,
 ) => {
-  const tx = requestItemsCollection.update(id, (draft) => {
+  const tx = collection.update(id, (draft) => {
     draft.priority = priority;
     draft.title = title;
     draft.reason = reason;
@@ -59,20 +64,26 @@ export const editRequestItem = async (
   await tx.isPersisted.promise;
 };
 
-/**
- * Remove an item from the request list.
- */
-export const removeRequestItem = async (id: string) => {
-  const tx = requestItemsCollection.delete(id);
-  await tx.isPersisted.promise;
+export const removeRequestItem = async (
+  projectId: string,
+  requestId: string,
+) => {
+  await v1SupplementaryRequestsDeleteSupplementaryRequest({
+    path: { projectId, requestId },
+    throwOnError: true,
+  });
+  await invalidateRequestReads(projectId);
 };
 
 /**
  * Toggle whether a request item is included in the supplementary request letter.
  * Defaults to included when the value is not set yet.
  */
-export const toggleIncludedInLetter = (id: string) => {
-  requestItemsCollection.update(id, (draft) => {
+export const toggleIncludedInLetter = (
+  id: string,
+  collection = requestItemsCollection,
+) => {
+  collection.update(id, (draft) => {
     draft.includedInLetter = draft.includedInLetter !== true;
   });
 };

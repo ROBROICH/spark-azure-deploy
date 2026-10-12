@@ -1,0 +1,76 @@
+{{- /*
+OIDC policy for the three dashboard routes. Session settings come from
+oidc.dashboard, CORS from cors; the keycloak Backend retry settings are fixed. landing-route and the
+metrics-block routes are deliberately NOT behind OIDC.
+*/ -}}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ $site.policy }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ $site.prefix }}-route
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ $site.prefix }}-api-route
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ $site.prefix }}-api-route-extra
+  cors:
+    allowOrigins:
+      {{- include "gateway-routes.corsAllowOrigins" $ | nindent 6 }}
+    allowMethods:
+      {{- toYaml $.Values.cors.allowMethods | nindent 6 }}
+    allowHeaders:
+      {{- toYaml $.Values.cors.allowHeaders | nindent 6 }}
+    allowCredentials: {{ $.Values.cors.allowCredentials }}
+    maxAge: {{ $.Values.cors.maxAge }}
+  oidc:
+    provider:
+      issuer: {{ include "gateway-routes.keycloakIssuer" $ }}
+      authorizationEndpoint: {{ include "gateway-routes.keycloakIssuer" $ }}/protocol/openid-connect/auth
+      tokenEndpoint: {{ include "gateway-routes.keycloakIssuer" $ }}/protocol/openid-connect/token
+      backendRefs:
+        - group: gateway.envoyproxy.io
+          kind: Backend
+          name: keycloak-external
+          port: 443
+      backendSettings:
+        retry:
+          numRetries: 2
+          perRetry:
+            backOff:
+              baseInterval: 100ms
+              maxInterval: 1s
+          retryOn:
+            triggers:
+              - connect-failure
+              - refused-stream
+              - reset-before-request
+              - "5xx"
+    clientID: {{ $.Values.auth.clientID }}
+    clientSecret:
+      name: {{ $.Values.auth.clientSecretName }}
+    {{- with $site.oidc }}
+    redirectURL: https://{{ index $site.hosts 0 }}{{ .redirectPath }}
+    logoutPath: {{ .logoutPath }}
+    scopes:
+      {{- toYaml .scopes | nindent 6 }}
+    cookieDomain: {{ index $site.hosts 0 }}
+    cookieNames:
+      {{- toYaml .cookieNames | nindent 6 }}
+    cookieConfig:
+      sameSite: {{ .sameSite }}
+    forwardAccessToken: true
+    refreshToken: true
+    defaultTokenTTL: {{ .tokenTTL }}
+    defaultRefreshTokenTTL: {{ .refreshTokenTTL }}
+    {{- end }}
+{{- end }}

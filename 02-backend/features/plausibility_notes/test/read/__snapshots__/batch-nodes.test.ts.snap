@@ -1,0 +1,155 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an empty request 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract freezes current Testing payloads and set semantics for unknown and duplicate IDs 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-05-28T15:07:55.822Z",
+        "description": "In den beiden Textauszügen wird dieselbe Trassenvariante 2 unterschiedlich beschrieben. Der eine Abschnitt gibt eine westliche Abknickung mit einer Länge von etwa 740 m an, der andere eine südwärts gerichtete Abknickung westlich der Bundesautobahn 31 mit nur ca. 170 m. Die Angaben zu Richtung und Streckenlänge stehen somit im Widerspruch zueinander.",
+        "frontendParentIds": [],
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 3,
+        "rating": 80,
+        "status": "IGNORED",
+        "title": "Variante 2 – unterschiedliche Richtungs‑ und Längenangaben",
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T15:07:55.822Z",
+      },
+      {
+        "createdAt": "2026-05-28T15:07:55.822Z",
+        "description": "Die beiden Textauszüge behandeln dieselbe Wasserstoffleitung, unterscheiden sich jedoch grundlegend in ihrer Bewertung. Der Regionalplan Musterregion schließt die Leitung aus, weil sie nicht mit der Rohstoffgewinnung vereinbar sei. Ein anderer Abschnitt betont, dass ein Verzicht auf den Ausbau die termingerechte Realisierung des gesamten Wasserstoffnetzes unmöglich mache.",
+        "frontendParentIds": [],
+        "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 3,
+        "rating": 85,
+        "status": "IGNORED",
+        "title": "Ausschluss der Wasserstoffleitung im Regionalplan vs. ihre Notwendigkeit für termingerechte Umsetzung",
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T15:07:55.822Z",
+      },
+    ],
+  },
+  "requested": [
+    {
+      "id": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+      "nodeType": "plausibility_note",
+    },
+    {
+      "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+      "nodeType": "plausibility_note",
+    },
+    {
+      "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+      "nodeType": "plausibility_note",
+    },
+    {
+      "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+      "nodeType": "plausibility_note",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots explicit historical full payloads 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "contentExcerpt": "knickt die Variante 2 nach Westen ab und verläuft über eine Länge von ca. 740 m",
+        "createdAt": "2026-05-26T14:37:00.650Z",
+        "documentId": "5fdf74aa-3e83-4079-a254-b78835278161",
+        "documentName": "Kapitel_01_01_Erlaeuterungsbericht_MS.pdf",
+        "frontendParentIds": [],
+        "id": "1440451a-5aa4-4fb8-9d3a-cf38689e7513",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note_occurrence",
+        "pageNumber": 76,
+        "plausibilityNoteId": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 2,
+        "updateType": "automated",
+        "updatedAt": "2026-05-26T14:37:00.650Z",
+      },
+      {
+        "createdAt": "2026-05-26T14:37:00.637Z",
+        "description": "In den beiden Textauszügen wird dieselbe Trassenvariante 2 unterschiedlich beschrieben. Der eine Abschnitt gibt eine westliche Abknickung mit einer Länge von etwa 740 m an, der andere eine südwärts gerichtete Abknickung westlich der Bundesautobahn 31 mit nur ca. 170 m. Die Angaben zu Richtung und Streckenlänge stehen somit im Widerspruch zueinander.",
+        "frontendParentIds": [],
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 2,
+        "rating": 80,
+        "status": "IGNORED",
+        "title": "Variante 2 – unterschiedliche Richtungs‑ und Längenangaben",
+        "updateType": "automated",
+        "updatedAt": "2026-05-26T14:53:27.156Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omitted version resolves to the same current full payload 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-05-28T15:07:55.822Z",
+        "description": "In den beiden Textauszügen wird dieselbe Trassenvariante 2 unterschiedlich beschrieben. Der eine Abschnitt gibt eine westliche Abknickung mit einer Länge von etwa 740 m an, der andere eine südwärts gerichtete Abknickung westlich der Bundesautobahn 31 mit nur ca. 170 m. Die Angaben zu Richtung und Streckenlänge stehen somit im Widerspruch zueinander.",
+        "frontendParentIds": [],
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 3,
+        "rating": 80,
+        "status": "IGNORED",
+        "title": "Variante 2 – unterschiedliche Richtungs‑ und Längenangaben",
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T15:07:55.822Z",
+      },
+      {
+        "createdAt": "2026-05-28T15:07:55.822Z",
+        "description": "Die beiden Textauszüge behandeln dieselbe Wasserstoffleitung, unterscheiden sich jedoch grundlegend in ihrer Bewertung. Der Regionalplan Musterregion schließt die Leitung aus, weil sie nicht mit der Rohstoffgewinnung vereinbar sei. Ein anderer Abschnitt betont, dass ein Verzicht auf den Ausbau die termingerechte Realisierung des gesamten Wasserstoffnetzes unmöglich mache.",
+        "frontendParentIds": [],
+        "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "projectId": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+        "projectVersion": 3,
+        "rating": 85,
+        "status": "IGNORED",
+        "title": "Ausschluss der Wasserstoffleitung im Regionalplan vs. ihre Notwendigkeit für termingerechte Umsetzung",
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T15:07:55.822Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

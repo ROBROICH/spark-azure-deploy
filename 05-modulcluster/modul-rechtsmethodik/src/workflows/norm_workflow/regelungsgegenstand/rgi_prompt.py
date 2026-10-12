@@ -1,5 +1,7 @@
 """Prompt template for Regelungsgegenstand identification."""
 
+from src.activities.prompt_blocks import closing_block
+
 regelungsgegenstands_identifikator_prompt = """
 **Rolle:**
 Du bist ein erfahrener Jurist mit besonderer Expertise in der strukturierten Auswertung von Gesetzestexten.
@@ -47,13 +49,9 @@ Text:
 
 **Anwendung:**
 Analysiere den folgenden Gesetzesparagraphen, um den Regelungsgegenstand zu bestimmen:
-{external_data_tag_open}
-Gesetz: {gesetz}
-Paragraph: {paragraph_nr}
-Titel: {paragraph_titel}
-Paragraph-Text: {paragraph_text}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Gesetz: {gesetz}",
+    "Paragraph: {paragraph_nr}",
+    "Titel: {paragraph_titel}",
+    "Paragraph-Text: {paragraph_text}",
+)

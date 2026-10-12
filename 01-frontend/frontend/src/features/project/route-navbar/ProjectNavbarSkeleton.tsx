@@ -9,7 +9,7 @@ export const ProjectNavbarSkeleton = () => {
             <Skeleton className="h-9 w-32 rounded-lg" aria-hidden />
           </div>
 
-          <h1 className="order-first text-center md:order-none">
+          <h1 className="text-center">
             <Skeleton className="mx-auto h-3 w-40 rounded" aria-hidden />
           </h1>
 

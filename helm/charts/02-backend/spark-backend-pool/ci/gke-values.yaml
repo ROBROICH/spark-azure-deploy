@@ -1,0 +1,14 @@
+# ci: GKE — KEDA scaling and GMP PodMonitoring.
+global:
+  backend:
+    image:
+      repository: europe-docker.pkg.dev/example-project/spark/spark-backend
+      tag: "1.0.0"
+keda:
+  enabled: true
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: "70"}
+podMonitoring:
+  enabled: true

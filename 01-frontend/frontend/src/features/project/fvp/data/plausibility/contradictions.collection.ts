@@ -1,9 +1,8 @@
-import * as Sentry from '@sentry/react';
 import {
   type PlausibilityNoteStatus,
-  getNotesPlausibilityNotesProjectIdGet,
-  updateNotePlausibilityNotesNotesNoteIdPatch,
-} from '@/api-clients/pns-module';
+  v1PlausibilityNotesGetPlausibilityNotes as getPlausibilityNotes,
+  v1PlausibilityNotesUpdatePlausibilityNote as updatePlausibilityNote,
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { createCollection } from '@tanstack/react-db';
@@ -13,42 +12,6 @@ import {
   getProjectScopedCollectionQueryKey,
 } from '@/features/project/data/collections/projectScopedCollection';
 import type { StoredContradiction } from './contradiction.schema';
-import {
-  EXPECTED_MAX_NORMALIZED_RATING,
-  EXPECTED_MIN_NORMALIZED_RATING,
-  getNormalizedRating,
-} from '../../plausibility-check/data/filtering/contradictionFilters';
-
-const reportUnexpectedContradictionRating = (
-  contradiction: Pick<StoredContradiction, 'id' | 'rating'>,
-  projectId: string,
-) => {
-  const normalizedRating = getNormalizedRating(contradiction);
-  if (
-    !Number.isFinite(normalizedRating) ||
-    (normalizedRating >= EXPECTED_MIN_NORMALIZED_RATING &&
-      normalizedRating <= EXPECTED_MAX_NORMALIZED_RATING)
-  ) {
-    return;
-  }
-
-  Sentry.captureException(
-    new Error('Contradiction rating outside expected range'),
-    {
-      tags: {
-        feature: 'plausibility-check',
-      },
-      extra: {
-        contradictionId: contradiction.id,
-        projectId,
-        rawRating: contradiction.rating,
-        normalizedRating,
-        expectedMin: EXPECTED_MIN_NORMALIZED_RATING,
-        expectedMax: EXPECTED_MAX_NORMALIZED_RATING,
-      },
-    },
-  );
-};
 
 export const contradictionsCollection = createCollection(
   queryCollectionOptions({
@@ -67,8 +30,8 @@ export const contradictionsCollection = createCollection(
         return [];
       }
 
-      const { data } = await getNotesPlausibilityNotesProjectIdGet({
-        path: { project_id: projectId },
+      const { data } = await getPlausibilityNotes({
+        path: { projectId: projectId },
       });
       if (!data) {
         throw new Error('Failed to fetch contradictions');
@@ -81,7 +44,6 @@ export const contradictionsCollection = createCollection(
         if (occurrences.length === 0) {
           continue;
         }
-        reportUnexpectedContradictionRating(item, projectId);
 
         contradictions.push({
           projectId,
@@ -104,8 +66,8 @@ export const contradictionsCollection = createCollection(
             };
           }
 
-          await updateNotePlausibilityNotesNotesNoteIdPatch({
-            path: { note_id: mutation.original.id },
+          await updatePlausibilityNote({
+            path: { noteId: mutation.original.id },
             body: {
               status: mutation.changes.status as PlausibilityNoteStatus,
             },

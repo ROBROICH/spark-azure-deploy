@@ -14,7 +14,7 @@ const PdfPopoutPaneSlot = (props: PdfPopoutPaneSlotProps) => {
   const { header, viewer } = props;
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col bg-neutral-white">
+    <div className="flex min-w-[330px] flex-1 flex-col bg-neutral-white">
       {header}
       <div className="min-h-0 flex-1">{viewer}</div>
     </div>
@@ -35,9 +35,9 @@ export const PdfPopoutWorkspaceWindow = () => {
 
   return createPortal(
     scopeKey ? (
-      <div className="flex h-full bg-neutral-white">
+      <div className="flex h-full overflow-x-auto overflow-y-hidden bg-neutral-white">
         <PdfPopoutSidebar />
-        <div className="flex min-w-0 flex-1 gap-px bg-border-primary">
+        <div className="flex flex-1 gap-px bg-border-primary">
           {connectedPane && (
             <PdfPopoutPaneSlot
               header={

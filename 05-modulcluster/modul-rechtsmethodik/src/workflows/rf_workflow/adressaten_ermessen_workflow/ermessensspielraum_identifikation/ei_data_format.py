@@ -1,7 +1,7 @@
 """Data models for Ermessensspielraum identification."""
 
 from pydantic import BaseModel, ConfigDict, Field
-from temporal.workflows.rechtsmethodik.types import Ermessensspielraum
+from temporal.contracts import Ermessensspielraum
 
 
 class ErmessensspielraumAgentOutputFormat(BaseModel):

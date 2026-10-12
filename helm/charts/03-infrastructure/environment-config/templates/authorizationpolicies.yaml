@@ -1,0 +1,50 @@
+{{- if .Values.mesh.enabled -}}
+# =============================================================================
+# Mesh variant: managed Cloud Service Mesh — STRICT mTLS baseline, deny-all,
+# explicit ALLOW. Deliberately minimal: per-service SPIFFE allowlists,
+# ClamAV/Qdrant client rules and the AUTH_ALLOWED_MACHINE_IDENTITIES wiring
+# are not implemented here.
+# =============================================================================
+---
+# Enforce STRICT mTLS for every workload in the environment namespace.
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: default-strict-mtls
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  mtls:
+    mode: STRICT
+---
+# Zero-trust baseline: empty spec matches nothing, so all requests are denied
+# unless a subsequent ALLOW policy matches.
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: deny-all
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  {}
+---
+# Allow same-namespace principals (mTLS-authenticated peers of this env) and
+# the shared Envoy Gateway (gateway -> services).
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: allow-same-namespace-and-gateway
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            namespaces:
+              - {{ include "environment-config.namespace" . | quote }}
+              - {{ .Values.gateway.namespace | quote }}
+{{- end }}

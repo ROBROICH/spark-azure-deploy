@@ -3,7 +3,7 @@ import { measureGraphPerf } from '../graphPerf';
 import type { NodeRef, NodeTypeLiteral } from '../types';
 import { useGraph } from './useGraph';
 
-type TypedNodeRef<T extends NodeTypeLiteral> = NodeRef & { node_type: T };
+type TypedNodeRef<T extends NodeTypeLiteral> = NodeRef & { nodeType: T };
 
 /**
  * Returns all descendant `NodeRef`s of `startRef` whose type matches `nodeType`.
@@ -32,7 +32,7 @@ export function useDescendants<T extends NodeTypeLiteral>(
     {
       nodeType,
       startId: startRef.id,
-      startNodeType: startRef.node_type,
+      startNodeType: startRef.nodeType,
     },
   );
 }

@@ -1,6 +1,6 @@
 """Agent for classifying the type of discretion (Ermessensart)."""
 
-from temporal.workflows.rechtsmethodik.types import ErmessensArt
+from temporal.contracts import ErmessensArt
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

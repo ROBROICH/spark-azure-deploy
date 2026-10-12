@@ -1,12 +1,16 @@
-import { type ProjectResponse } from '@/api-clients/pls-module';
+import {
+  v1ProjectLogicCheckInternalProjectNumber,
+  type ProjectResponse,
+} from '@/api-clients/backend';
 import { germanStates } from '@/features/project/data/project-details-form/federalStates';
 import { projectsCollection } from '@/features/project/data/collections/projects.collection';
+import { toEditableProjectTypeItems } from '@/features/project/data/project-types/projectTypeOptions.logic';
 import { projectTypesCollection } from '@/features/project/data/project-types/projectTypes.collection';
-import { PROJECT_NAME_MAX_LENGTH } from '@/features/project/data/project-details-form/projectForm.schema';
 import {
-  editProjectSchema,
-  type EditProjectValues,
-} from '@/features/project/overview-screen/schemas';
+  createProjectDetailsSchema,
+  PROJECT_NAME_MAX_LENGTH,
+} from '@/features/project/data/project-details-form/projectForm.schema';
+import { type EditProjectValues } from '@/features/project/overview-screen/schemas';
 import { FieldError, FieldLabel } from '@/features/ui/form/field';
 import { Input } from '@/features/ui/input/Input';
 import { Button } from '@/features/ui/button/Button';
@@ -44,25 +48,17 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
   const { data: projectTypes } = useLiveQuery((q) =>
     q.from({ projectTypes: projectTypesCollection }),
   );
-  const projectTypeItems = projectTypes.map((type) => ({
-    value: type.id,
-    label: type.name,
-  }));
-  const { data: projects } = useLiveQuery((q) =>
-    q.from({ projects: projectsCollection }),
+  const projectTypeItems = toEditableProjectTypeItems(
+    projectTypes,
+    project.projectTypeId,
+    (name) => t('ProjectDetails.edit.inactiveType', { name }),
   );
-  const existingInternalProjectNumbers = projects
-    .filter((candidate) => candidate.id !== project.id)
-    .map((candidate) => candidate.internalProjectNumber);
   const federalStateItems = germanStates.map((state) => ({
     value: state,
     label: t(`ProjectDetails.federalStates.${state}`),
   }));
 
-  const schema = editProjectSchema(
-    getProjectEditMessage,
-    existingInternalProjectNumbers,
-  );
+  const schema = createProjectDetailsSchema(getProjectEditMessage);
 
   const defaultValues: EditProjectValues = {
     name: project.name || '',
@@ -75,6 +71,44 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
     defaultValues,
     validators: {
       onSubmit: schema,
+      onSubmitAsync:
+        /**
+         * Excluding this authorized project permits an unchanged number without ignoring others.
+         * @param submission - Candidate fields from the active edit form.
+         * @returns A field error for a conflicting number or unavailable server check.
+         */
+        async ({ value }) => {
+          try {
+            const { data } = await v1ProjectLogicCheckInternalProjectNumber({
+              query: {
+                value: value.internalProjectNumber.trim(),
+                excludeProjectId: project.id,
+              },
+              throwOnError: true,
+            });
+            if (!data.available) {
+              return {
+                fields: {
+                  internalProjectNumber: {
+                    message: getProjectEditMessage(
+                      'internalProjectNumberDuplicate',
+                    ),
+                  },
+                },
+              };
+            }
+          } catch {
+            return {
+              fields: {
+                internalProjectNumber: {
+                  message: getProjectEditMessage(
+                    'internalProjectNumberCheckError',
+                  ),
+                },
+              },
+            };
+          }
+        },
     },
     onSubmit: ({ value }) => {
       if (!canMutateProject) {
@@ -109,7 +143,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
             const isInvalid = field.state.meta.errors.length > 0;
             const errorId = `${field.name}-error`;
             return (
-              <div className="flex items-start border-b border-border-primary">
+              <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
                 <FieldLabel
                   htmlFor={field.name}
                   className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
@@ -140,7 +174,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
           {(field) => {
             const isInvalid = field.state.meta.errors.length > 0;
             return (
-              <div className="flex items-start border-b border-border-primary">
+              <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
                 <FieldLabel
                   id={EDIT_PROJECT_TYPE_LABEL_ID}
                   htmlFor="edit-project-type"
@@ -179,7 +213,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
           {(field) => {
             const isInvalid = field.state.meta.errors.length > 0;
             return (
-              <div className="flex items-start border-b border-border-primary">
+              <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
                 <FieldLabel
                   htmlFor={field.name}
                   className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
@@ -202,7 +236,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
             );
           }}
         </form.Field>
-        <div className="flex items-start border-b border-border-primary">
+        <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
           <FieldLabel
             id={EDIT_FEDERAL_STATE_LABEL_ID}
             htmlFor="edit-federal-state"
@@ -227,7 +261,7 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
           {(field) => {
             const isInvalid = field.state.meta.errors.length > 0;
             return (
-              <div className="flex items-start border-b border-border-primary">
+              <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
                 <FieldLabel
                   htmlFor={field.name}
                   className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary"
@@ -256,7 +290,13 @@ export function ProjectDetailsEditForm(props: ProjectDetailsEditFormProps) {
           <Button type="button" variant="secondary" onClick={onCancel}>
             {t('ProjectDetails.edit.cancel')}
           </Button>
-          <Button type="submit">{t('ProjectDetails.edit.save')}</Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button type="submit" disabled={isSubmitting}>
+                {t('ProjectDetails.edit.save')}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
       </form>
     </div>

@@ -9,8 +9,8 @@ from datetime import timedelta
 from uuid import UUID
 
 from prompt_injection.prompt_defense import sanitize_html
-from temporal.utils import sliding_window
-from temporal.workflows.einwendungsmanagement.types import (
+from temporal.activities.llm_guarded import llm_invoke_structured_guarded
+from temporal.contracts import (
     ArgumentExtractionOutput,
     ArgumentExtractionParams,
     ChunkArguments,
@@ -21,11 +21,11 @@ from temporal.workflows.einwendungsmanagement.types import (
     SingleDocumentEWMSWorkflowOutput,
     TextSpan,
 )
+from temporal.utils import sliding_window
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 from src.activities.argument_extraction_activities import span_positions
-from src.activities.llm_call import llm_invoke_structured_guarded
 from src.config.config import config
 from src.prompts.argument_extraction_prompt import (
     ARGUMENT_EXTRACTION_SYSTEM_PROMPT,
@@ -41,6 +41,23 @@ from src.schemas.argument_extraction_schemas import (
     SpanPositionRequest,
     SpanPositionsActivityParams,
 )
+
+
+def _extend_context_left(arg: ExtractedArgument, chunk_text: str, start_idx: int) -> None:
+    base_span = arg.context.span if arg.context else arg.argument.span
+    _set_context(arg, chunk_text, min(base_span.start_idx, start_idx), base_span.end_idx)
+
+
+def _extend_context_right(arg: ExtractedArgument, chunk_text: str, end_idx: int) -> None:
+    base_span = arg.context.span if arg.context else arg.argument.span
+    _set_context(arg, chunk_text, base_span.start_idx, max(base_span.end_idx, end_idx))
+
+
+def _set_context(arg: ExtractedArgument, chunk_text: str, new_start: int, new_end: int) -> None:
+    arg.context = Segment(
+        text=chunk_text[new_start:new_end],
+        span=TextSpan(start_idx=new_start, end_idx=new_end),
+    )
 
 
 @workflow.defn
@@ -352,24 +369,10 @@ class ArgumentExtractionSingleBatchWorkflow:
 
                     # --- Margin Logic (Prefix & Suffix) ---
                     if i == 0 and current_span.start_idx > 0:
-                        prefix_text = chunk_text[: current_span.start_idx]
-                        arg.context = Segment(
-                            text=prefix_text + (arg.context.text if arg.context else arg.argument.text),
-                            span=TextSpan(
-                                start_idx=0,
-                                end_idx=arg.context.span.end_idx if arg.context else arg.argument.span.end_idx,
-                            ),
-                        )
+                        _extend_context_left(arg, chunk_text, 0)
 
                     if i == len(chunk_args.arguments) - 1 and current_span.end_idx < len(chunk_text):
-                        suffix_text = chunk_text[current_span.end_idx :]
-                        arg.context = Segment(
-                            text=(arg.context.text if arg.context else arg.argument.text) + suffix_text,
-                            span=TextSpan(
-                                start_idx=arg.context.span.start_idx if arg.context else arg.argument.span.start_idx,
-                                end_idx=len(chunk_text),
-                            ),
-                        )
+                        _extend_context_right(arg, chunk_text, len(chunk_text))
 
                     if i < len(chunk_args.arguments) - 1:
                         next_arg = chunk_args.arguments[i + 1]
@@ -447,27 +450,16 @@ class ArgumentExtractionSingleBatchWorkflow:
     ) -> None:
         """Appends or prepends gap text directly to the context of the assigned argument in-place."""
         for (chunk_args, tasks), decisions in zip(inference_batches, batch_decisions, strict=True):
+            chunk_text = chunk_args.chunk.page_content
             for task, assigned_side in zip(tasks, decisions, strict=True):
                 left_idx, right_idx, residual = task
 
                 if assigned_side == 0:
                     arg = chunk_args.arguments[left_idx]
-                    current_context_text = arg.context.text if arg.context else arg.argument.text
-                    current_start = arg.context.span.start_idx if arg.context else arg.argument.span.start_idx
-
-                    arg.context = Segment(
-                        text=current_context_text + residual,
-                        span=TextSpan(start_idx=current_start, end_idx=arg.argument.span.end_idx + len(residual)),
-                    )
+                    _extend_context_right(arg, chunk_text, arg.argument.span.end_idx + len(residual))
                 else:
                     arg = chunk_args.arguments[right_idx]
-                    current_context_text = arg.context.text if arg.context else arg.argument.text
-                    current_end = arg.context.span.end_idx if arg.context else arg.argument.span.end_idx
-
-                    arg.context = Segment(
-                        text=residual + current_context_text,
-                        span=TextSpan(start_idx=arg.argument.span.start_idx - len(residual), end_idx=current_end),
-                    )
+                    _extend_context_left(arg, chunk_text, arg.argument.span.start_idx - len(residual))
 
     def _assemble_order_arguments(
         self,

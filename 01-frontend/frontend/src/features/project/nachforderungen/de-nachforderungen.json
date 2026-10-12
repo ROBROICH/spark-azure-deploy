@@ -4,8 +4,9 @@
     "checkboxAriaLabel": "{{title}} in Nachforderungsschreiben einschließen",
     "close": "Schließen",
     "emptyState": "Keine Nachforderungen.",
-    "itemCountBadge_one": "{{count}} Nachforderung",
-    "itemCountBadge_other": "{{count}} Nachforderungen",
+    "itemCountBadge_one": "{{count}} Nachforderung geladen",
+    "itemCountBadge_other": "{{count}} Nachforderungen geladen",
+    "loadMore": "Weitere laden",
     "title": "Nachforderungsliste",
     "priority": {
       "must": "Muss",
@@ -46,6 +47,7 @@
     "retry": "Erneut versuchen"
   },
   "SupplementaryRequestLetter": {
+    "loadError": "Die vollständigen Nachforderungen für das Schreiben konnten nicht geladen werden.",
     "downloadPdf": "Als PDF exportieren",
     "downloadWord": "Als Word exportieren",
     "emptyState": "Wählen Sie Nachforderungen aus der Liste aus, um das Schreiben zu erstellen.",

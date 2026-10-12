@@ -4,9 +4,10 @@ import asyncio
 from datetime import timedelta
 
 from temporal import sliding_window
-from temporal.workflows.rechtsmethodik.types import WENN_DANN, Absatz, Rechtsfolge
+from temporal.contracts import Rechtsfolge, SatzKategorie
 from temporalio import workflow
 
+from src.absatz import Absatz
 from src.workflows.norm_workflow.norm_types import (
     NormDekonstruktionWorkflowOutput,
     NormDekonstruktionWorkflowSatzOutput,
@@ -32,8 +33,8 @@ def create_rf_satz(
         satz_nr=satz.satz_nr,
         markers=satz.markers,
         satz_text=satz.satz_text,
-        norm_typ_lvl_1=satz.norm_typ_lvl_1,
-        norm_typ_lvl_2=satz.norm_typ_lvl_2,
+        norm_typ_lvl1=satz.norm_typ_lvl1,
+        norm_typ_lvl2=satz.norm_typ_lvl2,
         tatbestandsmerkmale=satz.tatbestandsmerkmale,
         rechtsfolge=rf_output,
         atomare_tatbestandsmerkmale=satz.atomare_tatbestandsmerkmale,
@@ -69,7 +70,10 @@ class RechtsfolgenAnalyseWorkflow:
             satz: NormDekonstruktionWorkflowSatzOutput,
         ) -> Rechtsfolge | None:
             """Run Rechtsfolge sub-agents for a single Satz."""
-            if not (satz.norm_typ_lvl_2 == WENN_DANN and satz.rechtsfolge):
+            if not (
+                satz.norm_typ_lvl2 == SatzKategorie.WENN_DANN
+                and satz.rechtsfolge
+            ):
                 return None
 
             ae_output, sa_output = await asyncio.gather(

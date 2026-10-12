@@ -11,15 +11,15 @@ const mocks = vi.hoisted(() => ({
   submitDecisionMutationFn: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  cancelUploadProcessV2FilesFileIdCancelPost: mocks.cancelUpload,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementCancelFileProcessing: mocks.cancelUpload,
 }));
 
-vi.mock('@/api-clients/dms-module/@tanstack/react-query.gen', () => ({
-  setFileDiffV2FilesFileIdDiffPostMutation: () => ({
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1DocumentManagementSetFileDiffMutation: () => ({
     mutationFn: mocks.setFileDiffMutationFn,
   }),
-  submitApprovalV2FilesFileIdDecisionPostMutation: () => ({
+  v1DocumentManagementSubmitFileApprovalMutation: () => ({
     mutationFn: mocks.submitDecisionMutationFn,
   }),
 }));
@@ -52,7 +52,7 @@ describe('useApprovalActions', () => {
     });
 
     expect(mocks.cancelUpload).toHaveBeenCalledWith({
-      path: { file_id: 'zip-9' },
+      path: { fileId: 'zip-9' },
     });
   });
 });

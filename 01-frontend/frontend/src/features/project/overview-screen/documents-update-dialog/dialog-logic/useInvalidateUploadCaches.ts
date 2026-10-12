@@ -24,7 +24,7 @@ export const useInvalidateUploadCaches = () => {
     await Promise.all([
       invalidateForProject(projectId),
       queryClient.invalidateQueries({
-        queryKey: [{ _id: 'getWorkflowsTemporalWorkflowsGet' }],
+        queryKey: [{ _id: 'listTemporalWorkflows' }],
       }),
     ]);
   };

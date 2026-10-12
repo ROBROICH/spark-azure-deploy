@@ -10,9 +10,9 @@ import {
 } from './mvp.preload';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -20,25 +20,25 @@ const createSummary = (
 describe('collectMvpFeedbackPreloadRefs', () => {
   it('preloads directly attached feedback for loaded fundstellen only', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'fundstelle-1', node_type: 'fundstelle' }),
-      createSummary({ id: 'fundstelle-2', node_type: 'fundstelle' }),
+      createSummary({ id: 'fundstelle-1', nodeType: 'fundstelle' }),
+      createSummary({ id: 'fundstelle-2', nodeType: 'fundstelle' }),
       createSummary({
         id: 'feedback-1',
-        node_type: 'feedback',
-        frontend_parent_ids: ['fundstelle:fundstelle-1'],
+        nodeType: 'feedback',
+        frontendParentIds: ['fundstelle:fundstelle-1'],
       }),
       createSummary({
         id: 'feedback-2',
-        node_type: 'feedback',
-        frontend_parent_ids: ['fundstelle:fundstelle-2'],
+        nodeType: 'feedback',
+        frontendParentIds: ['fundstelle:fundstelle-2'],
       }),
     ]);
 
     const refs = collectMvpFeedbackPreloadRefs(index, [
-      { id: 'fundstelle-1', node_type: 'fundstelle' },
-      { id: 'fundstelle-1', node_type: 'fundstelle' },
+      { id: 'fundstelle-1', nodeType: 'fundstelle' },
+      { id: 'fundstelle-1', nodeType: 'fundstelle' },
     ]);
-    const compositeKeys = refs.map((ref) => `${ref.node_type}:${ref.id}`);
+    const compositeKeys = refs.map((ref) => `${ref.nodeType}:${ref.id}`);
 
     expect(compositeKeys).toEqual(['feedback:feedback-1']);
   });
@@ -47,34 +47,34 @@ describe('collectMvpFeedbackPreloadRefs', () => {
 describe('collectMvpTopicDetailPreloadRefs', () => {
   it('preloads only first-paint topic, document, and topic_norm refs', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'topic-norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'selected-norm',
-        node_type: 'norm',
-        frontend_parent_ids: [
-          toCompositeKey({ id: 'topic-norm-1', node_type: 'topic_norm' }),
+        nodeType: 'norm',
+        frontendParentIds: [
+          toCompositeKey({ id: 'topic-norm-1', nodeType: 'topic_norm' }),
         ],
       }),
       createSummary({
         id: 'law-1',
-        node_type: 'gesetz',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'gesetz',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'unrelated-law-norm',
-        node_type: 'norm',
-        parents: [{ id: 'law-1', node_type: 'gesetz' }],
+        nodeType: 'norm',
+        parents: [{ id: 'law-1', nodeType: 'gesetz' }],
       }),
       createSummary({
         id: 'document-1',
-        node_type: 'dokument',
-        frontend_parent_ids: [
-          toCompositeKey({ id: 'topic-1', node_type: 'topic' }),
+        nodeType: 'dokument',
+        frontendParentIds: [
+          toCompositeKey({ id: 'topic-1', nodeType: 'topic' }),
         ],
       }),
     ]);
@@ -116,24 +116,24 @@ describe('getSearchScopedTopicDetailRefs', () => {
 describe('getSearchScopedFundstelleRefs', () => {
   it('preloads document-only, norm-only, intersection, and feedback target fundstellen', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'document-1', node_type: 'dokument' }),
-      createSummary({ id: 'norm-1', node_type: 'norm' }),
+      createSummary({ id: 'document-1', nodeType: 'dokument' }),
+      createSummary({ id: 'norm-1', nodeType: 'norm' }),
       createSummary({
         id: 'document-only',
-        node_type: 'fundstelle',
-        frontend_parent_ids: ['dokument:document-1'],
+        nodeType: 'fundstelle',
+        frontendParentIds: ['dokument:document-1'],
       }),
       createSummary({
         id: 'norm-only',
-        node_type: 'fundstelle',
-        frontend_parent_ids: ['norm:norm-1'],
+        nodeType: 'fundstelle',
+        frontendParentIds: ['norm:norm-1'],
       }),
       createSummary({
         id: 'intersection',
-        node_type: 'fundstelle',
-        frontend_parent_ids: ['dokument:document-1', 'norm:norm-1'],
+        nodeType: 'fundstelle',
+        frontendParentIds: ['dokument:document-1', 'norm:norm-1'],
       }),
-      createSummary({ id: 'feedback-target', node_type: 'fundstelle' }),
+      createSummary({ id: 'feedback-target', nodeType: 'fundstelle' }),
     ]);
 
     expect(

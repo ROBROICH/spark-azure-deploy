@@ -1,8 +1,9 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
+import httpx
 import pytest
+from temporal.contracts import DMSFileResponse
 from temporal.project_context import use_project_context
-from temporal.workflows.formale_pruefung import DMSFileResponse
 
 from src.schemas.dms_schemas import DMSDocument
 from src.services.dms_client import DMSClient
@@ -22,8 +23,8 @@ async def test_get_dms_documents_matches_files():
                     id="doc-id-123",
                     filename="invoices/inv_A.pdf",
                     type="document",
-                    bucketPath="/",
-                    projectId="p1",
+                    bucket_path="/",
+                    project_id="p1",
                 )
             ],
             [
@@ -31,8 +32,8 @@ async def test_get_dms_documents_matches_files():
                     id="ext-id-456",
                     filename="invoices/inv_A/inv_A_processed.json",
                     type="content_extraction",
-                    bucketPath="/",
-                    projectId="p1",
+                    bucket_path="/",
+                    project_id="p1",
                 )
             ],
         ]
@@ -129,8 +130,8 @@ async def test_upload_file_adds_project_version_from_temporal_context():
         with use_project_context("p1", 7):
             await client.upload_file("p1", "f.json", payload="{}")
 
-        assert mock_request.await_args_list[0].kwargs["params"] == {"project_version": 7}
-        assert mock_request.await_args_list[1].kwargs["params"] == {"project_version": 7}
+        assert mock_request.await_args_list[0].kwargs["params"] == {"projectVersion": 7}
+        assert mock_request.await_args_list[1].kwargs["params"] == {"projectVersion": 7}
 
 
 @pytest.mark.asyncio
@@ -171,18 +172,47 @@ async def test_list_files_adds_project_version_from_temporal_context():
             await client.list_files(project_id="p1")
 
         params = mock_request.await_args.kwargs["params"]
-        assert params["project_version"] == 3
+        assert params["projectVersion"] == 3
         assert params["projectId"] == "p1"
 
 
 @pytest.mark.asyncio
 async def test_get_download_url_adds_project_version_from_temporal_context():
+    def handler(request: httpx.Request) -> httpx.Response:
+        if (
+            request.method == "GET"
+            and request.url.path == "/v2/internal/files/file1/generate-download-url"
+            and dict(request.url.params) == {"projectVersion": "4"}
+        ):
+            return httpx.Response(200, json={"downloadUrl": "https://example.test/file"})
+        return httpx.Response(404)
+
     client = DMSClient()
-    with patch.object(client, "_request", new_callable=AsyncMock) as mock_request:
-        mock_request.return_value = {"downloadUrl": "https://example.test/file"}
+    transport_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    with (
+        patch("temporal.dms_client.httpx.AsyncClient", return_value=transport_client),
+        use_project_context("p1", 4),
+    ):
+        download_url = await client.get_download_url("file1")
 
-        with use_project_context("p1", 4):
-            download_url = await client.get_download_url("file1")
+    assert download_url == "https://example.test/file"
 
-        assert download_url == "https://example.test/file"
-        assert mock_request.await_args.kwargs["params"] == {"project_version": 4}
+
+@pytest.mark.asyncio
+async def test_get_extraction_data_returns_error_result_when_file_is_missing():
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(404)
+
+    client = DMSClient()
+    mock_doc = DMSDocument(
+        project_id="p1",
+        document_id="doc-1",
+        document_name="test.pdf",
+        content_extraction_id="missing",
+    )
+    transport_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+    with patch("temporal.dms_client.httpx.AsyncClient", return_value=transport_client):
+        result = await client.get_extraction_data(mock_doc)
+
+    assert result.chunks == []
+    assert result.error == "DMS file not found: missing"

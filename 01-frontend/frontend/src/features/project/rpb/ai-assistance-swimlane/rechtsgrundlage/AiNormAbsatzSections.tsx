@@ -18,7 +18,7 @@ export const AiNormAbsatzSections = (props: AiNormAbsatzSectionsProps) => {
   const { data: norm } = useNode(normRef);
   const sortedAbsatzRefs = sortAbsatzRefsByNumber(absatzRefs, absaetze);
   const hasMultipleAbsaetze = absatzRefs.length > 1;
-  const requestTitlePrefix = norm ? `§ ${norm.paragraph_nr}` : undefined;
+  const requestTitlePrefix = norm ? `§ ${norm.paragraphNr}` : undefined;
   const requestTitleSuffix = topicNorm?.jurabk;
 
   return (

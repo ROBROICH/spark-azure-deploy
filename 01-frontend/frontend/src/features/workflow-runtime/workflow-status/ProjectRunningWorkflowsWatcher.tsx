@@ -1,73 +1,85 @@
+import { v1TemporalJobsListTemporalWorkflows } from '@/api-clients/backend';
 import { useLiveQuery } from '@tanstack/react-db';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
-const WORKFLOW_COMPLETION_SUMMARY_REFETCH_DELAY_MS = 4_000;
 const projectRoute = getRouteApi('/verfahren/$verfahrenId');
-
-const canUseBrowserPolling = () =>
-  typeof window !== 'undefined' && typeof document !== 'undefined';
+const closedStatuses = [
+  'Completed',
+  'Failed',
+  'Canceled',
+  'Terminated',
+  'TimedOut',
+] as const;
 
 /**
- * Observes currently running workflows for the active project and refreshes the
- * summary tree after a known running workflow disappears from Temporal.
+ * Keeps project summaries current after observed or externally started jobs finish.
+ * Exact observed-ID metadata owns completion; project samples only trigger broad refreshes.
+ * @returns No UI; the route owns this observer across feature unmounts.
  */
 export const ProjectRunningWorkflowsWatcher = () => {
-  const { refetchNodeSummaries, workflowsManager } =
+  const { verfahrenId } = projectRoute.useParams();
+  const { projectVersion, refetchNodeSummaries, workflowsManager } =
     projectRoute.useLoaderData();
-  const runningWorkflowsCollection = workflowsManager.getRunningCollection();
   const {
-    data: runningWorkflows = [],
+    data: statuses = [],
     isError,
     isLoading,
-  } = useLiveQuery(runningWorkflowsCollection);
-  const summaryRefetchTimeoutRef = useRef<number | null>(null);
+  } = useLiveQuery(workflowsManager.getRunningCollection());
+  const closed = useQuery({
+    queryKey: [
+      'project-temporal-workflows',
+      verfahrenId,
+      projectVersion,
+      'latest-closed',
+    ],
+    queryFn: async () => {
+      const pages = await Promise.all(
+        closedStatuses.map(async (executionStatus) => {
+          const { data } = await v1TemporalJobsListTemporalWorkflows({
+            query: {
+              projectId: verfahrenId,
+              projectVersion,
+              executionStatus,
+              pageSize: 1,
+            },
+            throwOnError: true,
+          });
+          return data.workflows;
+        }),
+      );
+      return pages.flat();
+    },
+    refetchInterval: 30_000,
+  });
+  const previousClosedRuns = useRef(new Set<string>());
+  const { mutate: refreshSummaries } = useMutation({
+    mutationFn: refetchNodeSummaries,
+  });
 
-  // eslint-disable-next-line no-restricted-syntax -- owns and clears the route-scoped delayed summary refetch timer.
+  // eslint-disable-next-line no-restricted-syntax -- reconciles authoritative scoped status reads and newly closed runs with route-owned project data.
   useEffect(() => {
-    return () => {
-      if (summaryRefetchTimeoutRef.current === null) {
-        return;
-      }
-
-      window.clearTimeout(summaryRefetchTimeoutRef.current);
-      summaryRefetchTimeoutRef.current = null;
-    };
-  }, []);
-
-  // eslint-disable-next-line no-restricted-syntax -- the reconciliation effect needs a stable delayed refetch scheduler with owned timeout state.
-  const scheduleNodeSummaryRefetch = useCallback(() => {
-    if (!canUseBrowserPolling()) {
+    if (isLoading || isError || closed.isPending || closed.isError) {
       return;
     }
-
-    if (summaryRefetchTimeoutRef.current !== null) {
-      return;
-    }
-
-    summaryRefetchTimeoutRef.current = window.setTimeout(() => {
-      summaryRefetchTimeoutRef.current = null;
-      void Promise.resolve(refetchNodeSummaries()).catch(() => undefined);
-    }, WORKFLOW_COMPLETION_SUMMARY_REFETCH_DELAY_MS);
-  }, [refetchNodeSummaries]);
-
-  // eslint-disable-next-line no-restricted-syntax -- compares live Temporal running-workflow snapshots with retained active workflow IDs to trigger background summary freshness.
-  useEffect(() => {
-    if (isLoading || isError) {
-      return;
-    }
-
-    const shouldRefetchNodeSummaries =
-      workflowsManager.reconcileRunningWorkflows(runningWorkflows);
-
-    if (shouldRefetchNodeSummaries) {
-      scheduleNodeSummaryRefetch();
+    const newlyClosed = closed.data.filter(
+      (workflow) => !previousClosedRuns.current.has(workflow.runId),
+    );
+    previousClosedRuns.current = new Set(
+      closed.data.map((workflow) => workflow.runId),
+    );
+    if (workflowsManager.reconcileRunningWorkflows(statuses, newlyClosed)) {
+      refreshSummaries();
     }
   }, [
+    closed.data,
+    closed.isPending,
+    closed.isError,
     isError,
     isLoading,
-    runningWorkflows,
-    scheduleNodeSummaryRefetch,
+    statuses,
+    refreshSummaries,
     workflowsManager,
   ]);
 

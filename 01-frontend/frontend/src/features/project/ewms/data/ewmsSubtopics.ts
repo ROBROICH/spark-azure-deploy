@@ -11,8 +11,8 @@ const getSubtopicTopicId = (
   subtopic: EwmsSubtopicNode,
   topicIds: Set<string>,
 ) =>
-  typeof subtopic.topic_id === 'string' && topicIds.has(subtopic.topic_id)
-    ? subtopic.topic_id
+  typeof subtopic.topicId === 'string' && topicIds.has(subtopic.topicId)
+    ? subtopic.topicId
     : null;
 
 const getGraphSubtopicTopicIds = (

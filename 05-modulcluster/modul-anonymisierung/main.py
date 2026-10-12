@@ -17,9 +17,9 @@ from temporal.observability import (
     setup_observability,
     shutdown_observability,
 )
+from temporal.registry import ANONYMISIERUNG_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.anonymisierung.anonymisierung import TASK_QUEUE as ANONYMISIERUNG_TASK_QUEUE
 
 from src.activities.redaction_activities import (
     apply_redactions,
@@ -60,7 +60,7 @@ async def main() -> None:
     worker via the ``llm_invoke`` activity on the configured LLM task queue.
     """
     tc = ENV.TEMPORAL
-    task_queue = ANONYMISIERUNG_TASK_QUEUE
+    task_queue = ANONYMISIERUNG_WORKFLOW.task_queue
     logger.info("Starting worker on %s (queue=%s, llm=%s)", tc.HOST, task_queue, ENV.LLM_ENABLED)
 
     # Eagerly warm up the Presidio analyzer (loads the spaCy model into RAM)

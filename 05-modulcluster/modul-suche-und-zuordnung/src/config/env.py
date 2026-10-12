@@ -1,19 +1,9 @@
 import os
 
-from pydantic import AnyHttpUrl, BaseModel, Field, SecretStr
+from pydantic import AnyHttpUrl, BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel, EmbeddingModel
-
-
-class TemporalConfig(BaseModel):
-    """Connection and storage settings for the Temporal server."""
-
-    HOST: str
-    S3_BUCKET_NAME: str
-    S3_ENDPOINT_URL: str
-    S3_ACCESS_KEY_ID: SecretStr
-    S3_SECRET_ACCESS_KEY: SecretStr
-    S3_REGION: str
+from temporal.connection_config import TemporalConfig
 
 
 class FcsConfig(BaseModel):

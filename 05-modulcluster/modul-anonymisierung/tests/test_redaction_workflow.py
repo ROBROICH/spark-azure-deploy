@@ -1,6 +1,10 @@
 """Tests for the RedactionWorkflow Temporal workflow."""
 
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
+
+import pytest
+from temporalio.exceptions import ApplicationError
 
 from src.models.schemas import (
     ApplyRedactionsResult,
@@ -11,7 +15,11 @@ from src.models.schemas import (
     PageTextData,
 )
 from src.utils.pii_extraction import PiiItem, PiiResponseSchema
-from src.workflows.redaction_workflow import RedactionWorkflow
+from src.workflows.redaction_workflow import (
+    PII_DETECTION_INCOMPLETE_ERROR,
+    RedactionWorkflow,
+    _raise_for_error_pages,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -106,6 +114,25 @@ class TestRedactionWorkflowRun:
         assert result == _REDACTED_PDF
         extract_arg = mock_act.await_args_list[0].args[1]
         assert extract_arg == ExtractTextsInput(pdf_data=_PDF_BYTES)
+        extraction_options = mock_act.await_args_list[0].kwargs
+        assert extraction_options["retry_policy"].maximum_attempts == 3
+        assert extraction_options["heartbeat_timeout"] == timedelta(minutes=25)
+        redaction_options = mock_act.await_args_list[2].kwargs
+        assert redaction_options["retry_policy"].maximum_attempts == 3
+        assert redaction_options["heartbeat_timeout"] == timedelta(minutes=25)
+
+    async def test_extraction_failure_aborts_pipeline(self):
+        """An extraction failure must not reach PII detection or redaction."""
+        mock_execute_activity = AsyncMock(side_effect=RuntimeError("OCR failed"))
+        wf = RedactionWorkflow()
+
+        with (
+            patch("temporalio.workflow.execute_activity", mock_execute_activity),
+            pytest.raises(RuntimeError, match="OCR failed"),
+        ):
+            await wf.run(_input())
+
+        assert mock_execute_activity.await_count == 1
 
     async def test_full_pipeline_with_llm(self):
         """LLM enabled: extract → (presidio+filter || llm) → redact."""
@@ -132,8 +159,31 @@ class TestRedactionWorkflowRun:
         assert result == _REDACTED_PDF
         assert mock_llm.await_count >= 1
 
-    async def test_returns_redacted_pdf_bytes(self):
-        """Workflow result is only the redacted PDF bytes."""
+    async def test_llm_detection_failure_aborts_before_redaction(self):
+        """An incomplete page detection must not produce a PDF."""
+        extract = _extract_result()
+        presidio = _presidio_result({0: [], 1: []})
+        mock_execute_activity = AsyncMock(side_effect=[extract, presidio])
+        mock_llm = AsyncMock(side_effect=RuntimeError("LLM unavailable"))
+        wf = RedactionWorkflow()
+
+        with (
+            patch("temporalio.workflow.execute_activity", mock_execute_activity),
+            patch("src.workflows.redaction_workflow.ENV.LLM_ENABLED", True),
+            patch("src.workflows.redaction_workflow.llm_invoke_structured", mock_llm),
+            patch("src.workflows.redaction_workflow.workflow.logger"),
+            pytest.raises(ApplicationError) as exc_info,
+        ):
+            await wf.run(_input())
+
+        assert exc_info.value.type == PII_DETECTION_INCOMPLETE_ERROR
+        assert exc_info.value.non_retryable is True
+        assert "[0, 1]" in str(exc_info.value)
+        assert "Hello Max Mustermann" not in str(exc_info.value)
+        assert mock_execute_activity.await_count == 2
+
+    async def test_rejects_redaction_result_with_error_pages(self):
+        """A defensive result guard must not discard activity error pages."""
         redaction = ApplyRedactionsResult(
             redacted_pdf=_REDACTED_PDF,
             pages_processed=2,
@@ -143,10 +193,33 @@ class TestRedactionWorkflowRun:
         patches, _, _ = _workflow_patches(redaction_return=redaction)
         wf = RedactionWorkflow()
 
-        with patches[0], patches[1], patches[2], patches[3]:
-            result = await wf.run(_input())
+        with (
+            patches[0],
+            patches[1],
+            patches[2],
+            patches[3],
+            pytest.raises(ApplicationError) as exc_info,
+        ):
+            await wf.run(_input())
 
-        assert result == _REDACTED_PDF
+        assert exc_info.value.type == PII_DETECTION_INCOMPLETE_ERROR
+        assert exc_info.value.non_retryable is True
+        assert "[1]" in str(exc_info.value)
+
+
+class TestRaiseForErrorPages:
+    """Error page reporting must be deterministic and contain no document data."""
+
+    def test_sorts_and_deduplicates_page_indexes(self):
+        with pytest.raises(ApplicationError) as exc_info:
+            _raise_for_error_pages([2, 0, 2])
+
+        assert exc_info.value.type == PII_DETECTION_INCOMPLETE_ERROR
+        assert exc_info.value.non_retryable is True
+        assert "[0, 2]" in str(exc_info.value)
+
+    def test_empty_error_pages_do_not_raise(self):
+        _raise_for_error_pages([])
 
 
 # ---------------------------------------------------------------------------

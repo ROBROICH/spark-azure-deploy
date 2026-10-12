@@ -44,7 +44,7 @@ export function useDescendantNode<T extends NodeTypeLiteral>(
 
   if (import.meta.env.DEV && matches.length > 1) {
     throw new Error(
-      `[useDescendant] predicate matched ${matches.length} '${nodeType}' descendants of ${startRef?.node_type ?? 'unknown'}:${startRef?.id ?? 'null'}; expected 0 or 1.`,
+      `[useDescendant] predicate matched ${matches.length} '${nodeType}' descendants of ${startRef?.nodeType ?? 'unknown'}:${startRef?.id ?? 'null'}; expected 0 or 1.`,
     );
   }
 

@@ -1,7 +1,7 @@
 """Data models for norm type classification."""
 
 from pydantic import BaseModel, ConfigDict, Field
-from temporal.workflows.rechtsmethodik.types import NormTyp
+from temporal.contracts import NormTyp
 
 
 class NormTypAgentOutput(BaseModel):

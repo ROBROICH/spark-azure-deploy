@@ -1,9 +1,8 @@
-import { listZipFilesV2ZipFilesGet } from '@/api-clients/dms-module';
+import { v1DocumentManagementListZipFiles as listZipFiles } from '@/api-clients/backend';
 import type {
   WorkflowStatusEnum,
   ZipFileResponse,
-  ZipApprovalStatus,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 import {
   isActiveWorkflowStatus,
   isActiveZipApprovalStatus,
@@ -32,7 +31,7 @@ type ZipWorkflowSnapshot = {
   id: string;
   type?: ZipFileResponse['type'];
   workflowStatus?: WorkflowStatusEnum;
-  approvalStatus?: ZipApprovalStatus | null;
+  approvalStatus?: ZipFileResponse['approvalStatus'];
 };
 
 const isProjectDocumentZip = (file: ZipWorkflowSnapshot) =>
@@ -83,10 +82,10 @@ export const lookupOpenWorkflow = async (
   projectId: string,
   projectVersion: number,
 ): Promise<OpenWorkflowPreflight | null> => {
-  const { data } = await listZipFilesV2ZipFilesGet({
+  const { data } = await listZipFiles({
     query: {
       projectId,
-      project_version: projectVersion,
+      projectVersion: projectVersion,
     },
     throwOnError: true,
   });
@@ -163,6 +162,10 @@ export const runStartUpload = (deps: StartUploadDeps) => async () => {
         extra: { projectId: deps.projectId },
       },
     );
+    return;
+  }
+  if (deps.files.length > 1) {
+    deps.setGlobalError('single-zip-required');
     return;
   }
   const targetZip = deps.files.find(

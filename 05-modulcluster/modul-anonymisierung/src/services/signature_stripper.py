@@ -34,6 +34,7 @@ def strip_signatures(pdf_data: bytes) -> tuple[bytes, int]:
     with pikepdf.open(BytesIO(pdf_data)) as pdf:
         root = pdf.Root
         removed = 0
+        removed_objgens: set[tuple[int, int]] = set()
 
         acroform = root.get("/AcroForm")
         if acroform is not None and "/Fields" in acroform:
@@ -48,6 +49,7 @@ def strip_signatures(pdf_data: bytes) -> tuple[bytes, int]:
                 for field in fields:
                     if _is_signature(field):
                         removed += 1
+                        removed_objgens.add(field.objgen)
                     else:
                         kept_fields.append(field)
 
@@ -72,6 +74,9 @@ def strip_signatures(pdf_data: bytes) -> tuple[bytes, int]:
             kept_annots = pikepdf.Array()
             for annot in annots:
                 if _is_signature(annot):
+                    if annot.objgen not in removed_objgens:
+                        removed += 1
+                        removed_objgens.add(annot.objgen)
                     continue
                 kept_annots.append(annot)
             if len(kept_annots) == 0:

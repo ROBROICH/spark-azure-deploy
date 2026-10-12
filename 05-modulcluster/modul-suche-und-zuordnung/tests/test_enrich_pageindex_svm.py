@@ -5,7 +5,12 @@ Tests cover preparation (tokenization, truncation, node mapping, batching).
 """
 
 import pytest
-from temporal.workflows.modul_suche_und_zuordnung.types import Document, DocumentNode
+from temporal.contracts import (
+    SucheZuordnungDocument as Document,
+)
+from temporal.contracts import (
+    SucheZuordnungDocumentNode as DocumentNode,
+)
 
 from src.config import CONFIG
 from src.pageindex_svm.preparation import (

@@ -1,0 +1,106 @@
+suite: gateway-routes hosts and sites
+release: {name: rel, namespace: ci}
+values: [../ci/sites-values.yaml]
+tests:
+  - it: serves every hostname of a host group on its listener sections
+    template: templates/httproute-api.yaml
+    documentIndex: 0
+    asserts:
+      - equal: {path: spec.hostnames, value: [api.ci.example.com, api.ci.example.org]}
+      - equal: {path: spec.parentRefs, value: [{name: api-gateway, namespace: envoy-gateway-system, sectionName: https-api}, {name: api-gateway, namespace: envoy-gateway-system, sectionName: https-api-org}]}
+
+  - it: uses the primary dashboard host for the OIDC session and every dashboard origin for CORS
+    template: templates/security-policy-oidc.yaml
+    documentSelector: {path: metadata.name, value: oidc-policy}
+    asserts:
+      - equal: {path: spec.oidc.redirectURL, value: https://dashboard.ci.example.com/app/oauth2/callback}
+      - equal: {path: spec.oidc.cookieDomain, value: dashboard.ci.example.com}
+      - equal:
+          path: spec.cors.allowOrigins
+          value: [https://dashboard.ci.example.com, https://dashboard.ci.example.org, https://objections.ci.example.com]
+
+  - it: renders the routes of an extra dashboard host with its own frontend
+    template: templates/httproute-dashboard.yaml
+    documentSelector: {path: metadata.name, value: objections-route}
+    asserts:
+      - equal: {path: spec.hostnames, value: [objections.ci.example.com]}
+      - equal: {path: 'spec.parentRefs[0].sectionName', value: https-objections}
+      - equal: {path: 'spec.rules[0].backendRefs[0].name', value: rel-frontend-objections-ci}
+      - equal: {path: 'spec.rules[0].backendRefs[0].namespace', value: web}
+
+  - it: gives an extra dashboard host its own OIDC session
+    template: templates/security-policy-oidc.yaml
+    documentSelector: {path: metadata.name, value: objections-oidc-policy}
+    asserts:
+      - equal: {path: 'spec.targetRefs[0].name', value: objections-route}
+      - equal: {path: 'spec.targetRefs[1].name', value: objections-api-route}
+      - equal: {path: 'spec.targetRefs[2].name', value: objections-api-route-extra}
+      - equal: {path: spec.oidc.cookieNames, value: {accessToken: objections_access_token, idToken: objections_id_token}}
+      - equal: {path: spec.oidc.redirectURL, value: https://objections.ci.example.com/app/oauth2/callback}
+
+  - it: serves the landing page on every dashboard host that asks for it
+    template: templates/httproute-landing.yaml
+    asserts:
+      - equal: {path: spec.hostnames, value: [dashboard.ci.example.com, dashboard.ci.example.org, objections.ci.example.com]}
+      - equal: {path: spec.parentRefs, value: [{name: api-gateway, namespace: envoy-gateway-system, sectionName: https-dashboard}, {name: api-gateway, namespace: envoy-gateway-system, sectionName: https-dashboard-org}, {name: api-gateway, namespace: envoy-gateway-system, sectionName: https-objections}]}
+      - equal: {path: 'spec.rules[0].backendRefs[0].namespace', value: web}
+
+  - it: routes an extra site behind its own OIDC session
+    template: templates/extra-sites.yaml
+    asserts:
+      - hasDocuments: {count: 2}
+      - documentIndex: 0
+        equal: {path: 'spec.rules[0].backendRefs[0]', value: {name: rel-manual-ci, namespace: web, port: 80}}
+      - documentIndex: 1
+        equal: {path: spec.oidc.redirectURL, value: https://manual.ci.example.com/oauth2/callback}
+
+  - it: reaches the Temporal UI in its own namespace
+    template: templates/httproute-temporal.yaml
+    asserts:
+      - equal: {path: 'spec.rules[0].backendRefs[0].namespace', value: temporal}
+      - equal: {path: 'spec.parentRefs[0].sectionName', value: https-temporal}
+
+  - it: grants the routes access to the Temporal UI, frontends, extra site and landing page
+    template: templates/referencegrants.yaml
+    asserts:
+      - hasDocuments: {count: 2}
+      - documentSelector: {path: metadata.namespace, value: temporal}
+        equal: {path: spec.to, value: [{group: "", kind: Service, name: temporal-web}]}
+      - documentSelector: {path: metadata.namespace, value: web}
+        equal:
+          path: spec.to
+          value:
+            - {group: "", kind: Service, name: rel-frontend-ci}
+            - {group: "", kind: Service, name: rel-frontend-objections-ci}
+            - {group: "", kind: Service, name: rel-landingpage-ci}
+            - {group: "", kind: Service, name: rel-manual-ci}
+
+  - it: redirects every http section
+    template: templates/httproute-redirect.yaml
+    asserts:
+      - equal: {path: spec.parentRefs, value: [{name: api-gateway, namespace: envoy-gateway-system, sectionName: http-api}, {name: api-gateway, namespace: envoy-gateway-system, sectionName: http-dashboard}]}
+
+
+  - it: renders an extra route outside the OIDC policies
+    template: templates/extra-routes.yaml
+    asserts:
+      - equal: {path: metadata.name, value: dashboard-token-route}
+      - equal: {path: spec.hostnames, value: [dashboard.ci.example.com]}
+      - equal: {path: spec.parentRefs, value: [{name: api-gateway, namespace: envoy-gateway-system, sectionName: https-dashboard}]}
+      - equal: {path: 'spec.rules[0].filters[0].urlRewrite.path.replaceFullPath', value: /token}
+      - equal: {path: 'spec.rules[0].backendRefs[0].name', value: rel-project-logic-service-ci}
+
+  - it: defaults an extra route to its group's hostnames and sections
+    template: templates/extra-routes.yaml
+    set:
+      extraRoutes.dashboard-token.hosts: []
+      extraRoutes.dashboard-token.sectionNames: []
+    asserts:
+      - equal: {path: spec.hostnames, value: [dashboard.ci.example.com, dashboard.ci.example.org]}
+      - equal: {path: 'spec.parentRefs[1].sectionName', value: https-dashboard-org}
+
+  - it: keeps extra routes out of the dashboard OIDC policy
+    template: templates/security-policy-oidc.yaml
+    documentSelector: {path: metadata.name, value: oidc-policy}
+    asserts:
+      - notContains: {path: spec.targetRefs, content: {group: gateway.networking.k8s.io, kind: HTTPRoute, name: dashboard-token-route}}

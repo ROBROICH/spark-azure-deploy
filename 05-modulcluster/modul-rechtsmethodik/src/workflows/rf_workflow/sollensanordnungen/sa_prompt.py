@@ -1,5 +1,7 @@
 """Prompt template for Sollensanordnungen classification."""
 
+from src.activities.prompt_blocks import closing_block
+
 sollensanordnungen_agent_prompt = """
 **Rolle**
 Du bist ein spezialisierter Jurist mit tiefgehender Expertise im Verwaltungsrecht und der rechtsdogmatischen Analyse von Rechtsfolgen. 
@@ -72,10 +74,6 @@ Gehe in folgenden Schritten vor:
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und klassifiziere die passende materiell-rechtliche-Kategorie: 
-{external_data_tag_open}
-{rechtsfolge}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "{rechtsfolge}",
+)

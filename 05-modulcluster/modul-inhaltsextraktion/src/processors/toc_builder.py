@@ -122,13 +122,13 @@ def resolve_toc_path(
     Returns:
         Tuple of (updated_last_valid_path, updated_last_valid_unterkapitel)
     """
-    last_header_in_chunk = None
-    for header_title in all_valid_headers:
-        # Match header only at line boundaries (with optional # prefix) to avoid
-        # false matches against body text containing the header string.
-        pattern = rf"^(?:#+\s*)?{re.escape(header_title)}\s*$"
-        if re.search(pattern, main_chunk.page_content, re.MULTILINE):
-            last_header_in_chunk = header_title
+    header_lines = {
+        line.lstrip("#").strip() if line.startswith("#") else line.rstrip()
+        for line in main_chunk.page_content.splitlines()
+    }
+    last_header_in_chunk = next(
+        (header_title for header_title in reversed(all_valid_headers) if header_title in header_lines), None
+    )
 
     path: list[str] = []
     if last_header_in_chunk:

@@ -169,7 +169,7 @@ export const TopicDetailScreenSwimlanes = (
 
         <Suspense
           fallback={
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col bg-white" />
+            <div className="flex min-h-0 min-w-[var(--swimlane-min-w)] flex-1 flex-col bg-white" />
           }
         >
           <PdfPopoutSwimlane />

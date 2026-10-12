@@ -1,3 +1,9 @@
+---
+ruleId: security/guard-topic-mutations-with-topic-rights
+paths:
+  - "src/features/project/**"
+---
+
 # Guard Topic Mutations With Topic Rights
 
 - Project assignment is backend-enforced: admins have full access, project members can see assigned projects, and project owners can grant project-level approvals.
@@ -7,7 +13,9 @@
 - Treat graph descendants such as `topic_norm`, `dokument`, `satz`, `vae_node`, and assessment/check state as topic-scoped when a payload, route param, parent edge, or `topic_id` connects them to a topic.
 - During review, flag topic-scoped mutation handlers that call `useAction`, `transact`, `update`, descendant assignment endpoints, workflow starts, or local write callbacks without a fail-closed topic-rights guard, except handlers that only assign `mvp_assignees`.
 - This is the explicit exception to “no UI-only authorization” for topic assignment; project visibility and project role assignment still rely on backend-enforced authorization.
-- Precedence: this rule owns the product-approved exception for assigning `mvp_assignees`. [OWASP A01](./owasp-a01-no-ui-only-authorization.md) remains canonical for every other security-sensitive action.
+- Precedence: this rule owns the product-approved exception for assigning
+  `mvp_assignees`. [OWASP A01](./owasp-a01-no-ui-only-authorization.md) remains
+  authoritative for every other security-sensitive action.
 
 ## Bad Example
 

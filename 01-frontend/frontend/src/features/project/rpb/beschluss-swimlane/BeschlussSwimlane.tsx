@@ -29,7 +29,7 @@ const appendBeschlussSections = (
   indexPath: number[] = [],
 ) => {
   nodes.forEach((node, index) => {
-    const topicId = node.vaeNode.topic_id ?? inheritedTopicId;
+    const topicId = node.vaeNode.topicId ?? inheritedTopicId;
     const currentIndexPath = [...indexPath, index];
     const titlePrefix = formatNodeNumber(depth, currentIndexPath);
 
@@ -39,7 +39,7 @@ const appendBeschlussSections = (
       index,
       isEditable: topicId ? hasTopicMutationRights(topicId) : canMutateProject,
       order: node.vaeNode.order,
-      parentVaeNodeId: node.vaeNode.parent_vae_node_id,
+      parentVaeNodeId: node.vaeNode.parentVaeNodeId,
       text: node.vaeNode.text,
       title: `${titlePrefix} ${node.vaeNode.title}`,
       vaeNodeId: node.vaeNode.id,
@@ -75,7 +75,7 @@ export const BeschlussSwimlane = () => {
   const selectedTopicRef = selectedVaeNodeAssignedTopicId
     ? ({
         id: selectedVaeNodeAssignedTopicId,
-        node_type: 'topic',
+        nodeType: 'topic',
       } as const)
     : null;
   const { data: selectedTopic } = useLiveNode(selectedTopicRef);
@@ -105,9 +105,9 @@ export const BeschlussSwimlane = () => {
   const selectedTopicAssigneeIds = useMemo(
     () =>
       selectedVaeNodeAssignedTopicId
-        ? (selectedTopic?.mvp_assignees ?? [])
+        ? (selectedTopic?.mvpAssignees ?? [])
         : null,
-    [selectedTopic?.mvp_assignees, selectedVaeNodeAssignedTopicId],
+    [selectedTopic?.mvpAssignees, selectedVaeNodeAssignedTopicId],
   );
   // eslint-disable-next-line no-restricted-syntax -- the memoized TipTap editor should not rerender when unrelated Beschluss panel state changes.
   const headerAccessory = useMemo(

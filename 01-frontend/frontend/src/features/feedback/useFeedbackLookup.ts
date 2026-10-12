@@ -40,10 +40,10 @@ const isFeedbackDirectlyAttachedToTarget = (
   const targetKey = toCompositeKey(targetRef);
 
   return (
-    (feedbackSummary.frontend_parent_ids ?? []).includes(targetKey) ||
+    (feedbackSummary.frontendParentIds ?? []).includes(targetKey) ||
     feedbackSummary.parents.some(
       (parent) =>
-        parent.id === targetRef.id && parent.node_type === targetRef.node_type,
+        parent.id === targetRef.id && parent.nodeType === targetRef.nodeType,
     )
   );
 };

@@ -33,7 +33,7 @@ export function RpbFeedbackDialogMount() {
     isRpbFeedbackTargetNodeType(feedbackSearch.targetType)
       ? {
           id: targetId,
-          node_type: feedbackSearch.targetType,
+          nodeType: feedbackSearch.targetType,
         }
       : undefined;
   const hasTargetSearchParams =

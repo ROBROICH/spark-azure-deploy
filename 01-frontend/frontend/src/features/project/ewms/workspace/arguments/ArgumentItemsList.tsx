@@ -82,7 +82,7 @@ export const ArgumentItemsList = (props: ArgumentItemsListProps) => {
             >
               <ArgumentListItem
                 argument={argument}
-                entry={entriesById.get(argument.beteiligungs_eingang_id)}
+                entry={entriesById.get(argument.beteiligungsEingangId)}
                 topicItems={topicItems}
                 onDeleteArgument={onDeleteArgument}
                 onReviewArgumentClassification={onReviewArgumentClassification}

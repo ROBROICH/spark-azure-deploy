@@ -44,15 +44,15 @@ class TestBuildChunkContextsBatch:
         prev1 = make_chunk_payload(chunk_id="p1", chunk_content="prev-1", previous_chunk_id="p2")
         prev2 = make_chunk_payload(chunk_id="p2", chunk_content="prev-2", previous_chunk_id=None)
         base = make_chunk_payload(
-            chunk_id="b", chunk_content="base text",
-            previous_chunk_id="p1", next_chunk_id="n1",
+            chunk_id="b",
+            chunk_content="base text",
+            previous_chunk_id="p1",
+            next_chunk_id="n1",
         )
         next1 = make_chunk_payload(chunk_id="n1", chunk_content="next-1", next_chunk_id="n2")
         next2 = make_chunk_payload(chunk_id="n2", chunk_content="next-2", next_chunk_id=None)
 
-        cache: dict[str, ChunkPayload] = {
-            c.chunk_id: c for c in [prev1, prev2, base, next1, next2]
-        }
+        cache: dict[str, ChunkPayload] = {c.chunk_id: c for c in [prev1, prev2, base, next1, next2]}
 
         async def fake_get(*, project_id: str, chunk_ids: list[str], **_: object) -> list[ChunkPayload]:
             del project_id
@@ -81,9 +81,7 @@ class TestBuildChunkContextsBatch:
         assert set(result.keys()) == {"c1"}
 
     @pytest.mark.asyncio
-    async def test_truncates_preceding_text_when_too_long(
-        self, mock_qdrant: MagicMock
-    ) -> None:
+    async def test_truncates_preceding_text_when_too_long(self, mock_qdrant: MagicMock) -> None:
         max_prev = config.CONTEXT_CHECKING.MAX_PREVIOUS_TEXT_CHARS
         huge = "x" * (max_prev * 2)
         prev_chunk = make_chunk_payload(chunk_id="p1", chunk_content=huge, previous_chunk_id=None)
@@ -105,9 +103,7 @@ class TestBuildChunkContextsBatch:
         assert len(ctx.preceding_text) < max_prev * 2
 
     @pytest.mark.asyncio
-    async def test_truncates_following_text_when_too_long(
-        self, mock_qdrant: MagicMock
-    ) -> None:
+    async def test_truncates_following_text_when_too_long(self, mock_qdrant: MagicMock) -> None:
         max_next = config.CONTEXT_CHECKING.MAX_FOLLOWUP_TEXT_CHARS
         huge = "y" * (max_next * 2)
         next_chunk = make_chunk_payload(chunk_id="n1", chunk_content=huge, next_chunk_id=None)
@@ -127,15 +123,17 @@ class TestBuildChunkContextsBatch:
         assert len(ctx.following_text) == max_next
 
     @pytest.mark.asyncio
-    async def test_filters_neighbors_by_top_level_toc_path(
-        self, mock_qdrant: MagicMock
-    ) -> None:
+    async def test_filters_neighbors_by_top_level_toc_path(self, mock_qdrant: MagicMock) -> None:
         base = make_chunk_payload(
-            chunk_id="b", chunk_content="base", toc_path=["Chapter 1"],
+            chunk_id="b",
+            chunk_content="base",
+            toc_path=["Chapter 1"],
             previous_chunk_id="p1",
         )
         other_chapter = make_chunk_payload(
-            chunk_id="p1", chunk_content="other-chapter", toc_path=["Chapter 2"],
+            chunk_id="p1",
+            chunk_content="other-chapter",
+            toc_path=["Chapter 2"],
             previous_chunk_id=None,
         )
 
@@ -157,7 +155,7 @@ class TestChunkToTextNonText:
     """Extra coverage for the summary-marker wrapping branch."""
 
     def test_chunk_to_text_with_complete_summary(self) -> None:
-        from src.activities.context_checker import _chunk_to_text
+        from src.activities.context_checker import _chunk_to_text  # noqa: PLC0415
 
         chunk = make_chunk_payload(
             chunk_type="table",

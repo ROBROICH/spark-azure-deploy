@@ -51,6 +51,8 @@ type AiNormCardProps = {
   className?: string;
   headerIcons?: ReactNode;
   menu?: ReactNode;
+  /** Compact status marker shown below the title, such as a failed AI run. */
+  notice?: ReactNode;
   reviewAction: AiNormCardReviewAction;
   selection?: AiNormCardSelection;
   title: ReactNode;
@@ -163,6 +165,7 @@ export function AiNormCard(props: AiNormCardProps) {
     className,
     headerIcons,
     menu,
+    notice,
     reviewAction,
     selection,
     title,
@@ -190,7 +193,17 @@ export function AiNormCard(props: AiNormCardProps) {
       aiAction={renderAiAction(aiAction)}
       headerIcons={headerIcons}
       menu={menu}
-      body={title}
+      body={
+        notice ? (
+          <div className="flex flex-col items-start gap-1">
+            {title}
+            {/* Above the card-wide select button, like the header and footer controls. */}
+            <span className="relative z-20 inline-flex">{notice}</span>
+          </div>
+        ) : (
+          title
+        )
+      }
       footer={<AiNormCardReviewButton action={reviewAction} />}
     />
   );

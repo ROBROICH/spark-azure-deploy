@@ -1,6 +1,6 @@
 """Agent for classifying Sollensanordnungen."""
 
-from temporal.workflows.rechtsmethodik.types import Sollensanordnungen
+from temporal.contracts import Sollensanordnungen
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

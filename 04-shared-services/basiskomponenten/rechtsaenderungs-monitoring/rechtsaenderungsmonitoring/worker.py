@@ -30,16 +30,14 @@ elif "pytest" not in sys.modules:
         )
     )
 
-import asyncio  # noqa: E402
+import asyncio
 
-from temporal.s3_payload_storage import S3PayloadStorage  # noqa: E402
-from temporal.worker import start_temporal_worker  # noqa: E402
-from temporal.workflows.rechtsaenderungs_monitoring.monitor_rechtsaenderungen import (  # noqa: E402
-    TASK_QUEUE,
-)
+from temporal.registry import RECHTSAENDERUNGS_MONITORING_WORKFLOW
+from temporal.s3_payload_storage import S3PayloadStorage
+from temporal.worker import start_temporal_worker
 
-from rechtsaenderungsmonitoring.config import app_config  # noqa: E402
-from rechtsaenderungsmonitoring.workflows import make_activities, workflows  # noqa: E402
+from rechtsaenderungsmonitoring.config import app_config
+from rechtsaenderungsmonitoring.workflows import make_activities, workflows
 
 
 async def start_worker() -> None:
@@ -56,7 +54,7 @@ async def start_worker() -> None:
         host=ENV.TEMPORAL.HOST,
         workflows=workflows,
         activities=make_activities(sessionmaker=get_async_session_factory()),
-        task_queue=TASK_QUEUE,
+        task_queue=RECHTSAENDERUNGS_MONITORING_WORKFLOW.task_queue,
         storage=storage,
     )
 

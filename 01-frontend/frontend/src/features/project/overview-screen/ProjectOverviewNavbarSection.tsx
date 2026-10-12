@@ -1,4 +1,5 @@
 import { useCanDeleteProject } from '@/features/access-control/project-permissions/useCanDeleteProject';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import {
   projectsCollection,
   useProject,
@@ -102,6 +103,7 @@ export function ProjectOverviewNavbarSection(
   const { canDeleteProject } = useCanDeleteProject();
   const { isFavorite, toggle, remove, canFavorite } = useFavorites();
   const { data: project, isLoading } = useProject(verfahrenId);
+  const effectiveMode = getConfiguredProductMode();
   const [deleteDialogOpen, setDeleteDialogOpen] =
     // eslint-disable-next-line no-restricted-syntax -- ephemeral UI state for the delete confirmation dialog.
     useState(false);
@@ -133,42 +135,44 @@ export function ProjectOverviewNavbarSection(
 
   return (
     <div className="bg-neutral-white px-0 py-6">
-      <div className="flex items-center gap-4">
-        {isLoading || !hasProjectData ? (
-          <Skeleton className="size-12 shrink-0 rounded-xl" aria-hidden />
-        ) : (
-          <div
-            className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-neutral-200 p-1"
-            aria-hidden
-          >
-            <span className="text-base leading-5 font-medium text-text-primary">
-              {project.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap gap-4">
           {isLoading || !hasProjectData ? (
-            <>
-              <Skeleton className="h-6 w-2/3" aria-hidden />
-              <Skeleton className="h-5 w-1/4" aria-hidden />
-            </>
+            <Skeleton className="size-12 shrink-0 rounded-xl" aria-hidden />
           ) : (
-            <>
-              <h1 className="text-[19px] leading-6 font-medium tracking-tight [overflow-wrap:anywhere] break-words text-text-primary">
-                {project.name}
-              </h1>
-              <p className="text-base leading-5 font-medium tracking-tight text-text-secondary">
-                {project.internalProjectNumber}
-              </p>
-            </>
+            <div
+              className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-neutral-200 p-1"
+              aria-hidden
+            >
+              <span className="text-base leading-5 font-medium text-text-primary">
+                {project.name.charAt(0).toUpperCase()}
+              </span>
+            </div>
           )}
+
+          <div className="flex min-w-0 flex-1 flex-col gap-1">
+            {isLoading || !hasProjectData ? (
+              <>
+                <Skeleton className="h-6 w-2/3" aria-hidden />
+                <Skeleton className="h-5 w-1/4" aria-hidden />
+              </>
+            ) : (
+              <>
+                <h1 className="text-[19px] leading-6 font-medium tracking-tight [overflow-wrap:anywhere] break-words text-text-primary">
+                  {project.name}
+                </h1>
+                <p className="text-base leading-5 font-medium tracking-tight text-text-secondary">
+                  {project.internalProjectNumber}
+                </p>
+              </>
+            )}
+          </div>
         </div>
 
         {isLoading || !hasProjectData ? (
           <Skeleton className="h-11 w-52 shrink-0 rounded-xl" />
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <StarButton
               isFavorite={isFavorite(verfahrenId)}
               size="lg"
@@ -214,7 +218,11 @@ export function ProjectOverviewNavbarSection(
             ) : null}
             <Button type="button" size="lg" asChild className="min-w-[13rem]">
               <Link
-                to="/verfahren/$verfahrenId/fvp/documents"
+                to={
+                  effectiveMode === 'ewms'
+                    ? '/verfahren/$verfahrenId/ewms'
+                    : '/verfahren/$verfahrenId/fvp/documents'
+                }
                 params={{ verfahrenId }}
                 search={{}}
                 resetScroll={false}

@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a07-protect-authentication-and-session-flows
+---
+
 # OWASP A07: Protect Authentication and Session Flows
 
 - Covers OWASP A07 Identification and Authentication Failures.

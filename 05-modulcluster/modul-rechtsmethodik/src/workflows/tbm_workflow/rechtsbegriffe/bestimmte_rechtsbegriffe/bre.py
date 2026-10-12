@@ -1,6 +1,6 @@
 """Agent for identifying bestimmte Rechtsbegriffe."""
 
-from temporal.workflows.rechtsmethodik.types import BestimmterRechtsbegriff, Legaldefinition
+from temporal.contracts import BestimmterRechtsbegriff, Legaldefinition
 from temporalio import workflow
 
 from src.activities.law_api_calls import (

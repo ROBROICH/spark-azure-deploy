@@ -4,11 +4,9 @@ from contextlib import ExitStack
 from unittest.mock import patch
 
 import pytest
-from temporal.workflows.einwendungsmanagement.types import (
+from temporal.contracts import (
     ArgumentExtractionOutput,
     ArgumentExtractionParams,
-)
-from temporal.workflows.inhaltsextraktion.types import (
     ChunkEWMS,
     PromptInjection,
     SingleDocumentEWMSWorkflowOutput,

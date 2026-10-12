@@ -15,31 +15,29 @@ import type { NodeSummary } from './types';
 const buildSummaries = (): NodeSummary[] => [
   {
     id: 'topic-1',
-    node_type: 'topic',
+    nodeType: 'topic',
     parents: [],
   },
   {
     id: 'topic-norm-1',
-    node_type: 'topic_norm',
-    parents: [{ id: 'topic-1', node_type: 'topic' }],
+    nodeType: 'topic_norm',
+    parents: [{ id: 'topic-1', nodeType: 'topic' }],
   },
   {
     id: 'norm-1',
-    node_type: 'norm',
-    parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+    nodeType: 'norm',
+    parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
   },
   {
     id: 'satz-1',
-    node_type: 'satz',
-    parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+    nodeType: 'satz',
+    parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
   },
   {
     id: 'dokument-1',
-    node_type: 'dokument',
+    nodeType: 'dokument',
     parents: [],
-    frontend_parent_ids: [
-      toCompositeKey({ id: 'topic-1', node_type: 'topic' }),
-    ],
+    frontendParentIds: [toCompositeKey({ id: 'topic-1', nodeType: 'topic' })],
   },
 ];
 
@@ -76,8 +74,8 @@ describe('ProjectNodeIndex', () => {
     expect(hasDescendantByType(index, 'topic-1', 'bewertung')).toBe(false);
     expect(getFirstDescendantNodeRefByType(index, 'topic-1', 'norm')).toEqual({
       id: 'norm-1',
-      node_type: 'norm',
-      parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+      nodeType: 'norm',
+      parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
     });
   });
 
@@ -86,21 +84,21 @@ describe('ProjectNodeIndex', () => {
       ...buildSummaries(),
       {
         id: 'bewertung-1',
-        node_type: 'bewertung',
-        parents: [{ id: 'satz-1', node_type: 'satz' }],
+        nodeType: 'bewertung',
+        parents: [{ id: 'satz-1', nodeType: 'satz' }],
       },
     ]);
 
     expect(
-      getChildNodes(index, { id: 'topic-norm-1', node_type: 'topic_norm' }).map(
+      getChildNodes(index, { id: 'topic-norm-1', nodeType: 'topic_norm' }).map(
         (ref) => ref.id,
       ),
     ).toEqual(['norm-1', 'satz-1']);
     expect(getChildNodes(index, 'topic-norm-1', 'satz')).toEqual([
       {
         id: 'satz-1',
-        node_type: 'satz',
-        parents: [{ id: 'topic-norm-1', node_type: 'topic_norm' }],
+        nodeType: 'satz',
+        parents: [{ id: 'topic-norm-1', nodeType: 'topic_norm' }],
       },
     ]);
   });

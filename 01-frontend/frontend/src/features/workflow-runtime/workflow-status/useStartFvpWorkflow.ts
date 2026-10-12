@@ -1,4 +1,4 @@
-import { orchestrateFvpWorkflowWorkflowsFormalePruefungPostMutation } from '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen';
+import { v1AgentOrchestrationStartFormalCompletenessWorkflowMutation as startFormalCompletenessWorkflowMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { toast } from '@/features/ui/toast/Toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,7 +17,7 @@ export const useStartFvpWorkflow = (verfahrenId: string) => {
     workflowType: WORKFLOW_TYPE_FVP,
   });
   const orchestrateFvpWorkflowMutation = useMutation(
-    orchestrateFvpWorkflowWorkflowsFormalePruefungPostMutation(),
+    startFormalCompletenessWorkflowMutation(),
   );
 
   const startFvpWorkflow = async () => {
@@ -27,7 +27,7 @@ export const useStartFvpWorkflow = (verfahrenId: string) => {
 
     const workflow = await orchestrateFvpWorkflowMutation.mutateAsync({
       body: {
-        project_id: verfahrenId,
+        projectId: verfahrenId,
       },
     });
     await observeFvpWorkflowStarted(workflow.parentJobId);

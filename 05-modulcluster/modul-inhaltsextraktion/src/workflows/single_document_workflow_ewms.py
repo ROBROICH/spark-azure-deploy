@@ -12,7 +12,7 @@ from uuid import UUID
 
 from prompt_injection.prompt_defense import sanitize_external_data, sanitize_html
 from pydantic import BaseModel
-from temporal.workflows.inhaltsextraktion.types import PromptInjection, SingleDocumentEWMSWorkflowOutput
+from temporal.contracts import PromptInjection, SingleDocumentEWMSWorkflowOutput
 from temporalio import workflow
 from temporalio.common import WorkflowIDReusePolicy
 

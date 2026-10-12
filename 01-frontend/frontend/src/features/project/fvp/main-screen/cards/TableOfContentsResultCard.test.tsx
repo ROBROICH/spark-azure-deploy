@@ -82,6 +82,36 @@ describe('TableOfContentsResultCard error state', () => {
     ).toBeNull();
   });
 
+  it('keeps the status addon visible while the read loads and when it fails', () => {
+    const renderWithAddon = () =>
+      render(
+        <TooltipProvider>
+          <TableOfContentsResultCard
+            projectId="p1"
+            statusAddon={<button type="button">failure chip</button>}
+          />
+        </TooltipProvider>,
+      );
+
+    useDocumentsMock.mockReturnValue({
+      items: [],
+      isLoading: true,
+      isError: false,
+    });
+    const { unmount } = renderWithAddon();
+    expect(screen.getByRole('button', { name: 'failure chip' })).toBeTruthy();
+    unmount();
+
+    useDocumentsMock.mockReturnValue({
+      items: [],
+      isLoading: false,
+      isError: true,
+    });
+    renderWithAddon();
+    expect(screen.getByRole('button', { name: 'failure chip' })).toBeTruthy();
+    expect(screen.getByRole('alert')).toBeTruthy();
+  });
+
   it('renders the normal summary when the read succeeds', () => {
     useDocumentsMock.mockReturnValue({
       items: [

@@ -30,14 +30,14 @@ const useKiTopicNormContextLogic = (
   const satzRefs = useDescendants('satz', topicNormRef);
   const satzIds = satzRefs.map((satzRef) => satzRef.id);
   const satzIdSet = useMemo(() => new Set(satzIds), [satzIds]);
-  const satzStatuses = topicNorm?.satz_statuses ?? {};
+  const satzStatuses = topicNorm?.satzStatuses ?? {};
   const allSaetzeChecked = areAllSatzStatusesChecked(satzStatuses, satzIds);
   const hasAnySatzNeedsRevision = hasAnySatzStatusNeedsRevision(
     satzStatuses,
     satzIds,
   );
   const hasTopicMutationRights = useHasTopicMutationRights();
-  const canMutateTopic = hasTopicMutationRights(topicNorm?.topic_id);
+  const canMutateTopic = hasTopicMutationRights(topicNorm?.topicId);
 
   const value = useMemo(() => {
     const toggleSatzChecked = (satzId: string) => {
@@ -47,8 +47,8 @@ const useKiTopicNormContextLogic = (
 
       transact(() => {
         update(topicNorm, (draft) => {
-          draft.satz_statuses = toggleSparseSatzStatus(
-            draft.satz_statuses,
+          draft.satzStatuses = toggleSparseSatzStatus(
+            draft.satzStatuses,
             satzId,
           );
         });
@@ -62,8 +62,8 @@ const useKiTopicNormContextLogic = (
 
       transact(() => {
         update(topicNorm, (draft) => {
-          draft.satz_statuses = resolveBulkSatzStatuses(
-            draft.satz_statuses,
+          draft.satzStatuses = resolveBulkSatzStatuses(
+            draft.satzStatuses,
             satzIds,
           );
         });
@@ -76,9 +76,9 @@ const useKiTopicNormContextLogic = (
       hasAnySatzNeedsRevision,
       canMutateTopic,
       getSatzReviewStatus: (satzId: string) =>
-        getSparseSatzStatus(topicNorm?.satz_statuses ?? {}, satzId),
+        getSparseSatzStatus(topicNorm?.satzStatuses ?? {}, satzId),
       isSatzChecked: (satzId: string) =>
-        isSparseSatzChecked(topicNorm?.satz_statuses ?? {}, satzId),
+        isSparseSatzChecked(topicNorm?.satzStatuses ?? {}, satzId),
       hasAnySaetze: satzIds.length > 0,
       toggleSatzChecked,
       toggleAllSaetzeChecked,

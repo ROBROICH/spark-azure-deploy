@@ -1,0 +1,79 @@
+[
+  {
+    "name": "valid-lowercase",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "expected_trace_id": "4bf92f3577b34da6a3ce929d0e0e4736"
+  },
+  {
+    "name": "valid-uppercase",
+    "value": "00-4BF92F3577B34DA6A3CE929D0E0E4736-00F067AA0BA902B7-01",
+    "expected_trace_id": "4BF92F3577B34DA6A3CE929D0E0E4736"
+  },
+  {
+    "name": "signed-version",
+    "value": "+0-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "signed-trace-id",
+    "value": "00-+bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "signed-parent-id",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-+0f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "signed-trace-flags",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-+1",
+    "expected_trace_id": null
+  },
+  {"name": "absent", "value": null, "expected_trace_id": null},
+  {"name": "wrong-part-count", "value": "00-abc-01", "expected_trace_id": null},
+  {
+    "name": "forbidden-version-lowercase",
+    "value": "ff-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "forbidden-version-uppercase",
+    "value": "FF-4BF92F3577B34DA6A3CE929D0E0E4736-00F067AA0BA902B7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "zero-trace-id",
+    "value": "00-00000000000000000000000000000000-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "zero-parent-id",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-0000000000000000-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "non-hex-trace-id",
+    "value": "00-zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "wrong-trace-length",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e473-00f067aa0ba902b7-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "wrong-parent-length",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b-01",
+    "expected_trace_id": null
+  },
+  {
+    "name": "wrong-flags-length",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-1",
+    "expected_trace_id": null
+  },
+  {
+    "name": "non-hex-flags",
+    "value": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-zz",
+    "expected_trace_id": null
+  }
+]

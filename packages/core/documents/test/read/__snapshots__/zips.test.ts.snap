@@ -1,0 +1,537 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`stored ZIP diff read contract GET /v2/files/{file_id}/diff snapshots every nested diff branch 1`] = `
+{
+  "body": {
+    "changed": [
+      {
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/changed/beta.pdf",
+        "fileId": "20000000-0000-4000-8000-000000000004",
+        "filename": "Beta Appendix.pdf",
+        "sourceSha": "source-fixture-sha",
+        "targetSha": "target-fixture-sha",
+      },
+    ],
+    "deleted": [
+      {
+        "fileId": "20000000-0000-4000-8000-000000000003",
+        "filename": "Alpha Report.pdf",
+        "sha": "deleted-fixture-sha",
+      },
+    ],
+    "new": [
+      {
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/new/new.pdf",
+        "filename": "new.pdf",
+        "sha": "new-fixture-sha",
+      },
+    ],
+    "renamed": [
+      {
+        "bucketPath": null,
+        "fileId": "20000000-0000-4000-8000-000000000001",
+        "newName": "renamed-basis.pdf",
+        "oldName": "basis.pdf",
+        "sha": "renamed-fixture-sha",
+      },
+    ],
+    "unchanged": [
+      {
+        "fileId": "20000000-0000-4000-8000-000000000007",
+        "filename": "pending.pdf",
+        "sha": "unchanged-fixture-sha",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`stored ZIP diff read contract snapshots a ZIP with no stored diff and an unknown ZIP 1`] = `
+{
+  "empty": {
+    "body": {
+      "changed": [],
+      "deleted": [],
+      "new": [],
+      "renamed": [],
+      "unchanged": [],
+    },
+    "status": 200,
+  },
+  "unknown": {
+    "body": {
+      "detail": "Zip file '40000000-0000-4000-8000-000000000999' not found.",
+    },
+    "status": 404,
+  },
+}
+`;
+
+exports[`stored ZIP diff read contract internal diff snapshots found, historical-empty, wrong-project, wrong-version, and unknown 1`] = `
+[
+  {
+    "body": {
+      "changed": [
+        {
+          "bucketPath": "documents/10000000-0000-4000-8000-000000000001/changed/beta.pdf",
+          "fileId": "20000000-0000-4000-8000-000000000004",
+          "filename": "Beta Appendix.pdf",
+          "sourceSha": "source-fixture-sha",
+          "targetSha": "target-fixture-sha",
+        },
+      ],
+      "deleted": [
+        {
+          "fileId": "20000000-0000-4000-8000-000000000003",
+          "filename": "Alpha Report.pdf",
+          "sha": "deleted-fixture-sha",
+        },
+      ],
+      "new": [
+        {
+          "bucketPath": "documents/10000000-0000-4000-8000-000000000001/new/new.pdf",
+          "filename": "new.pdf",
+          "sha": "new-fixture-sha",
+        },
+      ],
+      "renamed": [
+        {
+          "bucketPath": null,
+          "fileId": "20000000-0000-4000-8000-000000000001",
+          "newName": "renamed-basis.pdf",
+          "oldName": "basis.pdf",
+          "sha": "renamed-fixture-sha",
+        },
+      ],
+      "unchanged": [
+        {
+          "fileId": "20000000-0000-4000-8000-000000000007",
+          "filename": "pending.pdf",
+          "sha": "unchanged-fixture-sha",
+        },
+      ],
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "changed": [],
+      "deleted": [],
+      "new": [],
+      "renamed": [],
+      "unchanged": [],
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "detail": "ZIP file not found",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "ZIP file not found",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "ZIP file not found",
+    },
+    "status": 404,
+  },
+]
+`;
+
+exports[`GET /v2/files/{file_id}/approval-status HTTP contract snapshots representative approval states and unknown-id null 1`] = `
+[
+  {
+    "body": "REQUIRES_APPROVAL",
+    "status": 200,
+  },
+  {
+    "body": "APPROVED",
+    "status": 200,
+  },
+  {
+    "body": "FAILED_APPROVE",
+    "status": 200,
+  },
+  {
+    "body": "REJECTED",
+    "status": 200,
+  },
+  {
+    "body": null,
+    "status": 200,
+  },
+  {
+    "body": null,
+    "status": 200,
+  },
+]
+`;
+
+exports[`GET /v2/zip-files HTTP contract snapshots populated, empty, project, workflow, type, and combined filters 1`] = `
+{
+  "combined": {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": "REJECTED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/rejected.zip",
+        "createdAt": "2026-01-13T12:00:00Z",
+        "filename": "rejected.zip",
+        "id": "40000000-0000-4000-8000-000000000004",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-13T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "APPROVED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/approved.zip",
+        "createdAt": "2026-01-11T12:00:00Z",
+        "filename": "approved.zip",
+        "id": "40000000-0000-4000-8000-000000000002",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-11T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "REQUIRES_APPROVAL",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+        "createdAt": "2026-01-10T12:00:00Z",
+        "filename": "bundle-v3.zip",
+        "id": "40000000-0000-4000-8000-000000000001",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-10T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+    ],
+    "status": 200,
+  },
+  "empty": {
+    "body": [],
+    "status": 200,
+  },
+  "populated": {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": "REJECTED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/rejected.zip",
+        "createdAt": "2026-01-13T12:00:00Z",
+        "filename": "rejected.zip",
+        "id": "40000000-0000-4000-8000-000000000004",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-13T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": "Synthetic approval failure",
+        "approvalStatus": "FAILED_APPROVE",
+        "bucketPath": "ewms/10000000-0000-4000-8000-000000000001/failed-ewms.zip",
+        "createdAt": "2026-01-12T12:00:00Z",
+        "filename": "failed-ewms.zip",
+        "id": "40000000-0000-4000-8000-000000000003",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "ewms_zip",
+        "updatedAt": "2026-01-12T12:00:00Z",
+        "workflowStatus": "FAILED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "APPROVED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/approved.zip",
+        "createdAt": "2026-01-11T12:00:00Z",
+        "filename": "approved.zip",
+        "id": "40000000-0000-4000-8000-000000000002",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-11T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "REQUIRES_APPROVAL",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+        "createdAt": "2026-01-10T12:00:00Z",
+        "filename": "bundle-v3.zip",
+        "id": "40000000-0000-4000-8000-000000000001",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-10T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+    ],
+    "status": 200,
+  },
+  "project": {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": "REJECTED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/rejected.zip",
+        "createdAt": "2026-01-13T12:00:00Z",
+        "filename": "rejected.zip",
+        "id": "40000000-0000-4000-8000-000000000004",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-13T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": "Synthetic approval failure",
+        "approvalStatus": "FAILED_APPROVE",
+        "bucketPath": "ewms/10000000-0000-4000-8000-000000000001/failed-ewms.zip",
+        "createdAt": "2026-01-12T12:00:00Z",
+        "filename": "failed-ewms.zip",
+        "id": "40000000-0000-4000-8000-000000000003",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "ewms_zip",
+        "updatedAt": "2026-01-12T12:00:00Z",
+        "workflowStatus": "FAILED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "APPROVED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/approved.zip",
+        "createdAt": "2026-01-11T12:00:00Z",
+        "filename": "approved.zip",
+        "id": "40000000-0000-4000-8000-000000000002",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-11T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "REQUIRES_APPROVAL",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+        "createdAt": "2026-01-10T12:00:00Z",
+        "filename": "bundle-v3.zip",
+        "id": "40000000-0000-4000-8000-000000000001",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-10T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+    ],
+    "status": 200,
+  },
+  "type": {
+    "body": [
+      {
+        "approvalError": "Synthetic approval failure",
+        "approvalStatus": "FAILED_APPROVE",
+        "bucketPath": "ewms/10000000-0000-4000-8000-000000000001/failed-ewms.zip",
+        "createdAt": "2026-01-12T12:00:00Z",
+        "filename": "failed-ewms.zip",
+        "id": "40000000-0000-4000-8000-000000000003",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "ewms_zip",
+        "updatedAt": "2026-01-12T12:00:00Z",
+        "workflowStatus": "FAILED",
+      },
+    ],
+    "status": 200,
+  },
+  "workflow": {
+    "body": [
+      {
+        "approvalError": "Synthetic approval failure",
+        "approvalStatus": "FAILED_APPROVE",
+        "bucketPath": "ewms/10000000-0000-4000-8000-000000000001/failed-ewms.zip",
+        "createdAt": "2026-01-12T12:00:00Z",
+        "filename": "failed-ewms.zip",
+        "id": "40000000-0000-4000-8000-000000000003",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "ewms_zip",
+        "updatedAt": "2026-01-12T12:00:00Z",
+        "workflowStatus": "FAILED",
+      },
+    ],
+    "status": 200,
+  },
+}
+`;
+
+exports[`GET /v2/zip-files HTTP contract snapshots versions and first, middle, and empty pages 1`] = `
+[
+  {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": null,
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v1/bundle.zip",
+        "createdAt": "2026-01-09T12:00:00Z",
+        "filename": "bundle-v2.zip",
+        "id": "40000000-0000-4000-8000-000000000001",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 1,
+        "type": "zip",
+        "updatedAt": "2026-01-09T12:00:00Z",
+        "workflowStatus": "PENDING",
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": "REJECTED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/rejected.zip",
+        "createdAt": "2026-01-13T12:00:00Z",
+        "filename": "rejected.zip",
+        "id": "40000000-0000-4000-8000-000000000004",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-13T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": "Synthetic approval failure",
+        "approvalStatus": "FAILED_APPROVE",
+        "bucketPath": "ewms/10000000-0000-4000-8000-000000000001/failed-ewms.zip",
+        "createdAt": "2026-01-12T12:00:00Z",
+        "filename": "failed-ewms.zip",
+        "id": "40000000-0000-4000-8000-000000000003",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "ewms_zip",
+        "updatedAt": "2026-01-12T12:00:00Z",
+        "workflowStatus": "FAILED",
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [
+      {
+        "approvalError": null,
+        "approvalStatus": "APPROVED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/approved.zip",
+        "createdAt": "2026-01-11T12:00:00Z",
+        "filename": "approved.zip",
+        "id": "40000000-0000-4000-8000-000000000002",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-11T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "REQUIRES_APPROVAL",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+        "createdAt": "2026-01-10T12:00:00Z",
+        "filename": "bundle-v3.zip",
+        "id": "40000000-0000-4000-8000-000000000001",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updatedAt": "2026-01-10T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [],
+    "status": 200,
+  },
+]
+`;
+
+exports[`GET /v2/zip-files/{zip_file_id} HTTP contract snapshots latest, explicit current, and explicit historical rows 1`] = `
+[
+  {
+    "body": {
+      "approvalError": null,
+      "approvalStatus": "REQUIRES_APPROVAL",
+      "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+      "createdAt": "2026-01-10T12:00:00Z",
+      "filename": "bundle-v3.zip",
+      "id": "40000000-0000-4000-8000-000000000001",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "sourceProjectVersion": 2,
+      "type": "zip",
+      "updatedAt": "2026-01-10T12:00:00Z",
+      "workflowStatus": "COMPLETED",
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "approvalError": null,
+      "approvalStatus": "REQUIRES_APPROVAL",
+      "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+      "createdAt": "2026-01-10T12:00:00Z",
+      "filename": "bundle-v3.zip",
+      "id": "40000000-0000-4000-8000-000000000001",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "sourceProjectVersion": 2,
+      "type": "zip",
+      "updatedAt": "2026-01-10T12:00:00Z",
+      "workflowStatus": "COMPLETED",
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "approvalError": null,
+      "approvalStatus": null,
+      "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v1/bundle.zip",
+      "createdAt": "2026-01-09T12:00:00Z",
+      "filename": "bundle-v2.zip",
+      "id": "40000000-0000-4000-8000-000000000001",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "sourceProjectVersion": 1,
+      "type": "zip",
+      "updatedAt": "2026-01-09T12:00:00Z",
+      "workflowStatus": "PENDING",
+    },
+    "status": 200,
+  },
+]
+`;
+
+exports[`GET /v2/zip-files/{zip_file_id} HTTP contract snapshots absent responses and asserts invalid version semantics 1`] = `
+[
+  {
+    "body": {
+      "detail": "Zip file not found",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "Zip file not found",
+    },
+    "status": 404,
+  },
+]
+`;

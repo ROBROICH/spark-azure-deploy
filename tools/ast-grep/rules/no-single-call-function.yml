@@ -1,0 +1,773 @@
+id: no-single-call-function
+language: TypeScript
+severity: error
+message: "Do not create wrappers that only forward to another function."
+note: |
+  A function or class method whose whole body is a direct call to another function
+  adds a name without behavior. Inline the call unless the wrapper owns policy,
+  normalization, cleanup, error handling, or a real external boundary. A TypeBox
+  Type.Unsafe call declares a static type rather than a name, so it stays allowed.
+rule:
+  all:
+    - any:
+        - all:
+            - any:
+                - kind: program > function_declaration
+                - kind: program > export_statement > function_declaration
+                # `export default () => forward()` has no declarator to hang off.
+                - kind: program > export_statement > arrow_function
+                - kind: program > export_statement > function_expression
+                - kind: program > lexical_declaration > variable_declarator > arrow_function
+                - kind: program > export_statement > lexical_declaration > variable_declarator > arrow_function
+                - kind: program > variable_declaration > variable_declarator > arrow_function
+                - kind: program > export_statement > variable_declaration > variable_declarator > arrow_function
+                - kind: program > lexical_declaration > variable_declarator > function_expression
+                - kind: program > export_statement > lexical_declaration > variable_declarator > function_expression
+                - kind: program > variable_declaration > variable_declarator > function_expression
+                - kind: program > export_statement > variable_declaration > variable_declarator > function_expression
+            - any:
+                - matches: expression-forwarding-body
+                - all:
+                    - matches: supported-block-function-signature
+                    - matches: supported-block-target-statement
+                    - matches: forwarding-block-body
+        - all:
+            - kind: class_body > method_definition
+            - not:
+                has:
+                  field: name
+                  stopBy: neighbor
+                  pattern:
+                    context: |
+                      class C {
+                        constructor() {}
+                      }
+                    selector: property_identifier
+            - matches: supported-class-method-signature
+            - matches: matching-target-asyncness
+            - matches: forwarding-block-body
+        # An object literal of methods that only return another call is the "service
+        # object" smell — `{ getThing(id) { return backend.getThing(id) } }` renames
+        # a module without adding behavior. Only the returning forms count: a method
+        # whose body is a bare statement call is how object literals satisfy an
+        # externally dictated contract (a plugin, a command, a lifecycle hook), and
+        # that shape stays allowed.
+        - all:
+            - kind: object > method_definition
+            - matches: supported-object-method-signature
+            - matches: supported-object-target-statement
+            - matches: matching-target-asyncness
+            - matches: returning-forwarding-block-body
+    - not:
+        has:
+          stopBy: end
+          pattern: Type.Unsafe<$$$TYPE_ARGUMENTS>($$$ARGUMENTS)
+utils:
+  expression-forwarding-body:
+    any:
+      - pattern: |
+          () => $CALLEE()
+      - pattern: |
+          (): $RET => $CALLEE()
+      - pattern: |
+          async () => await $CALLEE()
+      - pattern: |
+          async (): $RET => await $CALLEE()
+      - pattern: |
+          $ARG => $CALLEE($ARG)
+      - pattern: |
+          ($ARG) => $CALLEE($ARG)
+      - pattern: |
+          ($ARG: $ARG_TYPE) => $CALLEE($ARG)
+      - pattern: |
+          ($ARG): $RET => $CALLEE($ARG)
+      - pattern: |
+          ($ARG: $ARG_TYPE): $RET => $CALLEE($ARG)
+      - pattern: |
+          ($ARG) => $ARG.$METHOD()
+      - pattern: |
+          ($ARG: $ARG_TYPE) => $ARG.$METHOD()
+      - pattern: |
+          ($ARG): $RET => $ARG.$METHOD()
+      - pattern: |
+          ($ARG: $ARG_TYPE): $RET => $ARG.$METHOD()
+      - pattern: |
+          async $ARG => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG) => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG: $ARG_TYPE) => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG): $RET => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG: $ARG_TYPE): $RET => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG) => await $ARG.$METHOD()
+      - pattern: |
+          async ($ARG: $ARG_TYPE) => await $ARG.$METHOD()
+      - pattern: |
+          async ($ARG): $RET => await $ARG.$METHOD()
+      - pattern: |
+          async ($ARG: $ARG_TYPE): $RET => await $ARG.$METHOD()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>() => $CALLEE()
+      - pattern: |
+          () => $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>() => $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>(): $RET => $CALLEE()
+      - pattern: |
+          (): $RET => $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>(): $RET => $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>() => await $CALLEE()
+      - pattern: |
+          async () => await $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>() => await $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>(): $RET => await $CALLEE()
+      - pattern: |
+          async (): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>(): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG) => $CALLEE($ARG)
+      - pattern: |
+          $ARG => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG) => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          ($ARG) => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => $CALLEE($ARG)
+      - pattern: |
+          ($ARG: $ARG_TYPE) => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG): $RET => $CALLEE($ARG)
+      - pattern: |
+          ($ARG): $RET => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG): $RET => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => $CALLEE($ARG)
+      - pattern: |
+          ($ARG: $ARG_TYPE): $RET => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG) => $ARG.$METHOD()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => $ARG.$METHOD()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG): $RET => $ARG.$METHOD()
+      - pattern: |
+          <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => $ARG.$METHOD()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG) => await $CALLEE($ARG)
+      - pattern: |
+          async $ARG => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG) => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async ($ARG) => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG: $ARG_TYPE) => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG): $RET => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => await $CALLEE($ARG)
+      - pattern: |
+          async ($ARG: $ARG_TYPE): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => await $CALLEE<$$$TYPE_ARGUMENTS>($ARG)
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG) => await $ARG.$METHOD()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE) => await $ARG.$METHOD()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG): $RET => await $ARG.$METHOD()
+      - pattern: |
+          async <$$$TYPE_PARAMETERS>($ARG: $ARG_TYPE): $RET => await $ARG.$METHOD()
+  supported-block-function-signature:
+    any:
+      - pattern:
+          context: |
+            function $F($$$PARAMS) {
+              $$$BODY
+            }
+          selector: function_declaration
+      - pattern:
+          context: |
+            function $F($$$PARAMS): $RET {
+              $$$BODY
+            }
+          selector: function_declaration
+      - pattern:
+          context: |
+            async function $F($$$PARAMS) {
+              $$$BODY
+            }
+          selector: function_declaration
+      - pattern:
+          context: |
+            async function $F($$$PARAMS): $RET {
+              $$$BODY
+            }
+          selector: function_declaration
+      - pattern:
+          context: |
+            const f = function ($$$PARAMS) {
+              $$$BODY
+            }
+          selector: function_expression
+      - pattern:
+          context: |
+            const f = function ($$$PARAMS): $RET {
+              $$$BODY
+            }
+          selector: function_expression
+      - pattern:
+          context: |
+            const f = async function ($$$PARAMS) {
+              $$$BODY
+            }
+          selector: function_expression
+      - pattern:
+          context: |
+            const f = async function ($$$PARAMS): $RET {
+              $$$BODY
+            }
+          selector: function_expression
+      - pattern: |
+          ($$$PARAMS) => {
+            $$$BODY
+          }
+      - pattern: |
+          ($$$PARAMS): $RET => {
+            $$$BODY
+          }
+      - pattern: |
+          async ($$$PARAMS) => {
+            $$$BODY
+          }
+      - pattern: |
+          async ($$$PARAMS): $RET => {
+            $$$BODY
+          }
+      - pattern: |
+          $ARG => {
+            $$$BODY
+          }
+      - pattern: |
+          async $ARG => {
+            $$$BODY
+          }
+  supported-class-method-signature:
+    any:
+      - pattern:
+          context: |
+            class C {
+              $WRAPPER_METHOD($$$PARAMS) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            class C {
+              $WRAPPER_METHOD($$$PARAMS): $RET {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            class C {
+              async $WRAPPER_METHOD($$$PARAMS) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            class C {
+              async $WRAPPER_METHOD($$$PARAMS): $RET {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+  supported-async-target-signature:
+    any:
+      - pattern: |
+          async ($$$PARAMS) => {
+            $$$BODY
+          }
+      - pattern: |
+          async ($$$PARAMS): $RET => {
+            $$$BODY
+          }
+      - pattern: |
+          async $ARG => {
+            $$$BODY
+          }
+      - pattern:
+          context: |
+            class C {
+              async $WRAPPER_METHOD($$$PARAMS) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            class C {
+              async $WRAPPER_METHOD($$$PARAMS): $RET {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+  supported-object-method-signature:
+    any:
+      - pattern:
+          context: |
+            const object = {
+              $WRAPPER_METHOD($$$PARAMS) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            const object = {
+              $WRAPPER_METHOD($$$PARAMS): $RET {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            const object = {
+              async $WRAPPER_METHOD($$$PARAMS) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+  supported-block-target-statement:
+    any:
+      - kind: function_declaration
+      - all:
+          - kind: arrow_function
+          - matches: matching-target-asyncness
+      - all:
+          - kind: function_expression
+          - any:
+              - matches: zero-parameters
+              - all:
+                  - matches: single-required-identifier-parameter
+                  - not:
+                      matches: has-bound-receiver-forwarding-statement
+  supported-object-target-statement:
+    any:
+      - matches: zero-parameters
+      - all:
+          - matches: single-required-identifier-parameter
+          - any:
+              - all:
+                  - kind: method_definition
+                  - not:
+                      matches: has-bound-receiver-forwarding-statement
+              - matches: supported-object-bound-receiver-signature
+  supported-object-bound-receiver-signature:
+    any:
+      - pattern:
+          context: |
+            const object = {
+              $WRAPPER_METHOD($ARG) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            const object = {
+              $WRAPPER_METHOD($ARG: $ARG_TYPE) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+      - pattern:
+          context: |
+            const object = {
+              async $WRAPPER_METHOD($ARG: $ARG_TYPE) {
+                $$$BODY
+              }
+            }
+          selector: method_definition
+  matching-target-asyncness:
+    any:
+      - all:
+          - matches: supported-async-target-signature
+          - matches: has-awaited-forwarding-statement
+      - all:
+          - not:
+              matches: supported-async-target-signature
+          - not:
+              matches: has-awaited-forwarding-statement
+  has-awaited-forwarding-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            any:
+              - pattern:
+                  context: |
+                    async function f() {
+                      await $CALLEE($$$ARGS)
+                    }
+                  selector: expression_statement
+              - pattern:
+                  context: |
+                    async function f() {
+                      return await $CALLEE($$$ARGS)
+                    }
+                  selector: return_statement
+  has-bound-receiver-forwarding-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            any:
+              - pattern:
+                  context: |
+                    function f() {
+                      $ARG.$CALLED_METHOD()
+                    }
+                  selector: expression_statement
+              - pattern:
+                  context: |
+                    function f() {
+                      return $ARG.$CALLED_METHOD()
+                    }
+                  selector: return_statement
+              - pattern:
+                  context: |
+                    async function f() {
+                      await $ARG.$CALLED_METHOD()
+                    }
+                  selector: expression_statement
+              - pattern:
+                  context: |
+                    async function f() {
+                      return await $ARG.$CALLED_METHOD()
+                    }
+                  selector: return_statement
+  forwarding-block-body:
+    any:
+      - all:
+          - matches: zero-parameters
+          - matches: sole-zero-argument-forwarding-statement
+      - all:
+          - matches: single-required-identifier-parameter
+          - matches: sole-bound-argument-forwarding-statement
+          - any:
+              - has:
+                  field: parameters
+                  stopBy: neighbor
+                  kind: formal_parameters
+              - all:
+                  - kind: arrow_function
+                  - not:
+                      matches: has-bound-receiver-forwarding-statement
+                  - not:
+                      matches: sole-bound-argument-returning-statement
+      - all:
+          - kind: arrow_function
+          - has:
+              field: parameters
+              stopBy: neighbor
+              kind: formal_parameters
+          - matches: single-required-identifier-parameter
+          - not:
+              matches: has-bound-receiver-forwarding-statement
+          - matches: sole-zero-argument-forwarding-statement
+          - not:
+              matches: sole-zero-argument-returning-statement
+  returning-forwarding-block-body:
+    any:
+      - all:
+          - matches: zero-parameters
+          - matches: sole-zero-argument-returning-statement
+      - all:
+          - matches: single-required-identifier-parameter
+          - matches: sole-bound-argument-returning-statement
+  zero-parameters:
+    has:
+      field: parameters
+      stopBy: neighbor
+      pattern:
+        context: |
+          function f() {}
+        selector: formal_parameters
+  single-required-identifier-parameter:
+    any:
+      - has:
+          field: parameter
+          stopBy: neighbor
+          all:
+            - kind: identifier
+            - pattern: $ARG
+      - has:
+          field: parameters
+          stopBy: neighbor
+          all:
+            - kind: formal_parameters
+            - has:
+                stopBy: neighbor
+                all:
+                  - kind: required_parameter
+                  - has:
+                      field: pattern
+                      stopBy: neighbor
+                      all:
+                        - kind: identifier
+                        - pattern: $ARG
+                  - any:
+                      - pattern:
+                          context: |
+                            function f($ARG) {}
+                          selector: required_parameter
+                      - pattern:
+                          context: |
+                            function f($ARG: $ARG_TYPE) {}
+                          selector: required_parameter
+                  - nthChild: 1
+                  - nthChild:
+                      position: 1
+                      reverse: true
+  sole-zero-argument-forwarding-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            all:
+              - any:
+                  - pattern:
+                      context: |
+                        function f() {
+                          $CALLEE()
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $CALLEE()
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          await $CALLEE()
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $CALLEE()
+                        }
+                      selector: return_statement
+              - nthChild:
+                  position: 1
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+              - nthChild:
+                  position: 1
+                  reverse: true
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+  sole-bound-argument-forwarding-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            all:
+              - any:
+                  - pattern:
+                      context: |
+                        function f() {
+                          $CALLEE($ARG)
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        function f() {
+                          $ARG.$METHOD()
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $CALLEE($ARG)
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $ARG.$METHOD()
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          await $CALLEE($ARG)
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          await $ARG.$METHOD()
+                        }
+                      selector: expression_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $CALLEE($ARG)
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $ARG.$METHOD()
+                        }
+                      selector: return_statement
+              - nthChild:
+                  position: 1
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+              - nthChild:
+                  position: 1
+                  reverse: true
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+  sole-zero-argument-returning-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            all:
+              - any:
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $CALLEE()
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $CALLEE()
+                        }
+                      selector: return_statement
+              - nthChild:
+                  position: 1
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+              - nthChild:
+                  position: 1
+                  reverse: true
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+  sole-bound-argument-returning-statement:
+    has:
+      field: body
+      stopBy: neighbor
+      all:
+        - kind: statement_block
+        - has:
+            stopBy: neighbor
+            all:
+              - any:
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $CALLEE($ARG)
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        function f() {
+                          return $ARG.$METHOD()
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $CALLEE($ARG)
+                        }
+                      selector: return_statement
+                  - pattern:
+                      context: |
+                        async function f() {
+                          return await $ARG.$METHOD()
+                        }
+                      selector: return_statement
+              - nthChild:
+                  position: 1
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement
+              - nthChild:
+                  position: 1
+                  reverse: true
+                  ofRule:
+                    not:
+                      any:
+                        - kind: comment
+                        - kind: empty_statement

@@ -1,0 +1,38 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /risks/{project_id} HTTP contract snapshots the populated latest version in incumbent database order 1`] = `
+{
+  "body": [
+    {
+      "id": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+      "implication": "Ein Kläger könnte argumentieren, dass die Entwässerungsmaßnahmen nicht auf einer gesetzlichen Grundlage beruhen und die Fachbegriffe unklar bleiben, wodurch die Planung in diesem Punkt angreifbar ist.",
+      "problem": "Der Absatz beschreibt notwendige Änderungen der Entwässerung und nennt konkrete Maßnahmen, liefert jedoch weder einen rechtlichen Verweis (z. B. Wasserhaushaltsgesetz) noch eine präzise Definition der genannten Entwässerungsbegriffe.",
+      "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+      "quote": "Weiterhin muss aufgrund der Umgestaltung bzw. Erweiterung der Rastanlage die Entwässerung angepasst werden. So ist vorgesehen, dass die Bestandsanlage weiterhin über die bestehenden Entwässerungsanlagen entwässert wird und für das Areal der Erweiterungsflächen ein neues Versickerungsbecken mit vorgeschalteter Sedimentationsanlage und Leichtstoffrückhaltung geschaffen werden soll.",
+      "recommendation": "Es könnte geprüft werden, ob die Entwässerungsmaßnahmen mit den Vorgaben des Wasserhaushaltsgesetzes verknüpft und die technischen Begriffe eindeutig definiert werden.",
+      "severity": 3,
+      "status": "open",
+      "vaeNodeId": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+    },
+    {
+      "id": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+      "implication": "Ein Kläger könnte die Aussage als nicht nachvollziehbar anfechten und fordern, dass die Beschreibung durch Dokumentation oder kartografische Nachweise untermauert wird.",
+      "problem": "Die Beschreibung der geplanten Erweiterung enthält keine Verweise auf den UVP‑Bericht oder andere Nachweise, die die Darstellung belegen würden.",
+      "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+      "quote": "Die geplante Erweiterung erfolgt in östlicher Richtung im Bereich der an die Rastanlage angrenzenden intensiv genutzten Ackerfläche sowie der angrenzenden Wiese und Gehölzstreifen bis hin zum bestehenden Waldmantel.",
+      "recommendation": "Es könnte geprüft werden, ob die Beschreibung der Erweiterungsfläche durch Verweise auf den UVP‑Bericht oder geeignete Nachweise unterstützt wird.",
+      "severity": 1,
+      "status": "corrected",
+      "vaeNodeId": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /risks/{project_id} HTTP contract snapshots an empty latest version 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;

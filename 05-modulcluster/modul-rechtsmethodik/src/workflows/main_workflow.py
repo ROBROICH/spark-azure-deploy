@@ -4,13 +4,11 @@ import asyncio
 from datetime import timedelta
 from typing import Any
 
-from temporal.workflows.rechtsmethodik.rechtsmethodik_workflow import (
-    RECHTSMETHODIK_WORKFLOW_ID,
-)
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     RechtsmethodikWorkflowInput,
     RechtsmethodikWorkflowOutput,
 )
+from temporal.registry import RECHTSMETHODIK_WORKFLOW
 from temporalio import workflow
 
 from src.activities.law_api_calls import FetchNormInput
@@ -20,7 +18,7 @@ from src.workflows.rf_workflow.rf_main_workflow import RechtsfolgenAnalyseWorkfl
 from src.workflows.tbm_workflow.tbm_main_workflow import TatbestandsAnalyseWorkflow
 
 
-@workflow.defn(name=RECHTSMETHODIK_WORKFLOW_ID)
+@workflow.defn(name=RECHTSMETHODIK_WORKFLOW.name)
 class RechtsmethodikWorkflow:
     @workflow.run
     async def run(self, input: RechtsmethodikWorkflowInput) -> RechtsmethodikWorkflowOutput:
@@ -30,9 +28,7 @@ class RechtsmethodikWorkflow:
             task_timeout=timedelta(seconds=60),
         )
 
-        norm_output = await workflow.execute_child_workflow(
-            NormDekonstruktionWorkflow.run, norm_data, task_timeout=timedelta(seconds=60)
-        )
+        norm_output = await workflow.execute_child_workflow(NormDekonstruktionWorkflow.run, norm_data, task_timeout=timedelta(seconds=60))
 
         tbm_output, rf_output = await asyncio.gather(
             workflow.execute_child_workflow(

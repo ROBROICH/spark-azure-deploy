@@ -1,0 +1,24 @@
+{
+  "fixtures": [
+    {
+      "name": "fvp-start-restart-allowed",
+      "operation": "agent-orchestration.fvp.start",
+      "input": {
+        "workflowName": "FVPWorkflow",
+        "executionId": "FVPWorkflow-81000000-0000-4000-8000-000000000001-v3",
+        "taskQueue": "orchestration",
+        "projectId": "81000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "USE_EXISTING",
+        "priority": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "FVPWorkflow-81000000-0000-4000-8000-000000000001-v3"
+        }
+      }
+    }
+  ]
+}

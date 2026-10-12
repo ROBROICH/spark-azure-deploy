@@ -1,0 +1,33 @@
+# ci: create + restore two databases, a Qdrant collection and SpiceDB relationships.
+global:
+  stage: {name: ci}
+guard:
+  dumpPattern: '^https://dumps\.example\.com/'
+connection:
+  host: postgres.example.internal
+  sslmode: require
+defaults:
+  owner: ci-user
+  create: true
+  restore: true
+databases:
+  application:
+    name: '{{ .Values.global.stage.name }}-application'
+    dump: https://dumps.example.com/application.dump
+  temporal:
+    name: '{{ .Values.global.stage.name }}-temporal'
+    drop: none
+    restore: false
+qdrant:
+  url: http://qdrant.example.internal:6333
+  collections:
+    data:
+      name: '{{ .Values.global.stage.name }}-data'
+      snapshot: https://dumps.example.com/qdrant/data.snapshot
+spicedb:
+  dump: https://dumps.example.com/spicedb.zedbackup
+  restore: true
+  markerDatabase: ci-spicedb
+admin:
+  secretStore: {name: example-store}
+  remoteKey: shared/database-admin

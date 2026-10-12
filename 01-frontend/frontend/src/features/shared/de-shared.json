@@ -41,7 +41,7 @@
     "dashboard": "Zum Dashboard"
   },
   "currentUserLoadError": {
-    "title": "Es gab ein Problem beim initialen Laden von SPARK.",
+    "title": "Es gab ein Problem beim initialen Laden von SPARK Workflow.",
     "description": "Bitte laden Sie die Seite neu. Wenn der Fehler weiterhin auftritt, kontaktieren Sie bitte Ihren Systemadministrator.",
     "reload": "Seite neu laden"
   },
@@ -140,6 +140,7 @@
   "sidebar": {
     "home": "Dashboard",
     "projects": "Verfahrensübersicht",
+    "administration": "Administration",
     "settings": "Einstellungen",
     "collapse": "Einklappen",
     "collapseProject": "{{name}} einklappen",
@@ -162,6 +163,8 @@
     "changelogAriaLabelWithVersion": "Changelog, Version {{version}}",
     "mainNavAriaLabel": "Hauptnavigation",
     "openMobileMenu": "Menü öffnen",
+    "openActionSidebar": "Aktionen öffnen",
+    "closeActionSidebar": "Aktionen schließen",
     "roleSwitcher": {
       "ariaCurrent": "Frontend-Rolle {{frontendRole}}, Keycloak-Rolle {{keycloakRole}}",
       "triggerLabel": "FE {{frontendRole}} / KC {{keycloakRole}}",
@@ -193,6 +196,7 @@
       "currentComplexity": "Aktuell",
       "maxComplexity": "Maximum",
       "breakdown": "Aufschlüsselung",
+      "otherWorkflowTypes": "Weitere Workflow-Typen",
       "runningCount": "Anzahl",
       "complexityWeight": "Gewicht",
       "totalComplexity": "Summe",

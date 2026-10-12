@@ -1,0 +1,133 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /norm-deconstructions/ HTTP contract snapshots the complete strict payload without freezing incidental SQL order 1`] = `
+{
+  "body": [
+    {
+      "createdAt": "2026-06-12T13:38:14.363Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Landesforstgesetz",
+        "jurabk": "LFoG NRW",
+        "paragraphNr": "72",
+        "paragraphText": "",
+        "paragraphTitel": "Änderung der Gemeindeordnung",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "18992001-22d8-4539-b814-a26680abc676",
+      "jurabk": "LFoG NRW",
+      "paragraph": "72",
+    },
+    {
+      "createdAt": "2026-05-27T11:09:11.085Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Verwaltungsverfahrensgesetz NRW",
+        "jurabk": "VwVfG NRW",
+        "paragraphNr": "30",
+        "paragraphText": "",
+        "paragraphTitel": "(aufgehoben)",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "aad9844e-3d4a-4f29-83f4-d6e419a6211c",
+      "jurabk": "VwVfG NRW",
+      "paragraph": "30",
+    },
+    {
+      "createdAt": "2026-05-27T11:08:25.601Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Verwaltungsverfahrensgesetz NRW",
+        "jurabk": "VwVfG NRW",
+        "paragraphNr": "87",
+        "paragraphText": "",
+        "paragraphTitel": "(aufgehoben)",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "91d9077f-5bdb-446e-a1d4-54c86846b1ec",
+      "jurabk": "VwVfG NRW",
+      "paragraph": "87",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /norm-deconstructions/ HTTP contract freezes jurabk and paragraph filters alone and combined 1`] = `
+{
+  "combined": [
+    {
+      "createdAt": "2026-06-12T13:38:14.363Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Landesforstgesetz",
+        "jurabk": "LFoG NRW",
+        "paragraphNr": "72",
+        "paragraphText": "",
+        "paragraphTitel": "Änderung der Gemeindeordnung",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "18992001-22d8-4539-b814-a26680abc676",
+      "jurabk": "LFoG NRW",
+      "paragraph": "72",
+    },
+  ],
+  "law": [
+    {
+      "createdAt": "2026-06-12T13:38:14.363Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Landesforstgesetz",
+        "jurabk": "LFoG NRW",
+        "paragraphNr": "72",
+        "paragraphText": "",
+        "paragraphTitel": "Änderung der Gemeindeordnung",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "18992001-22d8-4539-b814-a26680abc676",
+      "jurabk": "LFoG NRW",
+      "paragraph": "72",
+    },
+  ],
+  "paragraph": [
+    {
+      "createdAt": "2026-06-12T13:38:14.363Z",
+      "deconstruction": {
+        "absaetze": [],
+        "gesetz": "Landesforstgesetz",
+        "jurabk": "LFoG NRW",
+        "paragraphNr": "72",
+        "paragraphText": "",
+        "paragraphTitel": "Änderung der Gemeindeordnung",
+        "regelungsgegenstand": null,
+        "standangaben": [],
+      },
+      "id": "18992001-22d8-4539-b814-a26680abc676",
+      "jurabk": "LFoG NRW",
+      "paragraph": "72",
+    },
+  ],
+}
+`;
+
+exports[`GET /norm-deconstructions/ HTTP contract preserves exact-match behavior and empty results 1`] = `
+[
+  {
+    "body": [],
+    "status": 200,
+  },
+  {
+    "body": [],
+    "status": 200,
+  },
+  {
+    "body": [],
+    "status": 200,
+  },
+]
+`;

@@ -18,14 +18,14 @@ The workflow executes the following logical steps:
 
 from datetime import timedelta
 
-from temporal.workflows.formale_pruefung.inhaltsverzeichnis_finder import (
-    INHALTSVERZEICHNIS_FINDER_WORKFLOW_ID,
-)
-from temporal.workflows.formale_pruefung.types import (
+from temporal.contracts import (
+    DocumentTypeDefinition,
     InhaltsverzeichnisDocumentData,
     InhaltsverzeichnisFinderOutput,
     InhaltsverzeichnisFinderParams,
 )
+from temporal.registry import FORMALE_PRUEFUNG_INHALTSVERZEICHNIS_FINDER_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
@@ -63,11 +63,9 @@ from src.schemas.inhaltsverzeichnis_finder_schemas import (
     ProcessedInhaltsExtraction,
     SelectInhaltsverzeichnisLLMActivityParams,
 )
-from src.schemas.llm_matching_schemas import DocumentTypeDefinition
-from src.utils.sliding_window import sliding_window
 
 
-@workflow.defn(name=INHALTSVERZEICHNIS_FINDER_WORKFLOW_ID)
+@workflow.defn(name=FORMALE_PRUEFUNG_INHALTSVERZEICHNIS_FINDER_WORKFLOW.name)
 class InhaltsverzeichnisFinderWorkflow:
     """Workflow to identify and extract Table of Contents (TOC) from project documents.
 
@@ -91,6 +89,7 @@ class InhaltsverzeichnisFinderWorkflow:
             TOC could be determined.
         """
         workflow.logger.info(f"Running workflow for project {params.project_id}")
+        reference_document_types = params.document_types
 
         # Step 1: Fetch all data (Titles -> Chunks)
         all_docs_data = await self._fetch_project_data(params)
@@ -126,7 +125,7 @@ class InhaltsverzeichnisFinderWorkflow:
         # Step 6: Context enrichment
         document_types = await self._llm_document_type_description_generation(
             inhaltsverzeichnis_entries=inhaltsverzeichnis_entries,
-            params=params,
+            reference_document_types=reference_document_types,
         )
 
         return InhaltsverzeichnisFinderOutput(
@@ -407,7 +406,7 @@ class InhaltsverzeichnisFinderWorkflow:
     async def _llm_document_type_description_generation(
         self,
         inhaltsverzeichnis_entries: list[InhaltsverzeichnisEntry],
-        params: InhaltsverzeichnisFinderParams,
+        reference_document_types: list[DocumentTypeDefinition],
     ) -> list[DocumentTypeDefinition]:
         """Enriches parsed TOC entries with semantic descriptions via parallel LLM calls.
 
@@ -421,8 +420,7 @@ class InhaltsverzeichnisFinderWorkflow:
             inhaltsverzeichnis_entries (List[InhaltsverzeichnisEntry]): The list of
                 parsed TOC leaf entries (containing titles, numbers, and hierarchy paths)
                 to be processed.
-            params (InhaltsverzeichnisFinderParams): Configuration parameters for the
-                process, including LLM profile settings, timeouts, and retry policies.
+            reference_document_types: Canonical document definitions used as examples.
 
         Returns:
             List[DocumentTypeDefinition]: A list of fully defined document types, where:
@@ -440,7 +438,7 @@ class InhaltsverzeichnisFinderWorkflow:
                     hierarchy_path=entry.hierarchy_path,
                     entry_title=entry.entry_title,
                     entry_number=entry.entry_number,
-                    document_types=params.document_types,
+                    document_types=reference_document_types,
                 )
             )
 

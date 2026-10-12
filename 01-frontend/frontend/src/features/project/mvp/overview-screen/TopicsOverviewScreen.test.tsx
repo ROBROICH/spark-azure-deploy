@@ -169,11 +169,8 @@ describe('TopicsOverviewScreen', () => {
 
     updateMock.mockImplementation(
       (
-        topic: { mvp_assignees: string[]; updated_at: string },
-        updater: (draft: {
-          mvp_assignees: string[];
-          updated_at: string;
-        }) => void,
+        topic: { mvpAssignees: string[]; updatedAt: string },
+        updater: (draft: { mvpAssignees: string[]; updatedAt: string }) => void,
       ) => {
         const draft = { ...topic };
         updater(draft);
@@ -201,16 +198,16 @@ describe('TopicsOverviewScreen', () => {
     const visibleTopic = {
       id: 'topic-visible',
       name: 'Visible topic',
-      mvp_assignees: ['current-user-id'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['current-user-id'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const hiddenTopic = {
       id: 'topic-hidden',
       name: 'Hidden topic',
-      mvp_assignees: ['someone-else'],
-      show_in_mvp: false,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['someone-else'],
+      showInMvp: false,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
 
     useGraphMock.mockReturnValue({
@@ -248,12 +245,12 @@ describe('TopicsOverviewScreen', () => {
     expect(updateMock).toHaveBeenCalledWith(visibleTopic, expect.any(Function));
 
     const updateDraft = {
-      mvp_assignees: visibleTopic.mvp_assignees,
-      updated_at: visibleTopic.updated_at,
+      mvpAssignees: visibleTopic.mvpAssignees,
+      updatedAt: visibleTopic.updatedAt,
     };
     updateMock.mock.calls[0]?.[1](updateDraft);
 
-    expect(updateDraft.mvp_assignees).toEqual([
+    expect(updateDraft.mvpAssignees).toEqual([
       'user-1',
       'user-2',
       'user-3',
@@ -262,7 +259,7 @@ describe('TopicsOverviewScreen', () => {
       'user-6',
       'user-7',
     ]);
-    expect(typeof updateDraft.updated_at).toBe('string');
+    expect(typeof updateDraft.updatedAt).toBe('string');
   });
 
   it('shows only topics assigned to selected people from route search', () => {
@@ -270,30 +267,30 @@ describe('TopicsOverviewScreen', () => {
     const firstMatchingTopic = {
       id: 'topic-first-match',
       name: 'First match',
-      mvp_assignees: ['user-1'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-1'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const secondMatchingTopic = {
       id: 'topic-second-match',
       name: 'Second match',
-      mvp_assignees: ['user-2', 'user-3'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-2', 'user-3'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const nonMatchingTopic = {
       id: 'topic-no-match',
       name: 'No match',
-      mvp_assignees: ['user-2'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-2'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const unassignedTopic = {
       id: 'topic-unassigned',
       name: 'Unassigned',
-      mvp_assignees: [],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: [],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
 
     useGraphMock.mockReturnValue({
@@ -333,16 +330,16 @@ describe('TopicsOverviewScreen', () => {
     const assignedTopic = {
       id: 'topic-assigned',
       name: 'Assigned',
-      mvp_assignees: ['user-1'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-1'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const unassignedTopic = {
       id: 'topic-unassigned',
       name: 'Unassigned',
-      mvp_assignees: [],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: [],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
 
     useGraphMock.mockReturnValue({
@@ -375,16 +372,16 @@ describe('TopicsOverviewScreen', () => {
     const staleOnlyTopic = {
       id: 'topic-stale-only',
       name: 'Stale only',
-      mvp_assignees: ['stale-user'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['stale-user'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const activeUserTopic = {
       id: 'topic-active-user',
       name: 'Active user',
-      mvp_assignees: ['user-1'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-1'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
 
     useGraphMock.mockReturnValue({
@@ -417,23 +414,23 @@ describe('TopicsOverviewScreen', () => {
     const staleOnlyTopic = {
       id: 'topic-stale-only',
       name: 'Stale only',
-      mvp_assignees: ['stale-user'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['stale-user'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const activeUserTopic = {
       id: 'topic-active-user',
       name: 'Active user',
-      mvp_assignees: ['user-1'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-1'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
     const otherActiveUserTopic = {
       id: 'topic-other-active-user',
       name: 'Other active user',
-      mvp_assignees: ['user-2'],
-      show_in_mvp: true,
-      updated_at: '2026-04-21T09:00:00.000Z',
+      mvpAssignees: ['user-2'],
+      showInMvp: true,
+      updatedAt: '2026-04-21T09:00:00.000Z',
     };
 
     useGraphMock.mockReturnValue({

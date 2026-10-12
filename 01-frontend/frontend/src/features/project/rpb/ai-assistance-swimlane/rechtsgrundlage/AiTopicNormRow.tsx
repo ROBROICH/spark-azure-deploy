@@ -42,8 +42,8 @@ const getTopicNormLabel = (
     return '';
   }
 
-  const paragraphRef = getParagraphRef(topicNorm.paragraph_nr);
-  const paragraphTitle = linkedNorm?.paragraph_titel ?? '';
+  const paragraphRef = getParagraphRef(topicNorm.paragraphNr);
+  const paragraphTitle = linkedNorm?.paragraphTitel ?? '';
 
   if (!paragraphTitle) {
     return paragraphRef;
@@ -86,7 +86,7 @@ export const AiTopicNormRow = (props: AiTopicNormRowProps) => {
   const hasBewertung = bewertungRefs.length > 0;
   const label = getTopicNormLabel(topicNorm, linkedNorm);
   const satzProgress = getTopicNormSatzProgress(
-    topicNorm?.satz_statuses ?? {},
+    topicNorm?.satzStatuses ?? {},
     satzRefs,
   );
 
@@ -98,7 +98,7 @@ export const AiTopicNormRow = (props: AiTopicNormRowProps) => {
           {topicNorm ? (
             <LawChangeIndicator
               jurabk={topicNorm.jurabk}
-              paragraphNr={topicNorm.paragraph_nr}
+              paragraphNr={topicNorm.paragraphNr}
               onOpen={(lawChange) => {
                 navigate({
                   search: (prev) => ({

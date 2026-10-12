@@ -27,7 +27,6 @@ import {
 } from './uploadWorkflow.helpers';
 
 const projectRoute = getRouteApi('/verfahren/$verfahrenId');
-const route = getRouteApi('/verfahren/$verfahrenId/');
 
 /**
  * Owns app-level state for the documents update workflow: phase machine, zip-file id, minimize flag, and error state. File selection and upload polling are delegated to dedicated hooks.
@@ -36,7 +35,7 @@ const route = getRouteApi('/verfahren/$verfahrenId/');
  */
 // eslint-disable-next-line custom-size/limit-logic-function-lines -- the workflow state, polling bridge, and action callbacks are intentionally co-located in one logic hook (see `structure-react-contexts-around-a-logic-hook`); splitting them back into sub-hooks regresses the field-by-field unpack pattern.
 export const useDocumentsUploadContextLogic = () => {
-  const { verfahrenId } = route.useParams();
+  const { verfahrenId } = projectRoute.useParams();
   const { workflowsManager } = projectRoute.useLoaderData();
   const [
     { phase, projectId, zipFileId, minimized, globalError, uploadErrorDetails },
@@ -81,7 +80,7 @@ export const useDocumentsUploadContextLogic = () => {
   );
 
   // Permission gate for the upload workflow. The provider is mounted under
-  // `/verfahren/$verfahrenId/` so the project route params are available here.
+  // `/verfahren/$verfahrenId` so the project route params are available here.
   const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
   const projectVersion = useProjectRouteVersion();
 
@@ -109,6 +108,7 @@ export const useDocumentsUploadContextLogic = () => {
     isProcessingFailed,
     terminalStatus,
     terminalApprovalStatus,
+    terminalWorkflowFailureCode,
   } = useUploadCompletionPolling({
     zipFileId,
     projectId,
@@ -152,7 +152,12 @@ export const useDocumentsUploadContextLogic = () => {
     ? 'processing-failed'
     : globalError;
   const displayedUploadErrorDetails: UploadErrorDetails | null =
-    isUploadingWithFailure ? { kind: 'processing-failed' } : uploadErrorDetails;
+    isUploadingWithFailure
+      ? {
+          kind: 'processing-failed',
+          workflowFailureCode: terminalWorkflowFailureCode,
+        }
+      : uploadErrorDetails;
 
   const reset = useCallback(
     (next: {
@@ -259,8 +264,7 @@ export const useDocumentsUploadContextLogic = () => {
 
   const addFiles = useCallback(
     (incoming: File[]) => {
-      addFilesInternal(incoming);
-      setGlobalError(null);
+      setGlobalError(addFilesInternal(incoming));
       setUploadErrorDetails(null);
     },
     [addFilesInternal, setGlobalError, setUploadErrorDetails],
@@ -293,6 +297,9 @@ export const useDocumentsUploadContextLogic = () => {
   ]);
 
   const close = useCallback(() => {
+    if (displayedPhase === 'uploading' && !zipFileId) {
+      return;
+    }
     void runCloseSideEffect({
       phase: displayedPhase,
       zipFileId,
@@ -324,9 +331,7 @@ export const useDocumentsUploadContextLogic = () => {
     }
   }, [displayedPhase, setMinimized]);
 
-  const maximize = useCallback(() => {
-    setMinimized(false);
-  }, [setMinimized]);
+  const maximize = useCallback(() => setMinimized(false), [setMinimized]);
 
   const goToAiProcesses = useCallback(() => {
     setPhase('ai-processes');

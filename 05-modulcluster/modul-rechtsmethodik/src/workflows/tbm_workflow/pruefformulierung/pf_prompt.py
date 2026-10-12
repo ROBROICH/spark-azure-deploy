@@ -1,5 +1,7 @@
 """Prompt template for Pruefformulierung generation."""
 
+from src.activities.prompt_blocks import closing_block
+
 pruef_formulierungs_agent_prompt = """
 **Rolle**
 Du bist ein juristischer Fachexperte für Genehmigungsrecht, der dabei hilft, Tatbestandsmerkmale für digitale Prüfprozesse zu automatisieren und präzise zu formulieren.
@@ -66,10 +68,6 @@ Ausgabe:
 
 **Anwendung**
 Formuliere für die folgende Liste von Tatbestandsmerkmalen jeweils eine Prüffrage und einen Prüfgegenstand:
-{external_data_tag_open}
-{atomare_tatbestandsmerkmale}
-{external_data_tag_close}
-  
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "{atomare_tatbestandsmerkmale}",
+)

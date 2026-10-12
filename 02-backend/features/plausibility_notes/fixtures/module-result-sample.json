@@ -1,0 +1,520 @@
+{
+  "contradictions": [
+    {
+      "id": "433278da-6539-4947-9962-2d02c155009c",
+      "title": "Direkter Widerspruch bezüglich des Verkehrsaufkommens nach Verkehrsfreigabe",
+      "description": "Chunk A gibt an, dass nach der Verkehrsfreigabe auf der B 412 alt rund 9.400 Kfz/24 h verbleiben, während Chunk B dieselbe Situation mit rund 5.900 Kfz/24 h beschreibt. Beide Aussagen beziehen sich eindeutig auf dieselbe Straße, denselben Zeitraum (nach Verkehrsfreigabe) und dieselbe Messgröße (Verkehrsaufkommen pro 24 h). Die unterschiedlichen Zahlen stehen in direktem Widerspruch zueinander, da beide nicht gleichzeitig wahr sein können.",
+      "rating": 85,
+      "confidenceScore": 45.8,
+      "scoreA": 100.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=70; same_id_conflict, numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 (Auslegung/U15_Verkehrsuntersuchung.pdf S. 4) sagt: „Auf der B 412 alt verbleiben nach Verkehrsfreigabe rund 9.400 Kfz/24 h.“ Fundstelle 2 (Auslegung/U01_Erlaeuterungsbericht.pdf S. 13) sagt: „Auf der B 412 alt verbleiben nach Verkehrsfreigabe rund 5.900 Kfz/24 h.“ Beide beziehen sich auf dasselbe benannte Objekt, dieselbe Messgröße und denselben Zeitpunkt, ohne Unterschied in Version oder Kontext, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf dieselbe Straße B 412 alt nach Verkehrsfreigabe und nennen unterschiedliche Verkehrsaufkommen (9.400 Kfz/24 h vs. 5.900 Kfz/24 h); weder unterschiedliche Instanz, Version, Phase, Messgröße noch Kontextualisierung lösen den Widerspruch.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf dieselbe Straße (B 412 alt) und denselben Zeitraum (nach Verkehrsfreigabe) mit derselben Messgröße (Kfz/24 h), geben jedoch unterschiedliche Werte (9.400 vs. 5.900 Kfz/24 h). Keine der Auflösungswege (Instanz, Version, Scope, Messgröße, Kontext, Zitat) trifft zu, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf dieselbe Straße (B 412 alt) und denselben Zeitraum („nach Verkehrsfreigabe“) sowie dieselbe Messgröße (Kfz/24 h). Fundstelle 1 gibt 9.400 Kfz/24 h an, Fundstelle 2 gibt 5.900 Kfz/24 h an. Es gibt keine unterschiedliche Kennung, keine überholte Fassung, keinen anderen Scope und keine erklärende Angabe, sodass die Angaben unvereinbar sind.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf dieselbe Straße \"B 999 alt\" und denselben Zeitraum \"nach Verkehrsfreigabe\" mit derselben Messgröße \"Kfz/24 h\", geben jedoch unterschiedliche Werte (9.400 vs. 5.900) an, ohne dass ein Auflösungsweg (unterschiedliche Instanz, Version, Phase, Definition oder erklärender Kontext) greift.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=B 999 alt; merkmal=Verkehrsaufkommen nach Verkehrsfreigabe (Kfz/24 h); wert=rund 9.400 Kfz/24 h; bezugsrahmen=nach Verkehrsfreigabe",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=B 999 alt; merkmal=Verkehrsaufkommen nach Verkehrsfreigabe (Kfz/24 h); wert=rund 5.900 Kfz/24 h; bezugsrahmen=nach Verkehrsfreigabe",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Stellen geben unterschiedliche Verkehrszahlen für die B 412 alt nach Verkehrsfreigabe (9.400 Kfz/24 h vs. 5.900 Kfz/24 h) und schließen sich damit aus."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "b95dee0d-5957-5007-b326-76853ae4b29b",
+          "documentName": "Auslegung/U15_Verkehrsuntersuchung.pdf",
+          "contentExcerpt": "Auf der B 999 alt verbleiben nach Verkehrsfreigabe rund 9.400 Kfz/24 h.",
+          "contradiction": "Verkehrsaufkommen nach Verkehrsfreigabe (Kfz/24 h): rund 9.400 Kfz/24 h [nach Verkehrsfreigabe]",
+          "pageNumber": 4
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Auf der B 999 alt verbleiben nach Verkehrsfreigabe rund 5.900 Kfz/24 h.",
+          "contradiction": "Verkehrsaufkommen nach Verkehrsfreigabe (Kfz/24 h): rund 5.900 Kfz/24 h [nach Verkehrsfreigabe]",
+          "pageNumber": 13
+        }
+      ]
+    },
+    {
+      "id": "69746987-d4ce-48e2-a272-b6e7fcdea4b1",
+      "title": "Direkter Widerspruch bezüglich der angegebenen Neuversiegelungsfläche",
+      "description": "Beide Passagen beziehen sich auf denselben Abschnitt des Projekts und geben die dauerhaft in Anspruch genommene Fläche von 38,6 ha an. Chunk A nennt für die Neuversiegelung 15,4 ha (40 % der Gesamtheit), während Chunk B von 12,1 ha Neuversiegelung spricht. Da es sich um dieselbe Kennzahl (Neuversiegelungsfläche in ha) für das gleiche Vorhaben handelt, können die beiden Angaben nicht gleichzeitig korrekt sein – sie stehen in direktem Widerspruch.",
+      "rating": 80,
+      "confidenceScore": 45.8,
+      "scoreA": 100.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=73; status_conflict, numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide aktuellen Fundstellen beziehen sich auf die Neuversiegelungsfläche des Projekts B 412n Abschnitt 2, geben jedoch unterschiedliche Werte an (15,4 ha in Fundstelle 1 vs. 12,1 ha in Fundstelle 2) ohne Unterschied in Objekt, Version, Scope oder Definition.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Abschnitt (B 412n Abschnitt 2) und geben dieselbe Gesamtsumme von 38,6 ha an, jedoch unterschiedliche Neuversiegelungsflächen: Fundstelle 1 nennt 15,4 ha (40 %) und Fundstelle 2 nennt 12,1 ha, ohne dass ein Unterschied im Objekt, in der Version, im Umfang oder in der Definition erkennbar ist.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf dieselbe Projektabschnitt (B 412n Abschnitt 2) und nennen die Neuversiegelungsfläche als permanente Fläche, jedoch gibt Fundstelle 1 15,4 ha (40 % von 38,6 ha) an, während Fundstelle 2 12,1 ha angibt. Keine der Auflösungswege (unterschiedliche Objekte, überholte Fassungen, unterschiedliche Scopes, Messgrößen oder erklärende Kontextangaben) lässt die Diskrepanz erklären.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich auf dieselbe permanente Neuversiegelungsfläche des Projekts B 412n Abschnitt 2, geben jedoch unterschiedliche Werte (15,4 ha in Fundstelle 1 vs. 12,1 ha in Fundstelle 2) ohne Hinweis auf unterschiedliche Messgrößen, Versionen oder Geltungsbereiche.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 gibt an: „Auf Neuversiegelung entfallen hiervon 15,4 ha …“, während Fundstelle 2 sagt: „Hiervon entfallen 12,1 ha auf die Neuversiegelung … Die Neuversiegelung beträgt 12,1 ha.“ Beide beziehen sich auf dieselbe Gesamtfläche von 38,6 ha des Projekts B 412n Abschnitt 2, verwenden dieselbe Messgröße (ha) und liegen in aktuellen Fassungen vor – es gibt keinen Auflösungsweg, sodass der Widerspruch echt ist.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Neuversiegelung (Fläche) des Vorhabens; merkmal=Fläche; wert=15,4 ha; bezugsrahmen=dauerhafte Inanspruchnahme",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Neuversiegelung (Fläche) des Vorhabens; merkmal=Fläche; wert=12,1 ha; bezugsrahmen=durch Fahrbahn, Bankette und Bauwerke",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die erste Stelle gibt an, dass 15,4 ha (40 %) der dauerhaften Inanspruchnahme auf die Neuversiegelung entfallen, während die zweite Stelle von 12,1 ha Neuversiegelung spricht, was die Angaben widersprüchlich macht."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Auf Neuversiegelung entfallen hiervon 15,4 ha; das entspricht einem Anteil von 40 % an der dauerhaften Inanspruchnahme.",
+          "contradiction": "Fläche: 15,4 ha [dauerhafte Inanspruchnahme]",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Hiervon entfallen 12,1 ha auf die Neuversiegelung durch Fahrbahn, Bankette und Bauwerke. Die Neuversiegelung beträgt 12,1 ha.",
+          "contradiction": "Fläche: 12,1 ha [durch Fahrbahn, Bankette und Bauwerke]",
+          "pageNumber": 9
+        }
+      ]
+    },
+    {
+      "id": "1d6c27d8-3056-4f2b-b1a5-e7088f949979",
+      "title": "Direkter Gegensatz bezüglich maximaler Einschnitttiefe",
+      "description": "Beide Passagen beschreiben exakt dieselbe Trassenstelle (zwischen Bau‑km 2+400 und 2+950) und geben die maximale Tiefe des Einschnitts an. Chunk A nennt 9,00 m, Chunk B nennt 6,50 m. Da es sich um dieselbe Messgröße im gleichen Abschnitt handelt, stehen die Angaben in direktem Widerspruch.",
+      "rating": 80,
+      "confidenceScore": 45.8,
+      "scoreA": 100.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=70; same_id_conflict, numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Trassenabschnitt (Bau‑km 2+400 bis 2+950) und nennen unterschiedliche maximale Einschnitttiefen (9,00 m vs. 6,50 m); keine der Auflösungswege (unterschiedliche Instanz, überholte Fassung, anderer Scope, andere Messgröße, Kontext‑Erklärung oder fehlerhaftes Zitat) greift.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 sagt, dass die größte Tiefe des Einschnitts zwischen Bau‑km 2+400 und 2+950 9,00 m beträgt, während Fundstelle 2 dieselbe Trassenstelle mit einer größten Tiefe von 6,50 m angibt.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf exakt denselben Trassenabschnitt (Bau‑km 2+400 bis 2+950) und nennen unterschiedliche maximale Einschnitttiefen (9,00 m in U11_UVP‑Bericht, 6,50 m in U01_Erläuterungsbericht) ohne Hinweis auf unterschiedliche Phase, Definition oder überholte Fassungen; daher greift keiner der Auflösungswege.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen nennen exakt dieselbe Trassenstelle (Bau‑km 2+400 bis 2+950) und dieselbe Messgröße („größte Tiefe des Einschnitts“), jedoch gibt Fundstelle 1 eine maximale Tiefe von 9,00 m an, während Fundstelle 2 6,50 m angibt; beide Dokumente sind aktuelle Fassungen, es gibt keine unterschiedliche Kennung, Phase oder erklärende Angabe, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen nennen exakt dieselbe Trassenstelle (Bau‑km 2+400 bis 2+950) und dieselbe Messgröße „größte Tiefe des Einschnitts“, jedoch gibt Fundstelle 1 9,00 m an („größte Tiefe von 9,00 m“) und Fundstelle 2 6,50 m („größte Tiefe von 6,50 m“). Die Dokumente sind aktuelle Fassungen, beziehen sich auf dasselbe Objekt und es gibt keinen Hinweis auf unterschiedliche Phasen, Messgrößen oder erklärende Kontextangaben, sodass der Widerspruch nicht auflösbar ist.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Trasse im Einschnitt zwischen Bau‑km 2+400 und 2+950; merkmal=größte Tiefe; wert=9,00 m; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Trasse im Einschnitt zwischen Bau‑km 2+400 und 2+950; merkmal=größte Tiefe; wert=6,50 m; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Textstellen beschreiben die größte Tiefe der Trasse im Einschnitt zwischen Bau‑km 2+400 und 2+950 mit unterschiedlichen Werten (9,00 m bzw. 6,50 m), was ein Widerspruch ist."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Zwischen Bau‑km 2+400 und Bau‑km 2+950 liegt die Trasse im Einschnitt; dieser erreicht eine größte Tiefe von 9,00 m.",
+          "contradiction": "größte Tiefe: 9,00 m",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Zwischen Bau‑km 2+400 und Bau‑km 2+950 liegt die Trasse im Einschnitt; dieser erreicht eine größte Tiefe von 6,50 m.",
+          "contradiction": "größte Tiefe: 6,50 m",
+          "pageNumber": 3
+        }
+      ]
+    },
+    {
+      "id": "d89d1b99-f5e4-4683-b374-07d876c5a3c4",
+      "title": "Direkter Gegensatz bezüglich der Neuversiegelungsfläche",
+      "description": "Beide Passagen beziehen sich auf das gleiche Vorhaben (Abschnitt 2 der B 412n) und geben die Fläche der Neuversiegelung in Hektar an. Chunk A nennt eindeutig 12,1 ha Neuversiegelung, während Chunk B explizit 15,4 ha Neuversiegelung angibt. Da beide Angaben dieselbe Kennzahl (Neuversiegelungsfläche) für denselben Projektabschnitt ohne Hinweis auf unterschiedliche Definitionen oder Teilbereiche nennen, stehen die Zahlen in direktem Widerspruch zueinander.",
+      "rating": 85,
+      "confidenceScore": 45.8,
+      "scoreA": 100.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=73; status_conflict, numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Projektabschnitt (B 412n Abschnitt 2) und nennen die Neuversiegelungsfläche in Hektar, jedoch gibt Fundstelle 1 12,1 ha an, während Fundstelle 2 15,4 ha angibt; weder unterschiedliche Objekte, Fassungen, Definitionen noch Kontext‑Erklärungen lösen den Widerspruch.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Projektabschnitt (B 412n Abschnitt 2) und nennen die Neuversiegelungsfläche in Hektar, jedoch gibt Fundstelle 1 12,1 ha an („Die Neuversiegelung beträgt 12,1 ha.“) und Fundstelle 2 15,4 ha („Auf Neuversiegelung entfallen hiervon 15,4 ha…\"). Keine der Auflösungswege (unterschiedliche Objekte, überholte Fassungen, unterschiedliche Scope/Definitionen oder erklärende Kontextangaben) greift, sodass die Angaben unvereinbar sind.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Projektabschnitt (B 412n Abschnitt 2) und nennen die Neuversiegelungsfläche in Hektar, jedoch gibt Fundstelle 1 12,1 ha an („Die Neuversiegelung beträgt 12,1 ha.“) und Fundstelle 2 15,4 ha („Auf Neuversiegelung entfallen hiervon 15,4 ha\"). Keine der Auflösungswege (unterschiedliche Objekte, überholte Fassungen, unterschiedliche Scopes, Messgrößen oder Kontext‑Erklärungen) greift, sodass die Angaben unvereinbar sind.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 gibt die Neuversiegelungsfläche mit 12,1 ha an („Die Neuversiegelung beträgt 12,1 ha.“), Fundstelle 2 nennt für denselben Abschnitt 15,4 ha („Auf Neuversiegelung entfallen hiervon 15,4 ha“). Beide beziehen sich auf denselben Projektabschnitt und dieselbe Kennzahl, ohne unterschiedliche Definitionen, sodass kein Auflösungsweg greift.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 gibt an, dass 12,1 ha auf die Neuversiegelung entfallen („Hiervon entfallen 12,1 ha auf die Neuversiegelung … Die Neuversiegelung beträgt 12,1 ha.“). Fundstelle 2 nennt für denselben Abschnitt 2 der B 412n eine Neuversiegelungsfläche von 15,4 ha („Auf Neuversiegelung entfallen hiervon 15,4 ha …\"). Beide Angaben beziehen sich auf die dauerhafte Inanspruchnahme desselben Projekts und verwenden dieselbe Messgröße, sodass ein echter Widerspruch besteht.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Neuversiegelung durch Fahrbahn, Bankette und Bauwerke; merkmal=Fläche; wert=12,1 ha; bezugsrahmen=dauerhaft",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Neuversiegelung; merkmal=Fläche; wert=15,4 ha; bezugsrahmen=dauerhaft",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Beide Textstellen beziehen sich auf die Fläche der Neuversiegelung des Vorhabens, geben jedoch unterschiedliche Werte (12,1 ha bzw. 15,4 ha) an, wodurch sie sich gegenseitig ausschließen."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Hiervon entfallen 12,1 ha auf die Neuversiegelung durch Fahrbahn, Bankette und Bauwerke. Die Neuversiegelung beträgt 12,1 ha.",
+          "contradiction": "Fläche: 12,1 ha [dauerhaft]",
+          "pageNumber": 9
+        },
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Auf Neuversiegelung entfallen hiervon 15,4 ha; das entspricht einem Anteil von 40 % an der dauerhaften Inanspruchnahme.",
+          "contradiction": "Fläche: 15,4 ha [dauerhaft]",
+          "pageNumber": 2
+        }
+      ]
+    },
+    {
+      "id": "ca9aade1-ea4d-4c11-8368-28fd2dd285dd",
+      "title": "Direkter Gegensatz bezüglich maximaler Einschnitttiefe",
+      "description": "Beide Passagen beschreiben exakt denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und geben an, dass die Trasse dort im Einschnitt liegt. Chunk A nennt eine größte Tiefe von 6,50 m, während Chunk B dieselbe Stelle mit einer größten Tiefe von 9,00 m angibt. Da es sich um dieselbe Entität und dasselbe Attribut (maximale Einschnitttiefe) handelt und die Zahlen unmittelbar widersprüchlich sind, liegt ein klarer Widerspruch vor.",
+      "rating": 80,
+      "confidenceScore": 45.8,
+      "scoreA": 100.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=70; same_id_conflict, numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf exakt denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und beschreiben die maximale Einschnitttiefe; Fundstelle 1 gibt 6,50 m, Fundstelle 2 gibt 9,00 m, ohne erklärenden Kontext – ein unvereinbarer Widerspruch.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und geben unterschiedliche Werte für die maximale Einschnitttiefe an (6,50 m in Auslegung/U01_Erlaeuterungsbericht S. 3, 9,00 m in Auslegung/U11_UVP-Bericht S. 2); keine Auflösungswege 1‑5 greifen.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich auf exakt denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und nennen das gleiche Attribut „größte Tiefe im Einschnitt“, jedoch gibt Fundstelle 1 eine Tiefe von 6,50 m an, während Fundstelle 2 9,00 m angibt; weder unterschiedliche Objekte, Fassungen, Phasen, Messgrößen noch erklärende Kontextangaben lösen den Widerspruch.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen nennen exakt denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und dass die Trasse im Einschnitt liegt, geben jedoch unterschiedliche Werte für die größte Tiefe (6,50 m in Auslegung/U01_Erlaeuterungsbericht.pdf S. 3, 9,00 m in Auslegung/U11_UVP-Bericht.pdf S. 2). Keine der Auflösungswege (unterschiedliche Objekte, überholte Fassungen, unterschiedliche Scope, Messgrößen oder erklärende Kontextangaben) greift.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf denselben Streckenabschnitt (Bau‑km 2+400 bis 2+950) und beschreiben die maximale Einschnitttiefe, wobei Fundstelle 1 eine Tiefe von 6,50 m und Fundstelle 2 von 9,00 m angibt; keine der Auflösungswege (Instanz, Version, Scope, Messgröße, Kontext, Zitat) lässt die Angaben vereinbaren.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Trasse zwischen Bau‑km 2+400 und Bau‑km 2+950; merkmal=größte Tiefe; wert=6,50 m; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Trasse zwischen Bau‑km 2+400 und Bau‑km 2+950; merkmal=größte Tiefe; wert=9,00 m; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Aussagen beziehen sich auf dieselbe Trassenstrecke (Bau‑km 2+400 bis 2+950) und geben unterschiedliche maximale Tiefen (6,50 m bzw. 9,00 m) an, was sich gegenseitig ausschließt."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "zwischen Bau-km 2+400 und Bau-km 2+950 liegt die Trasse im Einschnitt; dieser erreicht eine größte Tiefe von 6,50 m.",
+          "contradiction": "größte Tiefe: 6,50 m",
+          "pageNumber": 3
+        },
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Zwischen Bau-km 2+400 und Bau-km 2+950 liegt die Trasse im Einschnitt; dieser erreicht eine größte Tiefe von 9,00 m.",
+          "contradiction": "größte Tiefe: 9,00 m",
+          "pageNumber": 2
+        }
+      ]
+    },
+    {
+      "id": "524a6491-7ee8-4b7c-8024-d1c996a61953",
+      "title": "Direkter Gegensatz bezüglich der Brückenlänge der Talbrücke Musterbach",
+      "description": "Beide Textpassagen beschreiben dieselbe Ingenieurbauwerk‑Einheit (Talbrücke Musterbach, BW 2.02). In Chunk A wird die Länge mit „Länge 224,00 m, größte lichte Höhe 14,00 m“ angegeben, während Chunk B die Länge mit „Länge von 196 m und eine größte lichte Höhe von 14,00 m“ nennt. Es gibt keinerlei Hinweis darauf, dass die Angaben unterschiedliche Planungsphasen, Schätzungen oder Varianten betreffen; beide Formulierungen stellen die Länge als feste, faktische Größe dar. Die widersprüchlichen Zahlen für dieselbe Eigenschaft (Länge) ergeben einen direkten Gegensatz.",
+      "rating": 80,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf die Talbrücke Musterbach (BW 2.02) und nennen unterschiedliche Längen (224,00 m in Auslegung/U07-2_Bauwerksverzeichnis.pdf S. 2 vs. 196 m in Auslegung/U01_Erlaeuterungsbericht.pdf S. 4) ohne Hinweis auf unterschiedliche Planungsphase, Variante oder Messgröße.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen nennen dieselbe Talbrücke Musterbach (BW 2.02) und geben unterschiedliche Längen an (224,00 m in Auslegung/U07-2_Bauwerksverzeichnis.pdf, Seite 2 vs. 196 m in Auslegung/U01_Erlaeuterungsbericht.pdf, Seite 4) ohne Hinweis auf unterschiedliche Planungsphase, Variante oder Messdefinition.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen benennen exakt dasselbe Bauwerk (Talbrücke Musterbach, BW 2.02) und geben unterschiedliche Längen an: Fundstelle 1 sagt „Länge 224,00 m …“, Fundstelle 2 sagt „Länge von 196 m …“. Keine der Auflösungswege (Instanz, Version, Phase, Messgröße, Kontext) erklärt den Unterschied.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (Bauwerksverzeichnis) nennt für BW 2.02 Talbrücke Musterbach eine Länge von 224,00 m, Fundstelle 2 (Erläuterungsbericht) gibt für dieselbe Brücke BW 2.02 eine Länge von 196 m – beide beziehen sich auf dasselbe benannte Objekt, gleiche Messgröße, aktuelle Fassungen, ohne Hinweis auf unterschiedliche Phase oder Definition.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf dasselbe Bauwerk BW 2.02 – Talbrücke Musterbach und geben unterschiedliche Längen an (Fundstelle 1: „Länge 224,00 m, größte lichte Höhe 14,00 m“, Fundstelle 2: „hat eine Länge von 196 m und eine größte lichte Höhe von 14,00 m“) ohne Hinweis auf unterschiedliche Phase, Variante oder Messgröße.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Talbrücke Musterbach (BW 2.02); merkmal=Länge und größte lichte Höhe; wert=224,00 m und 14,00 m; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Talbrücke Musterbach (BW 2.02); merkmal=Länge und größte lichte Höhe; wert=196 m und 14,00 m; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Textstellen beziehen sich beide auf die Talbrücke Musterbach (BW 2.02) und geben unterschiedliche Längenangaben (224,00 m vs. 196 m), wodurch die Aussagen einander ausschließen."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "61b33ef5-4ee7-5156-9cbf-e4af819b57ad",
+          "documentName": "Auslegung/U07-2_Bauwerksverzeichnis.pdf",
+          "contentExcerpt": "Länge 224,00 m, größte lichte Höhe 14,00 m.",
+          "contradiction": "Länge und größte lichte Höhe: 224,00 m und 14,00 m",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Länge von 196 m und eine größte lichte Höhe von 14,00 m",
+          "contradiction": "Länge und größte lichte Höhe: 196 m und 14,00 m",
+          "pageNumber": 4
+        }
+      ]
+    },
+    {
+      "id": "dc5671d8-3f49-4047-9880-55aefef64c13",
+      "title": "Widerspruch bezüglich lichter Höhe der Wildtierunterführung Beispielbach (BW 2.04)",
+      "description": "Beide Passagen beschreiben dasselbe Bauwerk BW 2.04 – Wildtierunterführung Beispielbach. Chunk A gibt eine lichte Höhe von 4,00 m an, während Chunk B für das gleiche Bauwerk eine lichte Höhe von 3,00 m nennt. Da es sich um dieselbe Entität, dasselbe Attribut und denselben Kontext (Bau‑km 3+980) handelt, stehen die beiden Angaben in direktem Widerspruch. Die Zahlenwerte sind eindeutig unterschiedlich und es fehlt jeder Hinweis auf unterschiedliche Planungsphasen oder Auslegungen, sodass ein klarer Konflikt vorliegt.",
+      "rating": 80,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt für BW 2.04 (Wildtierunterführung Beispielbach) eine lichte Höhe von 4,00 m an, Fundstelle 2 nennt für dasselbe BW 2.04 eine lichte Höhe von 3,00 m; beide beziehen sich auf dasselbe Objekt und dieselbe Größe, ohne unterschiedliche Version, Phase oder erklärende Angabe, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt für BW 2.04 – Wildtierunterführung Beispielbach eine lichte Höhe von 4,00 m an (\"lichte Höhe 4,00 m\"), während Fundstelle 2 dieselbe Unterführung mit einer lichten Höhe von 3,00 m beschreibt (\"lichte Höhe von 3,00 m\"). Beide Angaben beziehen sich auf dasselbe Objekt und dieselbe Messgröße, ohne Hinweis auf unterschiedliche Planungsphasen, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt für BW 2.04 (Wildtierunterführung Beispielbach) eine lichte Höhe von 4,00 m an (\"...lichte Höhe 4,00 m...\"), während Fundstelle 2 dieselbe Unterführung mit einer lichten Höhe von 3,00 m beschreibt (\"...lichte Höhe von 3,00 m...\"). Beide Angaben beziehen sich auf dasselbe Bauwerk und dieselbe Größe, ohne Hinweis auf unterschiedliche Planungsphasen, sodass ein echter Widerspruch besteht.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 nennt für BW 2.04 – Wildtierunterführung Beispielbach eine lichte Höhe von 4,00 m, während Fundstelle 2 für dasselbe BW 2.04 dieselbe Unterführung eine lichte Höhe von 3,00 m angibt; beide Angaben beziehen sich auf das identische Objekt, gleiche Attribut und aktuelle Fassungen, ohne erklärenden Kontext.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (Auslegung/U07-2_Bauwerksverzeichnis.pdf, S. 2) nennt für BW 2.04 – Wildtierunterführung Beispielbach eine lichte Höhe von 4,00 m, während Fundstelle 2 (Auslegung/U01_Erlaeuterungsbericht.pdf, S. 4) für dasselbe BW 2.04 eine lichte Höhe von 3,00 m angibt. Beide Angaben betreffen dasselbe benannte Objekt, dieselbe Messgröße und stammen aus aktuellen Fassungen ohne Hinweis auf unterschiedliche Planungsphasen, sodass ein echter Widerspruch vorliegt.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=BW 2.04 - Wildtierunterführung Beispielbach; merkmal=lichte Höhe; wert=4,00 m; bezugsrahmen=bei Bau-km 3+980",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=BW 2.04 - Wildtierunterführung Beispielbach; merkmal=lichte Höhe; wert=3,00 m; bezugsrahmen=bei Bau-km 3+980",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Textstellen beziehen sich beide auf die Wildtierunterführung Beispielbach (BW 2.04) und geben unterschiedliche Werte für die lichte Höhe an (4,00 m vs. 3,00 m)."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "61b33ef5-4ee7-5156-9cbf-e4af819b57ad",
+          "documentName": "Auslegung/U07-2_Bauwerksverzeichnis.pdf",
+          "contentExcerpt": "lichte Höhe\n4,00 m. Das Bauwerk führt den Beispielbach",
+          "contradiction": "lichte Höhe: 4,00 m [bei Bau-km 3+980]",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "lichte Höhe von 3,00 m",
+          "contradiction": "lichte Höhe: 3,00 m [bei Bau-km 3+980]",
+          "pageNumber": 4
+        }
+      ]
+    },
+    {
+      "id": "5d700db6-56fa-4471-bde3-be29bf2abceb",
+      "title": "Direkter Gegensatz bezüglich des angegebenen Verlustes von Waldrandstruktur für die Haselmaus",
+      "description": "Beide Passagen beziehen sich auf die Haselmaus im Musterholz und beschreiben den Verlust besiedelter Waldrandstruktur, der durch die Trasse entsteht. Chunk A gibt den Verlust mit 2,1 ha an, während Chunk B denselben Verlust mit 1,2 ha angibt. Da beide Aussagen dieselbe Entität (Haselmaus), dasselbe Attribut (Verlust besiedelter Waldrandstruktur) und denselben Projektkontext betreffen, stehen die Zahlen unmittelbar im Widerspruch zueinander. Es gibt keine erklärenden Qualifikatoren, die die Diskrepanz auf unterschiedliche Annahmen oder Zeitpunkte zurückführen würden, sodass ein direkter Gegensatz vorliegt.",
+      "rating": 80,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 nennt für die Haselmaus einen Verlust von 2,1 ha („Der Verlust besiedelter Waldrandstruktur beträgt 2,1 ha.“), während Fundstelle 2 denselben Verlust mit 1,2 ha angibt („Der Verlust von 1,2 ha besiedelter Waldrandstruktur durch die Trasse …\"). Beide Aussagen beziehen sich auf dieselbe Art und denselben Projektkontext, ohne erklärenden Unterschied, und stehen daher im Widerspruch.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 sagt: \"Der Verlust besiedelter Waldrandstruktur beträgt 2,1 ha.\" Fundstelle 2 sagt: \"Der Verlust von 1,2 ha besiedelter Waldrandstruktur durch die Trasse ...\" Beide beziehen sich auf die Haselmaus im Musterholz, dieselbe Maßnahme CEF 1 und aktuelle Fassungen, ohne erklärenden Kontext – damit liegt ein echter Widerspruch vor.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 (Artenschutzrechtlicher Fachbeitrag, S. 3) nennt den Verlust besiedelter Waldrandstruktur für die Haselmaus mit 2,1 ha, während Fundstelle 2 (Landschaftspflegerischer Begleitplan, S. 10) denselben Verlust mit 1,2 ha angibt; beide beziehen sich auf die gleiche Art (Haselmaus), das gleiche Attribut und die gleiche Maßnahme CEF 1 im Musterholz, ohne Unterschied in Phase, Definition oder Kontext.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (Auslegung/U09-3_Artenschutzrechtlicher_Fachbeitrag.pdf, S. 3) nennt für die Haselmaus einen Verlust besiedelter Waldrandstruktur von 2,1 ha, während Fundstelle 2 (Auslegung/U09-1_Landschaftspflegerischer_Begleitplan.pdf, S. 10) für dieselbe Maßnahme CEF 1 bei der Haselmaus einen Verlust von 1,2 ha angibt. Beide Aussagen beziehen sich auf dasselbe Objekt und Attribut, ohne erklärende Qualifikatoren, und stehen somit in direktem Widerspruch.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf die Haselmaus und geben unterschiedliche Werte für den Verlust besiedelter Waldrandstruktur an (2,1 ha in U09‑3, S. 3 vs. 1,2 ha in U09‑1, S. 10) ohne erklärenden Kontext, sodass kein Auflösungsweg greift.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Verlust besiedelter Waldrandstruktur; merkmal=Verlust (Fläche); wert=2,1 ha; bezugsrahmen=Haselmaus | Musterholz",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Verlust von 1,2 ha besiedelter Waldrandstruktur; merkmal=Verlust (Fläche); wert=1,2 ha; bezugsrahmen=Haselmaus | Musterholz | vor Baubeginn",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Beide Stellen beschreiben den Verlust besiedelter Waldrandstruktur für die Haselmaus im Musterholz, jedoch mit unterschiedlichen Flächenangaben (2,1 ha vs. 1,2 ha), was sie gegenseitig ausschließt."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "7d86fefa-b12d-519b-b94d-57507ede6188",
+          "documentName": "Auslegung/U09-3_Artenschutzrechtlicher_Fachbeitrag.pdf",
+          "contentExcerpt": "Der Verlust besiedelter Waldrandstruktur beträgt 2,1 ha.",
+          "contradiction": "Verlust (Fläche): 2,1 ha [Haselmaus | Musterholz]",
+          "pageNumber": 3
+        },
+        {
+          "documentId": "1e90663a-f9b9-5a2a-a3bd-1480b81c6292",
+          "documentName": "Auslegung/U09-1_Landschaftspflegerischer_Begleitplan.pdf",
+          "contentExcerpt": "Der Verlust von 1,2 ha besiedelter Waldrandstruktur durch die Trasse",
+          "contradiction": "Verlust (Fläche): 1,2 ha [Haselmaus | Musterholz | vor Baubeginn]",
+          "pageNumber": 10
+        }
+      ]
+    },
+    {
+      "id": "726d3258-ff5c-492c-bf46-4b257357be43",
+      "title": "Direkter Widerspruch bezüglich Baulänge des Abschnitts 2",
+      "description": "Chunk A gibt an, dass die Baulänge des Abschnitts 2 7,1 km beträgt, während Chunk B dieselbe Baulänge mit 6,2 km (6 200 m) angibt. Beide Aussagen beziehen sich eindeutig auf denselben Projektabschnitt und dieselbe Messgröße (Baulänge) ohne weitere Qualifikatoren. Die beiden Zahlen können nicht gleichzeitig korrekt sein, wodurch ein klarer, direkter Widerspruch entsteht.",
+      "rating": 82,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt an, dass die Baulänge des Abschnitts 2 7,1 km beträgt, während Fundstelle 2 (und Fundstelle 3) dieselbe Baulänge mit 6,2 km (6 200 m) angibt – beide beziehen sich eindeutig auf Abschnitt 2 der B 412n, ohne unterschiedliche Scope‑ oder Definitionsangaben, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 sagt: „Die Baulänge des Abschnitts 2 beträgt 7,1 km.“ (Auslegung/U11_UVP-Bericht.pdf, S. 2) während Fundstelle 2 (und 3) sagt: „Die Baulänge des Abschnitts beträgt 6,2 km (6.200 m).“ (Auslegung/U01_Erlaeuterungsbericht.pdf, S. 2) – beide beziehen sich eindeutig auf denselben Abschnitt 2 der B 412n, gleiche Messgröße, aktuelle Fassungen, ohne erklärenden Kontext.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 sagt, die Baulänge des Abschnitts 2 beträgt 7,1 km, während Fundstelle 2 (und Fundstelle 3) dieselbe Baulänge mit 6,2 km (6 200 m) angeben. Beide beziehen sich auf denselben Abschnitt 2 in aktuellen Fassungen ohne Unterschied im Scope oder Messgröße, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (Auslegung/U11_UVP-Bericht.pdf, S. 2) lautet wörtlich 'Die Baulänge des Abschnitts 2 beträgt 7,1 km.', während Fundstelle 2 (Auslegung/U01_Erlaeuterungsbericht.pdf, S. 2) sagt 'Die Baulänge des Abschnitts beträgt 6,2 km (6.200 m). Die Stationierung läuft von Bau‑km 0+000 bis Bau‑km 6+200.' – beide beziehen sich eindeutig auf denselben Abschnitt 2 der B 412n, gleiche Messgröße, aktuelle Fassungen, ohne unterschiedliche Kennungen oder Qualifikatoren, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 sagt: \"Die Baulänge des Abschnitts 2 beträgt 7,1 km.\" (Auslegung/U11_UVP-Bericht.pdf, S. 2). Fundstelle 2 sagt: \"Die Baulänge des Abschnitts beträgt 6,2 km (6.200 m).\" (Auslegung/U01_Erlaeuterungsbericht.pdf, S. 2). Beide beziehen sich eindeutig auf denselben Abschnitt 2 der B 412n, liegen in aktuellen Fassungen vor und enthalten keine unterschiedlichen Qualifikatoren, sodass die Angaben direkt widersprüchlich sind.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Abschnitt 2; merkmal=Baulänge; wert=7,1 km; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Abschnitt 2; merkmal=Baulänge; wert=6,2 km (6.200 m); bezugsrahmen=",
+        "B/Rubrik 3: rolle=sachaussage; gegenstand=Abschnitt 2; merkmal=Baulänge; wert=6,2 km; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die Baulänge des Abschnitts 2 wird in den drei Dokumenten mit 7,1 km bzw. 6,2 km angegeben, was widersprüchliche Werte liefert."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Die Baulänge des Abschnitts 2 beträgt 7,1 km.",
+          "contradiction": "Baulänge: 7,1 km",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Die Baulänge des Abschnitts beträgt\n6,2 km (6.200 m).",
+          "contradiction": "Baulänge: 6,2 km (6.200 m)",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "b95dee0d-5957-5007-b326-76853ae4b29b",
+          "documentName": "Auslegung/U15_Verkehrsuntersuchung.pdf",
+          "contentExcerpt": "Die Baulänge des untersuchten Abschnitts beträgt 6,2 km.",
+          "contradiction": "Baulänge: 6,2 km",
+          "pageNumber": 2
+        }
+      ]
+    },
+    {
+      "id": "181207f5-ef07-444c-bcf5-838c076415be",
+      "title": "Direkter Gegensatz bezüglich der angegebenen Bauzeit",
+      "description": "Chunk A gibt an, dass die Bauzeit des Vorhabens „rund 5 Jahre“ beträgt, während Chunk B die Bauzeit mit „rund 3 Jahre“ angibt. Beide Aussagen beziehen sich auf dieselbe Projektabschnitt‑2‑Planung und beschreiben denselben Zeitraum des Bauablaufs. Es gibt keinen Hinweis auf unterschiedliche Phasen, Teilprojekte oder unterschiedliche Bezugsrahmen, sodass die beiden Zahlen unmittelbar im Widerspruch zueinander stehen.",
+      "rating": 85,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 (UVP‑Bericht, Seite 2) enthält die Formulierung 'Für die Bauzeit von rund 5 Jahren …', während Fundstelle 2 (Erläuterungsbericht, Seite 10) lautet 'Die Bauzeit beträgt rund 3 Jahre.' Beide Aussagen beziehen sich auf Abschnitt 2 der B 412n und liegen in aktuellen Fassungen, sodass weder unterschiedliche Objekte, Versionen, Phasen noch Messgrößen vorliegen und keine erklärende Angabe den Widerspruch auflöst.",
+        "A/Verifier[basis]: echt (kein) — Im UVP‑Bericht (Seite 2) heißt es: „Für die Bauzeit von rund 5 Jahren …“, während im Erläuterungsbericht (Seite 10) steht: „Die Bauzeit beträgt rund 3 Jahre.“ Beide Aussagen beziehen sich auf Abschnitt 2 des Vorhabens, sind in aktuellen Fassungen und es gibt keinen Hinweis auf unterschiedliche Phasen oder Definitionen, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Im UVP‑Bericht (Seite 2) heißt es: „Für die Bauzeit von rund 5 Jahren …“, während im Erläuterungsbericht (Seite 10) steht: „Die Bauzeit beträgt rund 3 Jahre.“ Beide Aussagen beziehen sich auf B 412n Abschnitt 2 und verwenden denselben Begriff „Bauzeit“, jedoch mit widersprüchlichen Werten.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (UVP‑Bericht, S. 2) lautet: „Für die Bauzeit von rund 5 Jahren …“, während Fundstelle 2 (Erläuterungsbericht, S. 10) angibt: „Die Bauzeit beträgt rund 3 Jahre.“ Beide Aussagen beziehen sich auf Abschnitt 2, liegen in aktuellen Fassungen und ohne Hinweis auf unterschiedliche Phasen, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 (UVP‑Bericht, S. 2) sagt: „Für die Bauzeit von rund 5 Jahren …“, während Fundstelle 2 (Erläuterungsbericht, S. 10) lautet: „Die Bauzeit beträgt rund 3 Jahre.“ Beide Aussagen beziehen sich auf den gleichen Projektabschnitt 2 und verwenden denselben Begriff „Bauzeit“, ohne Hinweis auf unterschiedliche Phasen, Definitionen oder Dokumentenstände – damit liegt ein echter Widerspruch vor.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Vorhaben; merkmal=Bauzeit; wert=rund 5 Jahre; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Vorhaben; merkmal=Bauzeit; wert=rund 3 Jahre; bezugsrahmen=",
+        "B/Rubrik 3: rolle=sachaussage; gegenstand=Vorhaben; merkmal=Bauzeit; wert=rund 5 Jahre; bezugsrahmen=",
+        "B/Rubrik 4: rolle=sachaussage; gegenstand=Vorhaben; merkmal=Bauzeit; wert=rund 3 Jahre; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die Aussagen zur Bauzeit unterscheiden sich (rund 5 Jahre vs. rund 3 Jahre) und schließen einander aus."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Für die Bauzeit von rund 5 Jahren sind bauzeitliche Beeinträchtigungen ...",
+          "contradiction": "Bauzeit: rund 5 Jahre",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Die Bauzeit beträgt rund 3 Jahre. Der Baubeginn ist für das Jahr 2028 ...",
+          "contradiction": "Bauzeit: rund 3 Jahre",
+          "pageNumber": 10
+        },
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Für die Bauzeit von rund 5 Jahren sind bauzeitliche",
+          "contradiction": "Bauzeit: rund 5 Jahre",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Die Bauzeit beträgt rund 3 Jahre.",
+          "contradiction": "Bauzeit: rund 3 Jahre",
+          "pageNumber": 10
+        }
+      ]
+    },
+    {
+      "id": "08df570d-9241-4f54-99ac-083887177c09",
+      "title": "Direkter Zahlenkonflikt bezüglich DTV 2040",
+      "description": "Beide Passagen geben den durchschnittlichen Tagesverkehr (DTV) für das Jahr 2040 des Abschnitts 2 der B 412n an. Chunk A nennt einen DTV von 21.400 Kfz/24 h, während Chunk B einen DTV von 24.600 Kfz/24 h zugrunde legt. Da Messgröße, Einheit, Bezugsjahr und Projektabschnitt identisch sind, können die beiden Werte nicht gleichzeitig korrekt sein. Damit liegt ein klarer Widerspruch der Zahlen vor.\n\nZusammengeführt aus 2 Meldungen zum selben Sachverhalt.",
+      "rating": 80,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; name_conflict_same_values, id_mismatch, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf B 412n Abschnitt 2 und geben für das Jahr 2040 unterschiedliche DTV‑Werte (21 400 Kfz/24 h in Fundstelle 1, 24 600 Kfz/24 h in Fundstelle 2). Da beide Dokumente aktuell sind, dieselbe Messgröße und kein erklärender Kontext vorliegt, liegt ein echter Widerspruch vor.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt für Abschnitt 2 der B 412n einen DTV 2040 von 21 400 Kfz/24 h an, während Fundstelle 2 denselben Abschnitt mit einem DTV 2040 von 24 600 Kfz/24 h angibt. Beide Angaben beziehen sich auf das gleiche Objekt, gleiche Einheit und gelten in aktuellen Fassungen, ohne erklärenden Kontext – damit liegt ein echter Widerspruch vor.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt für Abschnitt 2 der B 412n im Jahr 2040 einen DTV von 21 400 Kfz/24 h an, während Fundstelle 2 für denselben Abschnitt und Jahr einen DTV von 24 600 Kfz/24 h nennt; beide Angaben beziehen sich auf das gleiche Objekt, dieselbe Messgröße und aktuelle Fassungen, ohne erklärenden Kontext – damit liegt ein echter Widerspruch vor.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf denselben Abschnitt (B 412n Abschnitt 2) und dieselbe Messgröße (DTV 2040 in Kfz/24 h), geben jedoch unterschiedliche Werte (21 400 Kfz/24 h vs. 24 600 Kfz/24 h) ohne erklärenden Kontext, sodass keiner der Auflösungswege greift.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf denselben Abschnitt (B 412n · Abschnitt 2) und geben für das Jahr 2040 den DTV in Kfz/24 h an, jedoch mit unterschiedlichen Werten (21 400 vs. 24 600). Es gibt keine Hinweis auf unterschiedliche Objektkennungen, Fassungen, Szenarien oder erklärende Kontextangaben, die die Diskrepanz auflösen könnten.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=B 999n Abschnitt 2; merkmal=DTV 2040; wert=21.400 Kfz/24 h; bezugsrahmen=Neubauabschnitt | Jahr 2040",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=B 999n Abschnitt 2; merkmal=DTV 2040; wert=24.600 Kfz/24 h; bezugsrahmen=Berechnung | Jahr 2040",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Textstellen beziehen sich beide auf die B 412n Abschnitt 2 und geben für das Jahr 2040 unterschiedliche tägliche Verkehrsstärken (21.400 Kfz/24 h vs. 24.600 Kfz/24 h) an, was ein Widerspruch ist.",
+        "A/Evidenz: score_det=35; id_mismatch, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen nennen denselben Abschnitt 2 der B 412n und das Attribut Baulänge, jedoch gibt Fundstelle 1 im Erläuterungsbericht 6,2 km an, während Fundstelle 2 im UVP‑Bericht 7,1 km angibt; weder unterschiedliche Objekte, Fassungen, Scope, Definitionen noch erklärende Kontextangaben liegen vor.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf denselben Abschnitt 2 der B 412n und geben die Baulänge als Attribut an, jedoch nennt Fundstelle 1 6,2 km (Stationierung 0+000 bis 6+200) und Fundstelle 2 7,1 km, ohne erklärenden Hinweis; damit besteht ein unvereinbarer Widerspruch.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf Abschnitt 2 der B 412n und nennen die Baulänge dieses Abschnitts (gleiche Instanz, gleiche Messgröße). Fundstelle 1 gibt 6,2 km (Stationierung 0+000‑6+200), Fundstelle 2 gibt 7,1 km, ohne Hinweis auf unterschiedliche Varianten, Zeiträume oder Definitionen. Keine der Auflösungswege (unterschiedliche Objekte, überholte Fassungen, unterschiedliche Scopes, Messgrößen oder erklärende Kontextangaben) greift, sodass die Angaben unvereinbar sind.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf \"Abschnitt 2\" der B 412n und geben die Baulänge an: Fundstelle 1 lautet \"Die Baulänge des Abschnitts beträgt 6,2 km\" und Fundstelle 2 lautet \"Die Baulänge des Abschnitts 2 beträgt 7,1 km\". Da Objekt, Attribut und Dokumentversion identisch sind, greift keiner der Auflösungswege.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf denselben Abschnitt 2 der B 412n und nennen die Baulänge als Attribut, jedoch mit unterschiedlichen Werten (6,2 km in U01 Erläuterungsbericht, S. 2; 7,1 km in U11 UVP‑Bericht, S. 2). Keine der Auflösungswege (unterschiedliche Kennungen, überholte Fassungen, unterschiedliche Phase/Scope, abweichende Messgröße oder erklärender Kontext) greift, sodass ein echter Widerspruch vorliegt.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=B 999n Abschnitt 2; merkmal=Baulänge; wert=6,2 km (6.200 m); bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=B 999n Abschnitt 2; merkmal=Baulänge; wert=7,1 km; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die Baulänge des Abschnitts 2 wird in Textstelle 1 mit 6,2 km angegeben, während Textstelle 2 sie mit 7,1 km angibt, was einen Widerspruch darstellt."
+      ],
+      "mergedCount": 2,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Verkehrsprognose für das Jahr 2040 einen DTV von 21.400 Kfz/24 h",
+          "contradiction": "DTV 2040: 21.400 Kfz/24 h [Neubauabschnitt | Jahr 2040]",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "954b09a7-83a2-5a63-9478-e69748bd7476",
+          "documentName": "Auslegung/U17_Schalltechnische_Untersuchung.pdf",
+          "contentExcerpt": "Der Berechnung liegt ein DTV 2040 von 24.600 Kfz/24 h zugrunde",
+          "contradiction": "DTV 2040: 24.600 Kfz/24 h [Berechnung | Jahr 2040]",
+          "pageNumber": 4
+        },
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "Die Baulänge des Abschnitts beträgt\n6,2 km (6.200 m).",
+          "contradiction": "Baulänge: 6,2 km (6.200 m)",
+          "pageNumber": 2
+        },
+        {
+          "documentId": "44fc1021-b76a-5301-9bfd-cf9d7ebee1f4",
+          "documentName": "Auslegung/U11_UVP-Bericht.pdf",
+          "contentExcerpt": "Die Baulänge des Abschnitts 2 beträgt 7,1 km.",
+          "contradiction": "Baulänge: 7,1 km",
+          "pageNumber": 2
+        }
+      ]
+    },
+    {
+      "id": "8f898e97-4941-457b-997f-d6d0d40e4e9a",
+      "title": "Direkter Gegensatz bezüglich der Länge der Talbrücke Musterbach",
+      "description": "Beide Passagen beschreiben das gleiche Ingenieurbauwerk (Talbrücke Musterbach, BW 2.02, Lage Bau‑km 1+870). Chunk A gibt an, dass das Bauwerk \"eine Länge von 196 m\" hat, während Chunk B dieselbe Brücke mit \"Länge 224,00 m\" bezeichnet. Es gibt keinerlei Hinweis auf unterschiedliche Planungsphasen, Varianten oder Messgrößen, sodass die beiden Angaben unmittelbar widersprüchlich sind.",
+      "rating": 80,
+      "confidenceScore": 31.9,
+      "scoreA": 94.0,
+      "scoreB": 95.0,
+      "evidence": [
+        "A/Evidenz: score_det=58; numeric_conflict_same_id, within_version_pair; anker_fehlt=0.00",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen nennen exakt dasselbe Bauwerk (Talbrücke Musterbach, BW 2.02, Bau‑km 1+870) und denselben Attributwert „Länge“, geben jedoch widersprüchliche Zahlen (196 m in Fundstelle 1 vs. 224,00 m in Fundstelle 2) ohne Hinweis auf unterschiedliche Version, Phase oder Messgröße.",
+        "A/Verifier[basis]: echt (kein) — Beide Fundstellen beziehen sich eindeutig auf die Talbrücke Musterbach (BW 2.02, Bau‑km 1+870) und geben unterschiedliche Längenangaben (196 m vs. 224,00 m). Die Dokumente sind aktuelle Fassungen, es gibt keine Hinweis auf unterschiedliche Phasen, Varianten oder Messgrößen, und keine erklärende Kontextangabe, sodass ein echter Widerspruch vorliegt.",
+        "A/Verifier[basis]: echt (kein) — Fundstelle 1 gibt die Länge der Talbrücke Musterbach (BW 2.02) mit 196 m an, Fundstelle 2 nennt für dasselbe Bauwerk (BW 2.02) eine Länge von 224,00 m – beide aktuelle Dokumente, gleiche Bezeichnung, gleiche Attribut, unterschiedliche Werte.",
+        "A/Verifier[eskalation]: echt (kein) — Fundstelle 1 beschreibt die Talbrücke Musterbach (BW 2.02) mit einer Länge von 196 m, während Fundstelle 2 dieselbe Talbrücke (BW 2.02) mit einer Länge von 224,00 m angibt.",
+        "A/Verifier[eskalation]: echt (kein) — Beide Fundstellen beziehen sich wörtlich auf Talbrücke Musterbach (BW 2.02) bei Bau‑km 1+870 und nennen unterschiedliche Längen (196 m in U01_Erlaeuterungsbericht.pdf, Seite 4; 224,00 m in U07-2_Bauwerksverzeichnis.pdf, Seite 2) ohne Hinweis auf unterschiedliche Planungsphase, Variante oder Messgröße.",
+        "B/Bewertung: 95 — Spitzenstufe",
+        "B/Rubrik 1: rolle=sachaussage; gegenstand=Talbrücke Musterbach (BW 2.02); merkmal=Länge und größte lichte Höhe; wert=196 m und 14,00 m; bezugsrahmen=",
+        "B/Rubrik 2: rolle=sachaussage; gegenstand=Talbrücke Musterbach (BW 2.02); merkmal=Länge und größte lichte Höhe; wert=224,00 m und 14,00 m; bezugsrahmen=",
+        "B/Rubrik: gleicher_gegenstand=ja; unvereinbar=ja; Die beiden Stellen beziehen sich beide auf die Talbrücke Musterbach (BW 2.02), geben jedoch unterschiedliche Längenangaben (196 m vs 224 m), sodass die Aussagen nicht gleichzeitig zutreffen können."
+      ],
+      "mergedCount": 1,
+      "status": "OPEN",
+      "occurrences": [
+        {
+          "documentId": "691d2127-aa21-57a3-90f4-627097249a11",
+          "documentName": "Auslegung/U01_Erlaeuterungsbericht.pdf",
+          "contentExcerpt": "hat eine Länge von 196 m und eine größte lichte Höhe von 14,00 m",
+          "contradiction": "Länge und größte lichte Höhe: 196 m und 14,00 m",
+          "pageNumber": 4
+        },
+        {
+          "documentId": "61b33ef5-4ee7-5156-9cbf-e4af819b57ad",
+          "documentName": "Auslegung/U07-2_Bauwerksverzeichnis.pdf",
+          "contentExcerpt": "Länge 224,00 m, größte lichte Höhe 14,00 m",
+          "contradiction": "Länge und größte lichte Höhe: 224,00 m und 14,00 m",
+          "pageNumber": 2
+        }
+      ]
+    }
+  ]
+}

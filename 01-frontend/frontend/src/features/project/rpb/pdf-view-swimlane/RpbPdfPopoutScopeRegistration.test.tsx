@@ -61,11 +61,11 @@ vi.mock('@/db/nodes/hooks/useGraph', () => ({
     getDescendants: (topicId: string) =>
       topicId === 'topic-1'
         ? [
-            { id: 'document-1', node_type: 'dokument' },
-            { id: 'document-2', node_type: 'dokument' },
-            { id: 'satz-1', node_type: 'satz' },
+            { id: 'document-1', nodeType: 'dokument' },
+            { id: 'document-2', nodeType: 'dokument' },
+            { id: 'satz-1', nodeType: 'satz' },
           ]
-        : [{ id: 'document-3', node_type: 'dokument' }],
+        : [{ id: 'document-3', nodeType: 'dokument' }],
     topics: [
       { id: 'topic-1', name: 'Topic One' },
       { id: 'topic-2', name: 'Topic Two' },
@@ -83,20 +83,20 @@ vi.mock('@/db/nodes/hooks/useTopicNodes', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | null) => ({
+  useNode: (nodeRef: { id: string; nodeType: string } | null) => ({
     data:
       nodeRef?.id === 'document-1'
         ? {
-            dms_file_id: 'file-1',
+            dmsFileId: 'file-1',
             filename: 'folder/preview.pdf',
             id: 'document-1',
-            node_type: 'dokument',
+            nodeType: 'dokument',
           }
         : null,
   }),
-  useNodes: (nodeRefs: { id: string; node_type: string }[]) => ({
+  useNodes: (nodeRefs: { id: string; nodeType: string }[]) => ({
     data: nodeRefs.map((nodeRef) => ({
-      dms_file_id:
+      dmsFileId:
         nodeRef.id === 'document-1'
           ? 'file-1'
           : nodeRef.id === 'document-2'
@@ -104,7 +104,7 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
             : 'file-3',
       filename: `${nodeRef.id}.pdf`,
       id: nodeRef.id,
-      node_type: 'dokument',
+      nodeType: 'dokument',
     })),
   }),
 }));

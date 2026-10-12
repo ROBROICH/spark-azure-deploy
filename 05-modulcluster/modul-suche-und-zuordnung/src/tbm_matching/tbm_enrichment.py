@@ -1,10 +1,10 @@
 from typing import Any
 
-from temporal.workflows.modul_suche_und_zuordnung.types import NormData
+from temporal.contracts import SucheZuordnungNormData as NormData
 
 from src.config import CONFIG
 from src.satz_orchestrator_helpers import _find_satz_context
-from src.tbm_matching.ranking import aggregate_to_documents, reciprocal_rank_fusion
+from src.tbm_matching.ranking import aggregate_to_documents, document_key, reciprocal_rank_fusion
 
 # ---------------------------------------------------------------------------
 # Extraction & fusion helpers (used directly by Temporal workflows)
@@ -60,11 +60,12 @@ def fuse_retrieval_results(
         retrieval_sources = [s for s in [docs_chunks, docs_summaries, docs_questions] if s]
         fused_docs = reciprocal_rank_fusion(retrieval_sources, top_k=top_k)
 
-        existing_titles = {d.get("title") for d in fused_docs}
+        existing_keys = {document_key(d) for d in fused_docs}
         for doc in docs_rules or []:
-            if doc.get("title") not in existing_titles:
+            doc_key = document_key(doc)
+            if doc_key not in existing_keys:
                 fused_docs.append(doc)
-                existing_titles.add(doc.get("title"))
+                existing_keys.add(doc_key)
 
         tbm["svms"] = fused_docs
         enriched_tbms.append(tbm)

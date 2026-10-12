@@ -1,0 +1,197 @@
+# =============================================================================
+# spark-platform — base values
+# =============================================================================
+#
+# Shared defaults for every SPARK environment rendered from this chart. This
+# file carries ONLY environment-independent wiring: the documented global keys
+# the subcharts consume and the add-on toggles. Everything environment-specific
+# (stage name, namespaces, endpoints, databases, buckets, images, secret store
+# paths) lives in a per-environment values file — one file per environment:
+#
+#   helm dependency update
+#   helm upgrade --install spark . -n <namespace> --create-namespace \
+#     -f values-<env>.yaml
+#
+# NOTE: the release name is part of every derived in-namespace service DNS name
+# ({release}-<chart>-<stage>); endpoints in the environment values must use
+# the release name the environment is installed with.
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# global — shared by ALL subcharts (spark-environment layers + leaf charts,
+# environment-config, gateway-routes, temporal wrapper, unoserver, …).
+# Helm propagates parent globals to every subchart; parent globals win over
+# the subchart-level global defaults.
+# ---------------------------------------------------------------------------
+global:
+
+  # Environment name (e.g. test, my-env, pr-123). Drives resource-name
+  # suffixes (-<stage>), labels and the gateway-routes host derivation.
+  # REQUIRED — set per environment.
+  stage:
+    name: ''
+
+  # "environment" pod label on every workload. Set to the stage name.
+  labels:
+    environment: ''
+
+  # Registry prefixed to every leaf chart image whose image.repository names
+  # no registry itself (e.g. a mirror: registry.example.com/mirror). A
+  # repository with a registry host and a chart's own image.registry win.
+  imageRegistry: ''
+
+  # Collapse ALL subcharts into one namespace (single-namespace
+  # environments). Set it EXPLICITLY there: the layer umbrellas default
+  # global.namespaceOverride to agent-services/backend-services/
+  # frontend-services and only a non-empty parent value overrides them.
+  # Multi-namespace environments leave it empty and set per-chart
+  # namespaceOverride values instead.
+  namespaceOverride: ''
+
+  # Shared per-namespace ServiceAccount. When name is set,
+  # every leaf chart suppresses its own ServiceAccount and runs as this KSA;
+  # the environment-config subchart creates it.
+  serviceAccount:
+    name: ''
+
+  # Image pull secrets for every application pod (leaf charts, backend pools,
+  # landing page, unoserver, ClamAV), prepended to each chart's own
+  # imagePullSecrets (de-duplicated by name). Kubernetes does NOT merge a
+  # pod-level list with the ServiceAccount's, and every chart renders its own
+  # list, so environment-wide credentials must come through here — putting
+  # them only on the shared ServiceAccount is not enough. List the secrets for
+  # every registry the environment's images come from.
+  # Example: [{name: registry-credentials}]
+  imagePullSecrets: []
+
+  # Selector style of every workload chart: false = app.kubernetes.io/name +
+  # instance; true = the legacy app: <fullname> (migration from a
+  # Kustomize-based deployment, adopting its Deployments; selectors are
+  # immutable).
+  legacyAppSelector: false
+
+  # Image tag for every application image (leaf charts and backend pools;
+  # not the third-party add-ons), e.g. a branch environment's moving image
+  # tag. Empty = each chart's own pin.
+  imageTag: ''
+
+  # Restrict imageTag to the images a branch actually built. With
+  # imageTagRestrict true, only images whose name (last segment of
+  # image.repository, e.g. "frontend", "spark-backend") is listed in the
+  # comma-separated imageTagServices get imageTag; all others keep their own
+  # pin. The deployment tooling typically sets the list from what the
+  # branch's pipeline has built so far; an empty list then means "nothing
+  # built yet".
+  imageTagRestrict: false
+  imageTagServices: ''
+
+  # Annotations on every application pod. A branch environment can stamp the
+  # branch's head commit here, so a new commit rolls the pods and — with a
+  # moving image tag and pullPolicy Always — pulls the fresh images.
+  podAnnotations: {}
+
+  # Shared baseline env vars for every container (list of EnvVar objects).
+  # A chart's own env/extraEnv wins on name collisions.
+  env: []
+
+  # Additional shared env vars merged after env (e.g. the AUTH_* block).
+  extraEnv: []
+
+  # The spark-backend modulith (all backend-services pools): image, config,
+  # secrets — see 02-backend/spark-backend-pool/values.yaml.
+  backend: {}
+
+# ---------------------------------------------------------------------------
+# spark-environment — the application stack (3 layer umbrellas). Per-service
+# overrides nest as spark-environment.<layer>.<chart> in the env values.
+# ---------------------------------------------------------------------------
+spark-environment:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# environment-config — namespace plumbing (KSA, ExternalSecrets, GMP
+# PodMonitoring, otel-collector, NetworkPolicies/mesh policies,
+# SpiceDBCluster); each component has its own switch inside the chart.
+# ---------------------------------------------------------------------------
+environment-config:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# gateway-routes — HTTPRoutes + SecurityPolicies against the shared Gateway.
+# Paired with landingpage: its landing-route serves dashboard.<domain>/ from
+# the landingpage Service. When disabling landingpage, also set
+# gateway-routes.landing.enabled=false (the dashboard route then redirects
+# the apex to /app).
+# ---------------------------------------------------------------------------
+gateway-routes:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# db-init — opt-in database initialization (see 03-infrastructure/db-init):
+# per database create-if-missing, drop (database | tables) and restore of a
+# GCS/HTTPS dump; SpiceDB zed restore. Renders nothing unless asked.
+# ---------------------------------------------------------------------------
+db-init:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# db-proxy — in-cluster endpoints for databases outside the cluster (see
+# 03-infrastructure/db-proxy): Cloud SQL Auth Proxy and/or a session-mode
+# PgBouncer. Off by default; the components inside are opt-in as well.
+# ---------------------------------------------------------------------------
+db-proxy:
+  enabled: false
+
+landingpage:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# In-namespace engines: Temporal (wrapper of the upstream chart), unoserver
+# (document conversion), ClamAV (upload scanning — the backend's scanning is
+# fail-closed; re-point CLAMAV_BASE_URL when disabling it).
+# ---------------------------------------------------------------------------
+temporal:
+  enabled: true
+
+unoserver:
+  enabled: true
+
+clamav:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# Modules outside the layers and the per-provider llm-client queue workers
+# (see Chart.yaml): on by default, configured under the same keys.
+# ---------------------------------------------------------------------------
+modul-risikohinweiser:
+  enabled: true
+
+fallvergleichsservice:
+  enabled: true
+
+modul-normenermittlung:
+  enabled: true
+
+llm-client-vertex:
+  enabled: true
+
+llm-client-ionos:
+  enabled: true
+
+llm-client-mistral:
+  enabled: true
+
+llm-client-nvidia:
+  enabled: true
+
+llm-client-huggingface:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# extraObjects — additional manifests for environment-specific objects no
+# chart models, e.g. Namespaces with labels or mesh routing. A map entry is
+# emitted verbatim; a string entry (a YAML document as block scalar) is
+# rendered with tpl and may use .Values/.Release — escape foreign templating
+# there as {{ "{{" }} … {{ "}}" }}.
+# ---------------------------------------------------------------------------
+extraObjects: []

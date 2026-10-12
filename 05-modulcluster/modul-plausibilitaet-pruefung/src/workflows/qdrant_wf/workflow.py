@@ -4,6 +4,7 @@ from datetime import timedelta
 
 from temporal.activities.embedding import embedding_invoke
 from temporal.activities.models import EmbeddingModel
+from temporal.contracts import PlausibilityOrchestratorInput
 from temporal.utils import sliding_window
 from temporalio import workflow
 from temporalio.common import RetryPolicy
@@ -20,10 +21,7 @@ from src.activities.qdrant_activities import (
 from src.config.config import config
 from src.config.env import ENV
 from src.qdrant.schemas import ChunkPayload, ClaimPayload
-from src.workflows.input_schemas import (
-    OrchestratorInputSchema,
-    SingleDocumentWorkflowInputSchema,
-)
+from src.workflows.input_schemas import SingleDocumentWorkflowInputSchema
 from src.workflows.qdrant_wf.extraction_batch_workflow import ClaimExtractionBatchWorkflow
 from src.workflows.qdrant_wf.schemas.workflow import (
     DocumentActivityInput,
@@ -31,6 +29,14 @@ from src.workflows.qdrant_wf.schemas.workflow import (
     ExtractionBatchOutput,
     UploadClaimsInput,
 )
+from src.workflows.retry import qdrant_retry_policy
+
+
+def chunks_to_extract(chunks: list[ChunkPayload]) -> list[ChunkPayload]:
+    """Text chunks, followed by table chunks if ``QDRANT_BUILDER.EXTRACT_TABLES`` is set."""
+    text_chunks = [c for c in chunks if c.chunk_type == "text"]
+    table_chunks = [c for c in chunks if c.chunk_type == "table"] if config.QDRANT_BUILDER.EXTRACT_TABLES else []
+    return text_chunks + table_chunks
 
 
 @workflow.defn
@@ -44,12 +50,7 @@ class ClaimExtractionSingleDocumentWorkflow:
             delete_document_from_qdrant,
             arg=DocumentActivityInput(project_id=inp.project_id, document_id=inp.document_id),
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
-            retry_policy=RetryPolicy(
-                maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES * 10,
-                initial_interval=timedelta(seconds=10),
-                backoff_coefficient=2,
-                maximum_interval=timedelta(seconds=30),
-            ),
+            retry_policy=qdrant_retry_policy(),
         )
 
         # Phase 2: Fetch all chunks for this document
@@ -57,22 +58,13 @@ class ClaimExtractionSingleDocumentWorkflow:
             fetch_and_prepare_chunks,
             arg=DocumentActivityInput(project_id=inp.project_id, document_id=inp.document_id),
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
-            retry_policy=RetryPolicy(
-                maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES * 10,
-                initial_interval=timedelta(seconds=10),
-                backoff_coefficient=2,
-                maximum_interval=timedelta(seconds=30),
-            ),
+            retry_policy=qdrant_retry_policy(),
         )
 
-        text_chunks = [c for c in chunk_payloads if c.chunk_type == "text"]
-        # Table extraction is disabled. To re-enable, filter chunk_payloads by
-        # chunk_type == "table" and assign the result here.
-        table_chunks: list[ChunkPayload] = []
         batch_size = config.TEMPORAL.CHILD_WORKFLOW_BATCH_SIZE
 
         # Phase 3-5: Extract claims in child workflow batches (bounded history per child)
-        all_chunks = text_chunks + table_chunks
+        all_chunks = chunks_to_extract(chunk_payloads)
         chunk_batches = [all_chunks[i : i + batch_size] for i in range(0, len(all_chunks), batch_size)]
 
         batch_results: list[ExtractionBatchOutput] = await sliding_window(
@@ -87,7 +79,7 @@ class ClaimExtractionSingleDocumentWorkflow:
                     table_chunks=[c for c in batch if c.chunk_type == "table"],
                 ),
                 task_queue=workflow.info().task_queue,
-                task_timeout=timedelta(seconds=60),
+                task_timeout=timedelta(seconds=config.TEMPORAL.WORKFLOW_TASK_TIMEOUT_SECONDS),
             ),
             concurrency=config.TEMPORAL.MAX_CONCURRENT_CHILD_WORKFLOWS,
         )
@@ -110,11 +102,7 @@ async def _embed_and_upload_claims(
     claims: list[ClaimPayload],
     embedding_model: EmbeddingModel,
 ) -> None:
-    """Embed a batch of claims via the shared embedding activity, then upload to Qdrant.
-
-    Splits embedding across batches inside ``embedding_invoke`` and dispatches a
-    single upsert activity per claim batch.
-    """
+    """Embed a batch of claims via the shared embedding activity, then upload to Qdrant."""
     if not claims:
         return
 
@@ -127,12 +115,7 @@ async def _embed_and_upload_claims(
         upload_claims_to_qdrant,
         arg=UploadClaimsInput(claims=claims),
         start_to_close_timeout=timedelta(seconds=config.TEMPORAL.UPLOAD_ACTIVITY_TIMEOUT_SECONDS),
-        retry_policy=RetryPolicy(
-            maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES * 10,
-            initial_interval=timedelta(seconds=10),
-            backoff_coefficient=2,
-            maximum_interval=timedelta(seconds=30),
-        ),
+        retry_policy=qdrant_retry_policy(),
     )
 
 
@@ -141,7 +124,7 @@ class ClaimExtractionOrchestratorWorkflow:
     """Orchestrates claim extraction and indexing across multiple documents."""
 
     @workflow.run
-    async def run(self, inp: OrchestratorInputSchema) -> None:
+    async def run(self, inp: PlausibilityOrchestratorInput) -> None:
         workflow.logger.info(f"Starting orchestration for {len(inp.document_ids)} documents.")
 
         await workflow.execute_activity(
@@ -150,15 +133,15 @@ class ClaimExtractionOrchestratorWorkflow:
             retry_policy=RetryPolicy(maximum_attempts=config.QDRANT_BUILDER.DEFAULT_ACTIVITY_RETRIES),
         )
 
-        erlauterungsbericht_ids = inp.erlaeuterungsbericht_document_ids
-        if not erlauterungsbericht_ids:
-            erlauterungsbericht_ids = await workflow.execute_activity(  # type: ignore[no-matching-overload]
+        erlaeuterungsbericht_ids = inp.erlaeuterungsbericht_document_ids
+        if not erlaeuterungsbericht_ids:
+            erlaeuterungsbericht_ids = await workflow.execute_activity(  # type: ignore[no-matching-overload]
                 fetch_erlauterungsbericht_document_ids,
                 inp.classification_file_id,
                 start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
             )
-        erlauterungsbericht_set = set(erlauterungsbericht_ids)
-        workflow.logger.info(f"Found {len(erlauterungsbericht_ids)} Erläuterungsbericht documents.")
+        erlaeuterungsbericht_set = set(erlaeuterungsbericht_ids)
+        workflow.logger.info(f"Found {len(erlaeuterungsbericht_ids)} Erläuterungsbericht documents.")
 
         await sliding_window(
             inp.document_ids,
@@ -167,11 +150,11 @@ class ClaimExtractionOrchestratorWorkflow:
                 arg=SingleDocumentWorkflowInputSchema(
                     project_id=inp.project_id,
                     document_id=doc_id,
-                    is_erlaeuterungsbericht=doc_id in erlauterungsbericht_set,
+                    is_erlaeuterungsbericht=doc_id in erlaeuterungsbericht_set,
                 ),
                 task_queue=workflow.info().task_queue,
                 id=f"qdrant-worker-{inp.project_id}-{doc_id}",
-                task_timeout=timedelta(seconds=60),
+                task_timeout=timedelta(seconds=config.TEMPORAL.WORKFLOW_TASK_TIMEOUT_SECONDS),
             ),
             concurrency=config.TEMPORAL.MAX_CONCURRENT_CHILD_WORKFLOWS,
         )

@@ -32,6 +32,12 @@
 /* Custom dark mode variant for Tailwind CSS v4 */
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Reflow the sidebar to a single scroll region when vertical space is tight
+ * (small screens or enhanced zoom)
+ */
+@custom-variant sidebar-reflow (@media (max-height: 40rem));
+
 /* ==========================================================================
    Light Theme Variables (:root)
    ========================================================================== */
@@ -169,6 +175,9 @@
   /* Layout */
   --radius: 0.625rem;
   --cell-size: 50px;
+  /* Minimum pane height below `lg` (and at high zoom) before the project
+     route allows vertical page scroll instead of collapsing swimlanes. */
+  --reflow-min-h: 600px;
 
   /* === Button-specific tokens === */
   --button-shadow: 0px 2px 8px 2px rgba(8, 35, 48, 0.24);
@@ -622,6 +631,24 @@
         inset 0 0 0 2px var(--brand-950),
         inset 0 0 0 3px var(--neutral-white);
     }
+  }
+}
+
+/* Windows Contrast Mode focus (A11y 399): ring-* focus compiles to box-shadow,
+   which forced-colors drops, so restore a real system-color outline. Unlayered
+   to override the outline:none inside .focus-ring. */
+@media (forced-colors: active) {
+  :focus-visible,
+  .focus-ring:focus-visible,
+  .focus-ring-within:focus-within {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  /* Inset variant: keep the outline inside overflow:hidden containers. */
+  .focus-ring-inset:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
   }
 }
 

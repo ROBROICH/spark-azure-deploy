@@ -1,4 +1,10 @@
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
+import {
+  ActionMenu,
+  ActionMenuCheckboxItem,
+  ActionMenuContent,
+  ActionMenuTrigger,
+} from '@/features/ui/action-menu/ActionMenu';
 import { Button } from '@/features/ui/button/Button';
 import { SplitButton } from '@/features/ui/button/SplitButton';
 import {
@@ -6,11 +12,17 @@ import {
   type SelectMenuItem,
 } from '@/features/ui/select-menu/SelectMenu';
 import { AiSuggestionBadge } from '@/features/ui/ai-suggestion-badge/AiSuggestionBadge';
+import { useBelowLg } from '@/features/ui/responsive/useMobile';
 import { cn } from '@/features/ui/style/cn';
-import { ChevronLeft } from 'lucide-react';
+import { Check, ChevronLeft, MoreVertical } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ArgumentClassificationReviewActions } from '../shared-ui/ArgumentClassificationReviewActions';
-import type { EwmsArgumentStatus, EwmsTopicNode } from '../data/ewms.nodes';
+import { ArgumentClassificationUncertaintyWarning } from '../shared-ui/ArgumentClassificationUncertaintyWarning';
+import type {
+  EwmsArgumentNode,
+  EwmsArgumentStatus,
+  EwmsTopicNode,
+} from '../data/ewms.nodes';
 import {
   isEwmsVisibleTopic,
   normalizeEwmsArgumentStatus,
@@ -18,6 +30,7 @@ import {
 import { useEwmsSubtopics } from '../workspace/EwmsSubtopicsContext';
 
 type TopicClassificationToolbarProps = {
+  argument: EwmsArgumentNode;
   referenceId: string;
   argumentStatus: EwmsArgumentStatus;
   topics: EwmsTopicNode[];
@@ -73,6 +86,7 @@ export const TopicClassificationToolbar = (
   props: TopicClassificationToolbarProps,
 ) => {
   const {
+    argument,
     referenceId,
     argumentStatus,
     topics,
@@ -138,19 +152,53 @@ export const TopicClassificationToolbar = (
         />
 
         {isTopicReviewOpen && (
-          <ArgumentClassificationReviewActions
-            referenceId={referenceId}
-            disabled={!canMutateProject}
-            onAccept={onAcceptClassification}
-            onReject={onRejectClassification}
-          />
+          <>
+            <ArgumentClassificationUncertaintyWarning argument={argument} />
+            <ArgumentClassificationReviewActions
+              referenceId={referenceId}
+              disabled={!canMutateProject}
+              onAccept={onAcceptClassification}
+              onReject={onRejectClassification}
+            />
+          </>
         )}
       </div>
 
+      <ApproveArgumentControl
+        referenceId={referenceId}
+        isApproved={isApproved}
+        disabled={!canMutateProject}
+        onToggleApproval={onToggleApproval}
+      />
+    </div>
+  );
+};
+
+type ApproveArgumentControlProps = {
+  referenceId: string;
+  isApproved: boolean;
+  disabled: boolean;
+  onToggleApproval: () => void;
+};
+
+/**
+ * Approve-toggle for the argument header. Renders a full `SplitButton` at
+ * `lg`+ and collapses to a three-dot `ActionMenu` below `lg` where the
+ * topic/subtopic selects crowd the toolbar. A green Check next to the
+ * trigger shows the approved state without opening the menu. When disabled,
+ * we render a bare icon button so the menu can never open read-only.
+ */
+function ApproveArgumentControl(props: ApproveArgumentControlProps) {
+  const { referenceId, isApproved, disabled, onToggleApproval } = props;
+  const { t } = useTranslation('Ewms');
+  const isCompact = useBelowLg();
+
+  if (!isCompact) {
+    return (
       <SplitButton
         checked={isApproved}
         onCheckedChange={onToggleApproval}
-        disabled={!canMutateProject}
+        disabled={disabled}
         size="sm"
         checkedLabel={t('arguments.approved')}
         uncheckedLabel={t('arguments.approve')}
@@ -160,6 +208,60 @@ export const TopicClassificationToolbar = (
             : t('arguments.approveArgumentLabel', { referenceId })
         }
       />
+    );
+  }
+
+  const triggerAriaLabel = isApproved
+    ? t('arguments.approvedArgumentLabel', { referenceId })
+    : t('arguments.approveArgumentLabel', { referenceId });
+  const itemLabel = isApproved
+    ? t('arguments.unapprove')
+    : t('arguments.approve');
+
+  const checkedIndicator = isApproved ? (
+    <Check
+      className="size-4 shrink-0 text-green-900"
+      data-testid="argument-approved-indicator"
+      aria-hidden="true"
+    />
+  ) : null;
+
+  const triggerButton = (
+    <Button
+      variant="secondary"
+      size="sm"
+      iconOnly
+      disabled={disabled}
+      aria-label={triggerAriaLabel}
+    >
+      <MoreVertical aria-hidden="true" />
+    </Button>
+  );
+
+  if (disabled) {
+    return (
+      <div className="flex items-center gap-2">
+        {checkedIndicator}
+        {triggerButton}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      {checkedIndicator}
+      <ActionMenu>
+        <ActionMenuTrigger asChild>{triggerButton}</ActionMenuTrigger>
+        <ActionMenuContent align="end">
+          <ActionMenuCheckboxItem
+            checked={isApproved}
+            onSelect={(event) => event.preventDefault()}
+            onCheckedChange={() => onToggleApproval()}
+          >
+            {itemLabel}
+          </ActionMenuCheckboxItem>
+        </ActionMenuContent>
+      </ActionMenu>
     </div>
   );
-};
+}

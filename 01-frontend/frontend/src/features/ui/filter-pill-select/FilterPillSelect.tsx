@@ -1,12 +1,13 @@
 import {
-  SelectMenuContent,
-  SelectMenuOption,
-  SelectMenuRoot,
-  SelectMenuTrigger,
-  SelectMenuViewport,
-} from '@/features/ui/select-menu/SelectMenu';
+  ActionMenu,
+  ActionMenuContent,
+  ActionMenuRadioGroup,
+  ActionMenuRadioItem,
+  ActionMenuTrigger,
+} from '@/features/ui/action-menu/ActionMenu';
 import { cn } from '@/features/ui/style/cn';
-import { X } from 'lucide-react';
+import { POPUP_SELECT_ITEM_CLASSES } from '@/features/ui/style/popupStyles';
+import { Check, X } from 'lucide-react';
 import {
   forwardRef,
   type ComponentPropsWithoutRef,
@@ -17,7 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '../button/Button';
 
 const TRIGGER_BUTTON_CLASSES =
-  'focus-ring inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg py-1 pl-1 text-[11px] leading-[14px] font-medium tracking-[0.02em] text-slate-600 transition-colors hover:text-slate-900 disabled:cursor-default disabled:opacity-50';
+  'focus-ring inline-flex h-8 cursor-pointer items-center gap-1 rounded-lg py-1 pl-1 text-[11px] leading-[14px] font-medium tracking-[0.02em] text-slate-600 transition-colors hover:text-slate-900 disabled:cursor-default disabled:opacity-50 forced-colors:hover:text-[color:CanvasText]';
 
 type FilterPillSelectTriggerButtonProps = ComponentPropsWithoutRef<'button'> & {
   disabled?: boolean;
@@ -160,37 +161,41 @@ export function FilterPillSelect<
 
   return (
     <div className={cn('inline-flex items-center gap-0', className)}>
-      <SelectMenuRoot
-        value={selectedOption?.value ?? ''}
-        onValueChange={(strValue) => {
-          const option = options.find((o) => o.value === strValue);
-          if (option) {
-            onValueChange?.(getOptionQueryValue(option));
-          }
-        }}
-      >
-        <SelectMenuTrigger asChild>
+      <ActionMenu>
+        <ActionMenuTrigger asChild>
           <FilterPillSelectTriggerButton
             icon={icon}
             showClear={showClear}
             triggerLabel={triggerLabel}
             aria-label={triggerAriaLabel}
           />
-        </SelectMenuTrigger>
-        <SelectMenuContent align={align}>
-          <SelectMenuViewport className="p-1">
+        </ActionMenuTrigger>
+        <ActionMenuContent align={align}>
+          <ActionMenuRadioGroup
+            value={selectedOption?.value ?? ''}
+            onValueChange={(strValue) => {
+              const option = options.find((o) => o.value === strValue);
+              if (option) {
+                onValueChange?.(getOptionQueryValue(option));
+              }
+            }}
+          >
             {options.map((option) => (
-              <SelectMenuOption
+              <ActionMenuRadioItem
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
+                className={POPUP_SELECT_ITEM_CLASSES}
               >
                 {option.label}
-              </SelectMenuOption>
+                {option.value === selectedOption?.value ? (
+                  <Check className="size-4 shrink-0" aria-hidden="true" />
+                ) : null}
+              </ActionMenuRadioItem>
             ))}
-          </SelectMenuViewport>
-        </SelectMenuContent>
-      </SelectMenuRoot>
+          </ActionMenuRadioGroup>
+        </ActionMenuContent>
+      </ActionMenu>
       {showClear ? (
         <Button
           aria-label={clearAriaLabel ?? t('common.resetFilter')}

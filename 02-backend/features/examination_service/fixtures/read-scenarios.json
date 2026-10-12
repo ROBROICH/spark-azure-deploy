@@ -1,0 +1,323 @@
+{
+  "projects": {
+    "populated": {
+      "id": "e17baca1-af91-48d0-9702-9c34880d7046",
+      "latestVersion": 1
+    },
+    "empty": {
+      "id": "e17baca1-af91-48d0-9702-9c34880d7046",
+      "latestVersion": 2
+    },
+    "unknown": { "id": "73000000-0000-4000-8000-000000000003" },
+    "missingVersion": { "id": "73000000-0000-4000-8000-000000000004" },
+    "upstreamFailure": { "id": "73000000-0000-4000-8000-000000000005" }
+  },
+  "nodes": {
+    "law": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+    "versionedNorm": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+    "currentOnlyNorm": "96e61655-b310-4ebe-a30d-e3c10f37fed1",
+    "deletedNorm": "74000000-0000-4000-8000-000000000013",
+    "unknownNorm": "74000000-0000-4000-8000-000000000099"
+  },
+  "lawDatabaseBoundary": {
+    "requests": [
+      {
+        "method": "GET",
+        "path": "/documents/",
+        "query": "",
+        "expectedCallsPerRun": 6,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "doknr": "DOC-BKAG-1",
+              "jurabk": "BKAG",
+              "langue": "Bundeskriminalamtgesetz",
+              "kurzue": "BKAG",
+              "bundesland": null,
+              "doktyp": "G",
+              "fundstelle": "BGBl I synthetic",
+              "standangaben": [{ "standtyp": "Stand", "standkommentar": "2026-01-01" }]
+            },
+            {
+              "doknr": "DOC-SGBI-1",
+              "jurabk": "SGBI",
+              "titel": "Sozialgesetzbuch Erstes Buch",
+              "kurztitel": "SGB I",
+              "bundesland": null,
+              "doktyp": "G",
+              "fundstelle": null,
+              "standangaben": []
+            },
+            {
+              "doknr": "DOC-BY-1",
+              "jurabk": "BYLAW",
+              "titel": "Bayerisches Beispielgesetz",
+              "kurztitel": "BayBeispG",
+              "bundesland": "BY",
+              "doktyp": "Landesgesetz",
+              "fundstelle": "GVBl BY synthetic",
+              "standangaben": []
+            },
+            {
+              "doknr": "DOC-NW-1",
+              "jurabk": "NWLAW",
+              "titel": "Nordrhein-Westfaelisches Beispielgesetz",
+              "kurztitel": "NWBeispG",
+              "bundesland": "NW",
+              "doktyp": "Landesgesetz",
+              "fundstelle": "GV NRW synthetic",
+              "standangaben": []
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/documents/",
+        "query": "bundesland=BY",
+        "expectedCallsPerRun": 1,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "doknr": "DOC-BY-1",
+              "jurabk": "BYLAW",
+              "titel": "Bayerisches Beispielgesetz",
+              "kurztitel": "BayBeispG",
+              "bundesland": "BY",
+              "doktyp": "Landesgesetz",
+              "fundstelle": "GVBl BY synthetic",
+              "standangaben": []
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/toc/",
+        "query": "",
+        "expectedCallsPerRun": 7,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "Title": "Aufgaben",
+              "Ident": "§ 10",
+              "paragraph_nr": "§ 10",
+              "paragraph_typ": "§",
+              "text": "Aufgaben des Bundeskriminalamts",
+              "jurabk": "BKAG",
+              "doknr": "DOC-BKAG-1"
+            },
+            {
+              "Title": "Zusammenarbeit",
+              "Ident": "§ 11",
+              "paragraph_nr": "11",
+              "paragraph_typ": "§",
+              "text": "Zusammenarbeit",
+              "jurabk": "BKAG",
+              "doknr": "DOC-BKAG-1"
+            },
+            {
+              "Title": "Allgemeines",
+              "Ident": "§ 5",
+              "paragraph_nr": "5",
+              "paragraph_typ": "§",
+              "text": "Allgemeines",
+              "jurabk": "SGBI",
+              "doknr": "DOC-SGBI-1"
+            },
+            {
+              "Title": "Bayern",
+              "Ident": "§ 2",
+              "paragraph_nr": "2",
+              "paragraph_typ": "§",
+              "text": "Bayerische Regelung",
+              "jurabk": "BYLAW",
+              "doknr": "DOC-BY-1"
+            },
+            {
+              "Title": "Nordrhein-Westfalen",
+              "Ident": "§ 3",
+              "paragraph_nr": "3",
+              "paragraph_typ": "§",
+              "text": "Nordrhein-Westfaelische Regelung",
+              "jurabk": "NWLAW",
+              "doknr": "DOC-NW-1"
+            },
+            {
+              "Title": "Heading",
+              "Ident": "Teil 1",
+              "paragraph_nr": null,
+              "paragraph_typ": "Teil",
+              "text": "Ignored heading",
+              "jurabk": "BKAG",
+              "doknr": "DOC-BKAG-1"
+            },
+            {
+              "Title": "Missing document",
+              "Ident": "§ 1",
+              "paragraph_nr": "1",
+              "paragraph_typ": "§",
+              "text": "Ignored orphan",
+              "jurabk": "ORPHAN",
+              "doknr": "DOC-MISSING"
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "include_absaetze=false&jurabk=BKAG",
+        "expectedCallsPerRun": 1,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "jurabk": "BKAG",
+              "paragraph_nr": "11",
+              "titel": "Zusammenarbeit",
+              "paragraph_text": "Zusammenarbeit text",
+              "doknr": "DOC-BKAG-1",
+              "bundesland": null,
+              "dokument_typ": "G",
+              "prev": "10",
+              "next": null
+            },
+            {
+              "jurabk": "BKAG",
+              "paragraph_nr": "10",
+              "titel": "Aufgaben",
+              "paragraph_text": "Aufgaben text",
+              "doknr": "DOC-BKAG-1",
+              "bundesland": null,
+              "dokument_typ": "G",
+              "prev": null,
+              "next": "11"
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "include_absaetze=false&jurabk=BKAG&paragraph_nr=10",
+        "expectedCallsPerRun": 1,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "jurabk": "BKAG",
+              "paragraph_nr": "10",
+              "titel": "Aufgaben",
+              "paragraph_text": "Aufgaben text",
+              "doknr": "DOC-BKAG-1",
+              "bundesland": null,
+              "dokument_typ": "G",
+              "prev": null,
+              "next": "11"
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "doknr=DOC-BY-1&include_absaetze=false",
+        "expectedCallsPerRun": 1,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "jurabk": "BYLAW",
+              "paragraph_nr": "2",
+              "titel": "Bayern",
+              "paragraph_text": "Bayerische Regelung",
+              "doknr": "DOC-BY-1",
+              "bundesland": "BY",
+              "dokument_typ": "Landesgesetz",
+              "prev": null,
+              "next": null
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "bundesland=BY&include_absaetze=false&jurabk=BYLAW&paragraph_nr=2",
+        "expectedCallsPerRun": 1,
+        "outcome": {
+          "status": 200,
+          "body": [
+            {
+              "jurabk": "BYLAW",
+              "paragraph_nr": "2",
+              "titel": "Bayern",
+              "paragraph_text": "Bayerische Regelung",
+              "doknr": "DOC-BY-1",
+              "bundesland": "BY",
+              "dokument_typ": "Landesgesetz",
+              "prev": null,
+              "next": null
+            }
+          ]
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "bundesland=BY&include_absaetze=false&jurabk=BKAG",
+        "expectedCallsPerRun": 1,
+        "outcome": { "status": 200, "body": [] }
+      },
+      {
+        "method": "GET",
+        "path": "/norms/search",
+        "query": "include_absaetze=false&jurabk=FAIL",
+        "expectedCallsPerRun": 1,
+        "outcome": { "status": 503, "body": { "detail": "Synthetic Law Database failure" } }
+      },
+      {
+        "method": "GET",
+        "path": "/documents/BKAG",
+        "query": "",
+        "expectedCallsPerRun": 2,
+        "outcome": {
+          "status": 200,
+          "body": {
+            "doknr": "DOC-BKAG-1",
+            "jurabk": "BKAG",
+            "langue": "Bundeskriminalamtgesetz",
+            "kurzue": "BKAG",
+            "bundesland": null,
+            "doktyp": "G",
+            "fundstelle": "BGBl I synthetic",
+            "standangaben": [{ "standtyp": "Stand", "standkommentar": "2026-01-01" }]
+          }
+        }
+      },
+      {
+        "method": "GET",
+        "path": "/documents/BYLAW",
+        "query": "bundesland=BY",
+        "expectedCallsPerRun": 2,
+        "outcome": {
+          "status": 200,
+          "body": {
+            "doknr": "DOC-BY-1",
+            "jurabk": "BYLAW",
+            "titel": "Bayerisches Beispielgesetz",
+            "kurztitel": "BayBeispG",
+            "bundesland": "BY",
+            "doktyp": "Landesgesetz",
+            "fundstelle": "GVBl BY synthetic",
+            "standangaben": []
+          }
+        }
+      }
+    ]
+  }
+}

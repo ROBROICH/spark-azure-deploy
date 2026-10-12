@@ -38,7 +38,8 @@
       "open": "Open",
       "requested": "Requested",
       "irrelevant": "Irrelevant"
-    }
+    },
+    "weaklySupported": "Weakly supported – please check the original"
   },
   "ContradictionsList": {
     "title": "Hints",

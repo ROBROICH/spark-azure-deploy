@@ -103,7 +103,7 @@ const AiParticipationRealSubtopicArgumentList = (
     'argument',
     subtopicRef,
   );
-  const subtopicOwnerTopicId = subtopic?.topic_id;
+  const subtopicOwnerTopicId = subtopic?.topicId;
   const canMutate =
     Boolean(subtopicOwnerTopicId) &&
     subtopicOwnerTopicId === routeTopicId &&
@@ -181,7 +181,7 @@ const AiParticipationArgumentList = (
       routeTopicId={topicRef.id}
       subtopicRef={{
         id: participationSubtopicId,
-        node_type: 'subtopic',
+        nodeType: 'subtopic',
       }}
     />
   );
@@ -199,7 +199,7 @@ export const AiParticipationDetailView = () => {
   const topicRef = topicId
     ? ({
         id: topicId,
-        node_type: 'topic',
+        nodeType: 'topic',
       } satisfies NodeRefByType<'topic'>)
     : null;
 

@@ -8,6 +8,8 @@ const mocks = vi.hoisted(() => ({
   allowDevMode: true,
   roleSwitcherFeatureEnabled: false,
   isDevMode: false,
+  currentUserRole: 'user' as 'admin' | 'user',
+  currentPath: '/',
   setDevMode: vi.fn(),
   setOpenMobile: vi.fn(),
   toggleSidebar: vi.fn(),
@@ -25,19 +27,19 @@ type MockRouterState = {
   };
 };
 
-vi.mock('@tanstack/react-router', () => {
-  const routerState: MockRouterState = {
-    location: {
-      pathname: '/',
-    },
-  };
+vi.mock('@tanstack/react-router', () => ({
+  useRouterState: (options?: {
+    select?: (state: MockRouterState) => unknown;
+  }) => {
+    const routerState: MockRouterState = {
+      location: {
+        pathname: mocks.currentPath,
+      },
+    };
 
-  return {
-    useRouterState: (options?: {
-      select?: (state: MockRouterState) => unknown;
-    }) => (options?.select ? options.select(routerState) : routerState),
-  };
-});
+    return options?.select ? options.select(routerState) : routerState;
+  },
+}));
 
 vi.mock(
   '@/features/workflow-runtime/system-load/SystemLoadSidebarButton',
@@ -49,6 +51,7 @@ vi.mock(
 vi.mock('@/features/access-control/current-user/CurrentUserProvider', () => ({
   useCurrentUser: () => ({
     displayName: 'Test User',
+    role: mocks.currentUserRole,
   }),
 }));
 
@@ -79,6 +82,10 @@ vi.mock('../../access-control/current-user/RoleSwitcher', () => ({
   RoleSwitcher: () => <div data-testid="role-switcher" />,
 }));
 
+vi.mock('@/features/product-mode/AdminMenu', () => ({
+  AdminMenu: () => <div data-testid="product-mode-switcher" />,
+}));
+
 vi.mock('./CurrentProjectCard', () => ({
   CurrentProjectCard: () => <div />,
 }));
@@ -107,6 +114,7 @@ vi.mock('@/features/ui/sidebar/Sidebar', async () => {
 
   type LinkButtonProps = BaseProps & {
     'aria-label'?: string;
+    isActive?: boolean;
     onClick?: React.MouseEventHandler<HTMLAnchorElement>;
     to?: string;
   };
@@ -136,6 +144,7 @@ vi.mock('@/features/ui/sidebar/Sidebar', async () => {
     <a
       href={props.to ?? '#'}
       aria-label={props['aria-label']}
+      aria-current={props.isActive ? 'page' : undefined}
       onClick={(event) => {
         event.preventDefault();
         props.onClick?.(event);
@@ -184,6 +193,8 @@ describe('SiteNavbar', () => {
     mocks.allowDevMode = true;
     mocks.roleSwitcherFeatureEnabled = false;
     mocks.isDevMode = false;
+    mocks.currentUserRole = 'user';
+    mocks.currentPath = '/';
     mocks.setDevMode.mockClear();
     mocks.setOpenMobile.mockClear();
     mocks.toggleSidebar.mockClear();
@@ -255,5 +266,52 @@ describe('SiteNavbar', () => {
     render(<SiteNavbar />);
 
     expect(screen.queryByTestId('role-switcher')).toBeNull();
+  });
+
+  it('hides the product mode switch while dev mode is inactive', () => {
+    render(<SiteNavbar />);
+
+    expect(screen.queryByTestId('product-mode-switcher')).toBeNull();
+  });
+
+  it('shows the product mode switch only after dev mode is activated', () => {
+    mocks.isDevMode = true;
+
+    render(<SiteNavbar />);
+
+    expect(screen.getByTestId('product-mode-switcher')).toBeTruthy();
+  });
+
+  it('renders the administration destination for admins', () => {
+    mocks.currentUserRole = 'admin';
+
+    render(<SiteNavbar />);
+
+    expect(
+      screen.getByRole('link', { name: 'sidebar.administration' }),
+    ).toBeTruthy();
+  });
+
+  it('hides the administration destination for regular users', () => {
+    mocks.currentUserRole = 'user';
+
+    render(<SiteNavbar />);
+
+    expect(
+      screen.queryByRole('link', { name: 'sidebar.administration' }),
+    ).toBeNull();
+  });
+
+  it('keeps the administration destination active on nested project-type routes', () => {
+    mocks.currentUserRole = 'admin';
+    mocks.currentPath = '/administration/type-1';
+
+    render(<SiteNavbar />);
+
+    expect(
+      screen
+        .getByRole('link', { name: 'sidebar.administration' })
+        .getAttribute('aria-current'),
+    ).toBe('page');
   });
 });

@@ -45,7 +45,7 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
       {
         id: 'topic-norm-1',
         jurabk: 'BNatSchG',
-        paragraph_nr: '44',
+        paragraphNr: '44',
       },
     ],
   }),
@@ -72,33 +72,32 @@ vi.mock('./AiLegalBasisLawGroup', async () => {
 const createTopicNormRef = (id: string) => {
   return {
     id,
-    node_type: 'topic_norm',
+    nodeType: 'topic_norm',
   } satisfies NodeRefByType<'topic_norm'>;
 };
 
 const createTopicNorm = (id: string, paragraphNr: string) => {
   return {
     id,
-    node_type: 'topic_norm',
-    topic_id: 'topic-1',
-    project_id: 'project-1',
+    nodeType: 'topic_norm',
+    topicId: 'topic-1',
+    projectId: 'project-1',
     type: 'pruefung',
-    mvp_status: 'unchecked',
-    satz_statuses: {},
-    is_outdated: false,
-    update_type: null,
-    is_deleted: false,
-    frontend_parent_ids: [],
-    project_version: 1,
-    created_at: '2026-01-01T00:00:00.000Z',
-    updated_at: '2026-01-01T00:00:00.000Z',
-    sys_period: null,
+    mvpStatus: 'unchecked',
+    satzStatuses: {},
+    isOutdated: false,
+    updateType: null,
+    isDeleted: false,
+    frontendParentIds: [],
+    projectVersion: 1,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
     jurabk: 'BNatSchG',
-    paragraph_nr: paragraphNr,
+    paragraphNr: paragraphNr,
     satz: null,
     absatz: null,
     nummer: null,
-    compositeKey: toCompositeKey({ id, node_type: 'topic_norm' }),
+    compositeKey: toCompositeKey({ id, nodeType: 'topic_norm' }),
   } satisfies NodePayloadByType<'topic_norm'>;
 };
 

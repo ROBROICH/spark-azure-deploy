@@ -1,4 +1,4 @@
-import type { UserOidcRole } from '@/api-clients/identity-management-module/types.gen';
+import type { UserOidcRole } from '@/api-clients/backend/types.gen';
 import { useLocalStorage } from '@/features/shared/browser-storage/useLocalStorage';
 import { z } from 'zod';
 

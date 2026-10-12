@@ -29,6 +29,7 @@ import type {
   RequestItemPriority,
   RequestItemSourceRef,
 } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
+import type { requestItemsCollection } from '../data/collections/requestItems.collection';
 import { createRequestFormSchema } from './requestFormSchema';
 
 const route = getRouteApi('/verfahren/$verfahrenId');
@@ -42,6 +43,7 @@ type RequestFormProps = {
   documentId?: string;
   initialTitle?: string;
   editItem?: RequestItem;
+  collection?: typeof requestItemsCollection;
 };
 
 const DUPLICATE_SOURCE_BINDING_STATUS = 409;
@@ -60,6 +62,7 @@ export const RequestForm = (props: RequestFormProps) => {
     documentId,
     initialTitle,
     editItem,
+    collection,
   } = props;
   const { t } = useTranslation('SupplementaryRequests');
   const reasonRef = useRef<HTMLTextAreaElement>(null);
@@ -96,6 +99,7 @@ export const RequestForm = (props: RequestFormProps) => {
             value.priority,
             value.title,
             value.reason,
+            collection,
           );
         } else {
           await addRequestItem(

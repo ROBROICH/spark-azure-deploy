@@ -141,18 +141,35 @@ class TestAsyncPath:
             with pytest.raises(RuntimeError, match="task lost"):
                 await api.convert_document(b"pdf-bytes", "test.pdf")
 
-    async def test_poll_timeout(self, mock_config: Any, _mock_kc: Any, _mock_sleep: Any) -> None:
-        """Polls exceed timeout → raises RuntimeError."""
+    async def test_queue_wait_does_not_consume_compute_budget(
+        self, mock_config: Any, _mock_kc: Any, _mock_sleep: Any
+    ) -> None:
+        """A pending task can wait longer than its compute budget and still complete."""
         mock_config.return_value = MagicMock(DOCLING_OCR_ENGINE="easyocr", DOCLING_OCR_LANG="de")
-        api = _make_client(timeout=0)
+        api = DoclingApiClient(base_url="http://docling:5001", timeout=10, queue_wait_timeout=100)
+        clock = MagicMock()
+        clock.monotonic.return_value = 0.0
+        queue_ready_at = 40.0
 
         mock_client = _mock_httpx_client(
             post=AsyncMock(return_value=_json_response(SUBMIT_RESPONSE)),
         )
 
-        with patch("src.providers.docling.api_client.httpx.AsyncClient", return_value=mock_client):
-            with pytest.raises(RuntimeError, match="timed out"):
-                await api.convert_document(b"pdf-bytes", "test.pdf")
+        async def get_response(url: str, **kwargs: Any) -> httpx.Response:
+            if "/v1/result/" in url:
+                return _json_response(RESULT_OK)
+            now = clock.monotonic.return_value
+            clock.monotonic.return_value += 20.0
+            return _json_response(POLL_PENDING if now < queue_ready_at else POLL_SUCCESS)
+
+        mock_client.get.side_effect = get_response
+        with (
+            patch("src.providers.docling.api_client.httpx.AsyncClient", return_value=mock_client),
+            patch("src.providers.docling.api_client.time", clock),
+        ):
+            result = await api.convert_document(b"pdf-bytes", "test.pdf")
+
+        assert result["document"]["md_content"] == "# Hello"
 
     async def test_result_failure_status(self, mock_config: Any, _mock_kc: Any, _mock_sleep: Any) -> None:
         """Result JSON with status='failure' raises RuntimeError."""
@@ -541,17 +558,26 @@ class TestPollAndFetchResult:
         # DoclingTaskLostError is a RuntimeError subclass
         assert isinstance(exc_info.value, RuntimeError)
 
-    async def test_poll_timeout_raises_runtime_error(
-        self, mock_config: Any, _mock_kc: Any, _mock_sleep: Any
+    @pytest.mark.parametrize("started", [False, True])
+    async def test_phase_budget_expires(
+        self, mock_config: Any, _mock_kc: Any, _mock_sleep: Any, started: bool
     ) -> None:
-        """Exceeding the poll deadline raises RuntimeError."""
+        """Pending tasks exhaust queue time; repeated started replies cannot renew compute time."""
         mock_config.return_value = MagicMock(DOCLING_OCR_ENGINE="easyocr", DOCLING_OCR_LANG="de")
-        api = _make_client(timeout=0)  # Instant timeout
+        api = DoclingApiClient(base_url="http://docling:5001", timeout=10, queue_wait_timeout=30)
+        clock = MagicMock()
+        clock.monotonic.return_value = 0.0
 
-        mock_client = _mock_httpx_client(
-            get=AsyncMock(return_value=_json_response(POLL_PENDING)),
-        )
+        async def poll(*args: Any, **kwargs: Any) -> httpx.Response:
+            clock.monotonic.return_value += 5.0
+            return _json_response(
+                {"task_status": "started" if started else "pending", "task_position": 4}
+            )
 
-        with patch("src.providers.docling.api_client.httpx.AsyncClient", return_value=mock_client):
-            with pytest.raises(RuntimeError, match="timed out"):
-                await api.poll_and_fetch_result("abc-123")
+        mock_client = _mock_httpx_client(get=AsyncMock(side_effect=poll))
+        with (
+            patch("src.providers.docling.api_client.httpx.AsyncClient", return_value=mock_client),
+            patch("src.providers.docling.api_client.time", clock),
+            pytest.raises(RuntimeError, match="conversion timed out" if started else "queue position 4"),
+        ):
+            await api.poll_and_fetch_result("abc-123")

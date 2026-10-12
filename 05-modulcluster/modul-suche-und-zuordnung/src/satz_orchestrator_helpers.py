@@ -6,11 +6,17 @@ No I/O, no Temporal SDK calls — safe to import and unit-test in isolation.
 
 from typing import Any
 
-from temporal.workflows.modul_suche_und_zuordnung.types import (
-    BestimmterRechtsbegriff,
-    NormData,
-    Satz,
-    UnbestimmterRechtsbegriff,
+from temporal.contracts import (
+    SucheZuordnungBestimmterRechtsbegriff as BestimmterRechtsbegriff,
+)
+from temporal.contracts import (
+    SucheZuordnungNormData as NormData,
+)
+from temporal.contracts import (
+    SucheZuordnungSatz as Satz,
+)
+from temporal.contracts import (
+    SucheZuordnungUnbestimmterRechtsbegriff as UnbestimmterRechtsbegriff,
 )
 
 from src.tbm_db_research.models import RechtsbegriffDefinition, RechtsbegriffEintrag

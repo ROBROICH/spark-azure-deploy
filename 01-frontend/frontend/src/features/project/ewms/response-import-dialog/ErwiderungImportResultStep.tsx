@@ -1,4 +1,4 @@
-import type { ErwiderungImportResponse } from '@/api-clients/oms-module';
+import type { V1ObjectionsManagementImportObjectionsArgumentsResponse as ImportObjectionsArgumentsResponse } from '@/api-clients/backend';
 import { Button } from '@/features/ui/button/Button';
 import { DialogBody, DialogFooter } from '@/features/ui/dialog/Dialog';
 import { cn } from '@/features/ui/style/cn';
@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next';
 export type ErwiderungImportStatus = 'success' | 'error';
 
 type ErwiderungImportResultStepProps = {
-  importResult: ErwiderungImportResponse | null;
+  importResult: ImportObjectionsArgumentsResponse | null;
   status: ErwiderungImportStatus;
   onClose: () => void;
 };

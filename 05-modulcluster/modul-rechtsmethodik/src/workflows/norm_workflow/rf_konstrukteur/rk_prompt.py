@@ -1,5 +1,7 @@
 """Prompt template for Rechtsfolge construction."""
 
+from src.activities.prompt_blocks import closing_block
+
 rk_agent_prompt = """
 **Rolle**
 Du rekonstruierst juristische Rechtsfolgen ausschließlich formalsprachlich.
@@ -100,11 +102,7 @@ Keine weiteren Ergänzungen aus dem Ursprungssatz werden übernommen.
 
 **Anwendung**
 Rekonstruiere aus den folgenden Satzbestandteilen einer Rechtsfolge einen grammatikalisch richtigen Satz. Ergänze fehlende Subjekte nur, falls erforderlich. Füge keine Inhalte aus dem Ursprungssatz hinzu.  
-{external_data_tag_open}
-- Ursprungssatz (Kontext): {satz_text}  
-- Satzbestandteile der Rechtsfolge: {rechtsfolgen_raw}
-{external_data_tag_close}
-
-**Ausgabeformat**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- Ursprungssatz (Kontext): {satz_text}  ",
+    "- Satzbestandteile der Rechtsfolge: {rechtsfolgen_raw}",
+)

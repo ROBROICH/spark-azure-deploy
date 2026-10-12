@@ -1,6 +1,6 @@
-import type { PlausibilityNoteStatus } from '@/api-clients/pns-module';
+import type { PlausibilityNoteStatus } from '@/api-clients/backend';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronRight, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -9,12 +9,17 @@ import {
   CollapsibleTrigger,
 } from '@/features/ui/collapsible/Collapsible';
 import { AiSparklesChip } from '@/features/ui/ai/AiSparklesChip';
+import { InfoTooltip } from '@/features/ui/info-tooltip/InfoTooltip';
 import {
   StatusBadge,
   type StatusBadgeVariant,
 } from '@/features/ui/status-badge/StatusBadge';
 import { cn } from '@/features/ui/style/cn';
 import { ContradictionCardExpanded } from '../contradiction-card-expanded/ContradictionCardExpanded';
+import {
+  UNCERTAIN_SENSITIVITY_THRESHOLD,
+  getNormalizedRating,
+} from '../data/filtering/contradictionFilters';
 import type { ContradictionListItem } from '../data/read-model/useContradictions';
 
 const route = getRouteApi('/verfahren/$verfahrenId/fvp/pp/');
@@ -72,6 +77,11 @@ export const ContradictionCard = (props: ContradictionCardProps) => {
     : 'text-slate-600';
   const rowTitle = contradiction.title?.trim() || t('redesign.rowTitle');
   const rowDescription = contradiction.description.trim();
+  const normalizedRating = getNormalizedRating(contradiction);
+  const isUncertainFinding =
+    Number.isFinite(normalizedRating) &&
+    normalizedRating < UNCERTAIN_SENSITIVITY_THRESHOLD;
+  const weaklySupportedLabel = t('redesign.weaklySupported');
 
   return (
     <Collapsible
@@ -79,7 +89,16 @@ export const ContradictionCard = (props: ContradictionCardProps) => {
       onOpenChange={toggleExpanded}
       className="flex min-w-0 flex-col gap-4"
     >
-      <div className="flex min-h-8 w-full items-start gap-2 p-1 text-left">
+      <div className="relative flex min-h-8 w-full items-start gap-2 p-1 text-left">
+        {isUncertainFinding ? (
+          <InfoTooltip
+            icon={TriangleAlert}
+            ariaLabel={weaklySupportedLabel}
+            content={weaklySupportedLabel}
+            className="absolute top-6 left-1 z-10 size-5 text-warning-600"
+            iconClassName="size-3.5"
+          />
+        ) : null}
         <CollapsibleTrigger
           aria-label={`${rowTitle} ${referenceLabel}, ${statusLabel}: ${rowDescription}`}
           className={cn(

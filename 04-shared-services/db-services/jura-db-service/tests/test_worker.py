@@ -4,14 +4,11 @@ from jura_db.schemas.temporal import (
     RechtsprechungSpec,
 )
 from jura_db.workflows.update_rechtsprechung import UpdateRechtsprechungWorkflow
-from temporal.workflows.jura_db.types import (
+from temporal.contracts import (
     UpdateRechtsprechungInput,
     UpdateRechtsprechungOutput,
 )
-from temporal.workflows.jura_db.update_rechtsprechung import (
-    TASK_QUEUE,
-    UPDATE_RECHTSPRECHUNG_WORKFLOW_ID,
-)
+from temporal.registry import JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW
 from temporalio import activity
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
@@ -49,10 +46,11 @@ async def test_update_rechtsprechung_workflow_fans_out_and_aggregates_results() 
             return ProcessRechtsprechungResult(doc_id=input.spec.doc_id, status="skipped")
         return ProcessRechtsprechungResult(doc_id=input.spec.doc_id, status="written")
 
-    async with await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env:
-        async with Worker(
+    async with (
+        await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env,
+        Worker(
             env.client,
-            task_queue=TASK_QUEUE,
+            task_queue=JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.task_queue,
             workflows=[UpdateRechtsprechungWorkflow],
             activities=[
                 fake_list_rechtsprechung,
@@ -60,14 +58,15 @@ async def test_update_rechtsprechung_workflow_fans_out_and_aggregates_results() 
                 fake_process_rechtsprechung,
             ],
             workflow_runner=UnsandboxedWorkflowRunner(),
-        ):
-            result = await env.client.execute_workflow(
-                UPDATE_RECHTSPRECHUNG_WORKFLOW_ID,
-                UpdateRechtsprechungInput(overwrite=False),
-                id=f"test-{UPDATE_RECHTSPRECHUNG_WORKFLOW_ID}",
-                task_queue=TASK_QUEUE,
-                result_type=UpdateRechtsprechungOutput,
-            )
+        ),
+    ):
+        result = await env.client.execute_workflow(
+            JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.name,
+            UpdateRechtsprechungInput(overwrite=False),
+            id=f"test-{JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.name}",
+            task_queue=JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.task_queue,
+            result_type=UpdateRechtsprechungOutput,
+        )
 
     assert {p.spec.doc_id for p in process_inputs} == {
         "doc_a",
@@ -109,10 +108,11 @@ async def test_update_rechtsprechung_workflow_respects_max_documents() -> None:
             )
         return ProcessRechtsprechungResult(doc_id=input.spec.doc_id, status="written")
 
-    async with await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env:
-        async with Worker(
+    async with (
+        await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env,
+        Worker(
             env.client,
-            task_queue=TASK_QUEUE,
+            task_queue=JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.task_queue,
             workflows=[UpdateRechtsprechungWorkflow],
             activities=[
                 fake_list_rechtsprechung,
@@ -120,14 +120,15 @@ async def test_update_rechtsprechung_workflow_respects_max_documents() -> None:
                 fake_process_rechtsprechung,
             ],
             workflow_runner=UnsandboxedWorkflowRunner(),
-        ):
-            result = await env.client.execute_workflow(
-                UPDATE_RECHTSPRECHUNG_WORKFLOW_ID,
-                UpdateRechtsprechungInput(overwrite=False, max_documents=3),
-                id=f"test-max-{UPDATE_RECHTSPRECHUNG_WORKFLOW_ID}",
-                task_queue=TASK_QUEUE,
-                result_type=UpdateRechtsprechungOutput,
-            )
+        ),
+    ):
+        result = await env.client.execute_workflow(
+            JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.name,
+            UpdateRechtsprechungInput(overwrite=False, max_documents=3),
+            id=f"test-max-{JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.name}",
+            task_queue=JURA_DB_UPDATE_RECHTSPRECHUNG_WORKFLOW.task_queue,
+            result_type=UpdateRechtsprechungOutput,
+        )
 
     assert {p.spec.doc_id for p in process_inputs} == {"doc_0", "doc_1", "doc_2"}
     assert result.written == 2  # doc_0, doc_1

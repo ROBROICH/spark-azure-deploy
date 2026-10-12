@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import { Badge } from '@/features/ui/badge/Badge';
 import { Button } from '@/features/ui/button/Button';
 import { ArrowLeft } from 'lucide-react';
@@ -61,7 +61,7 @@ export function AuditLogDrilldownHeader(props: {
             <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
               <AuditLogMetadataItem
                 label={t('fields.service')}
-                value={item.service_label}
+                value={item.serviceLabel}
               />
               <AuditLogMetadataItem
                 label={t('fields.source')}
@@ -87,8 +87,8 @@ function getDrilldownTitle(
   item: HistoryItem | undefined,
 ) {
   if (group.type === 'workflow') {
-    return item?.workflow_type ?? item?.service_label ?? group.id;
+    return item?.workflowType ?? item?.serviceLabel ?? group.id;
   }
 
-  return item?.service_label ?? group.id;
+  return item?.serviceLabel ?? group.id;
 }

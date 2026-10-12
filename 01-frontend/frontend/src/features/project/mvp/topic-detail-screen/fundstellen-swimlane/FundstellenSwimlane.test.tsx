@@ -37,19 +37,19 @@ vi.mock('@tanstack/react-router', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
-  useLiveNode: (ref: { id: string; node_type: string } | null) => {
-    if (ref?.node_type === 'norm') {
+  useLiveNode: (ref: { id: string; nodeType: string } | null) => {
+    if (ref?.nodeType === 'norm') {
       return {
         data: {
           id: ref.id,
-          gesetz_id: 'gesetz-1',
-          paragraph_nr: '44',
-          paragraph_titel: 'Artenschutz',
+          gesetzId: 'gesetz-1',
+          paragraphNr: '44',
+          paragraphTitel: 'Artenschutz',
         },
       };
     }
 
-    if (ref?.node_type === 'gesetz') {
+    if (ref?.nodeType === 'gesetz') {
       return { data: { id: ref.id, jurabk: 'BNatSchG' } };
     }
 
@@ -59,7 +59,7 @@ vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
 
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: () => [
-    { id: 'fundstelle-1', node_type: 'fundstelle', is_outdated: true },
+    { id: 'fundstelle-1', nodeType: 'fundstelle', isOutdated: true },
   ],
 }));
 
@@ -151,26 +151,25 @@ vi.mock('react-i18next', () => ({
 const createDocument = (overrides: Partial<NodePayloadByType<'dokument'>>) =>
   ({
     id: 'document-1',
-    dms_file_id: 'file-1',
+    dmsFileId: 'file-1',
     filename: 'folder/document-1.pdf',
-    compositeKey: toCompositeKey({ id: 'document-1', node_type: 'dokument' }),
-    created_at: '2026-04-02T00:00:00.000Z',
-    document_id: null,
-    document_type: null,
-    frontend_parent_ids: [],
-    is_deleted: false,
-    is_outdated: false,
-    is_toc_document: false,
-    markdown_text_id: 'markdown-text-1',
-    mime_type: 'application/pdf',
-    node_type: 'dokument',
-    page_count: 1,
-    project_id: 'project-1',
-    project_version: 1,
+    compositeKey: toCompositeKey({ id: 'document-1', nodeType: 'dokument' }),
+    createdAt: '2026-04-02T00:00:00.000Z',
+    documentId: null,
+    documentType: null,
+    frontendParentIds: [],
+    isDeleted: false,
+    isOutdated: false,
+    isTocDocument: false,
+    markdownTextId: 'markdown-text-1',
+    mimeType: 'application/pdf',
+    nodeType: 'dokument',
+    pageCount: 1,
+    projectId: 'project-1',
+    projectVersion: 1,
     summary: '',
-    sys_period: null,
-    update_type: 'automated',
-    updated_at: '2026-04-02T00:00:00.000Z',
+    updateType: 'automated',
+    updatedAt: '2026-04-02T00:00:00.000Z',
     ...overrides,
   }) satisfies NodePayloadByType<'dokument'>;
 

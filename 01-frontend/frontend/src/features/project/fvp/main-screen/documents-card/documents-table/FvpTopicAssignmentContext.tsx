@@ -54,7 +54,7 @@ const collectDocumentFileIds = (rows: TreeNode[]) => {
 
 const isDokumentRef = (
   ref: ReturnType<ReturnType<typeof useGraph>['getDescendants']>[number],
-): ref is DokumentRef => ref.node_type === 'dokument';
+): ref is DokumentRef => ref.nodeType === 'dokument';
 
 const collectVisibleDokumentRefsForFile = (
   fileId: string,
@@ -72,7 +72,7 @@ const collectVisibleDokumentRefs = (
       fileId,
       getDescendants,
     )) {
-      refsByKey.set(`${ref.node_type}:${ref.id}`, ref);
+      refsByKey.set(`${ref.nodeType}:${ref.id}`, ref);
     }
   }
 
@@ -80,10 +80,10 @@ const collectVisibleDokumentRefs = (
 };
 
 const getSelectedTopicIds = (linkedDocument?: NodePayloadByType<'dokument'>) =>
-  linkedDocument?.frontend_parent_ids.flatMap((parentId) => {
+  linkedDocument?.frontendParentIds.flatMap((parentId) => {
     const parentRef = tryFromCompositeKey(parentId);
 
-    return parentRef?.node_type === 'topic' ? [parentRef.id] : [];
+    return parentRef?.nodeType === 'topic' ? [parentRef.id] : [];
   }) ?? [];
 
 const createTopicOptions = (topics: NodePayloadByType<'topic'>[]) =>
@@ -99,7 +99,7 @@ const createTopicOptions = (topics: NodePayloadByType<'topic'>[]) =>
  * the live payload, so stale/deleted payloads are excluded before linking.
  */
 const isActiveDokumentPayload = (payload: NodePayloadByType<'dokument'>) =>
-  !payload.is_deleted && !payload.is_outdated;
+  !payload.isDeleted && !payload.isOutdated;
 
 const createLinkedDocumentByFileId = (
   dokumentPayloads: NodePayloadByType<'dokument'>[],
@@ -112,12 +112,12 @@ const createLinkedDocumentByFileId = (
       continue;
     }
 
-    if (!payload.dms_file_id || !visibleFileIds.has(payload.dms_file_id)) {
+    if (!payload.dmsFileId || !visibleFileIds.has(payload.dmsFileId)) {
       continue;
     }
 
-    if (!nextMap.has(payload.dms_file_id)) {
-      nextMap.set(payload.dms_file_id, payload);
+    if (!nextMap.has(payload.dmsFileId)) {
+      nextMap.set(payload.dmsFileId, payload);
     }
   }
 
@@ -149,17 +149,17 @@ const replaceTopicParentIds = (
   linkedDocument: NodePayloadByType<'dokument'>,
   topicIds: string[],
 ) => {
-  const nonTopicParentIds = linkedDocument.frontend_parent_ids.filter(
-    (parentId) => tryFromCompositeKey(parentId)?.node_type !== 'topic',
+  const nonTopicParentIds = linkedDocument.frontendParentIds.filter(
+    (parentId) => tryFromCompositeKey(parentId)?.nodeType !== 'topic',
   );
 
-  linkedDocument.frontend_parent_ids =
+  linkedDocument.frontendParentIds =
     topicIds.length === 0
       ? nonTopicParentIds
       : [
           ...nonTopicParentIds,
           ...topicIds.map((topicId) =>
-            toCompositeKey({ id: topicId, node_type: 'topic' }),
+            toCompositeKey({ id: topicId, nodeType: 'topic' }),
           ),
         ];
 };

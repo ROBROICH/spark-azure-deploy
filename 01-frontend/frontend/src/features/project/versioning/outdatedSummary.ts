@@ -1,7 +1,7 @@
 export const isNodeSummaryOutdated = (nodeSummary: unknown) => {
   return (
-    (nodeSummary as { is_outdated?: unknown } | null | undefined)
-      ?.is_outdated === true
+    (nodeSummary as { isOutdated?: unknown } | null | undefined)?.isOutdated ===
+    true
   );
 };
 

@@ -23,7 +23,7 @@ type NormCardAiWorkflowStateParams = {
 };
 
 export const getNormCardTitle = (norm: NodePayloadByType<'norm'>) => {
-  return [`§ ${norm.paragraph_nr}`, norm.paragraph_titel?.trim()]
+  return [`§ ${norm.paragraphNr}`, norm.paragraphTitel?.trim()]
     .filter(Boolean)
     .join(' ');
 };
@@ -36,9 +36,7 @@ export const getNormCardAiWorkflowState = (
     params.hasAtomareTbmDescendant &&
     (params.isMutationPending ||
       params.isRunning ||
-      params.isBewertungWorkflowRunning ||
-      params.isSuzWorkflowLoading ||
-      params.isBewertungWorkflowLoading);
+      params.isBewertungWorkflowRunning);
   const isStartAiAnalysisStatusUnavailable =
     params.isSuzWorkflowLoading ||
     params.isBewertungWorkflowLoading ||
@@ -79,7 +77,7 @@ export const getNormCardAiStatus = (
 };
 
 export const getNormCardReviewStatus = (
-  mvpReviewStatus: NodePayloadByType<'topic_norm'>['mvp_status'],
+  mvpReviewStatus: NodePayloadByType<'topic_norm'>['mvpStatus'],
 ): AiNormCardReviewStatus => {
   if (mvpReviewStatus === 'needs_revision') {
     return 'recheck';

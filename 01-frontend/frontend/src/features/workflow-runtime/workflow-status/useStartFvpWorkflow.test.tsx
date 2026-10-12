@@ -48,14 +48,11 @@ vi.mock('./useRunningWorkflow', () => ({
   }),
 }));
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    orchestrateFvpWorkflowWorkflowsFormalePruefungPostMutation: vi.fn(
-      () => ({}),
-    ),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartFormalCompletenessWorkflowMutation: vi.fn(
+    () => ({}),
+  ),
+}));
 
 vi.mock('@/features/ui/toast/Toast', () => ({
   toast: {
@@ -82,7 +79,7 @@ describe('useStartFvpWorkflow', () => {
 
     expect(mocks.mutateAsync).toHaveBeenCalledWith({
       body: {
-        project_id: 'project-1',
+        projectId: 'project-1',
       },
     });
     expect(mocks.observeStarted).toHaveBeenCalledOnce();

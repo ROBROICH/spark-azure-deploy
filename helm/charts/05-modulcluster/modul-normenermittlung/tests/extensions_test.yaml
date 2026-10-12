@@ -1,0 +1,45 @@
+# Escape hatches of the standard leaf template set.
+suite: standard leaf extensions
+release:
+  name: rel
+  namespace: relns
+values: [../ci/full-values.yaml]
+tests:
+  - it: renders init and extra containers next to the main one
+    template: templates/deployment.yaml
+    asserts:
+      - equal: {path: 'spec.template.spec.initContainers[0].name', value: init}
+      - equal: {path: 'spec.template.spec.containers[1].name', value: sidecar}
+
+  - it: appends extra volumes and mounts
+    template: templates/deployment.yaml
+    asserts:
+      - contains: {path: spec.template.spec.volumes, content: {name: cache, emptyDir: {}}}
+      - contains: {path: 'spec.template.spec.containers[0].volumeMounts', content: {name: cache, mountPath: /cache}}
+      - contains: {path: spec.template.spec.volumes, content: {name: tmp, emptyDir: {}}}
+
+  - it: renders envFrom and topology spread through tpl
+    template: templates/deployment.yaml
+    asserts:
+      - equal: {path: 'spec.template.spec.containers[0].envFrom[0].secretRef.name', value: rel-env}
+      - equal: {path: 'spec.template.spec.topologySpreadConstraints[0].labelSelector.matchLabels["app.kubernetes.io/instance"]', value: rel-app-ci}
+
+  - it: sets scheduling priority, grace period and lifecycle
+    template: templates/deployment.yaml
+    asserts:
+      - equal: {path: spec.template.spec.priorityClassName, value: high}
+      - equal: {path: spec.template.spec.terminationGracePeriodSeconds, value: 60}
+      - equal: {path: 'spec.template.spec.containers[0].lifecycle.preStop.sleep.seconds', value: 5}
+
+  - it: renders extraObjects through tpl
+    template: templates/extraobjects.yaml
+    asserts:
+      - isKind: {of: ConfigMap}
+      - equal: {path: metadata.name, value: rel-extra}
+
+  - it: renders no extra object by default
+    template: templates/extraobjects.yaml
+    set:
+      extraObjects: []
+    asserts:
+      - hasDocuments: {count: 0}

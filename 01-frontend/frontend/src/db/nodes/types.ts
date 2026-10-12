@@ -1,33 +1,23 @@
 import type {
-  BatchGetNodesResponse as DmsBatchResponse,
-  NodeRef as DmsNodeRef,
-} from '@/api-clients/dms-module';
-import type {
-  BatchGetNodesResponse as ExamBatchResponse,
-  NodeRef as ExamNodeRef,
-  ProcessNodeChangesRequest as ExamChangesRequest,
-} from '@/api-clients/examination-module';
-import type {
-  BatchGetNodesResponse as FeedbackBatchResponse,
-  NodeRef as FeedbackNodeRef,
-  ProcessNodeChangesRequest as FeedbackChangesRequest,
-} from '@/api-clients/feedback-module';
-import type {
-  BatchGetNodesResponse as PlsBatchResponse,
-  NodeRef as PlsNodeRef,
+  V1DocumentManagementServiceBatchGetNodesResponse as DmsBatchResponse,
+  V1DocumentManagementServiceNodeRef as DmsNodeRef,
+  V1ExaminationServiceBatchGetNodesResponse as ExamBatchResponse,
+  V1ExaminationServiceNodeRef as ExamNodeRef,
+  V1ExaminationServiceProcessNodeChangesRequest as ExamChangesRequest,
+  V1FeedbackBatchGetNodesResponse as FeedbackBatchResponse,
+  V1FeedbackNodeRef as FeedbackNodeRef,
+  V1FeedbackProcessNodeChangesRequest as FeedbackChangesRequest,
+  V1ProjectLogicServiceBatchGetNodesResponse as PlsBatchResponse,
+  V1ProjectLogicServiceNodeRef as PlsNodeRef,
   TopicNormStatus,
-  ProcessNodeChangesRequest as PlsChangesRequest,
-} from '@/api-clients/pls-module';
-import type {
-  BatchGetNodesResponse as OmsBatchResponse,
-  NodeRef as OmsNodeRef,
-  ProcessNodeChangesRequest as OmsChangesRequest,
-} from '@/api-clients/oms-module';
-import type {
-  BatchGetNodesResponse as VaeBatchResponse,
-  NodeRef as VaeNodeRef,
-  ProcessNodeChangesRequest as VaeChangesRequest,
-} from '@/api-clients/vae-module';
+  V1ProjectLogicServiceProcessNodeChangesRequest as PlsChangesRequest,
+  V1ObjectionsManagementServiceBatchGetNodesResponse as OmsBatchResponse,
+  V1ObjectionsManagementServiceNodeRef as OmsNodeRef,
+  V1ObjectionsManagementServiceProcessNodeChangesRequest as OmsChangesRequest,
+  V1AdministrativeFileDraftBatchGetNodesResponse as VaeBatchResponse,
+  V1AdministrativeFileDraftNodeRef as VaeNodeRef,
+  V1AdministrativeFileDraftProcessNodeChangesRequest as VaeChangesRequest,
+} from '@/api-clients/backend';
 import type { CompositeKey } from './compositeKey';
 
 export type {
@@ -41,25 +31,25 @@ export type {
 };
 
 export type NodeTypeLiteral =
-  | ExamNodeRef['node_type']
-  | FeedbackNodeRef['node_type']
-  | PlsNodeRef['node_type']
-  | DmsNodeRef['node_type']
-  | OmsNodeRef['node_type']
-  | VaeNodeRef['node_type'];
+  | ExamNodeRef['nodeType']
+  | FeedbackNodeRef['nodeType']
+  | PlsNodeRef['nodeType']
+  | DmsNodeRef['nodeType']
+  | OmsNodeRef['nodeType']
+  | VaeNodeRef['nodeType'];
 
 export type NodeRefByType<T extends NodeTypeLiteral> = {
   id: string;
-  node_type: T;
+  nodeType: T;
 };
 
 export type NodeRef = NodeRefByType<NodeTypeLiteral>;
 
 export type NodeSummary<T extends NodeTypeLiteral = NodeTypeLiteral> =
   NodeRefByType<T> & {
-    is_outdated?: boolean;
+    isOutdated?: boolean;
     parents: NodeRef[];
-    frontend_parent_ids?: string[];
+    frontendParentIds?: string[];
   };
 
 export type SatzStatuses = Record<string, TopicNormStatus>;
@@ -101,16 +91,16 @@ type RawNodePayload =
   | VaeNodePayload;
 
 type VersionedTopicNormFields = {
-  mvp_status: TopicNormStatus;
-  satz_statuses: SatzStatuses;
+  mvpStatus: TopicNormStatus;
+  satzStatuses: SatzStatuses;
 };
 
 type VersionedNodeFields = {
-  is_outdated?: boolean;
-  project_version?: number | null;
+  isOutdated?: boolean;
+  projectVersion?: number | null;
 };
 
-type WithVersioningFields<T> = T extends { node_type?: infer NodeType }
+type WithVersioningFields<T> = T extends { nodeType?: infer NodeType }
   ? NodeType extends 'topic_norm'
     ? Omit<T, keyof VersionedNodeFields | keyof VersionedTopicNormFields> &
         VersionedNodeFields &
@@ -121,39 +111,39 @@ type WithVersioningFields<T> = T extends { node_type?: infer NodeType }
 export type NodePayload = WithVersioningFields<RawNodePayload>;
 
 export type InsertNodeAction =
-  | NonNullable<ExamChangesRequest['inserts']>[number]
-  | NonNullable<FeedbackChangesRequest['inserts']>[number]
-  | NonNullable<PlsChangesRequest['inserts']>[number]
-  | NonNullable<OmsChangesRequest['inserts']>[number]
-  | NonNullable<VaeChangesRequest['inserts']>[number];
+  | NonNullable<NonNullable<ExamChangesRequest['inserts']>[number]>
+  | NonNullable<NonNullable<FeedbackChangesRequest['inserts']>[number]>
+  | NonNullable<NonNullable<PlsChangesRequest['inserts']>[number]>
+  | NonNullable<NonNullable<OmsChangesRequest['inserts']>[number]>
+  | NonNullable<NonNullable<VaeChangesRequest['inserts']>[number]>;
 
 export type UpdateNodeAction =
-  | NonNullable<ExamChangesRequest['updates']>[number]
-  | NonNullable<FeedbackChangesRequest['updates']>[number]
-  | NonNullable<PlsChangesRequest['updates']>[number]
-  | NonNullable<OmsChangesRequest['updates']>[number]
-  | NonNullable<VaeChangesRequest['updates']>[number];
+  | NonNullable<NonNullable<ExamChangesRequest['updates']>[number]>
+  | NonNullable<NonNullable<FeedbackChangesRequest['updates']>[number]>
+  | NonNullable<NonNullable<PlsChangesRequest['updates']>[number]>
+  | NonNullable<NonNullable<OmsChangesRequest['updates']>[number]>
+  | NonNullable<NonNullable<VaeChangesRequest['updates']>[number]>;
 
-/** `NodePayloadByType<'gesetz'>` narrows to `{ node_type: 'gesetz' } & GesetzNodeResponse` */
+/** `NodePayloadByType<'gesetz'>` narrows to `{ nodeType: 'gesetz' } & GesetzNodeResponse` */
 export type NodePayloadByType<T extends NodeTypeLiteral = NodeTypeLiteral> =
-  Extract<NodePayload, { node_type?: T }>;
+  Extract<NodePayload, { nodeType: T }>;
 
 export type InsertByType<T extends NodeTypeLiteral = NodeTypeLiteral> = Extract<
   InsertNodeAction,
-  { node_type?: T }
+  { nodeType: T }
 >;
 
 export type UpdateByType<T extends NodeTypeLiteral = NodeTypeLiteral> = Extract<
   UpdateNodeAction,
-  { node_type?: T }
+  { nodeType: T }
 >;
 
 export type OptimisticInsertedNodePayload = NodeRef & {
   compositeKey: CompositeKey;
-  project_id: string;
-  is_deleted: boolean;
-  created_at: string;
-  updated_at: string;
+  projectId: string;
+  isDeleted: boolean;
+  createdAt: string;
+  updatedAt: string;
 } & InsertNodeAction['payload'];
 
 export type NodePayloadCollectionItem =

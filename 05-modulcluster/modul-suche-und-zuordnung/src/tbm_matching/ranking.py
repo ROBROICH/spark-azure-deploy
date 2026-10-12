@@ -6,13 +6,26 @@ from typing import Any
 from src.config import CONFIG
 
 
+def document_key(doc: dict[str, Any]) -> str | None:
+    """Single document identity across all ranking stages: document_id → document_name → title."""
+    return doc.get("document_id") or doc.get("document_name") or doc.get("title")
+
+
+def _chunk_score(chunk: dict[str, Any]) -> float:
+    """Every retrieval result carries a score; a missing or null one is a contract violation."""
+    score = chunk.get("score")
+    if score is None:
+        raise ValueError(f"document {document_key(chunk)!r} reached ranking without a score")
+    return float(score)
+
+
 def _create_doc_entry(doc_key: str, chunk: dict[str, Any]) -> dict[str, Any]:
     """Build a fresh document accumulator dict from the first chunk seen for a document."""
     return {
         "document_id": chunk.get("document_id") or doc_key,
         "title": chunk.get("title") or chunk.get("document_name"),
         "project_id": chunk.get("project_id"),
-        "score": chunk.get("score", 0.0) or 0.0,
+        "score": _chunk_score(chunk),
         "page_numbers": set(),
         "parent_page_numbers": set(),
         "chunk_ids": [],
@@ -24,11 +37,11 @@ def aggregate_to_documents(
     *,
     top_k: int | None = None,
 ) -> list[dict[str, Any]]:
-    """Document identity falls back: document_id → document_name → title; chunks missing all three are silently skipped."""
+    """Documents are keyed by ``document_key``; chunks missing every identity field are silently skipped."""
     doc_map: dict[str, dict[str, Any]] = {}
 
     for chunk in chunk_results:
-        doc_key = chunk.get("document_id") or chunk.get("document_name") or chunk.get("title")
+        doc_key = document_key(chunk)
         if not doc_key:
             continue
 
@@ -37,8 +50,7 @@ def aggregate_to_documents(
 
         entry = doc_map[doc_key]
 
-        score = chunk.get("score", 0.0) or 0.0
-        entry["score"] = max(entry["score"], score)
+        entry["score"] = max(entry["score"], _chunk_score(chunk))
 
         for p in chunk.get("page_numbers") or []:
             if isinstance(p, int):
@@ -62,30 +74,36 @@ def aggregate_to_documents(
 
 def reciprocal_rank_fusion(
     ranked_lists: list[list[dict[str, Any]]],
-    top_k: int = CONFIG.MATCHING.DEFAULT_TOP_K,
+    top_k: int | None = CONFIG.MATCHING.DEFAULT_TOP_K,
     k: int = CONFIG.MATCHING.RRF_K,
 ) -> list[dict[str, Any]]:
-    """Merge multiple ranked document lists into one using RRF; documents are keyed by title."""
+    """Merge ranked document lists using RRF; documents are keyed by ``document_key``, ``top_k=None`` returns all.
+
+    The fused score is written to ``score`` -- the same field every other ranking stage reads.
+    """
     rrf_scores: dict[str, float] = defaultdict(float)
     doc_data: dict[str, dict[str, Any]] = {}
 
     for ranked_list in ranked_lists:
         for rank, doc in enumerate(ranked_list, start=1):
-            title = doc.get("title") or "unknown"
-            rrf_scores[title] += 1.0 / (k + rank)
-            if title not in doc_data:
-                doc_data[title] = {
-                    "title": title,
-                    "document_id": doc.get("document_id"),
+            doc_key = document_key(doc)
+            if not doc_key:
+                continue
+
+            rrf_scores[doc_key] += 1.0 / (k + rank)
+            if doc_key not in doc_data:
+                doc_data[doc_key] = {
+                    "title": doc.get("title") or doc.get("document_name"),
+                    "document_id": doc.get("document_id") or doc_key,
                     "project_id": doc.get("project_id"),
                     "page_numbers": list(doc.get("page_numbers") or []),
                 }
 
     fused: list[dict[str, Any]] = []
-    for title, score in rrf_scores.items():
-        entry = dict(doc_data[title])
-        entry["rrf_score"] = score
+    for doc_key, score in rrf_scores.items():
+        entry = dict(doc_data[doc_key])
+        entry["score"] = score
         fused.append(entry)
 
-    fused.sort(key=lambda d: d["rrf_score"], reverse=True)
-    return fused[:top_k]
+    fused.sort(key=lambda d: d["score"], reverse=True)
+    return fused if top_k is None else fused[:top_k]

@@ -1,13 +1,12 @@
-import type { CreateProjectRequest } from '@/api-clients/pls-module/types.gen';
+import type { V1ProjectLogicCreateProjectData as CreateProjectData } from '@/api-clients/backend/types.gen';
 import { germanStateByCode } from '@/features/project/data/project-details-form/federalStates';
-import { isDuplicateInternalProjectNumber } from '@/features/project/data/project-details-form/projectForm.logic';
 import type {
   ApplicantStepValues,
   ProjectStepValues,
 } from '@/features/project/data/project-details-form/projectForm.schema';
 import type { Step } from './formReducer';
 
-export { isDuplicateInternalProjectNumber };
+type CreateProjectRequest = CreateProjectData['body'];
 
 function getLocalCreatedById(): string | undefined {
   if (!import.meta.env.DEV) {
@@ -36,7 +35,9 @@ export function buildCreateProjectBody(
     ...(createdById ? { createdById } : {}),
     entryDate: step1.entryDate.trim(),
     internalProjectNumber: step1.internalProjectNumber.trim(),
-    state: step1.federalState ? germanStateByCode[step1.federalState] : null,
+    ...(step1.federalState
+      ? { state: germanStateByCode[step1.federalState] }
+      : {}),
     company: step2.company.trim() || null,
     firstName: step2.firstName.trim() || null,
     lastName: step2.lastName.trim() || null,

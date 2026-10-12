@@ -171,10 +171,15 @@ export function OutlineNodeItem(props: OutlineNodeItemProps) {
   const copyKey = getRoleCopyKey(canApproveFinalDecision);
   const markLabel = t(`gliederung.role.${copyKey}.markLabel`);
   const markedLabel = t(`gliederung.role.${copyKey}.markedLabel`);
+  const unmarkLabel = t(`gliederung.role.${copyKey}.unmarkLabel`);
+  const actionsMenuAriaLabel = t(
+    `gliederung.role.${copyKey}.actionsMenuAriaLabel`,
+    { chapter: label },
+  );
   const assigneeCompletedIndicator = getAssigneeCompletedIndicator({
     canApproveFinalDecision,
-    isAssigneeChecked: node.vaeNode.checked_by_assignee,
-    isLeaderChecked: node.vaeNode.checked_by_leader,
+    isAssigneeChecked: node.vaeNode.checkedByAssignee,
+    isLeaderChecked: node.vaeNode.checkedByLeader,
     label,
     t,
   });
@@ -238,10 +243,11 @@ export function OutlineNodeItem(props: OutlineNodeItemProps) {
             canToggleChecked,
             markLabel,
             markedLabel,
+            unmarkLabel,
+            actionsMenuAriaLabel,
             tooltipCopy,
             disabledTooltipCopy,
             assigneeCompletedIndicator,
-            label,
             onCheckedChange: handleCheckedChange,
           }}
         />

@@ -41,7 +41,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 const topicNode = {
   id: 'topic-id',
-  mvp_assignees: ['mvp-assignee-id'],
+  mvpAssignees: ['mvp-assignee-id'],
 };
 
 describe('deriveTopicWritePermission', () => {
@@ -160,7 +160,7 @@ describe('hasTopicMutationRights', () => {
       hasTopicMutationRights(
         {
           id: 'unassigned-topic-id',
-          mvp_assignees: [],
+          mvpAssignees: [],
         },
         {
           currentUserId: 'user-id',

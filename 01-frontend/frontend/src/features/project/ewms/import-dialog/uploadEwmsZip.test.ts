@@ -10,15 +10,12 @@ const mocks = vi.hoisted(() => ({
   uploadFileToStorage: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  confirmUploadV2FilesConfirmUploadPost: mocks.confirmUpload,
-  generateUploadUrlV2FilesGenerateUploadUrlPost: mocks.generateUploadUrl,
-  getZipFileV2ZipFilesZipFileIdGet: mocks.getZipFile,
-  startFileProcessingV2FilesStartFileProcessingPost: mocks.startFileProcessing,
-}));
-
-vi.mock('@/api-clients/temporal-jobs-module', () => ({
-  getWorkflowTemporalWorkflowsWorkflowIdGet: mocks.getWorkflow,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementConfirmFileUpload: mocks.confirmUpload,
+  v1DocumentManagementGenerateFileUploadUrl: mocks.generateUploadUrl,
+  v1DocumentManagementGetZipFile: mocks.getZipFile,
+  v1DocumentManagementStartFileProcessing: mocks.startFileProcessing,
+  v1TemporalJobsGetTemporalWorkflow: mocks.getWorkflow,
 }));
 
 vi.mock('@/features/shared/remote-files/uploadFileToStorage', () => ({
@@ -41,7 +38,7 @@ const successfulFileReviewResult = {
   successful: [
     {
       action: 'INGEST',
-      file_id: 'file-1',
+      fileId: 'file-1',
       filename: 'E1234.pdf',
     },
   ],
@@ -93,16 +90,16 @@ describe('uploadEwmsZip', () => {
         data: {
           result: null,
           status: 'completed',
-          workflow_id: 'workflow-1',
-          workflow_type: 'FileProcessingWorkflow',
+          workflowId: 'workflow-1',
+          workflowType: 'FileProcessingWorkflow',
         },
       })
       .mockResolvedValueOnce({
         data: {
           result: successfulFileReviewResult,
           status: 'completed',
-          workflow_id: 'workflow-1',
-          workflow_type: 'FileProcessingWorkflow',
+          workflowId: 'workflow-1',
+          workflowType: 'FileProcessingWorkflow',
         },
       });
 
@@ -127,5 +124,29 @@ describe('uploadEwmsZip', () => {
       processingWorkflowId: 'workflow-1',
     });
     expect(mocks.getWorkflow).toHaveBeenCalledTimes(2);
+  });
+
+  it('fails immediately when Temporal returns an invalid file review result', async () => {
+    mocks.getWorkflow.mockResolvedValue({
+      data: {
+        result: {
+          failed: [],
+          successful: [{ fileId: null, filename: 'E1234.pdf' }],
+        },
+        status: 'completed',
+        workflowId: 'workflow-1',
+        workflowType: 'FileProcessingWorkflow',
+      },
+    });
+
+    const uploadPromise = uploadEwmsZip({
+      file: new File(['zip'], 'ewms.zip', { type: 'application/zip' }),
+      projectId: 'project-1',
+    });
+
+    await expect(uploadPromise).rejects.toThrow(
+      'EWMS file review result is invalid',
+    );
+    expect(mocks.getWorkflow).toHaveBeenCalledOnce();
   });
 });

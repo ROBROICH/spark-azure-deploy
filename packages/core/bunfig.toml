@@ -1,0 +1,1 @@
+preload = ["../temporal/typescript/src/workflow-preload.ts", "./documents/test/setup/read-boundary.ts"]

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   getAppRouteDocumentTitleDescriptor,
+  isAdministrationDetailRouteMounted,
   isProjectRouteMounted,
 } from './appRouteDocumentTitle.logic';
 
@@ -32,6 +33,14 @@ describe('getAppRouteDocumentTitleDescriptor', () => {
       },
       name: 'accessibility statement',
       routeIds: ['/barrierefreiheit/'],
+    },
+    {
+      expectedDescriptor: {
+        titleKey: 'pages.administration',
+        type: 'page',
+      },
+      name: 'administration',
+      routeIds: ['/administration/'],
     },
     {
       expectedDescriptor: {
@@ -80,8 +89,18 @@ describe('getAppRouteDocumentTitleDescriptor', () => {
         getAppRouteDocumentTitleDescriptor(routeMatches(routeIds)),
       ).toEqual(expectedDescriptor);
       expect(isProjectRouteMounted(routeMatches(routeIds))).toBe(false);
+      expect(isAdministrationDetailRouteMounted(routeMatches(routeIds))).toBe(
+        false,
+      );
     },
   );
+
+  it('detects that the administration detail route is mounted', () => {
+    const matches = routeMatches(['/administration/$projectTypeId']);
+
+    expect(isAdministrationDetailRouteMounted(matches)).toBe(true);
+    expect(isProjectRouteMounted(matches)).toBe(false);
+  });
 
   it.each([
     {

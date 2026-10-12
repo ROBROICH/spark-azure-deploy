@@ -1,0 +1,10 @@
+{
+  "selectedCount": "{{count}} selected",
+  "groupCheckboxSelectHint": "Selecting this also selects {{count}} related norms.",
+  "groupCheckboxDeselectHint": "Clearing this also clears {{count}} related norms.",
+  "unavailable": "No longer present in the law database.",
+  "loading": "Laws and norms are loading.",
+  "empty": "No laws or norms were found.",
+  "error": "Laws and norms could not be loaded.",
+  "retry": "Try again"
+}

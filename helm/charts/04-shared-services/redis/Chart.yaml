@@ -1,0 +1,23 @@
+apiVersion: v2
+name: redis
+description: >
+  Leaf chart for Redis standalone/HA instances.  Wraps the community
+  cloudpirates/redis chart (Bitnami-compatible API, referenced in this project
+  by docling-rq and oauth2-proxy) with project-specific defaults and the
+  standard helper conventions used across this repository.
+
+  Consumers declare this chart as a dependency and control the Redis instance
+  name via redis.fullnameOverride (e.g. "redis-sessions", "redis-shared").
+type: application
+version: 0.3.0
+appVersion: "8.6.1"
+
+dependencies:
+  - name: redis
+    version: "0.26.4"
+    repository: "oci://registry-1.docker.io/cloudpirates"
+    condition: redis.enabled
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

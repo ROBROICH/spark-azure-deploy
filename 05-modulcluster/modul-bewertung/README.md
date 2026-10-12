@@ -192,7 +192,7 @@ The Planner retries automatically (up to 20 attempts) when LLM output fails Pyda
 <details>
 <summary>Temporal "Complete result exceeds size limit" Error</summary>
 
-Large payloads (>2 MB) must be stored via S3. Ensure `TEMPORAL_S3_*` variables are correctly configured and MinIO/S3 is reachable.
+Large payloads (>2 MB) must be stored via S3. Ensure `TEMPORAL_S3_*` variables are correctly configured and VersityGW/S3 is reachable.
 
 </details>
 

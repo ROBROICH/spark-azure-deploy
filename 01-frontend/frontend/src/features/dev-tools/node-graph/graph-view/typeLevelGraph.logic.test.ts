@@ -7,9 +7,9 @@ import {
 } from './typeLevelGraph.logic';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -17,15 +17,15 @@ const createSummary = (
 describe('buildTypeLevelGraphLayout', () => {
   it('places project-scoped root types below the synthetic project root', () => {
     const graph = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'entry-1',
-        node_type: 'beteiligungs_eingang',
+        nodeType: 'beteiligungs_eingang',
       }),
       createSummary({
         id: 'argument-1',
-        node_type: 'argument',
-        parents: [{ id: 'entry-1', node_type: 'beteiligungs_eingang' }],
+        nodeType: 'argument',
+        parents: [{ id: 'entry-1', nodeType: 'beteiligungs_eingang' }],
       }),
     ]);
 

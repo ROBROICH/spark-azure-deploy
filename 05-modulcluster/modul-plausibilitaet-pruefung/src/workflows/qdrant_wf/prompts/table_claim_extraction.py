@@ -59,26 +59,26 @@ TABLE_CLAIM_EXTRACTION_SYSTEM_PROMPT = """
              <tr><td>Alpha</td><td>RL-02</td><td>Standort Süd</td><td>30 km</td></tr></table>"
 
         - Output:
-        {{
+        {
             "claims": [
                 "Vom Bahnhof Alpha zum Rohrlagerplatz RL-01 (Örtlichkeit Standort Nord) beträgt die Wegestrecke ca. 30 km.",
                 "Vom Bahnhof Alpha zum Rohrlagerplatz RL-02 (Örtlichkeit Standort Süd) beträgt die Wegestrecke ca. 30 km."
             ]
-        }}
+        }
 
     **Negativ-Beispiel** (NICHT extrahieren)
         - Input: "<table><caption>Tabelle 4: Übersicht Rohrlagerplätze</caption><tr><th>Nr.</th><th>Ort</th></tr></table>"
         - Output:
-        {{
+        {
             "claims": []
-        }}
+        }
         Begründung: Die Caption "Tabelle 4: Übersicht Rohrlagerplätze" ist nur ein Titel — keine faktische Aussage.
 
     **WICHTIG:**
         Erfinde KEINE Informationen, die nicht explizit in der Tabelle stehen. Jeder Claim muss sich
         vollständig aus den vorhandenen Zellenwerten und Spaltenüberschriften ableiten lassen.
         Wenn die Tabelle keine sinnvollen faktischen Aussagen enthält (z. B. nur Überschriften,
-        leere Zellen oder Captions), gib ein leeres Ergebnis zurück: {{"claims": []}}.
+        leere Zellen oder Captions), gib ein leeres Ergebnis zurück: {"claims": []}.
         Ein leeres Ergebnis ist ausdrücklich erlaubt und erwünscht, wenn kein Claim die Kriterien erfüllt.
 """
 

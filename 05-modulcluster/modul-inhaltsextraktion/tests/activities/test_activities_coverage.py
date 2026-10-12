@@ -152,7 +152,7 @@ class TestPostprocessingModels:
 
     def test_summary_result_model(self) -> None:
         """Test that SummaryResult stores summary_file_id and summary_data."""
-        from temporal.workflows.inhaltsextraktion.types import SummaryData
+        from temporal.contracts import SummaryData
 
         from src.activities.postprocessing.schemas import SummaryResult
 
@@ -747,7 +747,7 @@ class TestCreateFinalJsonActivity:
         file_obj.id = uuid4()
         mock_upload.return_value = file_obj
 
-        from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+        from temporal.contracts import BaseMetadata
 
         from src.activities.postprocessing.assembly import _create_final_json
         from src.activities.postprocessing.schemas import CreateFinalJsonInput
@@ -770,7 +770,7 @@ class TestCreateFinalJsonActivity:
 
         call_args = mock_upload.call_args[0][0]
         uploaded_json = json.loads(call_args.data.decode("utf-8"))
-        assert uploaded_json["metadata"]["base_metadata"]["project_applicant"] == "Landesdirektion Sachsen"
+        assert uploaded_json["metadata"]["baseMetadata"]["projectApplicant"] == "Landesdirektion Sachsen"
 
     @patch("src.activities.postprocessing.assembly.upload_file")
     @patch("src.activities.postprocessing.assembly.activity")

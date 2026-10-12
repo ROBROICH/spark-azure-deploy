@@ -302,7 +302,7 @@ Loaded from `.env.local` by `src/env.py`. The `TEMPORAL_*`, `LAW_DATABASE_*`, an
 |----------|-------------|---------|----------|
 | `TEMPORAL_HOST` | Temporal frontend address | `temporal-frontend.temporal.svc.cluster.local:7233` *(deployment-set)* | yes |
 | `TEMPORAL_S3_BUCKET_NAME` | S3 bucket for large Temporal payloads | `temporal-payloads` | yes |
-| `TEMPORAL_S3_ENDPOINT_URL` | S3/MinIO endpoint | `https://s3.<your-domain>` *(deployment-set)* | yes |
+| `TEMPORAL_S3_ENDPOINT_URL` | S3/VersityGW endpoint | `https://s3.<your-domain>` *(deployment-set)* | yes |
 | `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | from `temporal-s3-secrets` *(deployment-set)* | yes |
 | `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | from `temporal-s3-secrets` *(deployment-set)* | yes |
 | `TEMPORAL_S3_REGION` | S3 region | `my-store` *(deployment-set)* | yes |
@@ -322,7 +322,7 @@ Loaded from `.env.local` by `src/env.py`. The `TEMPORAL_*`, `LAW_DATABASE_*`, an
 | `LAW_DATABASE_QUERY_TOP_K_DR_URL` | Dienst Gesetzesbegründungsdatenbank query endpoint | `http://localhost:18021/query_top_k` | yes |
 | `LAW_DATABASE_QUERY_K_RESULTS_UT_URL` | Dienst Juristische Datenbank top-k endpoint | `http://localhost:18022/query_k_results` | yes |
 | `LAW_DATABASE_QUERY_CHUNKS_UT_URL` | Dienst Juristische Datenbank chunks endpoint | `http://localhost:18022/chunks` | yes |
-| `TEMPORAL_JOB_SERVICE_URL` | URL of the Dienst Workflowmanagement for workflow status reporting | `http://localhost:18011` | yes |
+| `TEMPORAL_JOB_SERVICE_URL` | URL of the Dienst Workflowmanagement for workflow status reporting | `http://localhost:18015/api` | yes |
 
 ### Running the Module
 

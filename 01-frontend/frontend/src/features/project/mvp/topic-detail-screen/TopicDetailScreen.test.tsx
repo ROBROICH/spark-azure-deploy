@@ -51,7 +51,7 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
     data: [
       {
         id: 'document-1',
-        dms_file_id: 'file-1',
+        dmsFileId: 'file-1',
         filename: 'folder/document-1.pdf',
       },
     ],

@@ -5,10 +5,10 @@ import type { TopicNormEntry } from '../screen-data/useRechtsgrundlageData.helpe
 
 type NormRef = {
   id: string;
-  node_type: 'norm';
+  nodeType: 'norm';
 };
 
-const createNormRefByTopicNormId = (
+export const createNormRefByTopicNormId = (
   topicNorms: NodePayloadByType<'topic_norm'>[],
   index: ReturnType<typeof useGraph>['index'],
 ) => {
@@ -16,13 +16,13 @@ const createNormRefByTopicNormId = (
 
   for (const topicNorm of topicNorms) {
     const normId = (index.childrenByNodeId.get(topicNorm.id) ?? []).find(
-      (childId) => index.nodeById.get(childId)?.node_type === 'norm',
+      (childId) => index.nodeById.get(childId)?.nodeType === 'norm',
     );
 
     if (normId) {
       normRefByTopicNormId.set(topicNorm.id, {
         id: normId,
-        node_type: 'norm',
+        nodeType: 'norm',
       });
     }
   }
@@ -48,7 +48,7 @@ const createResolvedTopicNormEntries = (params: {
     return {
       topicNorm,
       norm,
-      gesetz: norm ? (gesetzById.get(norm.gesetz_id) ?? null) : null,
+      gesetz: norm ? (gesetzById.get(norm.gesetzId) ?? null) : null,
     } satisfies TopicNormEntry;
   });
 };
@@ -67,8 +67,8 @@ export const useResolvedTopicNormEntries = (
   const gesetzRefs = Array.from(
     new Map(
       norms.map((norm) => [
-        norm.gesetz_id,
-        { id: norm.gesetz_id, node_type: 'gesetz' as const },
+        norm.gesetzId,
+        { id: norm.gesetzId, nodeType: 'gesetz' as const },
       ]),
     ).values(),
   );

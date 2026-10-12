@@ -1,6 +1,7 @@
 {
   "welcome": "Welcome",
   "welcomeSubtitle": "SPARK Workflow",
+  "welcomeSubtitleEwms": "SPARK Workflow eEWMS",
   "newProject": "New Project",
   "deadlinesAndDates": "Deadlines & Dates",
   "schwarzagent": "Redaction Agent",
@@ -24,6 +25,7 @@
     "noEvents": "No deadlines or dates on {{date}}",
     "hasEvents": "Deadlines or dates on {{date}}",
     "loadingEvents": "Loading dates …",
+    "loadMore": "Load more events",
     "loadError": "Deadlines and dates could not be loaded."
   },
   "ProjectsTable": {
@@ -37,7 +39,7 @@
     "searchPlaceholder": "Search by project name, reference number, or status ...",
     "filterByArt": "Type",
     "filterByAnlage": "Source",
-    "anlageSpark": "SPARK",
+    "anlageSpark": "SPARK Workflow",
     "anlageFpp": "FPP",
     "filterByStatus": "Status",
     "filterByFavorite": "Favorites",
@@ -47,7 +49,9 @@
     "zuordnungMeine": "My projects",
     "zuordnungAlle": "All projects",
     "loadingProjects": "Loading projects…",
+    "loadMore": "Load more projects",
     "noProjectsFound": "No projects found.",
+    "tableAriaLabel": "Projects table",
     "loadError": "Projects could not be loaded.",
     "favoriteProject": "Mark as favorite",
     "unfavoriteProject": "Remove from favorites",

@@ -15,16 +15,13 @@ from rechtsaenderungsmonitoring.workflows.monitor_rechtsaenderungen_source impor
     MonitorRechtsaenderungenSourceWorkflow,
 )
 from temporal.activities.models import LlmActivityInput
-from temporal.workflows.rechtsaenderungs_monitoring.monitor_rechtsaenderungen import (
-    MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID,
-    TASK_QUEUE,
-)
-from temporal.workflows.rechtsaenderungs_monitoring.types import (
+from temporal.contracts import (
     FeedEntry,
     MonitorRechtsaenderungenInput,
     MonitorRechtsaenderungenOutput,
-    Source,
+    RechtsaenderungenSource,
 )
+from temporal.registry import RECHTSAENDERUNGS_MONITORING_WORKFLOW
 from temporalio import activity
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
@@ -122,8 +119,8 @@ async def test_monitor_rechtsaenderungen_workflow_fetches_feed_and_aggregates_re
     ]
 
     @activity.defn(name="fetch_feed_entries")
-    async def fake_fetch_feed_entries(source: Source) -> list[FeedEntry]:
-        assert source == Source.BUND
+    async def fake_fetch_feed_entries(source: RechtsaenderungenSource) -> list[FeedEntry]:
+        assert source == RechtsaenderungenSource.BUND
         return feed_entries
 
     @activity.defn(name="query_existing_doc_ids")
@@ -159,7 +156,7 @@ async def test_monitor_rechtsaenderungen_workflow_fetches_feed_and_aggregates_re
         ) as env,
         Worker(
             env.client,
-            task_queue=TASK_QUEUE,
+            task_queue=RECHTSAENDERUNGS_MONITORING_WORKFLOW.task_queue,
             workflows=[
                 MonitorRechtsaenderungenWorkflow,
                 MonitorRechtsaenderungenSourceWorkflow,
@@ -181,10 +178,15 @@ async def test_monitor_rechtsaenderungen_workflow_fetches_feed_and_aggregates_re
         ),
     ):
         result = await env.client.execute_workflow(
-            MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID,
-            [MonitorRechtsaenderungenInput(source=Source.BUND, overwrite=False)],
-            id=f"test-{MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID}",
-            task_queue=TASK_QUEUE,
+            RECHTSAENDERUNGS_MONITORING_WORKFLOW.name,
+            [
+                MonitorRechtsaenderungenInput(
+                    source=RechtsaenderungenSource.BUND,
+                    overwrite=False,
+                )
+            ],
+            id=f"test-{RECHTSAENDERUNGS_MONITORING_WORKFLOW.name}",
+            task_queue=RECHTSAENDERUNGS_MONITORING_WORKFLOW.task_queue,
             result_type=MonitorRechtsaenderungenOutput,
         )
 
@@ -194,7 +196,7 @@ async def test_monitor_rechtsaenderungen_workflow_fetches_feed_and_aggregates_re
     # Every extract activity receives the snapshot from query_existing_doc_ids.
     assert all(p.existing_doc_ids == ["existing_doc_id_1"] for p in extract_inputs)
     assert all(p.overwrite is False for p in extract_inputs)
-    assert all(p.source == Source.BUND for p in extract_inputs)
+    assert all(p.source == RechtsaenderungenSource.BUND for p in extract_inputs)
 
     # Only the two non-skipped entries are persisted, with the categorised type.
     assert {p.title_hash for p in persist_inputs} == {"hash_a", "hash_b"}
@@ -236,7 +238,7 @@ async def test_monitor_rechtsaenderungen_workflow_filters_by_entry_titles() -> N
     ]
 
     @activity.defn(name="fetch_feed_entries")
-    async def fake_fetch_feed_entries(source: Source) -> list[FeedEntry]:
+    async def fake_fetch_feed_entries(source: RechtsaenderungenSource) -> list[FeedEntry]:
         return feed_entries
 
     @activity.defn(name="query_existing_doc_ids")
@@ -268,7 +270,7 @@ async def test_monitor_rechtsaenderungen_workflow_filters_by_entry_titles() -> N
         ) as env,
         Worker(
             env.client,
-            task_queue=TASK_QUEUE,
+            task_queue=RECHTSAENDERUNGS_MONITORING_WORKFLOW.task_queue,
             workflows=[
                 MonitorRechtsaenderungenWorkflow,
                 MonitorRechtsaenderungenSourceWorkflow,
@@ -290,15 +292,15 @@ async def test_monitor_rechtsaenderungen_workflow_filters_by_entry_titles() -> N
         ),
     ):
         result = await env.client.execute_workflow(
-            MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID,
+            RECHTSAENDERUNGS_MONITORING_WORKFLOW.name,
             [
                 MonitorRechtsaenderungenInput(
-                    source=Source.BUND,
+                    source=RechtsaenderungenSource.BUND,
                     entry_titles=["Entry B"],
                 )
             ],
-            id=f"test-{MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID}-filtered",
-            task_queue=TASK_QUEUE,
+            id=f"test-{RECHTSAENDERUNGS_MONITORING_WORKFLOW.name}-filtered",
+            task_queue=RECHTSAENDERUNGS_MONITORING_WORKFLOW.task_queue,
             result_type=MonitorRechtsaenderungenOutput,
         )
 

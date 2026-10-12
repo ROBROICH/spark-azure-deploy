@@ -13,12 +13,13 @@ from collections.abc import Sequence
 from datetime import timedelta
 from pathlib import Path
 
-from temporal.workflows.inhaltsextraktion.types import (
-    PROCESS_DOCUMENTS_WORKFLOW_ID,
+from temporal.contracts import (
     BaseMetadata,
     ProcessDocumentsWorkflowInput,
     ProcessDocumentsWorkflowOutput,
 )
+from temporal.registry import INHALTSEXTRAKTION_PROCESS_DOCUMENTS_WORKFLOW
+from temporal.utils import sliding_window_collect_failures
 from temporalio import workflow
 from temporalio.common import WorkflowIDReusePolicy
 from temporalio.exceptions import ApplicationError
@@ -34,7 +35,6 @@ from src.activities.postprocessing import (
 )
 from src.config import snapshot_config
 from src.env import ENV
-from src.utils.sliding_window import sliding_window
 from src.workflows.single_document_workflow import (
     SingleDocumentWorkflow,
     SingleDocumentWorkflowInput,
@@ -57,7 +57,7 @@ def has_keyword_match(keywords: Sequence[str], file_info: DmsFileInfo) -> bool:
     return any(keyword in ascii_name for keyword in ascii_keywords if keyword)
 
 
-@workflow.defn(name=PROCESS_DOCUMENTS_WORKFLOW_ID)
+@workflow.defn(name=INHALTSEXTRAKTION_PROCESS_DOCUMENTS_WORKFLOW.name)
 class ProcessDocumentsWorkflow:
     """
     Processes a list of documents from DMS. For each document, the
@@ -74,9 +74,9 @@ class ProcessDocumentsWorkflow:
         and creating a summary file.
         """
         cfg = snapshot_config()
+        bounded_retries = workflow.patched("bound-process-documents-retries")
         workflow_start_time = workflow.now()
 
-        # Fetch metadata for all files
         file_infos: list[DmsFileInfo] = await asyncio.gather(
             *[dms_get_file_metadata(file_id) for file_id in input.file_ids]
         )
@@ -107,7 +107,6 @@ class ProcessDocumentsWorkflow:
             )
             try:
                 priority_file = await resolve_priority_file(priority_candidates)
-                # Add non-selected candidates back to regular processing
                 for candidate in priority_candidates:
                     if candidate.file_id != priority_file.file_id:
                         processable_files.append(candidate)
@@ -129,9 +128,8 @@ class ProcessDocumentsWorkflow:
                 file_info=file_info,
                 base_metadata=base_metadata,
                 is_priority_doc=is_priority_doc,
-                possible_topics= input.possible_topics,
+                possible_topics=input.possible_topics,
             )
-            # For now we will just terminate existing ones for easier restarts
             return await workflow.execute_child_workflow(
                 SingleDocumentWorkflow.run,
                 child_input,
@@ -149,40 +147,52 @@ class ProcessDocumentsWorkflow:
                 """Process the priority document to extract base metadata first."""
                 return await _execute_single_doc(f, is_priority_doc=True, base_metadata=base_metadata)
 
-            ok_priority, failed_priority = await sliding_window([priority_file], process_priority, 1)
+            ok_priority, failed_priority = await sliding_window_collect_failures([priority_file], process_priority, 1)
             while failed_priority:
-                ok_priority, failed_priority = await sliding_window(failed_priority, process_priority, 1)
+                ok_priority, failed_priority = await sliding_window_collect_failures(
+                    failed_priority, process_priority, 1
+                )
+                if bounded_retries and failed_priority:
+                    raise ApplicationError(
+                        f"Priority document failed after one retry: {priority_file.filename}",
+                        type="PriorityDocumentProcessingFailed",
+                        non_retryable=True,
+                    )
             results.append(ok_priority[0])
             base_metadata = ok_priority[0].base_metadata
 
-        # Build the runner closure for the sliding window
         async def process_one(file_info: DmsFileInfo) -> SingleDocumentWorkflowOutput:
             """Process a single non-priority document."""
             return await _execute_single_doc(file_info, is_priority_doc=False, base_metadata=base_metadata)
 
-        ok, failed = await sliding_window(processable_files, process_one, max_concurrency)
+        ok, failed = await sliding_window_collect_failures(processable_files, process_one, max_concurrency)
         results.extend(ok)
 
         while failed:
-            new_results, failed = await sliding_window(failed, process_one, 3)
-            results.extend(new_results)
+            retry_results, failed = await sliding_window_collect_failures(failed, process_one, 3)
+            results.extend(retry_results)
+            if bounded_retries and failed:
+                raise ApplicationError(
+                    f"{len(failed)} of {len(processable_files)} document(s) failed after one retry: "
+                    f"{[file_info.filename for file_info in failed]}",
+                    type="DocumentProcessingFailed",
+                    non_retryable=True,
+                )
 
         total_docs = len(processable_files) + (1 if priority_file else 0)
 
-        if not results:
+        if total_docs == 0:
             raise ApplicationError(
-                f"All {total_docs} document(s) failed: {[fi.filename for fi in processable_files]}",
-                type="AllDocumentsFailed",
+                "No processable documents found",
+                type="NoProcessableDocuments",
                 non_retryable=True,
             )
 
         workflow.logger.info(f"{len(results)} of {total_docs} documents processed successfully. Creating summary file.")
 
-        # Calculate total workflow duration
         workflow_end_time = workflow.now()
         total_duration_seconds = (workflow_end_time - workflow_start_time).total_seconds()
 
-        # Create summary using DMS
         summary_result = await create_summary_from_results(
             CreateSummaryFromResultsInput(
                 results=results,

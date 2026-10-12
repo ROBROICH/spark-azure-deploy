@@ -6,6 +6,9 @@ import { useLiveNodes } from '@/db/nodes/hooks/useLiveNodes';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { useHasTopicMutationRights } from '@/features/access-control/topic-permissions/hasTopicMutationRights';
 import { useAction } from '@/db/nodes/hooks/useAction';
+import { ProcessingFailureBadge } from '@/features/project/processing-failure/ProcessingFailureBadge';
+import { WORKFLOW_TYPE_RISIKOHINWEISE } from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
+import { useWorkflow } from '@/features/workflow-runtime/workflow-status/useWorkflow';
 import { useRpbVaeNodeUrlState } from '../../workspace-state/RpbOutlineContext';
 import { RiskWarningsAccordion } from './RiskWarningsAccordion';
 import { RiskWarningsEmptyStateCard } from './RiskWarningsEmptyStateCard';
@@ -59,6 +62,15 @@ export const RiskWarningsPanel = () => {
   const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
   const hasTopicMutationRights = useHasTopicMutationRights();
   const startAnalysis = useRiskWarningsStartAnalysis();
+  // History of this outline node's risk analysis, read only to show a failed
+  // latest run. It keeps the default summary refresh, which the shared running
+  // observation would otherwise lose for every observer.
+  const { latestFailure: riskAnalysisFailure } = useWorkflow({
+    workflowType: WORKFLOW_TYPE_RISIKOHINWEISE,
+    matchIdsInWorkflowId: routeOutlineNodeId
+      ? [verfahrenId, routeOutlineNodeId]
+      : ['__missing_outline_node__'],
+  });
   const topicIdByVaeNodeId = selectedVaeNode
     ? new Map([[selectedVaeNode.id, selectedVaeNodeMutationTopicId]])
     : new Map<string, string | null | undefined>();
@@ -78,6 +90,8 @@ export const RiskWarningsPanel = () => {
   const { open, corrected, ignored } = partitionRisksByStatus(selectedRisks);
   const hasRisks = open.length + corrected.length + ignored.length > 0;
   const hasSelectedVaeNode = hasResolvedRouteOutlineSelection;
+  const visibleRiskAnalysisFailure =
+    hasSelectedVaeNode && !startAnalysis.isRunning ? riskAnalysisFailure : null;
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -85,9 +99,17 @@ export const RiskWarningsPanel = () => {
         verfahrenId={verfahrenId}
         showStartAnalysisButton={hasSelectedVaeNode && hasRisks}
         startAnalysis={startAnalysis}
+        statusAddon={
+          visibleRiskAnalysisFailure ? (
+            <ProcessingFailureBadge
+              area="rpbRiskWarnings"
+              errorCode={visibleRiskAnalysisFailure.errorCode}
+            />
+          ) : null
+        }
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-2">
         {hasRisks ? (
           <RiskWarningsMutationProvider
             canMutateProject={canMutateProject}

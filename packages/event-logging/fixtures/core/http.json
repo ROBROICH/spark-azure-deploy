@@ -1,0 +1,150 @@
+[
+  {
+    "name": "path-project-wins-and-private-values-stay-out",
+    "method": "GET",
+    "url": "https://example.test/projects/path-project?project_id=query-project&X-Goog-Signature=signed-secret&X-Goog-Credential=credential-secret",
+    "path_params": {"project_id": "path-project"},
+    "query": {
+      "project_id": "query-project",
+      "X-Goog-Signature": "signed-secret",
+      "X-Goog-Credential": "credential-secret"
+    },
+    "headers": {"authorization": "Bearer bearer-secret", "cookie": "session=cookie-secret"},
+    "status": 200,
+    "expected": {
+      "action": "read",
+      "outcome": "success",
+      "project_id": "path-project",
+      "path": "/projects/path-project",
+      "message": "GET 200: /projects/path-project executed."
+    },
+    "forbidden": [
+      "query-project",
+      "signed-secret",
+      "credential-secret",
+      "bearer-secret",
+      "cookie-secret",
+      "X-Goog-Signature",
+      "authorization"
+    ]
+  },
+  {
+    "name": "query-project-and-private-query-values-stay-out",
+    "method": "POST",
+    "url": "https://example.test/items?projectId=query-project&access_token=access-secret",
+    "path_params": {},
+    "query": {"projectId": "query-project", "access_token": "access-secret"},
+    "headers": {},
+    "status": 201,
+    "expected": {
+      "action": "write",
+      "outcome": "success",
+      "project_id": "query-project",
+      "path": "/items",
+      "message": "POST 201: /items executed."
+    },
+    "forbidden": ["access-secret", "access_token"]
+  },
+  {
+    "name": "patch-client-error",
+    "method": "PATCH",
+    "url": "https://example.test/items/1",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 422,
+    "expected": {
+      "action": "change",
+      "outcome": "failure",
+      "project_id": null,
+      "path": "/items/1",
+      "message": "PATCH 422: /items/1 executed."
+    },
+    "forbidden": []
+  },
+  {
+    "name": "delete-server-error",
+    "method": "DELETE",
+    "url": "https://example.test/items/1",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 500,
+    "expected": {
+      "action": "delete",
+      "outcome": "failure",
+      "project_id": null,
+      "path": "/items/1",
+      "message": "DELETE 500: /items/1 executed."
+    },
+    "forbidden": []
+  },
+  {
+    "name": "put-at-failure-boundary",
+    "method": "PUT",
+    "url": "https://example.test/items/1",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 400,
+    "expected": {
+      "action": "change",
+      "outcome": "failure",
+      "project_id": null,
+      "path": "/items/1",
+      "message": "PUT 400: /items/1 executed."
+    },
+    "forbidden": []
+  },
+  {
+    "name": "options-maps-to-access",
+    "method": "OPTIONS",
+    "url": "https://example.test/items",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 204,
+    "expected": {
+      "action": "access",
+      "outcome": "success",
+      "project_id": null,
+      "path": "/items",
+      "message": "OPTIONS 204: /items executed."
+    },
+    "forbidden": []
+  },
+  {
+    "name": "head-maps-to-access",
+    "method": "HEAD",
+    "url": "https://example.test/items",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 200,
+    "expected": {
+      "action": "access",
+      "outcome": "success",
+      "project_id": null,
+      "path": "/items",
+      "message": "HEAD 200: /items executed."
+    },
+    "forbidden": []
+  },
+  {
+    "name": "unknown-method-maps-to-access",
+    "method": "CONNECT",
+    "url": "https://example.test/tunnel",
+    "path_params": {},
+    "query": {},
+    "headers": {},
+    "status": 399,
+    "expected": {
+      "action": "access",
+      "outcome": "success",
+      "project_id": null,
+      "path": "/tunnel",
+      "message": "CONNECT 399: /tunnel executed."
+    },
+    "forbidden": []
+  }
+]

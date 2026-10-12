@@ -5,11 +5,11 @@ from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata
+from temporal.contracts import BaseMetadata
 
 from src.workflows.helpers.base_metadata_extractor import (
-    consolidate_base_metadata,
     _gather_evidence_from_chunks,
+    consolidate_base_metadata,
     extract_base_metadata,
 )
 

@@ -1,6 +1,6 @@
 """Agent for verifying unbestimmte Rechtsbegriffe candidates."""
 
-from temporal.workflows.rechtsmethodik.types import UnbestimmterRechtsbegriff
+from temporal.contracts import UnbestimmterRechtsbegriff
 from temporalio import workflow
 
 from src.activities.law_api_calls import (

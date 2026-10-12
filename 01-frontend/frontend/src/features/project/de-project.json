@@ -57,10 +57,13 @@
       "saveSuccess": "Verfahrensinformation wurde gespeichert.",
       "submitError": "Änderungen konnten nicht gespeichert werden. Bitte erneut versuchen.",
       "fieldRequired": "Dieses Feld ist ein Pflichtfeld.",
+      "internalProjectNumberDuplicate": "Dieses Aktenzeichen ist bereits vergeben.",
+      "internalProjectNumberCheckError": "Das Aktenzeichen konnte nicht geprüft werden. Bitte erneut versuchen.",
       "emojiNotAllowed": "Emojis sind im Verfahrensnamen nicht erlaubt.",
       "projectNameTooLong": "Der Verfahrensname darf maximal 125 Zeichen lang sein.",
       "selectType": "Art auswählen",
-      "selectState": "Bundesland auswählen"
+      "selectState": "Bundesland auswählen",
+      "inactiveType": "{{name}} (inaktiv)"
     }
   },
   "ApplicantDetails": {
@@ -99,7 +102,12 @@
     }
   },
   "Deadlines": {
-    "title": "Deadlines und Termine",
+    "title": "Fristen und Termine",
+    "loading": "Fristen werden geladen …",
+    "loadMore": "Weitere Fristen laden",
+    "loadError": "Fristen konnten nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "tableAriaLabel": "Fristen und Termine",
     "tableHeaders": {
       "deadlineType": "Beschreibung",
       "startAt": "Beginn",
@@ -113,10 +121,13 @@
       "delete": "Löschen"
     },
     "addButton": "Frist hinzufügen",
-    "emptyState": "Keine Deadlines vorhanden.",
+    "emptyState": "Keine Fristen vorhanden.",
     "createSuccess": "Frist wurde hinzugefügt.",
+    "createError": "Frist konnte nicht hinzugefügt werden.",
     "updateSuccess": "Frist wurde gespeichert.",
+    "updateError": "Frist konnte nicht gespeichert werden.",
     "deleteSuccess": "Frist wurde gelöscht.",
+    "deleteError": "Frist konnte nicht gelöscht werden.",
     "createDialog": {
       "title": "Eintrag anlegen",
       "save": "Speichern",
@@ -143,6 +154,7 @@
     }
   },
   "Documents": {
+    "loadMore": "Weitere laden",
     "uploadButton": "Antragsunterlagen hochladen",
     "emptyState": "Es wurden noch keine Antragsunterlagen hochgeladen. Bitte laden Sie die Antragsunterlagen jetzt hoch.",
     "tableAriaLabel": "Unterlagen",
@@ -181,6 +193,25 @@
       "description": "Die hochgeladenen Dateien konnten nicht vollständig verarbeitet werden. Bitte laden Sie die Dateien erneut hoch oder versuchen Sie es später noch einmal.",
       "dismissAriaLabel": "Fehlermeldung schließen"
     },
+    "processingFailureReasons": {
+      "ZIP_INVALID": "Die ZIP-Datei konnte nicht gelesen werden. Bitte prüfen Sie, ob die Datei ein gültiges ZIP-Archiv ist, und laden Sie sie erneut hoch.",
+      "ZIP_AMBIGUOUS": "Die ZIP-Datei enthält uneindeutige oder zusätzliche Inhalte. Bitte entfernen Sie angehängte Daten und laden Sie die ZIP-Datei erneut hoch.",
+      "ZIP_ENCRYPTED": "Die ZIP-Datei ist verschlüsselt und kann nicht verarbeitet werden. Bitte laden Sie eine unverschlüsselte ZIP-Datei hoch.",
+      "ZIP_UNSUPPORTED_COMPRESSION": "Die ZIP-Datei verwendet eine nicht unterstützte Komprimierung. Bitte erstellen Sie das Archiv mit einer unterstützten Komprimierung neu.",
+      "ZIP_SPLIT": "Geteilte ZIP-Dateien werden nicht unterstützt. Bitte laden Sie ein vollständiges ZIP-Archiv hoch.",
+      "ZIP_NOT_FOUND": "Die hochgeladene ZIP-Datei wurde im Speicher nicht gefunden. Bitte laden Sie die Datei erneut hoch.",
+      "NO_PROCESSABLE_FILES": "In der ZIP-Datei wurden keine verarbeitbaren PDF-Dateien gefunden. Bitte laden Sie ein ZIP-Archiv mit PDF-Dateien hoch.",
+      "UNSUPPORTED_FILETYPE": "Die ZIP-Datei enthält Dateien, die nicht verarbeitet werden können. Bitte laden Sie ein ZIP-Archiv mit PDF-Dateien hoch.",
+      "INVALID_FILENAME": "Mindestens ein Dateiname in der ZIP-Datei entspricht nicht den Vorgaben. Bitte prüfen Sie die Dateinamen und laden Sie die ZIP-Datei erneut hoch.",
+      "VIRUS_DETECTED": "Die ZIP-Datei konnte aus Sicherheitsgründen nicht verarbeitet werden. Bitte prüfen Sie die Datei und laden Sie eine bereinigte Version hoch.",
+      "PROCESSING_FAILED": "Die ZIP-Datei konnte nicht verarbeitet werden. Bitte laden Sie die Datei erneut hoch oder versuchen Sie es später noch einmal.",
+      "PROCESSING_CANCELED": "Die Verarbeitung der ZIP-Datei wurde abgebrochen. Bitte laden Sie die Datei bei Bedarf erneut hoch.",
+      "PROCESSING_TIMED_OUT": "Die Verarbeitung der ZIP-Datei hat zu lange gedauert. Bitte versuchen Sie es später erneut oder laden Sie eine kleinere ZIP-Datei hoch.",
+      "ANALYSIS_FAILED": "Die Verarbeitung ist fehlgeschlagen. Bitte versuchen Sie es später noch einmal.",
+      "ANALYSIS_CANCELED": "Die Verarbeitung wurde abgebrochen. Bitte starten Sie sie bei Bedarf erneut.",
+      "ANALYSIS_TIMED_OUT": "Die Verarbeitung hat zu lange gedauert. Bitte versuchen Sie es später noch einmal.",
+      "NO_DOCUMENTS": "Für das Verfahren wurden keine Unterlagen gefunden. Bitte fügen Sie Unterlagen hinzu und starten Sie die Verarbeitung erneut."
+    },
     "readOnlyEmptyState": {
       "title": "Noch keine Unterlagen hinzugefügt",
       "description": "Fügen Sie Unterlagen für das Verfahren hinzu, um die Bearbeitung zu starten."
@@ -200,6 +231,7 @@
         "formatHint": "Unterstütztes Format: ZIP bestehend aus PDF-Dateien",
         "uploadedListTitle": "Hochgeladene Unterlagen",
         "errors": {
+          "singleZipRequired": "Bitte genau eine ZIP-Datei auswählen.",
           "unsupportedFormat": "Dateiformat nicht unterstützt",
           "uploadFailed": "Hochladen fehlgeschlagen",
           "processingFailed": "Verarbeitung fehlgeschlagen. Bitte erneut versuchen."
@@ -216,12 +248,11 @@
       },
       "uploading": {
         "title": "Unterlagen werden hochgeladen …",
-        "description": "Die Unterlagen werden verarbeitet. Dies kann einige Minuten dauern.",
-        "cancel": "Abbrechen"
+        "description": "Die Unterlagen werden verarbeitet. Dies kann einige Minuten dauern."
       },
       "diff": {
         "title": "Unterlagen aktualisieren",
-        "description": "Wählen Sie die Unterlagen aus, die hinzugefügt oder ersetzt werden sollen. Im nächsten Schritt können Sie wählen, welche KI-Prozesse neu durchlaufen werden sollen.",
+        "description": "Neue Unterlagen werden immer übernommen. Wählen Sie aus, welche Unterlagen ersetzt oder gelöscht werden sollen. Im nächsten Schritt können Sie wählen, welche KI-Prozesse neu durchlaufen werden sollen.",
         "previousDocuments": "Bisherige Antragsunterlagen",
         "newDocuments": "Neue Antragsunterlagen",
         "toggleAll": "Alle auswählen",
@@ -284,6 +315,7 @@
       "empty": "Keine Kommentare",
       "countLabel_one": "{{count}} Kommentar",
       "countLabel_other": "{{count}} Kommentare",
+      "loadMore": "Weitere laden",
       "actions": {
         "editAria": "Kommentar bearbeiten",
         "removeAria": "Kommentar löschen"
@@ -341,9 +373,18 @@
       "unknownWorkflowType": "Verarbeitung",
       "openTemporal": "In Temporal öffnen",
       "openTemporalAria": "{{name}} in Temporal öffnen",
+      "partialHistory": "Es werden die geladenen Läufe angezeigt. Weitere Läufe sind verfügbar.",
+      "loadMoreRuns": "Weitere Läufe laden",
+      "showRunDetails": "Unterläufe und Aktivitäten anzeigen",
+      "loadingHistory": "Verlauf wird geladen …",
+      "loadMoreEvents": "Weitere Ereignisse laden",
+      "partialRunHistory": "Ein Teil des Verlaufs ist geladen. Weitere Ereignisse können den angezeigten Status ändern.",
+      "historySnapshotComplete": "Aktueller Verlauf geladen. Untergeordnete Workflows lassen sich einzeln öffnen.",
+      "openContinuedRun": "Fortgesetzten Lauf öffnen",
       "status": {
         "pending": "Ausstehend",
         "success": "Erfolgreich",
+        "continued": "Fortgesetzt",
         "failed": "Fehlgeschlagen"
       },
       "workflowNames": {
@@ -368,13 +409,13 @@
         "finishedAt": "Beendet am",
         "elapsedTime": "Verstrichene Zeit",
         "runTime": "Laufzeit",
-        "childWorkflowCount": "Untergeordnete Workflows",
         "workflowRuns": "Läufe ({{count}})"
       }
     }
   },
   "Team": {
     "title": "Team",
+    "tableAriaLabel": "Team",
     "tableHeaders": {
       "name": "Name",
       "role": "Rolle",
@@ -438,5 +479,19 @@
   },
   "ProjectMasterDataSection": {
     "title": "Vorhabensstammdaten und Antragstellende"
+  },
+  "processingFailure": {
+    "areas": {
+      "tableOfContents": "Inhaltsverzeichnis-Abgleich fehlgeschlagen",
+      "requiredDocuments": "Abgleich mit benötigten Unterlagen fehlgeschlagen",
+      "plausibility": "Plausibilitätsprüfung fehlgeschlagen",
+      "mvpNorm": "KI-Analyse der Norm fehlgeschlagen",
+      "rpbRating": "KI-Bewertung fehlgeschlagen",
+      "rpbRiskWarnings": "Risikoanalyse fehlgeschlagen"
+    },
+    "badge": {
+      "label": "Fehlgeschlagen",
+      "ariaLabelWithSubject": "{{area}}: {{subject}}"
+    }
   }
 }

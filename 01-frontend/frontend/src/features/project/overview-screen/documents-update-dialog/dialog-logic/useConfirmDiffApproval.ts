@@ -1,4 +1,4 @@
-import type { FileDiffResponse } from '@/api-clients/dms-module';
+import type { FileDiffResponse } from '@/api-clients/backend';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { isHandledProjectVersionConflictError } from '@/integrations/api-clients/projectVersionConflictHandledError';
 import { toast } from '@/features/ui/toast/Toast';
@@ -119,7 +119,7 @@ export const useConfirmDiffApproval = (approvalActions: ApprovalActions) => {
 
     try {
       await setFileDiff.mutateAsync({
-        path: { file_id: zipFileId },
+        path: { fileId: zipFileId },
         body: trimmed,
       });
     } catch (error) {
@@ -132,7 +132,7 @@ export const useConfirmDiffApproval = (approvalActions: ApprovalActions) => {
 
     try {
       await submitDecision.mutateAsync({
-        path: { file_id: zipFileId },
+        path: { fileId: zipFileId },
         query: { decision: 'approve' },
       });
     } catch (error) {

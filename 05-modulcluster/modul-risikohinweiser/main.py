@@ -18,9 +18,9 @@ import logging
 import sys
 
 from temporal.activities.llm import get_queue_for_model
+from temporal.registry import RISIKOHINWEIS_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.risikohinweis.risikohinweis import TASK_QUEUE as RISIKOHINWEISER_TASK_QUEUE
 
 from src.workflows.risk_checker import RiskCheckerWorkflow
 
@@ -42,15 +42,15 @@ def _create_storage() -> S3PayloadStorage:
     return S3PayloadStorage(
         bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
         endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
-        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
-        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY,
+        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID.get_secret_value(),
+        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY.get_secret_value(),
         region=ENV.TEMPORAL.S3_REGION,
     )
 
 
 async def main() -> None:
     target_host = ENV.TEMPORAL.HOST
-    task_queue = RISIKOHINWEISER_TASK_QUEUE
+    task_queue = RISIKOHINWEIS_WORKFLOW.task_queue
     model = ENV.LITELLM.MODEL
     llm_task_queue = task_queue + get_queue_for_model(model)
 

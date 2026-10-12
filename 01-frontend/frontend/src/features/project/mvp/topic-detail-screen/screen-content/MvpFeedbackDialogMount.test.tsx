@@ -29,7 +29,7 @@ vi.mock('@/db/nodes/hooks/useGraph', () => ({
   useGraph: () => ({
     getNodesByType: (nodeType: string) =>
       nodeType === 'fundstelle'
-        ? [{ id: 'fundstelle-1', node_type: 'fundstelle' }]
+        ? [{ id: 'fundstelle-1', nodeType: 'fundstelle' }]
         : [],
   }),
 }));
@@ -64,7 +64,7 @@ describe('MvpFeedbackDialogMount', () => {
       expect.objectContaining({
         initialRating: 'positive',
         namespace: 'MvpRedesign',
-        targetRef: { id: 'fundstelle-1', node_type: 'fundstelle' },
+        targetRef: { id: 'fundstelle-1', nodeType: 'fundstelle' },
       }),
     );
   });

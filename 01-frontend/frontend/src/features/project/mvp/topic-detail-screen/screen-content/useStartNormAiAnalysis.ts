@@ -1,4 +1,4 @@
-import { startSuzNormWorkflowWorkflowsSuzNormIdPostMutation } from '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen';
+import { v1AgentOrchestrationStartSuzNormWorkflowMutation as startSuzNormWorkflowMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { toast } from '@/features/ui/toast/Toast';
 import { isHandledProjectVersionConflictError } from '@/integrations/api-clients/projectVersionConflictHandledError';
 import * as Sentry from '@sentry/react';
@@ -26,9 +26,7 @@ export const useStartNormAiAnalysis = (
     verfahrenId,
   } = options;
   const { t } = useTranslation('MvpRedesign');
-  const mutation = useMutation(
-    startSuzNormWorkflowWorkflowsSuzNormIdPostMutation(),
-  );
+  const mutation = useMutation(startSuzNormWorkflowMutation());
 
   const startAiAnalysis = () => {
     if (!canMutateTopic || !canStartAiAnalysis || !hasAtomareTbmDescendant) {
@@ -38,7 +36,7 @@ export const useStartNormAiAnalysis = (
     mutation.mutate(
       {
         path: {
-          norm_id: normId,
+          normId,
         },
         body: {
           projectId: verfahrenId,

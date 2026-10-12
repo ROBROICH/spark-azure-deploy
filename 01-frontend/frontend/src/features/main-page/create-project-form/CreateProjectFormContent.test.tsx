@@ -22,12 +22,8 @@ vi.mock('@tanstack/react-query', () => ({
   useQueryClient: () => ({ invalidateQueries: mocks.invalidateQueries }),
 }));
 
-vi.mock('@/api-clients/pls-module/@tanstack/react-query.gen', () => ({
-  createProjectProjectsPostMutation: () => ({}),
-}));
-
-vi.mock('@/features/project/data/collections/projects.collection', () => ({
-  useAllProjects: () => ({ data: [], isError: false, isLoading: false }),
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1ProjectLogicCreateProjectMutation: () => ({}),
 }));
 
 vi.mock('@/features/ui/toast/Toast', () => ({

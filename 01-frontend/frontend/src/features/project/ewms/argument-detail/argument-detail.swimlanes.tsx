@@ -52,7 +52,7 @@ export const ArgumentDetailContent = (props: ArgumentDetailContentProps) => {
         title={t('topicClassification.argument')}
         icon={Mail}
         headerChildren={
-          argument.is_valid_argument === false ? (
+          argument.isValidArgument === false ? (
             <span className="shrink-0 rounded border border-slate-400 bg-white px-2 py-[5px] text-[11px] leading-[14px] font-medium tracking-[0.22px] text-slate-600">
               {t('arguments.invalidBadge')}
             </span>

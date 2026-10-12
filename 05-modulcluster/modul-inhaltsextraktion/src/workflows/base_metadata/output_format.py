@@ -1,8 +1,7 @@
 # src/workflows/metadata_extraction/base/base_metadata_output_format.py
 """Pydantic models for LLM-facing metadata extraction (evidence gathering and consolidation).
 
-The final BaseMetadata output model lives in the shared services package:
-    temporal.workflows.inhaltsextraktion.types.BaseMetadata
+The final BaseMetadata output model is generated as temporal.contracts.BaseMetadata.
 """
 
 from typing import Any

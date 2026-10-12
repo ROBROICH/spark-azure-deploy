@@ -1,8 +1,7 @@
 """Type definitions for Rechtsfolge workflows."""
 
 from pydantic import BaseModel
-from temporal.workflows.rechtsmethodik.types import (
-    Absatz,
+from temporal.contracts import (
     ErmessensArt,
     Ermessensspielraum,
     NormTyp,
@@ -11,6 +10,8 @@ from temporal.workflows.rechtsmethodik.types import (
     SatzKategorie,
 )
 
+from src.absatz import Absatz
+
 
 class RFWorkflowSatzOutput(BaseModel):
     """Single sentence output from the Rechtsfolgen-Analyse workflow."""
@@ -18,8 +19,8 @@ class RFWorkflowSatzOutput(BaseModel):
     satz_nr: str
     markers: list[str]
     satz_text: str
-    norm_typ_lvl_1: NormTyp
-    norm_typ_lvl_2: SatzKategorie | None = None
+    norm_typ_lvl1: NormTyp
+    norm_typ_lvl2: SatzKategorie | None = None
     tatbestandsmerkmale: list[str] | None = None
     rechtsfolge: Rechtsfolge | None = None
     atomare_tatbestandsmerkmale: list[str] | None = None

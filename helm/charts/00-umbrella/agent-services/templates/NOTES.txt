@@ -1,0 +1,12 @@
+{{ .Chart.Name }} — release {{ .Release.Name }} in namespace {{ .Release.Namespace }}.
+
+Enabled components:
+{{- range $name, $dep := .Values }}
+{{- if and (kindIs "map" $dep) (hasKey $dep "enabled") $dep.enabled }}
+  - {{ $name }}
+{{- end }}
+{{- end }}
+
+Toggle a component with <component>.enabled; every component's own values
+live under its key. Inspect the result with:
+  helm get values {{ .Release.Name }} -n {{ .Release.Namespace }}

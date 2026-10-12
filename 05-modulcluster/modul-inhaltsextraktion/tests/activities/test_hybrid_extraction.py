@@ -136,3 +136,31 @@ async def test_workflow_wrapper(mock_execute_activity, mock_get_config):
     assert kwargs["start_to_close_timeout"] == timedelta(minutes=10)
     assert isinstance(kwargs["retry_policy"], RetryPolicy)
     assert kwargs["retry_policy"].maximum_attempts == 5
+
+
+# Production EWMS failure: activity input is raw PDF bytes. Pydantic Base64Bytes
+# either raises "Incorrect padding" or silently decodes the PDF into garbage
+# that PDFium reports as "Data format error".
+MINIMAL_PDF = (
+    b"%PDF-1.1\n"
+    b"1 0 obj<</Type/Catalog/Pages 2 0 R>>endobj\n"
+    b"2 0 obj<</Type/Pages/Kids[3 0 R]/Count 1>>endobj\n"
+    b"3 0 obj<</Type/Page/MediaBox[0 0 3 3]/Parent 2 0 R>>endobj\n"
+    b"xref\n0 4\n0000000000 65535 f \n0000000009 00000 n \n"
+    b"0000000052 00000 n \n0000000101 00000 n \n"
+    b"trailer<</Size 4/Root 1 0 R>>\nstartxref\n178\n%%EOF\n"
+)
+
+
+@pytest.mark.asyncio
+async def test_split_pdf_accepts_raw_pdf_bytes(mock_logger):
+    input_data = SplitPDFScannedInput(file_bytes=MINIMAL_PDF)
+
+    assert input_data.file_bytes == MINIMAL_PDF
+
+    result = await _split_pdf_by_scan_status(input_data)
+
+    assert len(result.pdf_chunks) == 1
+    assert result.page_offsets == [0]
+    assert result.pdf_chunks[0].startswith(b"%PDF")
+

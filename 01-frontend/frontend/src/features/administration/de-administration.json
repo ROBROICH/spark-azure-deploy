@@ -1,0 +1,241 @@
+{
+  "title": "Administration",
+  "actions": {
+    "confirmDelete": "Bestätigen?"
+  },
+  "projectTypes": {
+    "title": "Verfahrensarten",
+    "tableAriaLabel": "Verfahrensarten",
+    "createButton": "Verfahrensart anlegen",
+    "empty": "Es sind noch keine Verfahrensarten vorhanden.",
+    "loadError": "Verfahrensarten konnten nicht geladen werden.",
+    "loading": "Verfahrensarten werden geladen.",
+    "retry": "Erneut versuchen",
+    "inactiveBadge": "inaktiv",
+    "actions": {
+      "menu": "Aktionen für {{name}}",
+      "edit": "Bearbeiten",
+      "rename": "Umbenennen",
+      "duplicate": "Duplizieren",
+      "deactivate": "Deaktivieren",
+      "reactivate": "Reaktivieren",
+      "delete": "Löschen"
+    },
+    "tableHeaders": {
+      "name": "Name",
+      "status": "Status",
+      "action": "Aktionen"
+    },
+    "createDialog": {
+      "title": "Verfahrensart anlegen",
+      "name": "Name",
+      "save": "Anlegen",
+      "cancel": "Abbrechen"
+    },
+    "renameDialog": {
+      "title": "Verfahrensart umbenennen",
+      "name": "Name",
+      "save": "Speichern",
+      "cancel": "Abbrechen"
+    },
+    "duplicateName": "{{name}} Kopie",
+    "duplicateDialog": {
+      "title": "Verfahrensart duplizieren",
+      "name": "Name",
+      "save": "Duplizieren",
+      "cancel": "Abbrechen"
+    },
+    "duplicate": {
+      "rollbackFailed": "Die Verfahrensart „{{name}}“ wurde angelegt, die Konfiguration konnte jedoch nicht kopiert werden. Das Entfernen der unvollständigen Kopie ist fehlgeschlagen.",
+      "openPartial": "Unvollständige Kopie öffnen"
+    },
+    "detail": {
+      "heading": "Verfahrensart: {{name}}",
+      "back": "Zurück zur Verfahrensauswahl"
+    },
+    "deleteDialog": {
+      "title": "Verfahrensart löschen?",
+      "description": "Möchten Sie „{{name}}“ wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+      "confirm": "Löschen",
+      "cancel": "Abbrechen",
+      "conflictTitle": "Löschen nicht möglich",
+      "conflictDescription": "Die Verfahrensart „{{name}}“ wird von einem Verfahren verwendet. Löschen ist nicht möglich. Deaktivieren Sie sie stattdessen.",
+      "deactivateInstead": "Stattdessen deaktivieren"
+    },
+    "form": {
+      "nameRequired": "Name ist ein Pflichtfeld."
+    },
+    "toasts": {
+      "createSuccess": "Verfahrensart wurde angelegt.",
+      "renameSuccess": "Verfahrensart wurde umbenannt.",
+      "deactivateSuccess": "Verfahrensart wurde deaktiviert.",
+      "reactivateSuccess": "Verfahrensart wurde reaktiviert.",
+      "deleteSuccess": "Verfahrensart wurde gelöscht.",
+      "duplicateSuccess": "Verfahrensart wurde dupliziert.",
+      "duplicateError": "Verfahrensart konnte nicht dupliziert werden.",
+      "duplicateDocumentsError": "Die Konfiguration der Verfahrensart konnte nicht kopiert werden.",
+      "duplicateRollbackFailed": "Die Verfahrensart „{{name}}“ wurde nur teilweise angelegt.",
+      "createError": "Verfahrensart konnte nicht angelegt werden.",
+      "updateError": "Verfahrensart konnte nicht gespeichert werden.",
+      "deleteError": "Verfahrensart konnte nicht gelöscht werden."
+    }
+  },
+  "dirtyNavigation": {
+    "title": "Ungespeicherte Änderungen",
+    "description": "Möchten Sie Ihre Änderungen speichern, bevor Sie wechseln?",
+    "saveAndSwitch": "Speichern und wechseln",
+    "discardAndSwitch": "Ohne Speichern wechseln",
+    "cancel": "Abbrechen"
+  },
+  "catalog": {
+    "title": "Themenkatalog",
+    "selectProjectType": "Wählen Sie eine Verfahrensart, um den Katalog zu bearbeiten.",
+    "loading": "Katalog wird geladen.",
+    "loadError": "Katalog konnte nicht geladen werden.",
+    "retry": "Erneut versuchen",
+    "save": "Speichern",
+    "discard": "Verwerfen",
+    "dirty": "Ungespeicherte Änderungen.",
+    "init": {
+      "title": "Noch kein Katalog",
+      "description": "Für die Verfahrensart „{{name}}“ ist noch kein Katalog vorhanden.",
+      "createButton": "Katalog anlegen"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Beschreibung",
+      "showInMvp": "In der materiellen Vollständigkeitsprüfung anzeigen",
+      "showInEwm": "In der Behörden- und Öffentlichkeitsbeteiligung verwenden",
+      "showInBeschluss": "Im Beschluss anzeigen"
+    },
+    "form": {
+      "nameRequired": "Name ist ein Pflichtfeld."
+    },
+    "actions": {
+      "remove": "Entfernen"
+    },
+    "legalBasis": {
+      "federalAction": "Bundesgesetze · {{count}} Normen",
+      "stateAction": "Landesgesetze · {{count}} Normen",
+      "federalActionAria": "Bundesgesetze für „{{name}}“ · {{count}} Normen",
+      "stateActionAria": "Landesgesetze für „{{name}}“ · {{count}} Normen",
+      "federalTitle": "Bundesgesetze auswählen",
+      "federalDescription": "Wählen Sie die bundesrechtlichen Normen für dieses Thema.",
+      "stateTitle": "Landesgesetze auswählen",
+      "stateDescription": "Wählen Sie zuerst ein Bundesland und danach die Landesnormen.",
+      "loadError": "Die Normen des Gesetzes konnten nicht geladen werden.",
+      "apply": "Übernehmen",
+      "cancel": "Abbrechen"
+    },
+    "topics": {
+      "title": "Themen",
+      "add": "Thema hinzufügen",
+      "empty": "Es sind noch keine Themen vorhanden.",
+      "remove": "Thema „{{name}}“ entfernen"
+    },
+    "subtopics": {
+      "title": "Unterthemen",
+      "add": "Unterthema hinzufügen",
+      "empty": "Es sind noch keine Unterthemen vorhanden.",
+      "remove": "Unterthema „{{name}}“ entfernen"
+    },
+    "dialogs": {
+      "addTopic": {
+        "title": "Thema hinzufügen"
+      },
+      "addSubtopic": {
+        "title": "Unterthema hinzufügen"
+      },
+      "add": "Hinzufügen",
+      "cancel": "Abbrechen"
+    },
+    "errors": {
+      "duplicateTopicName": "Der Themenname „{{name}}“ ist bereits vergeben.",
+      "duplicateSubtopicName": "Der Unterthemenname „{{name}}“ ist in diesem Thema bereits vergeben.",
+      "missingJurabk": "Rechtsgrundlage ist ein Pflichtfeld.",
+      "duplicateNorm": "Die Norm „{{jurabk}}“ {{paragraphNr}} ist in dieser Liste bereits vorhanden.",
+      "topicReferenced": "Das Thema „{{name}}“ wird von den Kapiteln {{nodes}} der Beschlussvorlage referenziert und kann nicht gelöscht werden."
+    },
+    "toasts": {
+      "saveError": "Katalog konnte nicht gespeichert werden.",
+      "saveConflict": "Der Katalog wurde zwischenzeitlich geändert und neu geladen. Prüfen Sie Ihre Änderungen erneut.",
+      "createError": "Katalog konnte nicht angelegt werden.",
+      "createConflict": "Für diese Verfahrensart existiert bereits ein Katalog.",
+      "invalidCatalog": "Der Katalog ist ungültig."
+    }
+  },
+  "requiredDocuments": {
+    "title": "Erforderliche Unterlagen",
+    "missing": "Für diese Verfahrensart ist noch kein Katalog vorhanden.",
+    "empty": "Es sind noch keine Gruppen vorhanden.",
+    "addCategory": "Gruppe hinzufügen",
+    "renameCategory": "Gruppe umbenennen",
+    "renameCategoryAria": "Gruppe „{{name}}“ umbenennen",
+    "removeCategory": "Gruppe „{{name}}“ entfernen",
+    "documentTypes": "Dokumenttypen",
+    "emptyDocumentTypes": "Es sind noch keine Dokumenttypen vorhanden.",
+    "addDocumentType": "Dokumenttyp hinzufügen",
+    "removeDocumentType": "Dokumenttyp „{{name}}“ entfernen",
+    "fields": {
+      "categoryName": "Gruppenname",
+      "expectedCount": "Erwartete Anzahl"
+    },
+    "errors": {
+      "duplicateDocumentTypeName": "Der Dokumenttyp „{{name}}“ ist in dieser Gruppe bereits vorhanden.",
+      "invalidExpectedCount": "Die erwartete Anzahl muss eine positive ganze Zahl sein.",
+      "emptyDocumentTypeName": "Name ist ein Pflichtfeld."
+    },
+    "dialogs": {
+      "addCategoryTitle": "Gruppe hinzufügen",
+      "renameCategoryTitle": "Gruppe umbenennen",
+      "addDocumentTypeTitle": "Dokumenttyp hinzufügen",
+      "cancel": "Abbrechen",
+      "add": "Hinzufügen",
+      "save": "Speichern"
+    }
+  },
+  "decisionTemplate": {
+    "title": "Beschlussvorlage",
+    "missing": "Für diese Verfahrensart ist noch kein Katalog vorhanden.",
+    "empty": "Es sind noch keine Kapitel vorhanden.",
+    "addChild": "Unterkapitel hinzufügen",
+    "addChildAria": "Unterkapitel unter „{{title}}“ hinzufügen",
+    "addRoot": "Kapitel hinzufügen",
+    "removeNode": "Kapitel „{{title}}“ entfernen",
+    "moveUp": "„{{title}}“ nach oben verschieben",
+    "moveDown": "„{{title}}“ nach unten verschieben",
+    "expand": "„{{title}}“ aufklappen",
+    "collapse": "„{{title}}“ zuklappen",
+    "unknownTopicMarker": "Unbekanntes Thema",
+    "fields": {
+      "title": "Titel",
+      "text": "Text",
+      "topic": "Thema",
+      "isHidden": "Ausgeblendet",
+      "canAddChild": "Unterkapitel erlauben"
+    },
+    "topic": {
+      "none": "Kein Thema",
+      "unknown": "Das Thema „{{name}}“ ist im Katalog nicht vorhanden."
+    },
+    "errors": {
+      "titleRequired": "Titel ist ein Pflichtfeld.",
+      "unknownTopic": "Das Kapitel „{{title}}“ verweist auf das unbekannte Thema „{{name}}“.",
+      "cannotAddChild": "Unter diesem Kapitel können keine Unterkapitel angelegt werden."
+    },
+    "dialogs": {
+      "addChildTitle": "Unterkapitel hinzufügen",
+      "addRootTitle": "Kapitel hinzufügen",
+      "add": "Hinzufügen",
+      "cancel": "Abbrechen"
+    }
+  },
+  "export": {
+    "title": "Katalogexport",
+    "missing": "Für diese Verfahrensart ist noch kein Katalog vorhanden.",
+    "button": "Katalog exportieren",
+    "filename": "{{name}}-katalog.yaml",
+    "success": "Katalog wurde exportiert.",
+    "error": "Katalog konnte nicht exportiert werden."
+  }
+}

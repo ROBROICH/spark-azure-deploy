@@ -48,6 +48,7 @@ export type DocumentNode = {
   isResolved?: boolean;
   isDeleted?: boolean;
   localFilePath?: string;
+  confidence?: number | null;
   children?: undefined;
 };
 

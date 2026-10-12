@@ -1,0 +1,35 @@
+{{- if .Values.networkPolicy.enabled }}
+{{- /*
+Ingress isolation of the workload: traffic from pods in the same namespace
+(allowSameNamespace) plus networkPolicy.ingress rules (tpl-rendered).
+Egress stays open unless networkPolicy.egress lists rules.
+*/ -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "modul-risikohinweiser.fullname" . }}
+  namespace: {{ include "modul-risikohinweiser.namespace" . }}
+  labels:
+    {{- include "modul-risikohinweiser.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "modul-risikohinweiser.selectorLabels" . | nindent 6 }}
+  policyTypes:
+    - Ingress
+    {{- if .Values.networkPolicy.egress }}
+    - Egress
+    {{- end }}
+  ingress:
+    {{- if .Values.networkPolicy.allowSameNamespace }}
+    - from:
+        - podSelector: {}
+    {{- end }}
+    {{- with .Values.networkPolicy.ingress }}
+    {{- tpl (toYaml .) $ | nindent 4 }}
+    {{- end }}
+  {{- with .Values.networkPolicy.egress }}
+  egress:
+    {{- tpl (toYaml .) $ | nindent 4 }}
+  {{- end }}
+{{- end }}

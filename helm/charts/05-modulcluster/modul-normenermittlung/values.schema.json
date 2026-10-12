@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "Standard leaf chart values",
+  "description": "Types and enums of the shared values contract of the standard leaf charts. Unknown keys are allowed (umbrellas pass globals and extensions through).",
+  "type": "object",
+  "definitions": {
+    "stringOrNull": {"type": ["string", "null"]},
+    "boolOrNull": {"type": ["boolean", "null"]},
+    "envVar": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "value": {"type": ["string", "number", "boolean", "null"]},
+        "valueFrom": {"type": "object"}
+      }
+    },
+    "envList": {"type": ["array", "null"], "items": {"$ref": "#/definitions/envVar"}},
+    "list": {"type": ["array", "null"]},
+    "map": {"type": ["object", "null"]},
+    "probe": {"type": ["object", "null"]},
+    "toggle": {
+      "type": ["object", "null"],
+      "properties": {"enabled": {"type": "boolean"}}
+    }
+  },
+  "properties": {
+    "replicaCount": {"type": "integer", "minimum": 0},
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {"$ref": "#/definitions/stringOrNull"},
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": ["string", "null"]},
+        "digest": {"type": ["string", "null"], "pattern": "^$|^sha256:[a-f0-9]+$"},
+        "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]},
+        "followGlobalTag": {"type": "boolean"}
+      }
+    },
+    "imagePullSecrets": {
+      "type": ["array", "null"],
+      "items": {"type": ["object", "string"]}
+    },
+    "nameOverride": {"$ref": "#/definitions/stringOrNull"},
+    "fullnameOverride": {"$ref": "#/definitions/stringOrNull"},
+    "namespaceOverride": {"$ref": "#/definitions/stringOrNull"},
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": {"type": "boolean"},
+        "automount": {"$ref": "#/definitions/boolOrNull"},
+        "annotations": {"$ref": "#/definitions/map"},
+        "name": {"$ref": "#/definitions/stringOrNull"}
+      }
+    },
+    "podSecurity": {
+      "type": ["object", "null"],
+      "properties": {"restricted": {"$ref": "#/definitions/boolOrNull"}}
+    },
+    "podSecurityContext": {"$ref": "#/definitions/map"},
+    "securityContext": {"$ref": "#/definitions/map"},
+    "podAnnotations": {"$ref": "#/definitions/map"},
+    "podLabels": {"$ref": "#/definitions/map"},
+    "containerPorts": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "object",
+        "required": ["containerPort"],
+        "properties": {"containerPort": {"type": "integer"}, "name": {"type": "string"}}
+      }
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "type": {"enum": ["ClusterIP", "NodePort", "LoadBalancer", "ExternalName"]},
+        "port": {"type": ["integer", "null"]},
+        "ports": {
+          "type": ["array", "null"],
+          "items": {
+            "type": "object",
+            "required": ["port"],
+            "properties": {
+              "port": {"type": "integer"},
+              "targetPort": {"type": ["integer", "string"]},
+              "protocol": {"enum": ["TCP", "UDP", "SCTP"]},
+              "name": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "className": {"$ref": "#/definitions/stringOrNull"},
+        "hosts": {"$ref": "#/definitions/list"},
+        "tls": {"$ref": "#/definitions/list"}
+      }
+    },
+    "resources": {"$ref": "#/definitions/map"},
+    "env": {"$ref": "#/definitions/envList"},
+    "extraEnv": {"$ref": "#/definitions/envList"},
+    "extraEnvFrom": {"$ref": "#/definitions/list"},
+    "startupProbe": {"$ref": "#/definitions/probe"},
+    "livenessProbe": {"$ref": "#/definitions/probe"},
+    "readinessProbe": {"$ref": "#/definitions/probe"},
+    "autoscaling": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "minReplicas": {"type": "integer", "minimum": 1},
+        "maxReplicas": {"type": "integer", "minimum": 1},
+        "targetCPUUtilizationPercentage": {"type": ["integer", "null"]}
+      }
+    },
+    "keda": {"$ref": "#/definitions/toggle"},
+    "podMonitoring": {"$ref": "#/definitions/toggle"},
+    "serviceMonitor": {"$ref": "#/definitions/toggle"},
+    "networkPolicy": {"$ref": "#/definitions/toggle"},
+    "podDisruptionBudget": {"$ref": "#/definitions/toggle"},
+    "command": {"$ref": "#/definitions/list"},
+    "args": {"$ref": "#/definitions/list"},
+    "volumes": {"$ref": "#/definitions/list"},
+    "volumeMounts": {"$ref": "#/definitions/list"},
+    "extraVolumes": {"$ref": "#/definitions/list"},
+    "extraVolumeMounts": {"$ref": "#/definitions/list"},
+    "initContainers": {"$ref": "#/definitions/list"},
+    "extraContainers": {"$ref": "#/definitions/list"},
+    "extraObjects": {"$ref": "#/definitions/list"},
+    "nodeSelector": {"$ref": "#/definitions/map"},
+    "tolerations": {"$ref": "#/definitions/list"},
+    "affinity": {"$ref": "#/definitions/map"},
+    "topologySpreadConstraints": {"$ref": "#/definitions/list"},
+    "priorityClassName": {"$ref": "#/definitions/stringOrNull"},
+    "terminationGracePeriodSeconds": {"type": ["integer", "null"], "minimum": 0},
+    "lifecycle": {"$ref": "#/definitions/map"}
+  }
+}

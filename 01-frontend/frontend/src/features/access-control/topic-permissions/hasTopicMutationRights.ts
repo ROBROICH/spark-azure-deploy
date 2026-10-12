@@ -1,4 +1,4 @@
-import type { UserOidcRole } from '@/api-clients/identity-management-module/types.gen';
+import type { UserOidcRole } from '@/api-clients/backend/types.gen';
 import {
   useLiveTopicNodes,
   useTopicNodes,
@@ -11,7 +11,7 @@ import { useCallback, useMemo } from 'react';
 
 const projectRoute = getRouteApi('/verfahren/$verfahrenId');
 
-type TopicNode = Pick<NodePayloadByType<'topic'>, 'id' | 'mvp_assignees'>;
+type TopicNode = Pick<NodePayloadByType<'topic'>, 'id' | 'mvpAssignees'>;
 
 export type TopicWritePermissionReason =
   | 'admin'
@@ -85,7 +85,7 @@ export function hasTopicMutationRights(
 ) {
   return deriveTopicWritePermission({
     ...context,
-    assigneeIds: topicNode.mvp_assignees,
+    assigneeIds: topicNode.mvpAssignees,
   }).canWrite;
 }
 

@@ -1,10 +1,18 @@
 """Application config for manual tuning."""
 
+import logging
 from dataclasses import dataclass
 
 from temporalio import workflow
 
 from src.env import ENV
+
+logger = logging.getLogger(__name__)
+
+# Headroom on top of the two docling budgets. Submit alone can spend
+# MAX_SUBMIT_RETRIES x 300s plus its retry delays before polling even starts,
+# and the result download and post-processing (crops, DMS upload) follow.
+_ACTIVITY_TIMEOUT_MARGIN_MINUTES = 30
 
 
 @dataclass(frozen=True)
@@ -19,6 +27,9 @@ class Config:
 
     # Timeouts
     DMS_TIMEOUT: int = 300
+
+    DMS_LIST_PAGE_SIZE: int = 500
+    DMS_LIST_MAX_PAGES: int = 200
     VLM_TIMEOUT_SECONDS: int = 600
     VLM_ACTIVITY_TIMEOUT_MINUTES: int = 15
     VLM_MAX_TOKENS: int = 4096
@@ -38,6 +49,13 @@ class Config:
 
     # Hypothetical Questions Configuration
     HYPOTHETICAL_QUESTIONS_BATCH_SIZE: int = 30
+
+    # PageIndex summaries fan out one activity per document node from inside the
+    # workflow. Scheduling them all at once puts every node payload into a single
+    # RespondWorkflowTaskCompleted request; node texts sit below the payload
+    # codec's offload threshold, so they are sent inline and their sum can exceed
+    # the server's gRPC message limit on documents with many chapters.
+    PAGE_INDEX_SUMMARY_CONCURRENCY: int = 20
 
     SUMMARIZATION_BATCH_SIZE: int = 20
     SUMMARIZATION_WORKFLOW_BATCH_SIZE: int = 25
@@ -72,15 +90,21 @@ class Config:
     # PDF image compression
     ENABLE_PDF_COMPRESSION: bool = True
     PDF_COMPRESSION_THRESHOLD_MB: int = 80
-    PDF_COMPRESSION_MAX_IMAGE_DIMENSION: int = 1500
     PDF_COMPRESSION_JPEG_QUALITY: int = 65
-    PDF_COMPRESSION_MIN_IMAGE_DIMENSION: int = 300
     PDF_COMPRESSION_MAX_IMAGE_PIXELS: int = 80_000_000  # PIL limit is ~89M
 
-    # Raster fallback for docling-serve crashes on pages with huge embedded images
+    # Plan-first raster and crash-fallback share this JPEG render.
+    # 150 dpi matches Docling's default page scale (144 dpi); EasyOCR
+    # quality plateaus here on Lagepläne. JPEG 75 is the measured setting.
     ENABLE_RASTER_FALLBACK: bool = True
-    RASTER_FALLBACK_DPI: int = 300
-    RASTER_FALLBACK_JPEG_QUALITY: int = 90
+    RASTER_FALLBACK_DPI: int = 150
+    RASTER_FALLBACK_JPEG_QUALITY: int = 75
+    # Pillow bomb guard (~89M). A 21.3x A4 sheet at 150 dpi is ~46 Mpx
+    # and does not cap; keep this for larger sheets or a higher DPI.
+    RASTER_MAX_PIXELS: int = 80_000_000
+
+    # CAD/GIS plan sheets rasterize to JPEG pages before Docling.
+    ENABLE_PLAN_FAST_PATH: bool = ENV.ENABLE_PLAN_FAST_PATH
 
     # Business logic
     SKIP_DOCUMENTS_BY_KEYWORDS: bool = False
@@ -113,7 +137,12 @@ class Config:
     FILTER_IMAGE_SIMILARITY_THRESHOLD: int = 8
 
     # Docling settings
-    DOCLING_TIMEOUT: int = 3600  # 60 minutes (docling-serve max raised to 3600)
+    # Separate budgets: counting queue wait against the conversion budget kills
+    # documents that were never converted. See api_client._expired_budget.
+    DOCLING_TIMEOUT: int = ENV.DOCLING_TIMEOUT
+    """Time budget once docling reports the task as started."""
+    DOCLING_QUEUE_WAIT_TIMEOUT: int = ENV.DOCLING_QUEUE_WAIT_TIMEOUT
+    """Time budget while the task is still pending in the queue."""
     DOCLING_MAX_RESUBMIT_ATTEMPTS: int = 3
     DOCLING_OCR_ENGINE: str = ENV.DOCLING_OCR_ENGINE
     DOCLING_OCR_LANG: tuple[str, ...] = ("de", "en")
@@ -121,8 +150,23 @@ class Config:
     DOCLING_TABLE_AS_HTML: bool = True
     DOCLING_TABLE_AS_IMAGE: bool = True
     TRUST_PROVIDER_LABELS_FOR_FILTER: bool = True
-    DETECT_FULL_PAGE_IMAGES: bool = True
+    DETECT_FULL_PAGE_IMAGES: bool = ENV.DETECT_FULL_PAGE_IMAGES
     FULL_PAGE_IMAGE_TEXT_COVERAGE_THRESHOLD: float = 0.10
+
+    # "placeholder" stops docling embedding a full-page raster of every page
+    # (~0.8 MB per A4 page); what needs pixels is cropped locally instead.
+    # "embedded" restores the previous behaviour.
+    DOCLING_IMAGE_EXPORT_MODE: str = ENV.DOCLING_IMAGE_EXPORT_MODE
+
+    # Thresholds from real project data: furniture covers 0.5% of a page and
+    # recurs on 84-100% of them, the smallest genuine figure covers 11.9% and
+    # recurs on at most 30%.
+    ENABLE_PICTURE_FURNITURE_FILTER: bool = ENV.ENABLE_PICTURE_FURNITURE_FILTER
+    PICTURE_FURNITURE_MAX_AREA_FRACTION: float = 0.02
+    PICTURE_FURNITURE_MIN_PAGE_SHARE: float = 0.5
+    PICTURE_FURNITURE_SIZE_TOLERANCE_PT: float = 10.0
+    # Sampled hash check, so equally sized but different pictures survive.
+    PICTURE_FURNITURE_HASH_SAMPLE_SIZE: int = 3
 
     # Temporal workflow settings
     TEMPORAL_PROCESS_DOCUMENTS_SEQUENTIALLY: bool = True
@@ -221,6 +265,40 @@ def get_config() -> Config:
     return _default
 
 
+def get_docling_activity_timeout_minutes() -> int:
+    """Outer Temporal bound for an activity that waits on docling-serve.
+
+    Must stay above the client's own budgets, or the activity dies first and
+    Temporal retries -- resubmitting a document that is still being converted,
+    with no way to cancel the first attempt.  Liveness is not affected: the
+    poll loop heartbeats every few seconds and heartbeat_timeout still catches
+    a dead client within two minutes.
+    """
+    cfg = get_config()
+    total_seconds = cfg.DOCLING_TIMEOUT + cfg.DOCLING_QUEUE_WAIT_TIMEOUT
+    return int(total_seconds / 60) + _ACTIVITY_TIMEOUT_MARGIN_MINUTES
+
+
 def get_docling_url() -> str:
     """Build docling-serve API URL from protocol, host, and port."""
     return f"{ENV.DOCLING_PROTOCOL}://{ENV.DOCLING_HOST}:{ENV.DOCLING_PORT}"
+
+
+def get_docling_image_export_mode() -> str:
+    """Resolve the image export mode, guarding the one harmful combination.
+
+    "placeholder" makes every picture that survives filtering cost a local page
+    render.  With the furniture filter switched off, docling reports a logo on
+    every page, so that would render the whole document -- exactly what asking
+    docling for the images avoids.  Fall back to "embedded" in that case, so
+    turning off the filter alone can never make things worse.
+    """
+    cfg = get_config()
+    mode = cfg.DOCLING_IMAGE_EXPORT_MODE
+    if mode == "placeholder" and not cfg.ENABLE_PICTURE_FURNITURE_FILTER:
+        logger.warning(
+            "ENABLE_PICTURE_FURNITURE_FILTER is off; falling back to image_export_mode=embedded "
+            "to avoid one local page render per page of recurring furniture."
+        )
+        return "embedded"
+    return mode

@@ -1,6 +1,6 @@
 """Agent for classifying norm types (materiell-rechtlich vs formell)."""
 
-from temporal.workflows.rechtsmethodik.types import NormTyp
+from temporal.contracts import NormTyp
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

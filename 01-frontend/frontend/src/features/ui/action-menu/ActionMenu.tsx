@@ -35,6 +35,12 @@ import {
  * Multi-select with checkboxes inside an ActionMenu (ActionMenuCheckboxItem) is
  * valid ARIA (role="menuitemcheckbox"). Callers must render their own check icon
  * inside the item since there is no built-in indicator.
+ *
+ * Sort/filter exception: toolbar sort/filter pills use this menu pattern
+ * (ActionMenuRadioGroup / ActionMenuCheckboxItem), not SelectMenu's combobox.
+ * Screen readers announce role="combobox" as an editable input, wrongly implying
+ * free-text entry for a fixed value set (BITV 9.4.1.2 / WCAG 4.1.2).
+ * Reserve SelectMenu's combobox for in-form value fields.
  */
 
 const POPUP_ITEM_CLASSES = POPUP_MENU_ITEM_CLASSES;
@@ -114,7 +120,12 @@ function ActionMenuContent(
       <DropdownMenuContent
         data-slot="action-menu-content"
         sideOffset={sideOffset}
-        className={cn(POPUP_CONTENT_CLASSES, 'flex flex-col gap-1', className)}
+        className={cn(
+          POPUP_CONTENT_CLASSES,
+          'flex flex-col gap-1',
+          'max-h-(--radix-dropdown-menu-content-available-height) overflow-x-hidden overflow-y-auto',
+          className,
+        )}
         style={POPUP_CONTENT_STYLE}
         {...rest}
       />

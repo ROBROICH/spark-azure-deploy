@@ -1,3 +1,7 @@
+---
+ruleId: nodes/prefer-node-refs-until-payload-is-needed
+---
+
 # Prefer Node Refs Until Payload Is Needed
 
 - Treat the graph layer as ref-first. Start from `useGraph()`, `getNodesByType(...)`, `useDescendants(...)`, or other ref-producing helpers before reaching for payloads.

@@ -6,6 +6,7 @@ from datetime import timedelta
 from pydantic import BaseModel
 from temporal.activities.embedding import embedding_invoke
 from temporal.activities.models import EmbeddingModel
+from temporal.utils import sliding_window_collect_failures
 from temporalio import workflow
 from temporalio.exceptions import ApplicationError
 
@@ -21,7 +22,6 @@ from src.activities.qdrant.schemas import (
 )
 from src.config import snapshot_config
 from src.env import ENV
-from src.utils.sliding_window import sliding_window
 
 build_qdrant_workflow_id = "build-qdrant-workflow"
 
@@ -80,8 +80,7 @@ class QdrantSingleDocWorkflow:
         # 3. Build transport wrappers
         upload_input = QdrantUploadInput(
             embedded_chunks=[
-                EmbeddedChunk(chunk=c, dense_vector=v)
-                for c, v in zip(prepared.chunks, chunk_vecs, strict=True)
+                EmbeddedChunk(chunk=c, dense_vector=v) for c, v in zip(prepared.chunks, chunk_vecs, strict=True)
             ],
             embedded_questions=[
                 EmbeddedQuestion(question=q, dense_vector=v)
@@ -162,7 +161,7 @@ class QdrantBuilderWorkflow:
                 execution_timeout=timedelta(minutes=30),
             )
 
-        processed_document_ids, failed_inputs = await sliding_window(
+        processed_document_ids, failed_inputs = await sliding_window_collect_failures(
             doc_inputs, _index_one, cfg.QDRANT_PARALLEL_DOCS_SIZE
         )
         failed_document_ids = [di.extraction_file_id for di in failed_inputs]

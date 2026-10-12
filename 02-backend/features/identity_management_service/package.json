@@ -1,0 +1,34 @@
+{
+  "name": "@spark-workflow/identity-management-service",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./manifest": "./src/manifest.ts",
+    "./schema": "./src/db/schema.ts"
+  },
+  "scripts": {
+    "test": "bun test --preload @spark-workflow/test-support/evlog-disabled --isolate --dots",
+    "typecheck": "tsgo --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@authzed/authzed-node": "1.6.1",
+    "@spark-workflow/http-host": "workspace:*",
+    "@spark-workflow/postgres-runtime": "workspace:*",
+    "@spark-workflow/resource": "workspace:*",
+    "@spark-workflow/authentification": "workspace:*",
+    "@sinclair/typebox": "0.34.52",
+    "better-result": "3.0.1",
+    "drizzle-orm": "0.45.2",
+    "effect": "4.0.0-rc.112",
+    "elysia": "1.4.29",
+    "evlog": "2.25.0"
+  },
+  "devDependencies": {
+    "@spark-workflow/test-support": "workspace:*",
+    "@types/bun": "1.4.0",
+    "@typescript/native-preview": "7.0.0-dev.20260425.1",
+    "typescript": "5.9.3"
+  }
+}

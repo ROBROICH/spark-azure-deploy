@@ -1,6 +1,6 @@
 import { useTableOfContentsDocuments } from '@/features/project/fvp/main-screen/data/read-model/useTableOfContentsDocuments';
 import { useAllRequiredDocuments } from '@/features/project/fvp/main-screen/data/read-model/useRequiredDocuments';
-import { documentAssignmentsCollection } from '@/features/project/fvp/main-screen/data/collections/documentAssignments.collection';
+import { useFormalDocumentSummary } from '@/features/project/fvp/main-screen/data/read-model/useDocuments';
 import { contradictionsCollection } from '@/features/project/fvp/data/plausibility/contradictions.collection';
 import {
   retryPlausibilityReads,
@@ -14,16 +14,36 @@ import {
   WORKFLOW_TYPE_INHALTSVERZEICHNIS_MATCHING,
   WORKFLOW_TYPE_LLM_MATCHING,
 } from '@/features/workflow-runtime/workflow-status/useRunningWorkflow';
+import { useFvpWorkflowContext } from '@/features/workflow-runtime/workflow-status/FvpWorkflowContext';
 import type { WorkflowStartTimeSource } from '@/features/workflow-runtime/workflow-status/workflowProgressPrediction';
+import type { WorkflowFailureCode } from '@/features/workflow-runtime/workflow-status/workflowStatus.types';
 import { eq, useLiveQuery } from '@tanstack/react-db';
 import { useIsFetching, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 
-export type FvpCategoryStatus = 'idle' | 'loading' | 'running' | 'ready';
+export type FvpCategoryStatus =
+  | 'idle'
+  | 'loading'
+  | 'running'
+  | 'ready'
+  | 'failed';
 
 export type FvpCategoryState<TData = null> = {
   status: FvpCategoryStatus;
   data: TData | null;
+  /** The latest run's failure code for this category, or `null`. */
+  failureCode: WorkflowFailureCode | null;
+  /**
+   * Persisted content exists, possibly from an earlier successful run. A
+   * resolved but empty read is no result, so a failed first run shows only
+   * its failure.
+   */
+  hasResult: boolean;
+  /**
+   * The read that decides `hasResult` failed, so whether an earlier result
+   * exists is unknown.
+   */
+  hasReadError: boolean;
   isDone: boolean;
   isLoading: boolean;
   isRunning: boolean;
@@ -37,7 +57,7 @@ type FvpRunningWorkflowProgress = {
 };
 
 const emptyWorkflow: WorkflowStartTimeSource = {
-  workflow_start_time: undefined,
+  workflowStartTime: null,
 };
 
 const getFvpCategoryRunningWorkflow = (
@@ -93,32 +113,52 @@ const useRefreshReadsWhenWorkflowSettles = (args: {
   }, [isRunning, refreshReads]);
 };
 
-const getCategoryState = <TData>(args: {
-  data: TData | null;
+const getCategoryStatus = (args: {
+  failureCode: WorkflowFailureCode | null;
   hasResolvedData: boolean;
   hasResolvedRead: boolean;
   isReadLoading: boolean;
   runningWorkflow: FvpRunningWorkflowProgress;
+}): FvpCategoryStatus => {
+  if (args.runningWorkflow.isRunning) {
+    return 'running';
+  }
+  if (args.failureCode !== null) {
+    return 'failed';
+  }
+  if (args.hasResolvedData) {
+    return 'ready';
+  }
+  if (
+    args.runningWorkflow.isLoading ||
+    args.isReadLoading ||
+    !args.hasResolvedRead
+  ) {
+    return 'loading';
+  }
+  return 'idle';
+};
+
+const getCategoryState = <TData>(args: {
+  data: TData | null;
+  failureCode: WorkflowFailureCode | null;
+  hasResolvedData: boolean;
+  hasResolvedRead: boolean;
+  hasReadError: boolean;
+  hasResult: boolean;
+  isReadLoading: boolean;
+  runningWorkflow: FvpRunningWorkflowProgress;
 }): FvpCategoryState<TData> => {
-  const {
-    data,
-    hasResolvedData,
-    hasResolvedRead,
-    isReadLoading,
-    runningWorkflow,
-  } = args;
+  const { data, failureCode, hasReadError, hasResult, runningWorkflow } = args;
   const workflow = runningWorkflow.latestRunningWorkflow ?? emptyWorkflow;
-  const status: FvpCategoryStatus = runningWorkflow.isRunning
-    ? 'running'
-    : hasResolvedData
-      ? 'ready'
-      : runningWorkflow.isLoading || isReadLoading || !hasResolvedRead
-        ? 'loading'
-        : 'idle';
+  const status = getCategoryStatus(args);
 
   return {
     status,
     data,
+    failureCode: status === 'failed' ? failureCode : null,
+    hasResult,
+    hasReadError,
     isDone: status === 'ready',
     isLoading: status === 'loading' || status === 'running',
     isRunning: status === 'running',
@@ -131,6 +171,7 @@ export const useTocData = (projectId: string) => {
   const runningWorkflow = useFvpCategoryRunningWorkflow(
     WORKFLOW_TYPE_INHALTSVERZEICHNIS_MATCHING,
   );
+  const { tableOfContentsWorkflow } = useFvpWorkflowContext();
   const {
     items,
     status,
@@ -150,8 +191,11 @@ export const useTocData = (projectId: string) => {
 
   return getCategoryState({
     data: { items, status },
+    failureCode: tableOfContentsWorkflow.failureCode,
     hasResolvedData,
     hasResolvedRead: hasResolvedTocResponse || isError,
+    hasReadError: isError,
+    hasResult: hasResolvedData,
     isReadLoading,
     runningWorkflow,
   });
@@ -162,11 +206,8 @@ export const useFcsData = (projectId: string) => {
   const runningWorkflow = useFvpCategoryRunningWorkflow(
     WORKFLOW_TYPE_LLM_MATCHING,
   );
-  const documentAssignmentsQueryKey = ['document-assignments', projectId];
+  const { requiredDocumentsWorkflow } = useFvpWorkflowContext();
   const requiredDocumentsQueryKey = ['required-documents', projectId];
-  const fetchingDocumentAssignmentsCount = useIsFetching({
-    queryKey: documentAssignmentsQueryKey,
-  });
   const fetchingRequiredDocumentsCount = useIsFetching({
     queryKey: requiredDocumentsQueryKey,
   });
@@ -175,26 +216,16 @@ export const useFcsData = (projectId: string) => {
     isLoading: requiredDocumentsLoading,
     isError: requiredDocumentsError,
   } = useAllRequiredDocuments(projectId);
-  const {
-    data: documentAssignments,
-    isLoading: documentAssignmentsLoading,
-    isError: documentAssignmentsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ assignmentRows: documentAssignmentsCollection })
-      .where(({ assignmentRows }) => eq(assignmentRows.projectId, projectId)),
-  );
+  const documentSummary = useFormalDocumentSummary(projectId);
   const hasResolvedRequiredDocumentsResponse =
     hasQueryResolved(queryClient.getQueryState(requiredDocumentsQueryKey)) ||
     (!requiredDocumentsLoading && fetchingRequiredDocumentsCount === 0);
-  const hasResolvedDocumentAssignmentsResponse = hasQueryResolved(
-    queryClient.getQueryState(documentAssignmentsQueryKey),
-  );
+  const hasResolvedDocumentSummaryResponse = documentSummary.isFetched;
   const hasResolvedData =
     !requiredDocumentsError &&
-    !documentAssignmentsError &&
+    !documentSummary.isError &&
     hasResolvedRequiredDocumentsResponse &&
-    hasResolvedDocumentAssignmentsResponse;
+    hasResolvedDocumentSummaryResponse;
 
   useRefreshReadsWhenWorkflowSettles({
     isRunning: runningWorkflow.isRunning,
@@ -202,15 +233,20 @@ export const useFcsData = (projectId: string) => {
   });
 
   return getCategoryState({
-    data: { requiredDocuments, documentAssignments },
+    data: { requiredDocuments, documentSummary: documentSummary.data },
+    failureCode: requiredDocumentsWorkflow.failureCode,
     hasResolvedData,
     hasResolvedRead:
       hasResolvedRequiredDocumentsResponse &&
-      hasResolvedDocumentAssignmentsResponse,
+      hasResolvedDocumentSummaryResponse,
+    hasReadError: documentSummary.isError,
+    // At least one document assigned to a required type is persisted content.
+    hasResult:
+      !documentSummary.isError &&
+      (documentSummary.data?.assignedTypeIds.length ?? 0) > 0,
     isReadLoading:
       requiredDocumentsLoading ||
-      documentAssignmentsLoading ||
-      fetchingDocumentAssignmentsCount > 0 ||
+      documentSummary.isFetching ||
       fetchingRequiredDocumentsCount > 0,
     runningWorkflow,
   });
@@ -228,6 +264,7 @@ export const usePpData = (
   const runningWorkflow = useFvpCategoryRunningWorkflow(
     WORKFLOW_TYPE_CHECK_PLAUSIBILITY,
   );
+  const { plausibilityWorkflow } = useFvpWorkflowContext();
   const contradictionsQueryKey = ['pp-contradictions', projectId];
   const fetchingContradictionsCount = useIsFetching({
     queryKey: contradictionsQueryKey,
@@ -261,8 +298,11 @@ export const usePpData = (
 
   return getCategoryState({
     data: contradictions,
+    failureCode: plausibilityWorkflow.failureCode,
     hasResolvedData: !contradictionsError && (hasFindings || hasZeroFindings),
     hasResolvedRead: hasResolvedContradictionsResponse || contradictionsError,
+    hasReadError: contradictionsError,
+    hasResult: !contradictionsError && hasFindings,
     isReadLoading: contradictionsLoading || fetchingContradictionsCount > 0,
     runningWorkflow,
   });

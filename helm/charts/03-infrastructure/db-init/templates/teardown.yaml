@@ -1,0 +1,160 @@
+{{- /*
+Teardown of the environment's data (values: teardown.*): drop every listed
+database, delete every listed Qdrant collection, remove the object prefixes.
+Rendered instead of every other db-init Job; a post-install/post-upgrade hook,
+so `helm install` returns only once the teardown has finished.
+*/ -}}
+{{- if .Values.teardown.enabled }}
+{{- $stage := toString (((.Values.global | default dict).stage | default dict).name | default "") }}
+{{- if or (not $stage) (ne (toString .Values.teardown.confirm) $stage) }}
+{{- fail (printf "db-init: teardown.confirm must repeat global.stage.name (%q)" $stage) }}
+{{- end }}
+{{- $pattern := tpl (toString (.Values.guard.namePattern | default "")) . }}
+{{- if not $pattern }}
+{{- fail "db-init: teardown needs guard.namePattern" }}
+{{- end }}
+{{- $databases := list }}
+{{- range $key, $raw := .Values.databases }}
+{{- $db := mergeOverwrite (deepCopy $.Values.defaults) ($raw | default dict) }}
+{{- if ne (toString (dig "enabled" true $db)) "false" }}
+{{- $name := tpl (toString $db.name) $ }}
+{{- if not (regexMatch $pattern $name) }}
+{{- fail (printf "db-init: teardown: database %q does not match guard.namePattern %q" $name $pattern) }}
+{{- end }}
+{{- $databases = append $databases $name }}
+{{- end }}
+{{- end }}
+{{- $collections := list }}
+{{- range $key, $raw := (.Values.qdrant.collections | default dict) }}
+{{- $c := mergeOverwrite (deepCopy $.Values.defaults) ($raw | default dict) }}
+{{- if ne (toString (dig "enabled" true $c)) "false" }}
+{{- $name := tpl (toString $c.name) $ }}
+{{- if not (regexMatch $pattern $name) }}
+{{- fail (printf "db-init: teardown: collection %q does not match guard.namePattern %q" $name $pattern) }}
+{{- end }}
+{{- $collections = append $collections $name }}
+{{- end }}
+{{- end }}
+{{- $prefixes := list }}
+{{- $prefixPattern := tpl (toString .Values.teardown.prefixPattern) . }}
+{{- range .Values.teardown.objectPrefixes }}
+{{- $p := tpl (toString .) $ }}
+{{- if not (regexMatch $prefixPattern $p) }}
+{{- fail (printf "db-init: teardown: object prefix %q does not match prefixPattern %q" $p $prefixPattern) }}
+{{- end }}
+{{- $prefixes = append $prefixes $p }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "db-init.fullname" . }}-teardown
+  namespace: {{ include "db-init.namespace" . }}
+  labels:
+    {{- include "db-init.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: {{ .Values.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "db-init.labels" . | nindent 8 }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "db-init.fullname" . }}
+      {{- include "db-init.podSecurity" . | nindent 6 }}
+      {{- with include "db-init.tmpVolume" . }}
+      volumes:
+        {{- . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: drop-databases
+          image: {{ .Values.images.postgres }}
+          {{- with include "db-init.containerSecurity" . }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          {{- with include "db-init.tmpMount" . }}
+          volumeMounts:
+            {{- . | nindent 12 }}
+          {{- end }}
+          command: [bash, -ceu]
+          args:
+            - |
+              while IFS= read -r db; do
+                [ -n "$db" ] || continue
+                echo "[teardown] dropping database $db"
+                echo 'DROP DATABASE IF EXISTS :"db" WITH (FORCE);' |
+                  psql -X -v ON_ERROR_STOP=1 -q -d postgres -v db="$db"
+              done <<< "$DATABASES"
+          env:
+            {{- with include "db-init.homeEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            {{- include "db-init.pgEnv" . | nindent 12 }}
+            - name: DATABASES
+              value: {{ join "\n" $databases | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      containers:
+        - name: remove-collections-and-objects
+          image: {{ .Values.images.fetch }}
+          {{- with include "db-init.containerSecurity" . }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          {{- with include "db-init.tmpMount" . }}
+          volumeMounts:
+            {{- . | nindent 12 }}
+          {{- end }}
+          command: [bash, -ceu]
+          args:
+            - |
+              auth=()
+              [ -z "${QDRANT_API_KEY:-}" ] || auth=(-H "api-key: $QDRANT_API_KEY")
+              while IFS= read -r c; do
+                [ -n "$c" ] || continue
+                code=$(curl -s -o /dev/null -w '%{http_code}' --retry 3 -X DELETE "${auth[@]}" "$QDRANT_URL/collections/$c?wait=true")
+                echo "[teardown] collection $c: HTTP $code"
+                case "$code" in 200|404) ;; *) exit 1 ;; esac
+              done <<< "$COLLECTIONS"
+              while IFS= read -r p; do
+                [ -n "$p" ] || continue
+                echo "[teardown] removing objects below $p"
+                # only "matched no objects" means empty — any other error
+                # (permissions, Workload Identity, network) fails the Job
+                if out=$(gcloud storage ls "$p" 2>&1); then
+                  gcloud storage rm -r "$p"
+                elif grep -q 'matched no objects' <<< "$out"; then
+                  echo "  (nothing there)"
+                else
+                  echo "$out" >&2; exit 1
+                fi
+              done <<< "$PREFIXES"
+          env:
+            {{- with include "db-init.homeEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: QDRANT_URL
+              value: {{ tpl (toString .Values.qdrant.url) . | quote }}
+            {{- with .Values.qdrant.apiKeySecret }}
+            - name: QDRANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key }}
+            {{- end }}
+            - name: COLLECTIONS
+              value: {{ join "\n" $collections | quote }}
+            - name: PREFIXES
+              value: {{ join "\n" $prefixes | quote }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

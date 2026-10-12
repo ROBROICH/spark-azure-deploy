@@ -1,0 +1,281 @@
+# =============================================================================
+# spark-backend-pool — Helm values (base layer, 02-backend)
+# =============================================================================
+# One pool of the SPARK Workflow backend modulith. The chart is referenced
+# once per pool through dependency aliases (backend-services umbrella); the
+# alias names the pool and becomes API_POOL.
+#
+# Everything the pools share — image, configuration, secrets, probes — lives
+# under global.backend so it is written once per environment. The per-pool
+# keys below (replicas, resources, worker, scaling) are set under the alias:
+#   backend-services:
+#     document-management-service:
+#       pool: {worker: document-management}
+#       resources: {...}
+# =============================================================================
+
+
+# Shared configuration of every pool. The backend-services umbrella renders the
+# ConfigMap (global.backend.config) and the metrics AuthorizationPolicy from
+# the same keys.
+
+global:
+  stage:
+    name: ''
+  labels:
+    environment: ''
+  namespaceOverride: ''
+  serviceAccount:
+    name: ''
+  # Selector style (the same switch in every leaf chart). false:
+  # app.kubernetes.io/name +
+  # instance (default). true: the selector app: <fullname> — needed when
+  # migrating from a Kustomize-based deployment to adopt its Deployments,
+  # since a Deployment's selector is immutable.
+  legacyAppSelector: false
+
+  backend:
+    # Namespace of all pools (and the umbrella's shared objects). Precedence:
+    # pool namespaceOverride > global.backend.namespaceOverride >
+    # global.namespaceOverride > release namespace.
+    namespaceOverride: ''
+
+    # The modulith image. tag may pin a digest: "<tag>@sha256:<digest>", or
+    # use digest. registry is prefixed to repository (empty:
+    # global.imageRegistry, used only when repository names no registry).
+    image:
+      registry: ''
+      repository: '<container-registry>/spark-backend'
+      tag: '<image-tag>'
+      digest: ''
+      pullPolicy: Always
+
+    # Pod-level pull secrets (list of {name}). Empty relies on the
+    # ServiceAccount's pull secrets.
+    imagePullSecrets: []
+
+    # ServiceAccount of the pools when global.serviceAccount.name is unset.
+    # The pools never create one.
+    serviceAccountName: ''
+
+    # Container port (named http) and Service port.
+    containerPort: 8000
+    servicePort: 80
+
+    # Probes shared by every pool; a pool can override single probes via its
+    # own probes key. Named port http resolves to containerPort.
+    probes:
+      startupProbe:
+        httpGet:
+          path: /startup
+          port: http
+        periodSeconds: 10
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: http
+        timeoutSeconds: 5
+      readinessProbe:
+        httpGet:
+          path: /ready
+          port: http
+        timeoutSeconds: 5
+
+    # Non-secret configuration (map of env var name -> value), rendered by
+    # the umbrella as a ConfigMap and loaded with envFrom. Pods carry a
+    # checksum of the rendered data, so a change rolls every pool. String
+    # values are rendered with tpl and may reference .Release and
+    # .Values.global only; other values are rendered as JSON.
+    # configMapName: '' = <release>-backend-config-<stage>.
+    configMapName: ''
+    config: {}
+    # false: no shared ConfigMap at all (every pool brings its own env) —
+    # also when an enclosing chart's defaults fill config.
+    configEnabled: true
+
+    # Secrets loaded completely with envFrom (list of Secret names), e.g. the
+    # environment's spark-backend-secrets ExternalSecret target.
+    secretRefs: []
+
+    # Additional env for every pool (list of EnvVar objects, valueFrom
+    # allowed) — e.g. single keys of consolidated secrets. Values containing
+    # "{{" are expanded with tpl.
+    env: []
+
+    podAnnotations: {}
+    # Restricted Pod Security Standard by default (see podSecurity below);
+    # these maps override single keys for every pool.
+    podSecurityContext: {}
+    securityContext: {}
+    # restricted: null follows global.podSecurity.restricted (default true).
+    podSecurity:
+      restricted: null
+    # ServiceAccount token in the pods (null: global.serviceAccount.automount,
+    # else false).
+    serviceAccount:
+      automount: null
+    nodeSelector: {}
+    tolerations: []
+    affinity: {}
+    # Escape hatches shared by every pool (a pool's own value replaces them):
+    # topology spread, scheduling priority, shutdown grace (null: Kubernetes
+    # default), init/sidecar containers, extra volumes and mounts, envFrom
+    # entries and lifecycle hooks of the spark-backend container.
+    # initContainers, extraContainers, extraEnvFrom and
+    # topologySpreadConstraints are rendered with tpl.
+    topologySpreadConstraints: []
+    priorityClassName: ''
+    terminationGracePeriodSeconds: null
+    initContainers: []
+    extraContainers: []
+    extraVolumes: []
+    extraVolumeMounts: []
+    extraEnvFrom: []
+    lifecycle: {}
+
+    # Defaults of the KEDA ScaledObjects (keda.enabled on a pool). The
+    # temporal triggers poll the pool's task queue for activity and workflow
+    # backlog.
+    keda:
+      minReplicaCount: 2
+      maxReplicaCount: 8
+      pollingInterval: 30
+      cooldownPeriod: 120
+      advanced:
+        horizontalPodAutoscalerConfig:
+          behavior:
+            scaleDown:
+              stabilizationWindowSeconds: 120
+              policies:
+                - type: Pods
+                  value: 1
+                  periodSeconds: 60
+            scaleUp:
+              stabilizationWindowSeconds: 30
+              policies:
+                - type: Pods
+                  value: 2
+                  periodSeconds: 60
+      temporal:
+        endpoint: '<temporal-host>'
+        namespace: default
+        activity:
+          targetQueueSize: '5'
+          activationTargetQueueSize: '1'
+        workflow:
+          targetQueueSize: '3'
+          activationTargetQueueSize: '1'
+
+    # Istio AuthorizationPolicy that denies /metrics on the app port for every
+    # pool (rendered once by the umbrella). name: '' derives
+    # <release>-spark-backend-deny-metrics<stage suffix>.
+    denyMetricsPolicy:
+      enabled: false
+      name: ''
+
+# Pool name used in labels and resource names; defaults to the alias.
+nameOverride: ''
+
+# Full resource name; replaces <release>-<pool>-<stage> (no stage suffix is
+# appended). Used to keep the names of an existing deployment.
+fullnameOverride: ''
+
+# Chart-local namespace override (see global.backend.namespaceOverride). A
+# pool outside the namespace of the shared ConfigMap loses its envFrom
+# source — set global.backend.namespaceOverride instead.
+namespaceOverride: ''
+
+# Chart-local stage override for standalone installs.
+stage:
+  name: ''
+
+# Pool identity. worker: value of ACTIVE_FEATURE_WORKER (the Temporal worker
+# this pool runs; "none" serves HTTP only). apiPool: value of API_POOL;
+# empty = the pool name.
+pool:
+  worker: none
+  apiPool: ''
+  # false: do not inject API_POOL, ACTIVE_FEATURE_WORKER and
+  # OTEL_RESOURCE_ATTRIBUTES (a pool running a service's own image)
+  injectEnv: true
+
+# Replicas when neither autoscaling nor keda is enabled.
+replicaCount: 1
+
+# CPU/memory requests and limits of the pool. The default requests keep pools
+# out of the BestEffort QoS class; size per pool.
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+# Per-pool probe overrides, merged over global.backend.probes.
+probes: {}
+
+# Per-pool env (list of EnvVar objects), after global.backend.env.
+env: []
+
+podAnnotations: {}
+podLabels: {}
+
+# Per-pool security overrides (merged over global.backend's) and switches.
+podSecurityContext: {}
+securityContext: {}
+podSecurity:
+  restricted: null
+serviceAccount:
+  automount: null
+
+# A pool's own image (any of registry, repository, tag, digest,
+# pullPolicy), merged over global.backend.image — e.g. a canary pool, or a
+# service that still runs its own image.
+image: {}
+
+# Container name (empty: spark-backend).
+containerName: ''
+
+# Per-pool values of the shared settings under global.backend (empty: the
+# shared value applies): scheduling, shutdown grace, extra containers,
+# volumes, envFrom and lifecycle.
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+priorityClassName: ''
+terminationGracePeriodSeconds: null
+initContainers: []
+extraContainers: []
+extraVolumes: []
+extraVolumeMounts: []
+extraEnvFrom: []
+lifecycle: {}
+
+# CPU-based HorizontalPodAutoscaler.
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 6
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 0
+
+# KEDA ScaledObject on the pool's Temporal task queue. Unset keys (incl.
+# temporal.*) fall back to global.backend.keda; triggers replaces the
+# generated temporal triggers. Switching autoscaling/keda on for a running
+# release drops spec.replicas: the Deployment briefly falls back to one pod
+# until the autoscaler scales it up.
+keda:
+  enabled: false
+  name: ''
+  taskQueue: ''
+  triggers: []
+
+# GMP PodMonitoring for this pool only (environments without a namespace-wide
+# PodMonitoring). name: '' = the pool fullname.
+podMonitoring:
+  enabled: false
+  name: ''
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s

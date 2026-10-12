@@ -1,4 +1,4 @@
-import type { DeadlineResponse } from '@/api-clients/pls-module';
+import type { DeadlineResponse } from '@/api-clients/backend';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { DeadlineReadRow } from './DeadlineReadRow';

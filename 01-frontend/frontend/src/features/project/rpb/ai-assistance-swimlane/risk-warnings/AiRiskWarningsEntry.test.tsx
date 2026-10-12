@@ -8,9 +8,9 @@ const mocks = vi.hoisted(() => ({
   outlineNodeId: 'leaf' as string | undefined,
   risks: [] as {
     id: string;
-    is_deleted: boolean;
+    isDeleted: boolean;
     status: string;
-    vae_node_id: string;
+    vaeNodeId: string;
   }[],
   selectedVaeNode: { id: 'leaf' } as { id: string } | null,
 }));
@@ -40,8 +40,8 @@ vi.mock('@/db/nodes/examinationGraphModel', () => ({
     nodeType: string,
   ) =>
     mocks.risks
-      .filter((risk) => risk.vae_node_id === startId)
-      .map((risk) => ({ id: risk.id, node_type: nodeType })),
+      .filter((risk) => risk.vaeNodeId === startId)
+      .map((risk) => ({ id: risk.id, nodeType: nodeType })),
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
@@ -72,15 +72,15 @@ describe('AiRiskWarningsEntry', () => {
     mocks.outlineNodeId = 'leaf';
     mocks.selectedVaeNode = { id: 'leaf' };
     mocks.risks = [
-      { id: 'risk-1', is_deleted: false, status: 'open', vae_node_id: 'leaf' },
-      { id: 'risk-2', is_deleted: false, status: 'open', vae_node_id: 'other' },
+      { id: 'risk-1', isDeleted: false, status: 'open', vaeNodeId: 'leaf' },
+      { id: 'risk-2', isDeleted: false, status: 'open', vaeNodeId: 'other' },
       {
         id: 'risk-3',
-        is_deleted: false,
+        isDeleted: false,
         status: 'corrected',
-        vae_node_id: 'leaf',
+        vaeNodeId: 'leaf',
       },
-      { id: 'risk-4', is_deleted: true, status: 'open', vae_node_id: 'leaf' },
+      { id: 'risk-4', isDeleted: true, status: 'open', vaeNodeId: 'leaf' },
     ];
   });
 
@@ -101,9 +101,9 @@ describe('AiRiskWarningsEntry', () => {
     mocks.risks = [
       {
         id: 'risk-other',
-        is_deleted: false,
+        isDeleted: false,
         status: 'open',
-        vae_node_id: 'other',
+        vaeNodeId: 'other',
       },
     ];
 
@@ -121,9 +121,9 @@ describe('AiRiskWarningsEntry', () => {
     mocks.risks = [
       {
         id: 'risk-corrected',
-        is_deleted: false,
+        isDeleted: false,
         status: 'corrected',
-        vae_node_id: 'leaf',
+        vaeNodeId: 'leaf',
       },
     ];
 

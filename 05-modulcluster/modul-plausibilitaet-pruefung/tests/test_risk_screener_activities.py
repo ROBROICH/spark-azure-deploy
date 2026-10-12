@@ -25,15 +25,22 @@ def _claim_payload(
     document_id: str = "d",
 ) -> object:
     return make_claim_payload(
-        claim_id=claim_id, chunk_id=chunk_id, project_id="p", document_id=document_id,
-        claim_text=f"text-{claim_id}", vector=[0.1] * 8,
+        claim_id=claim_id,
+        chunk_id=chunk_id,
+        project_id="p",
+        document_id=document_id,
+        claim_text=f"text-{claim_id}",
+        vector=[0.1] * 8,
     )
 
 
 def _chunk_payload(chunk_id: str = "chunk-1") -> object:
     return make_chunk_payload(
-        chunk_id=chunk_id, project_id="p", document_id="d",
-        chunk_content="content", toc_path=["S"],
+        chunk_id=chunk_id,
+        project_id="p",
+        document_id="d",
+        chunk_content="content",
+        toc_path=["S"],
     )
 
 
@@ -57,14 +64,12 @@ class TestBuildScreeningBundlesForDocument:
             _claim_payload(claim_id="B", chunk_id="c2"),
         ]
         mock_qdrant.get_claim_payloads = AsyncMock(return_value=claim_payloads)
-        mock_qdrant.get_chunk_payloads = AsyncMock(
-            return_value=[_chunk_payload("c1"), _chunk_payload("c2")]
-        )
+        mock_qdrant.get_chunk_payloads = AsyncMock(return_value=[_chunk_payload("c1"), _chunk_payload("c2")])
         # 3 query specs per claim → returns shape [claim_idx][query_idx]
-        mock_qdrant.get_claim_knn_ids_all_claims_batched = AsyncMock(
+        mock_qdrant.get_claim_knn_batched = AsyncMock(
             return_value=[
-                [["ref-erl-A"], ["ref-loc-A"], ["ref-rem-A"]],
-                [["ref-erl-B"], ["ref-loc-B"], ["ref-rem-B"]],
+                [(["ref-erl-A"], []), (["ref-loc-A"], []), (["ref-rem-A"], ["dup-A"])],
+                [(["ref-erl-B"], []), (["ref-loc-B"], []), (["ref-rem-B"], [])],
             ]
         )
 
@@ -72,7 +77,8 @@ class TestBuildScreeningBundlesForDocument:
             DocumentBundleRequest(project_id="p", document_id="d", claim_ids=["A", "B"])
         )
 
-        assert len(result.bundles) == 2
+        assert len(result.bundles) == 2  # noqa: PLR2004
+        assert result.overflow_pairs == [("A", "dup-A")]
         assert {b.claim_id for b in result.bundles} == {"A", "B"}
         for b in result.bundles:
             assert b.reference_claims  # at least one ref each
@@ -85,13 +91,11 @@ class TestBuildScreeningBundlesForDocument:
             _claim_payload(claim_id="A", chunk_id="c1"),
         ]
         mock_qdrant.get_claim_payloads = AsyncMock(return_value=claim_payloads)
-        mock_qdrant.get_chunk_payloads = AsyncMock(
-            return_value=[_chunk_payload("c1"), _chunk_payload("c2")]
-        )
-        mock_qdrant.get_claim_knn_ids_all_claims_batched = AsyncMock(
+        mock_qdrant.get_chunk_payloads = AsyncMock(return_value=[_chunk_payload("c1"), _chunk_payload("c2")])
+        mock_qdrant.get_claim_knn_batched = AsyncMock(
             return_value=[
-                [[], [], ["x"]],
-                [[], [], ["y"]],
+                [([], []), ([], []), (["x"], [])],
+                [([], []), ([], []), (["y"], [])],
             ]
         )
 
@@ -118,11 +122,15 @@ class TestFetchScreeningPayloadsBatch:
                 project_id="p",
                 bundles=[
                     GroupedScreeningBundle(
-                        project_id="p", document_id="d",
+                        project_id="p",
+                        document_id="d",
                         bundles=[
                             ScreeningCandidateBundle(
-                                project_id="p", document_id="d", chunk_id="c1",
-                                claim_id="A", reference_claims=["R1", "R2"],
+                                project_id="p",
+                                document_id="d",
+                                chunk_id="c1",
+                                claim_id="A",
+                                reference_claims=["R1", "R2"],
                             ),
                         ],
                     ),

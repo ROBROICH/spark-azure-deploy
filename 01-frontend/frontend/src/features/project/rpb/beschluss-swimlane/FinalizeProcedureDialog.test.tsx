@@ -11,9 +11,11 @@ const mocks = vi.hoisted(() => ({
   exportPdfMock: vi.fn(),
 }));
 
-vi.mock('@/api-clients/vae-module', () => ({
-  exportVaeDocxProjectIdExportDocxPost: mocks.exportDocxMock,
-  exportVaePdfProjectIdExportPdfPost: mocks.exportPdfMock,
+vi.mock('@/api-clients/backend', () => ({
+  v1AdministrativeFileDraftExportAdministrativeFileDraftDocx:
+    mocks.exportDocxMock,
+  v1AdministrativeFileDraftExportAdministrativeFileDraftPdf:
+    mocks.exportPdfMock,
 }));
 
 vi.mock('./finalizeProcedureDownload', () => ({
@@ -150,7 +152,7 @@ describe('FinalizeProcedureDialog', () => {
     expect(previewFrame).toHaveAttribute('referrerpolicy', 'no-referrer');
     expect(previewFrame).not.toHaveAttribute('sandbox');
     expect(mocks.exportPdfMock).toHaveBeenCalledWith({
-      path: { project_id: 'verfahren-1' },
+      path: { projectId: 'verfahren-1' },
       parseAs: 'blob',
       throwOnError: true,
     });

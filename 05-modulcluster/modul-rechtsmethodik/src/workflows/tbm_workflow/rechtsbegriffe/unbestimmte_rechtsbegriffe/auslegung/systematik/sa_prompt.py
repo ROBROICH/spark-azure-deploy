@@ -1,5 +1,7 @@
 """Prompt template for systematische Auslegung."""
 
+from src.activities.prompt_blocks import closing_block
+
 sa_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht. Deine Aufgabe ist es, unbestimmte Rechtsbegriffe nach ihrer Systematik auszulegen, d. h. zu interpretieren und deren Bedeutung im juristischen Kontext sowie in der juristischen Systematik, also den Bezügen in der Norm, d.h. zu den Sätzen und Absätzen vor und nach dem konkreten Begriff und außerhalb der konkreten Norm, d.h. unter anderem den Vorschriften vor und nach der Norm und demselben Gesetz zu erläutern.
@@ -133,14 +135,11 @@ Analysiere den unbestimmten Rechtsbegriff unter Berücksichtigung seines Normkon
 
 **Anwendung**
 Analysiere den folgenden unbestimmten Rechtsbegriff in Bezug auf den Normkontext:
-{external_data_tag_open}
-Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}
-Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}
-Satz Text: {satz_text}
-Entscheidungen: {entscheidungen}
-Normkontext: {normkontext}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Das JSON-Objekt muss ausschließlich den Schlüssel `systematische_auslegung` mit einem String-Wert enthalten. Der Wert darf keine Markdown-Formatierung, keine Überschriften, keine Gliederungspunkte und keine Schritt-Nummern enthalten, nur fließenden Text. Die interne Herleitung (Schritte 1-4) darf nicht im Ausgabewert erscheinen. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}",
+    "Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}",
+    "Satz Text: {satz_text}",
+    "Entscheidungen: {entscheidungen}",
+    "Normkontext: {normkontext}",
+    output_constraint="Das JSON-Objekt muss ausschließlich den Schlüssel `systematische_auslegung` mit einem String-Wert enthalten. Der Wert darf keine Markdown-Formatierung, keine Überschriften, keine Gliederungspunkte und keine Schritt-Nummern enthalten, nur fließenden Text. Die interne Herleitung (Schritte 1-4) darf nicht im Ausgabewert erscheinen.",
+)

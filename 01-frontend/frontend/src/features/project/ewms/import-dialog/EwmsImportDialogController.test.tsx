@@ -92,12 +92,16 @@ const makeUploadResult = (): EwmsZipUploadResult => ({
     type: 'ewms_zip',
     updatedAt: '2026-05-19T00:00:00.000Z',
     workflowStatus: 'COMPLETED',
+    approvalStatus: null,
+    approvalError: null,
+    workflowFailureCode: null,
+    sourceProjectVersion: null,
   },
   fileReview: {
     failed: [],
     successful: [
       {
-        file_id: 'file-1',
+        fileId: 'file-1',
         filename: 'valid.pdf',
       },
     ],
@@ -223,41 +227,6 @@ describe('EwmsImportDialogController', () => {
 
     expect(getByText('dialog-open:true;status-loading:false')).toBeTruthy();
     expect(mocks.navigate).not.toHaveBeenCalled();
-    expect(mocks.observeStartedWorkflow).toHaveBeenCalledWith(
-      'FileProcessingWorkflow-project-1',
-      {
-        workflowType: 'FileProcessingWorkflow',
-      },
-    );
-    expect(mocks.refetch).toHaveBeenCalledWith({
-      includeChildren: true,
-      workflowType: 'FileProcessingWorkflow',
-    });
-    expect(mocks.refetchRunning).toHaveBeenCalledTimes(1);
-    expect(mocks.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['files', 'project-1'],
-    });
-    expect(mocks.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['ewms-documents', 'project-1'],
-    });
-    expect(mocks.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ['processing-files', 'project-1'],
-    });
-  });
-
-  it('optimistically observes file processing as soon as upload starts', async () => {
-    renderController();
-
-    await act(async () => {
-      await mocks.fileImportDialogProps?.onUploadStarted?.();
-    });
-
-    expect(mocks.observeStartedWorkflow).toHaveBeenCalledWith(
-      'FileProcessingWorkflow-project-1',
-      {
-        workflowType: 'FileProcessingWorkflow',
-      },
-    );
   });
 
   it('keeps the current import dialog open once file processing starts', async () => {
@@ -298,6 +267,5 @@ describe('EwmsImportDialogController', () => {
 
     expect(getByText('dialog-open:true;status-loading:false')).toBeTruthy();
     expect(mocks.navigate).not.toHaveBeenCalled();
-    expect(mocks.refetchRunning).toHaveBeenCalledTimes(1);
   });
 });

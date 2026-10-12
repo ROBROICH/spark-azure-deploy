@@ -1,7 +1,7 @@
 import type {
   WorkflowStatusEnum,
-  ZipApprovalStatus,
-} from '@/api-clients/dms-module';
+  ZipFileResponse,
+} from '@/api-clients/backend';
 
 // `REQUIRES_APPROVAL` is included so the project-level processing banner (used
 // by both FVP and SingleProject) stays visible while the zip workflow waits
@@ -24,19 +24,13 @@ export const FAILED_WORKFLOW_STATUSES: ReadonlySet<WorkflowStatusEnum> =
     'TIMED_OUT',
   ]);
 
-const ACTIVE_ZIP_APPROVAL_STATUSES: ReadonlySet<ZipApprovalStatus> =
-  new Set<ZipApprovalStatus>(['APPROVING']);
-
 export const isActiveWorkflowStatus = (
   status: WorkflowStatusEnum | undefined,
 ): boolean => status !== undefined && ACTIVE_WORKFLOW_STATUSES.has(status);
 
 export const isActiveZipApprovalStatus = (
-  status: ZipApprovalStatus | null | undefined,
-): boolean =>
-  status !== undefined &&
-  status !== null &&
-  ACTIVE_ZIP_APPROVAL_STATUSES.has(status);
+  status: ZipFileResponse['approvalStatus'] | undefined,
+): boolean => status === 'APPROVING';
 
 export const isFailedWorkflowStatus = (
   status: WorkflowStatusEnum | undefined,

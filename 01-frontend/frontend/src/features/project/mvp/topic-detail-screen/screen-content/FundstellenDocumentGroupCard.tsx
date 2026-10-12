@@ -8,6 +8,9 @@ import { getRouteApi } from '@tanstack/react-router';
 import { File, Info } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { FundstellenFocusCount } from './FundstellenFocusCount';
+import { FundstellenNotInFocusHint } from './FundstellenNotInFocusHint';
+import { doesFundstelleCarryAssessment } from './fundstellenReliability';
 import type { FundstellenDocumentGroupCardModel } from './mvpFundstellenCardModels';
 
 const MAX_VISIBLE_FUNDSTELLEN = 6;
@@ -46,7 +49,7 @@ export const FundstellenDocumentGroupCard = (
     : fundstellenDocumentGroupCard.entries.slice(0, MAX_VISIBLE_FUNDSTELLEN);
   const feedbackTargetRefs = visibleFundstellen.map((fundstelle) => ({
     id: fundstelle.id,
-    node_type: 'fundstelle' as const,
+    nodeType: 'fundstelle' as const,
   }));
   const resolvedDocumentLabel =
     documentLabel ?? t('FundstellenTabContent.keinDokument');
@@ -81,15 +84,22 @@ export const FundstellenDocumentGroupCard = (
         page: fundstelle.pageNumber,
       }),
       id: fundstelle.id,
+      afterTitle: (
+        <FundstellenNotInFocusHint confidence={fundstelle.confidence} />
+      ),
       isSelected: props.selectedFundstelleId === fundstelle.id,
       meta: t('FundstellenDocumentGroupCard.pageNumber', {
         page: fundstelle.pageNumber,
       }),
       onClick,
-      title,
+      title: doesFundstelleCarryAssessment(fundstelle.confidence) ? (
+        title
+      ) : (
+        <span className="text-slate-500">{title}</span>
+      ),
       trailing: (
         <NodeFeedbackThumbButtons
-          targetRef={{ id: fundstelle.id, node_type: 'fundstelle' }}
+          targetRef={{ id: fundstelle.id, nodeType: 'fundstelle' }}
         />
       ),
     } satisfies AiReferenceAggregateCardRow;
@@ -110,6 +120,9 @@ export const FundstellenDocumentGroupCard = (
       </button>
     </TooltipWrapper>
   ) : null;
+  const focusCount = (
+    <FundstellenFocusCount entries={fundstellenDocumentGroupCard.entries} />
+  );
   const showMoreControl = hasToggle ? (
     <button
       type="button"
@@ -146,7 +159,12 @@ export const FundstellenDocumentGroupCard = (
   return (
     <FeedbackLookupProvider targetRefs={feedbackTargetRefs}>
       <AiReferenceAggregateCard
-        headerAccessory={headerAccessory}
+        headerAccessory={
+          <>
+            {focusCount}
+            {headerAccessory}
+          </>
+        }
         isOutdated={hasOutdatedFundstellen}
         outdatedLabel={t('FundstellenDocumentGroupCard.outdated')}
         outdatedTooltip={outdatedTooltip}

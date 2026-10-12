@@ -7,11 +7,11 @@ export const getNormLabel = (
     return '';
   }
 
-  const paragraphRef = `§ ${norm.paragraph_nr}`;
+  const paragraphRef = `§ ${norm.paragraphNr}`;
 
-  if (!norm.paragraph_titel) {
+  if (!norm.paragraphTitel) {
     return paragraphRef;
   }
 
-  return `${paragraphRef} ${norm.paragraph_titel}`;
+  return `${paragraphRef} ${norm.paragraphTitel}`;
 };

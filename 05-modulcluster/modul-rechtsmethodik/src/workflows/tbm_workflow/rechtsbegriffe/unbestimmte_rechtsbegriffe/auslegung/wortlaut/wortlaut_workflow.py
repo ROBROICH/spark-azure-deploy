@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Auslegungsvorschlag,
     UnbestimmterRechtsbegriff,
 )

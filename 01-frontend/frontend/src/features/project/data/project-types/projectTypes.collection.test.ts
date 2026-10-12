@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ProjectTypeResponse } from '@/api-clients/pls-module';
+import type { ProjectTypeResponse } from '@/api-clients/backend';
 import { projectTypesCollection } from './projectTypes.collection';
 
 const mocks = vi.hoisted(() => ({
@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
   listProjectTypes: vi.fn(),
 }));
 
-vi.mock('@/api-clients/pls-module', () => ({
-  listProjectTypesProjectTypesGet: (...args: unknown[]) =>
+vi.mock('@/api-clients/backend', () => ({
+  v1ProjectLogicListProjectTypes: (...args: unknown[]) =>
     mocks.listProjectTypes(...args),
 }));
 
@@ -26,16 +26,16 @@ vi.mock('@tanstack/react-db', () => ({
 
 type QueryFnHandler = () => Promise<ProjectTypeResponse[]>;
 
-const getQueryFn = (): QueryFnHandler => {
-  const handler = Reflect.get(projectTypesCollection, 'queryFn');
+const getHandler = <T>(name: string): T => {
+  const handler = Reflect.get(projectTypesCollection, name);
   if (typeof handler !== 'function') {
-    throw new Error('Expected projectTypesCollection.queryFn to be a function');
+    throw new Error(`Expected projectTypesCollection.${name} to be a function`);
   }
-  return handler as QueryFnHandler;
+  return handler as T;
 };
 
 describe('projectTypesCollection queryFn', () => {
-  const queryFn = getQueryFn();
+  const queryFn = getHandler<QueryFnHandler>('queryFn');
 
   beforeEach(() => {
     mocks.listProjectTypes.mockReset();
@@ -49,7 +49,7 @@ describe('projectTypesCollection queryFn', () => {
 
   it('does not pass throwOnError:false to the generated client', async () => {
     mocks.listProjectTypes.mockResolvedValue({
-      data: [{ id: 't1', name: 'Type 1' }],
+      data: [{ id: 't1', name: 'Type 1', active: true }],
     });
 
     await queryFn();
@@ -66,10 +66,12 @@ describe('projectTypesCollection queryFn', () => {
     await expect(queryFn()).resolves.toEqual([]);
 
     mocks.listProjectTypes.mockResolvedValue({
-      data: [{ id: 't1', name: 'Type 1' }],
+      data: [{ id: 't1', name: 'Type 1', active: true }],
     });
 
-    await expect(queryFn()).resolves.toEqual([{ id: 't1', name: 'Type 1' }]);
+    await expect(queryFn()).resolves.toEqual([
+      { id: 't1', name: 'Type 1', active: true },
+    ]);
   });
 
   it('rejects malformed project-type rows', async () => {

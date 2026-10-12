@@ -3,7 +3,9 @@
 from typing import Any
 
 from pydantic import BaseModel
-from temporal.workflows.rechtsmethodik.types import Absatz, NormTyp, SatzKategorie
+from temporal.contracts import NormTyp, SatzKategorie
+
+from src.absatz import Absatz
 
 
 class NormDekonstruktionWorkflowSatzInput(BaseModel):
@@ -32,8 +34,8 @@ class NormDekonstruktionWorkflowSatzOutput(BaseModel):
     satz_nr: str
     markers: list[str]
     satz_text: str
-    norm_typ_lvl_1: NormTyp
-    norm_typ_lvl_2: SatzKategorie | None = None
+    norm_typ_lvl1: NormTyp
+    norm_typ_lvl2: SatzKategorie | None = None
     tatbestandsmerkmale: list[str] | None = None
     rechtsfolge: str | None = None
     atomare_tatbestandsmerkmale: list[str] | None = None

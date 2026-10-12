@@ -1,0 +1,24 @@
+id: no-erased-resource-runtime
+language: TypeScript
+severity: error
+ignores:
+  - "packages/resource/src/**"
+message: "Do not erase the resource runtime or feature list type. Name the provided resources so feature wiring stays checked by the compiler."
+rule:
+  any:
+    - pattern:
+        context: |
+          type Runtime = ResourceRuntime<AnyResource>;
+        selector: generic_type
+    - pattern:
+        context: |
+          type Runtime = ReturnType<typeof makeEffectResourceRuntime>;
+        selector: generic_type
+    - pattern:
+        context: |
+          type Features = AnyFeature[];
+        selector: array_type
+    - pattern:
+        context: |
+          type Features = readonly AnyFeature[];
+        selector: readonly_type

@@ -1,0 +1,85 @@
+{{- if .Values.searchAttributesJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "temporal-wrapper.searchAttributesJobName" . }}
+  namespace: {{ include "temporal-wrapper.namespace" . }}
+  labels:
+    {{- include "temporal-wrapper.labels" . | nindent 4 }}
+    app.kubernetes.io/component: search-attributes-setup
+  annotations:
+    # Runs after the server is installed/upgraded and cleans up on success.
+    # The server readiness loop in the script ensures the job does not race
+    # the Temporal frontend startup.
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+    helm.sh/hook-weight: "10"
+spec:
+  backoffLimit: 3
+  # bounds the whole hook, readiness waits included: a Temporal that never
+  # becomes healthy fails the sync instead of blocking it forever
+  activeDeadlineSeconds: {{ .Values.searchAttributesJob.activeDeadlineSeconds }}
+  ttlSecondsAfterFinished: 600
+  template:
+    spec:
+      {{- with .Values.searchAttributesJob.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with include "temporal-wrapper.searchAttributesJobServiceAccountName" . }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      {{- with .Values.searchAttributesJob.securityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: register-search-attributes
+          image: "{{ .Values.searchAttributesJob.image.repository }}:{{ .Values.searchAttributesJob.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          {{- with .Values.searchAttributesJob.containerSecurityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          env:
+            # The upstream subchart names its frontend Service
+            # <fullname>-frontend (no stage suffix — the subchart is not
+            # stage-aware).
+            - name: TEMPORAL_ADDRESS
+              value: {{ .Values.searchAttributesJob.temporalAddress | default (printf "%s-frontend.%s.svc.cluster.local:7233" (include "temporal-wrapper.upstreamFullname" .) (include "temporal-wrapper.namespace" .)) | quote }}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -eu
+              until temporal operator cluster health | grep -q SERVING; do
+                echo "Waiting for Temporal server to become healthy..."
+                sleep 2
+              done
+              echo "Temporal server is healthy."
+
+              until temporal operator search-attribute list --namespace default >/dev/null 2>&1; do
+                echo "Waiting for default namespace cache to refresh..."
+                sleep 2
+              done
+              echo "Default namespace is reachable."
+
+              # create, or accept an attribute that already exists with the
+              # same type; anything else (wrong type, RPC errors) fails the Job
+              ensure() {
+                if out=$(temporal operator search-attribute create --namespace default --name "$1" --type "$2" 2>&1); then
+                  echo "Search attribute $1 created."
+                elif temporal operator search-attribute list --namespace default | grep -Eq "^[[:space:]]*$1[[:space:]]+$2([[:space:]]|$)"; then
+                  echo "Search attribute $1 ($2) already exists."
+                else
+                  echo "Creating search attribute $1 ($2) failed: $out" >&2
+                  exit 1
+                fi
+              }
+              ensure ProjectId Keyword
+              ensure ProjectVersion Int
+
+              echo "Project search attributes registered successfully."
+{{- end }}

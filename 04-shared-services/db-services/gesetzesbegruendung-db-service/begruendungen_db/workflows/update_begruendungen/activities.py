@@ -6,25 +6,22 @@ from collections.abc import Callable
 from datetime import timedelta
 from typing import Any
 
+from db_services_shared.constants import BundeslandParam, Hierarchy
+from db_services_shared.utils.gesetze_normen import GesetzeNormenDB, GNDoc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from temporal.contracts import (
+    GNDocData,
+    ProcessLawDocInput,
+    ProcessSingleDocInput,
+    ProcessSingleDocResult,
+)
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from db_services_shared.constants import BundeslandParam, Hierarchy
-from db_services_shared.utils.gesetze_normen import GNDoc, GesetzeNormenDB
-
 from begruendungen_db.cli import get_parser
 from begruendungen_db.config import Source, app_config
-from begruendungen_db.schemas.db import Document
-from temporal.workflows.begruendungen.types import (
-    GNDocData,
-    ProcessLawDocInput,
-    ProcessLawDocResult,
-    ProcessSingleDocInput,
-    ProcessSingleDocResult
-)
-
 from begruendungen_db.parsers.base import SkippedDocumentException
+from begruendungen_db.schemas.db import Document
 
 logger = logging.getLogger("begruendungen_db.workflows.update_begruendungen")
 
@@ -77,7 +74,9 @@ class UpdateBegruendungenActivities:
             kurzue=input.law_doc.kurzue,
             langue=input.law_doc.langue,
             hierarchy=Hierarchy(input.law_doc.hierarchy.value),
-            bundesland=BundeslandParam(input.law_doc.bundesland.value) if input.law_doc.bundesland else None,
+            bundesland=BundeslandParam(input.law_doc.bundesland.value)
+            if input.law_doc.bundesland
+            else None,
         )
         parser = get_parser(source, extra)
         try:
@@ -97,10 +96,12 @@ class UpdateBegruendungenActivities:
             kurzue=input.law_doc.kurzue,
             langue=input.law_doc.langue,
             hierarchy=Hierarchy(input.law_doc.hierarchy.value),
-            bundesland=BundeslandParam(input.law_doc.bundesland.value) if input.law_doc.bundesland else None,
+            bundesland=BundeslandParam(input.law_doc.bundesland.value)
+            if input.law_doc.bundesland
+            else None,
         )
         parser = get_parser(source, extra)
-        doc_meta = parser.doc_meta_from_dict(input.document_meta)
+        doc_meta = parser.doc_meta_from_dict(input.document_meta.model_dump())
 
         try:
             doc_path = await asyncio.to_thread(parser._fetch_doc, gn_doc.jurabk, doc_meta)
@@ -123,16 +124,29 @@ class UpdateBegruendungenActivities:
         async with self._sessionmaker() as session:
             try:
                 existing = await session.get(Document, doc.doknr)
-                if existing:
-                    if not input.overwrite:
-                        return ProcessSingleDocResult(jurabk=gn_doc.jurabk, status="skipped", error="duplicate doknr")
-                await session.merge(doc)
-                await session.commit()
-                return ProcessSingleDocResult(jurabk=gn_doc.jurabk, status="written", error=None)
+                if existing and not input.overwrite:
+                    result = ProcessSingleDocResult(
+                        jurabk=gn_doc.jurabk,
+                        status="skipped",
+                        error="duplicate doknr",
+                    )
+                else:
+                    await session.merge(doc)
+                    await session.commit()
+                    result = ProcessSingleDocResult(
+                        jurabk=gn_doc.jurabk,
+                        status="written",
+                        error=None,
+                    )
             except Exception as exc:
                 logger.warning("failed to write doknr=%s: %s", doc.doknr, exc)
                 await session.rollback()
-                return ProcessSingleDocResult(jurabk=gn_doc.jurabk, status="failed", error=str(exc))
+                result = ProcessSingleDocResult(
+                    jurabk=gn_doc.jurabk,
+                    status="failed",
+                    error=str(exc),
+                )
+            return result
 
 
 async def list_law_docs(hierarchy: str, bundesland: str | None = None) -> list[GNDocData]:

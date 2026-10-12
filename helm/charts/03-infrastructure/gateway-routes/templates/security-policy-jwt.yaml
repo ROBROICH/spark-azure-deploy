@@ -1,0 +1,60 @@
+{{- if .Values.routes.api.enabled }}
+{{- /*
+JWT policy for api-route and api-v2-route: claim mapping (realm_access.roles, StringArray) and
+Deny-by-default authorization; issuer/JWKS, CORS origins, allowed roles and
+(optional) audiences are values-driven. The audiences field is omitted while
+auth.audiences is empty.
+*/ -}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: jwt-api-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: api-route
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: api-v2-route
+  cors:
+    allowOrigins:
+      {{- include "gateway-routes.corsAllowOrigins" . | nindent 6 }}
+    allowMethods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - PATCH
+      - OPTIONS
+    allowHeaders:
+      - Authorization
+      - Content-Type
+    allowCredentials: true
+    maxAge: 3600s
+  jwt:
+    providers:
+      - name: keycloak
+        issuer: {{ include "gateway-routes.keycloakIssuer" . }}
+        {{- with .Values.auth.audiences }}
+        audiences:
+          {{- toYaml . | nindent 10 }}
+        {{- end }}
+        remoteJWKS:
+          uri: {{ include "gateway-routes.keycloakIssuer" . }}/protocol/openid-connect/certs
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: allow-authenticated-users
+        action: Allow
+        principal:
+          jwt:
+            provider: keycloak
+            claims:
+              - name: realm_access.roles
+                valueType: StringArray
+                values: {{ toJson .Values.auth.allowedRoles }}
+{{- end }}

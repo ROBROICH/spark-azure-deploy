@@ -10,7 +10,6 @@ const createCallbacks = (): ColumnCallbacks => ({
   availableDocumentTypesStructured: [],
   canMutateProject: true,
   onAddComment: vi.fn(),
-  onConfirmDocumentType: vi.fn(),
   onFileClick: vi.fn(),
   onManageCustomDocumentTypes: vi.fn(),
   onRequestDocument: vi.fn(),

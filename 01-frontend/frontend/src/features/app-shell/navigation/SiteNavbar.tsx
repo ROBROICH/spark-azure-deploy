@@ -1,9 +1,11 @@
 import appVersion from '@/features/app-info/changelog/app-version.json';
 import { SystemLoadSidebarButton } from '@/features/workflow-runtime/system-load/SystemLoadSidebarButton';
 import { useCurrentUser } from '@/features/access-control/current-user/CurrentUserProvider';
+import { useIsAdmin } from '@/features/access-control/current-user/useIsAdmin';
 import { isRoleSwitcherFeatureEnabled } from '@/features/shared/config/roleSwitcherFeature';
 import { isRuntimeEnvironment } from '@/features/shared/config/runtimeEnvironment';
 import { isDevModeAllowed, useDevMode } from '@/features/dev-mode/useDevMode';
+import { AdminMenu } from '@/features/product-mode/AdminMenu';
 import {
   Sidebar,
   SidebarBrand,
@@ -30,6 +32,7 @@ import {
   PanelLeftOpen,
   PersonStanding,
   ScrollText,
+  Shield,
 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -93,6 +96,7 @@ export const SiteNavbar = () => {
     select: (state) => state.location.pathname,
   });
   const { displayName: userName } = useCurrentUser();
+  const isAdmin = useIsAdmin();
   const showRoleSwitcher =
     isDevMode &&
     isRoleSwitcherFeatureEnabled() &&
@@ -187,6 +191,23 @@ export const SiteNavbar = () => {
               <SidebarLabel>{t('sidebar.projects')}</SidebarLabel>
             </SidebarMenuLinkButton>
           </SidebarMenuItem>
+
+          {isAdmin && (
+            <SidebarMenuItem>
+              <SidebarMenuLinkButton
+                isActive={
+                  currentPath === '/administration' ||
+                  currentPath.startsWith('/administration/')
+                }
+                to="/administration"
+                onClick={closeMobileSidebar}
+                tooltip={t('sidebar.administration')}
+              >
+                <Shield className="size-4" aria-hidden="true" />
+                <SidebarLabel>{t('sidebar.administration')}</SidebarLabel>
+              </SidebarMenuLinkButton>
+            </SidebarMenuItem>
+          )}
         </SidebarMenu>
 
         <CurrentProjectCard
@@ -273,6 +294,14 @@ export const SiteNavbar = () => {
             </SidebarMenuItem>
           )}
         </SidebarMenu>
+
+        {isDevMode && (
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <AdminMenu />
+            </SidebarMenuItem>
+          </SidebarMenu>
+        )}
 
         <SidebarMenu>
           <SidebarMenuItem>

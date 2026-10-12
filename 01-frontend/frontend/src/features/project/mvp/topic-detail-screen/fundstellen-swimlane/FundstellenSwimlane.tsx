@@ -49,7 +49,7 @@ const FundstellenOutdatedTriggerCard = (props: { selectedNormId: string }) => {
 
 const FundstellenOutdatedTrigger = (props: { selectedNormId: string }) => {
   const { selectedNormId } = props;
-  const normRef = { id: selectedNormId, node_type: 'norm' as const };
+  const normRef = { id: selectedNormId, nodeType: 'norm' as const };
   const fundstelleRefs = useDescendants('fundstelle', normRef);
   const hasOutdatedFundstellen = hasOutdatedNodeSummary(fundstelleRefs);
 
@@ -78,11 +78,11 @@ export const FundstellenSwimlane = (props: FundstellenSwimlaneProps) => {
     topicDocuments.find((document) => document.id === selectedDocumentId) ??
     null;
   const selectedNormRef = selectedNormId
-    ? { id: selectedNormId, node_type: 'norm' as const }
+    ? { id: selectedNormId, nodeType: 'norm' as const }
     : null;
   const { data: selectedNorm } = useLiveNode(selectedNormRef);
   const selectedGesetzRef = selectedNorm
-    ? { id: selectedNorm.gesetz_id, node_type: 'gesetz' as const }
+    ? { id: selectedNorm.gesetzId, nodeType: 'gesetz' as const }
     : null;
   const { data: selectedGesetz } = useLiveNode(selectedGesetzRef);
   const selectedDocumentLabel =

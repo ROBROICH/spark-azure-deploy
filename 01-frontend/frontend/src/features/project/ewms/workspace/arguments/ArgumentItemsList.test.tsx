@@ -62,6 +62,12 @@ vi.mock('../EwmsSubtopicsContext', () => ({
   }),
 }));
 
+vi.mock('@/features/ui/info-tooltip/InfoTooltip', () => ({
+  InfoTooltip: (props: { ariaLabel: string }) => (
+    <button type="button" aria-label={props.ariaLabel} />
+  ),
+}));
+
 vi.mock('@/features/ui/select-menu/SelectMenu', () => ({
   SelectMenu: (props: {
     ariaLabel?: string;
@@ -104,29 +110,31 @@ const makeArgument = (overrides: Partial<EwmsArgumentNode> = {}) =>
   ({
     compositeKey: 'argument:argument-1' as CompositeKey,
     id: 'argument-1',
-    node_type: 'argument',
-    beteiligungs_eingang_id: 'entry-1',
-    sub_topic_id: null,
-    topic_id: 'topic-1',
+    nodeType: 'argument',
+    beteiligungsEingangId: 'entry-1',
+    extractionPayload: null,
+    subTopicId: null,
+    topicId: 'topic-1',
     status: 'open',
+    topicConfidence: null,
+    subTopicConfidence: null,
     text: 'Argument text',
-    start_idx: null,
-    end_idx: null,
+    startIdx: null,
+    endIdx: null,
     erwiderung: null,
     einordnung: null,
     context: null,
-    context_start_idx: null,
-    context_end_idx: null,
-    argument_id: 'EXAMPLE-ARG-1',
-    in_vae: false,
-    is_valid_argument: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    contextStartIdx: null,
+    contextEndIdx: null,
+    argumentId: 'EXAMPLE-ARG-1',
+    inVae: false,
+    isValidArgument: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     ...overrides,
   }) satisfies EwmsArgumentNode;
 
@@ -134,22 +142,21 @@ const makeEntry = () =>
   ({
     compositeKey: 'beteiligungs_eingang:entry-1' as CompositeKey,
     id: 'entry-1',
-    node_type: 'beteiligungs_eingang',
-    beteiligung_typ: 'einwendung',
-    file_id: 'file-1',
+    nodeType: 'beteiligungs_eingang',
+    beteiligungTyp: 'einwendung',
+    fileId: 'file-1',
     filename: 'file-1.pdf',
-    beteiligungs_eingang_markdown_id: null,
-    extraction_status: 'success',
-    classification_status: 'done',
-    project_id: 'project-1',
-    is_deleted: false,
-    is_outdated: false,
-    frontend_parent_ids: [],
-    project_version: 1,
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    markdownId: null,
+    extractionStatus: 'success',
+    classificationStatus: 'done',
+    projectId: 'project-1',
+    isDeleted: false,
+    isOutdated: false,
+    frontendParentIds: [],
+    projectVersion: 1,
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
   }) satisfies EwmsBeteiligungsEingang;
 
 const makeTopic = (
@@ -160,22 +167,21 @@ const makeTopic = (
   ({
     compositeKey: `topic:${id}` as CompositeKey,
     id,
-    node_type: 'topic',
+    nodeType: 'topic',
     name,
     description: null,
-    parent_topic_id: null,
-    mvp_assignee: null,
-    mvp_assignees: [],
-    show_in_mvp: true,
-    show_in_ewm: true,
-    show_in_beschluss: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    parentTopicId: null,
+    mvpAssignee: null,
+    mvpAssignees: [],
+    showInMvp: true,
+    showInEwm: true,
+    showInBeschluss: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     ...overrides,
   }) as unknown as EwmsTopicNode;
 
@@ -186,7 +192,7 @@ describe('ArgumentItemsList topic assignment', () => {
       makeArgument({
         compositeKey: `argument:argument-${index + 1}` as CompositeKey,
         id: `argument-${index + 1}`,
-        argument_id: `FB-${String(index + 1).padStart(4, '0')}-A1`,
+        argumentId: `FB-${String(index + 1).padStart(4, '0')}-A1`,
         text: `Argument text ${index + 1}`,
       }),
     );
@@ -254,7 +260,7 @@ describe('ArgumentItemsList topic assignment', () => {
         entriesById={new Map([['entry-1', makeEntry()]])}
         topics={[
           makeTopic('topic-1', 'Topic 1'),
-          makeTopic('topic-hidden', 'Hidden Topic', { show_in_ewm: false }),
+          makeTopic('topic-hidden', 'Hidden Topic', { showInEwm: false }),
           makeTopic('topic-2', 'Topic 2'),
         ]}
         onDeleteArgument={() => undefined}
@@ -281,7 +287,7 @@ describe('ArgumentItemsList topic assignment', () => {
       { value: 'subtopic-1', label: 'Artenschutz' },
       { value: 'subtopic-2', label: 'Boden' },
     ]);
-    const argument = makeArgument({ sub_topic_id: 'subtopic-2' });
+    const argument = makeArgument({ subTopicId: 'subtopic-2' });
 
     render(
       <ArgumentItemsList
@@ -307,7 +313,7 @@ describe('ArgumentItemsList topic assignment', () => {
     const argument = makeArgument({
       erwiderung: 'Response text',
       einordnung: '  ',
-      in_vae: true,
+      inVae: true,
     });
 
     render(
@@ -532,5 +538,104 @@ describe('ArgumentItemsList topic assignment', () => {
         .querySelector('[data-slot="argument-classification-controls"]')
         ?.classList.contains('bg-slate-100'),
     ).toBe(false);
+  });
+
+  it('shows the topic uncertainty warning only while classification review is open', () => {
+    const listProps = {
+      entriesById: new Map([['entry-1', makeEntry()]]),
+      topics: [makeTopic('topic-1', 'Topic 1')],
+      onDeleteArgument: () => undefined,
+      onToggleArgument: () => undefined,
+      onUpdateArgumentTopic: () => undefined,
+      onUpdateArgumentSubtopic: () => undefined,
+      onReviewArgumentClassification: () => undefined,
+    };
+
+    const { rerender } = render(
+      <ArgumentItemsList
+        {...listProps}
+        argumentsList={[
+          makeArgument({
+            topicConfidence: 0.4,
+            subTopicConfidence: 0.8,
+          }),
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainTopic',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <ArgumentItemsList
+        {...listProps}
+        argumentsList={[
+          makeArgument({
+            topicConfidence: 0.4,
+            subTopicConfidence: 0.4,
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainBoth',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <ArgumentItemsList
+        {...listProps}
+        argumentsList={[
+          makeArgument({
+            topicConfidence: 0.8,
+            subTopicConfidence: 0.4,
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainSubtopic',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <ArgumentItemsList
+        {...listProps}
+        argumentsList={[
+          makeArgument({
+            topicConfidence: 0.75,
+            subTopicConfidence: null,
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', {
+        name: 'arguments.classificationUncertainTopic',
+      }),
+    ).toBeNull();
+
+    rerender(
+      <ArgumentItemsList
+        {...listProps}
+        argumentsList={[
+          makeArgument({
+            status: EWMS_ARGUMENT_STATUS_SUBTOPIC_REVIEWED,
+            topicConfidence: 0.4,
+            subTopicConfidence: 0.4,
+          }),
+        ]}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', {
+        name: 'arguments.classificationUncertainBoth',
+      }),
+    ).toBeNull();
   });
 });

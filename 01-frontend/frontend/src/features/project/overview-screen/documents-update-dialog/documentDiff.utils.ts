@@ -1,12 +1,11 @@
-import type {
-  DeleteChange,
-  FileChange,
-  FileDiffResponse,
-  NewFile,
-  RenameChange,
-  Unchanged,
-} from '@/api-clients/dms-module';
+import type { FileDiffResponse } from '@/api-clients/backend';
 import type { ChangeType } from './dialog-content/DocumentChangeBadge';
+
+type NewFile = FileDiffResponse['new'][number];
+type DeleteChange = FileDiffResponse['deleted'][number];
+type FileChange = FileDiffResponse['changed'][number];
+type RenameChange = FileDiffResponse['renamed'][number];
+type Unchanged = FileDiffResponse['unchanged'][number];
 
 export type DiffRow = {
   key: string;
@@ -185,49 +184,49 @@ export const collectAllFolderPaths = (nodes: DiffTreeNode[]): Set<string> => {
 export const buildDiffRows = (diff: FileDiffResponse): DiffRow[] => {
   const rows: DiffRow[] = [];
 
-  for (const file of diff.unchanged ?? []) {
+  for (const file of diff.unchanged) {
     rows.push({
-      key: `unchanged:${file.file_id}`,
+      key: `unchanged:${file.fileId}`,
       oldFilename: file.filename,
       newFilename: file.filename,
       changeType: 'unchanged',
       selectable: false,
     });
   }
-  for (const file of diff.renamed ?? []) {
+  for (const file of diff.renamed) {
     rows.push({
-      key: `renamed:${file.file_id}`,
-      oldFilename: file.old_name,
-      newFilename: file.new_name,
+      key: `renamed:${file.fileId}`,
+      oldFilename: file.oldName,
+      newFilename: file.newName,
       changeType: 'renamed',
       selectable: true,
     });
   }
-  for (const file of diff.changed ?? []) {
+  for (const file of diff.changed) {
     rows.push({
-      key: `changed:${file.file_id}`,
+      key: `changed:${file.fileId}`,
       oldFilename: file.filename,
       newFilename: file.filename,
       changeType: 'replaced',
       selectable: true,
     });
   }
-  for (const file of diff.deleted ?? []) {
+  for (const file of diff.deleted) {
     rows.push({
-      key: `deleted:${file.file_id}`,
+      key: `deleted:${file.fileId}`,
       oldFilename: file.filename,
       newFilename: file.filename,
       changeType: 'deleted',
       selectable: true,
     });
   }
-  for (const file of diff.new ?? []) {
+  for (const file of diff.new) {
     rows.push({
       key: `new:${file.filename}`,
       oldFilename: null,
       newFilename: file.filename,
       changeType: 'new',
-      selectable: true,
+      selectable: false,
     });
   }
 
@@ -245,8 +244,10 @@ export const buildDefaultSelectedKeys = (rows: DiffRow[]): Set<string> => {
 };
 
 /**
- * Reconstructs a FileDiffResponse from the original diff and the user's selection,
- * dropping deselected new files and demoting deselected replaced/renamed files into the unchanged bucket.
+ * Reconstructs a FileDiffResponse from the original diff and the user's selection.
+ * New files are always kept because the backend requires a decision for every
+ * computed entry and offers no "do not apply" decision for them; deselected
+ * replaced, renamed, and deleted files are demoted into the unchanged bucket.
  *
  * @param diff Original diff returned by the backend.
  * @param selectedKeys Keys currently selected by the user.
@@ -256,53 +257,46 @@ export const buildTrimmedDiff = (
   diff: FileDiffResponse,
   selectedKeys: Set<string>,
 ): FileDiffResponse => {
-  const newFiles: NewFile[] = [];
+  const newFiles: NewFile[] = [...diff.new];
   const renamedFiles: RenameChange[] = [];
   const changedFiles: FileChange[] = [];
   const deletedFiles: DeleteChange[] = [];
-  const unchangedFiles: Unchanged[] = [...(diff.unchanged ?? [])];
+  const unchangedFiles: Unchanged[] = [...diff.unchanged];
 
-  for (const file of diff.new ?? []) {
-    const key = `new:${file.filename}`;
-    if (selectedKeys.has(key)) {
-      newFiles.push(file);
-    }
-  }
-
-  for (const file of diff.changed ?? []) {
-    const key = `changed:${file.file_id}`;
+  for (const file of diff.changed) {
+    const key = `changed:${file.fileId}`;
     if (selectedKeys.has(key)) {
       changedFiles.push(file);
       continue;
     }
     unchangedFiles.push({
-      file_id: file.file_id,
+      fileId: file.fileId,
       filename: file.filename,
-      sha: file.target_sha,
+      sha: file.targetSha,
     });
   }
 
-  for (const file of diff.renamed ?? []) {
-    const key = `renamed:${file.file_id}`;
+  for (const file of diff.renamed) {
+    const key = `renamed:${file.fileId}`;
     if (selectedKeys.has(key)) {
       renamedFiles.push(file);
       continue;
     }
     unchangedFiles.push({
-      file_id: file.file_id,
-      filename: file.old_name,
+      fileId: file.fileId,
+      filename: file.oldName,
       sha: file.sha,
     });
   }
 
-  for (const file of diff.deleted ?? []) {
-    const key = `deleted:${file.file_id}`;
+  for (const file of diff.deleted) {
+    const key = `deleted:${file.fileId}`;
     if (selectedKeys.has(key)) {
       deletedFiles.push(file);
       continue;
     }
     unchangedFiles.push({
-      file_id: file.file_id,
+      fileId: file.fileId,
       filename: file.filename,
       sha: file.sha,
     });

@@ -28,6 +28,7 @@ export const PdfDarkFileTreeDropdown = (
     tree,
     isLoadingFiles,
     isFilesError,
+    filePagination,
     recentDocuments,
     selectPaneDocument,
     requestFileCatalog,
@@ -79,6 +80,7 @@ export const PdfDarkFileTreeDropdown = (
             >
               <PdfFileTree
                 nodes={tree}
+                pagination={filePagination}
                 selectedDocumentId={documentId}
                 recentDocuments={recentDocuments}
                 theme="dark"

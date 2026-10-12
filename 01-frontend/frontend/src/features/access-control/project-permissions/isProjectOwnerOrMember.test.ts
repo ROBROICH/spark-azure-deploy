@@ -45,7 +45,7 @@ describe('isProjectOwnerOrMember', () => {
   it('denies users when project team arrays are missing', () => {
     expect(
       isProjectOwnerOrMember({
-        project: {},
+        project: { owners: [], members: [] },
         role: 'user',
         userId: 'user-id',
       }),

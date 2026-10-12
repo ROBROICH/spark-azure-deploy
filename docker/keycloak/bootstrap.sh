@@ -8,13 +8,9 @@ set -euo pipefail
 
 KCADM=/opt/keycloak/bin/kcadm.sh
 
-# Public frontend origin the browser uses; the OIDC redirect lands here. http://localhost:3000
-# locally, or https://3000-$WEB_HOST behind a reverse proxy (passed in via docker-compose).
-FRONTEND_PUBLIC_URL="${FRONTEND_PUBLIC_URL:-http://localhost:3000}"
-
-for var in KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD LOCAL_KEYCLOAK_CLIENT_SECRET LOCAL_USER_ID LOCAL_USER_EMAIL LOCAL_USER_PASSWORD; do
+for var in OIDC_BOOTSTRAP_ADMIN_PASSWORD LOCAL_OIDC_CLIENT_SECRET LOCAL_USER_ID LOCAL_USER_EMAIL LOCAL_USER_PASSWORD; do
   if [ -z "${!var:-}" ]; then
-    echo "Missing $var. Regenerate .env with scripts/create_secrets.sh (wipe Docker volumes afterwards)." >&2
+    echo "Missing $var. Set its existing value in the root .env; for a fresh setup run scripts/create_secrets.sh." >&2
     exit 1
   fi
 done
@@ -27,7 +23,7 @@ json_escape() {
   --server http://keycloak:9090 \
   --realm master \
   --user admin \
-  --password "$KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD"
+  --password "$OIDC_BOOTSTRAP_ADMIN_PASSWORD"
 
 if ! "$KCADM" get realms/local >/dev/null 2>&1; then
   "$KCADM" create realms -s realm=local -s enabled=true
@@ -40,7 +36,7 @@ fi
   -s ssoSessionIdleTimeout=86400 \
   -s ssoSessionMaxLifespan=86400
 
-for role in admin user service; do
+for role in admin user service test-role-switcher; do
   if ! "$KCADM" get "roles/$role" -r local >/dev/null 2>&1; then
     "$KCADM" create roles -r local -s "name=$role"
   fi
@@ -53,15 +49,15 @@ if [ -z "$client_id" ]; then
     -s clientId=local-client \
     -s enabled=true \
     -s publicClient=false \
-    -s secret="$LOCAL_KEYCLOAK_CLIENT_SECRET" \
+    -s secret="$LOCAL_OIDC_CLIENT_SECRET" \
     -s serviceAccountsEnabled=true \
     -s directAccessGrantsEnabled=true \
     -s standardFlowEnabled=true
   client_id="$("$KCADM" get clients -r local -q clientId=local-client --fields id --format csv --noquotes | head -n 1)"
 fi
 "$KCADM" update "clients/$client_id" -r local \
-  -s "redirectUris=[\"${FRONTEND_PUBLIC_URL}/oauth2/callback\"]" \
-  -s "webOrigins=[\"${FRONTEND_PUBLIC_URL}\"]"
+  -s 'redirectUris=["http://localhost:3000/oauth2/callback"]' \
+  -s 'webOrigins=["http://localhost:3000"]'
 
 # oauth2-proxy requires an aud claim in the access token, which Keycloak
 # only adds through an explicit audience mapper.
@@ -110,6 +106,7 @@ cat > /tmp/local-user.json <<JSON
 }
 JSON
 "$KCADM" create partialImport -r local -s ifResourceExists=SKIP -o -f /tmp/local-user.json
+"$KCADM" add-roles -r local --uid "$LOCAL_USER_ID" --rolename test-role-switcher
 rm -f /tmp/local-user.json
 
 echo "Keycloak bootstrap finished."

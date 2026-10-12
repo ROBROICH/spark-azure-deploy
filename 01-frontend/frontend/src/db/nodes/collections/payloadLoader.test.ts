@@ -1,3 +1,4 @@
+import type { V1ProjectLogicServiceBatchGetNodesResponse } from '@/api-clients/backend';
 import { describe, expect, it, vi } from 'vitest';
 import { createNodeDataLoader } from './payloadLoader';
 
@@ -10,33 +11,18 @@ const mocks = vi.hoisted(() => ({
   vaeBatchGet: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementServiceBatchGetNodes: (...args: unknown[]) =>
     mocks.dmsBatchGet(...args),
-}));
-
-vi.mock('@/api-clients/examination-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+  v1ExaminationServiceBatchGetNodes: (...args: unknown[]) =>
     mocks.examBatchGet(...args),
-}));
-
-vi.mock('@/api-clients/feedback-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+  v1FeedbackBatchGetNodes: (...args: unknown[]) =>
     mocks.feedbackBatchGet(...args),
-}));
-
-vi.mock('@/api-clients/oms-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+  v1ObjectionsManagementServiceBatchGetNodes: (...args: unknown[]) =>
     mocks.omsBatchGet(...args),
-}));
-
-vi.mock('@/api-clients/pls-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+  v1ProjectLogicServiceBatchGetNodes: (...args: unknown[]) =>
     mocks.plsBatchGet(...args),
-}));
-
-vi.mock('@/api-clients/vae-module', () => ({
-  batchGetProjectIdBatchNodesPost: (...args: unknown[]) =>
+  v1AdministrativeFileDraftBatchGetNodes: (...args: unknown[]) =>
     mocks.vaeBatchGet(...args),
 }));
 
@@ -44,7 +30,7 @@ describe('payloadLoader', () => {
   it('routes feedback and OMS node refs to their batch endpoints and preserves ref order', async () => {
     mocks.plsBatchGet.mockResolvedValue({
       data: {
-        results: [{ id: 'topic-1', node_type: 'topic', name: 'Topic 1' }],
+        results: [{ id: 'topic-1', nodeType: 'topic', name: 'Topic 1' }],
       },
     });
     mocks.feedbackBatchGet.mockResolvedValue({
@@ -52,12 +38,12 @@ describe('payloadLoader', () => {
         results: [
           {
             id: 'feedback-1',
-            node_type: 'feedback',
+            nodeType: 'feedback',
             rating: 'POSITIVE',
             reason: 'useful',
             text: 'Helpful result',
-            user_id: '00000000-0000-4000-8000-000000000001',
-            frontend_parent_ids: ['topic-1'],
+            userId: '00000000-0000-4000-8000-000000000001',
+            frontendParentIds: ['topic-1'],
           },
         ],
       },
@@ -67,19 +53,19 @@ describe('payloadLoader', () => {
         results: [
           {
             id: 'entry-1',
-            node_type: 'beteiligungs_eingang',
-            beteiligung_typ: 'einwendung',
-            file_id: 'file-1',
-            beteiligungs_eingang_markdown_id: 'markdown-1',
-            extraction_status: 'success',
-            frontend_parent_ids: [],
+            nodeType: 'beteiligungs_eingang',
+            beteiligungTyp: 'einwendung',
+            fileId: 'file-1',
+            markdownId: 'markdown-1',
+            extractionStatus: 'success',
+            frontendParentIds: [],
           },
           {
             id: 'markdown-1',
-            node_type: 'beteiligungs_eingang_markdown',
-            beteiligungs_eingang_id: 'entry-1',
+            nodeType: 'beteiligungs_eingang_markdown',
+            beteiligungsEingangId: 'entry-1',
             text: 'Markdown',
-            frontend_parent_ids: ['entry-1'],
+            frontendParentIds: ['entry-1'],
           },
         ],
       },
@@ -87,37 +73,37 @@ describe('payloadLoader', () => {
 
     const loader = createNodeDataLoader('verfahren-feedback-test', 1);
     const payloads = await loader.loadMany([
-      { id: 'feedback-1', node_type: 'feedback' },
-      { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-      { id: 'markdown-1', node_type: 'beteiligungs_eingang_markdown' },
-      { id: 'topic-1', node_type: 'topic' },
+      { id: 'feedback-1', nodeType: 'feedback' },
+      { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+      { id: 'markdown-1', nodeType: 'beteiligungs_eingang_markdown' },
+      { id: 'topic-1', nodeType: 'topic' },
     ]);
 
     expect(mocks.feedbackBatchGet).toHaveBeenCalledWith({
       body: {
-        nodes: [{ id: 'feedback-1', node_type: 'feedback' }],
+        nodes: [{ id: 'feedback-1', nodeType: 'feedback' }],
       },
-      path: { project_id: 'verfahren-feedback-test' },
-      query: { project_version: 1 },
+      path: { projectId: 'verfahren-feedback-test' },
+      query: { projectVersion: 1 },
       throwOnError: true,
     });
     expect(mocks.omsBatchGet).toHaveBeenCalledWith({
       body: {
         nodes: [
-          { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-          { id: 'markdown-1', node_type: 'beteiligungs_eingang_markdown' },
+          { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+          { id: 'markdown-1', nodeType: 'beteiligungs_eingang_markdown' },
         ],
       },
-      path: { project_id: 'verfahren-feedback-test' },
-      query: { project_version: 1 },
+      path: { projectId: 'verfahren-feedback-test' },
+      query: { projectVersion: 1 },
       throwOnError: true,
     });
     expect(mocks.plsBatchGet).toHaveBeenCalledWith({
       body: {
-        nodes: [{ id: 'topic-1', node_type: 'topic' }],
+        nodes: [{ id: 'topic-1', nodeType: 'topic' }],
       },
-      path: { project_id: 'verfahren-feedback-test' },
-      query: { project_version: 1 },
+      path: { projectId: 'verfahren-feedback-test' },
+      query: { projectVersion: 1 },
       throwOnError: true,
     });
     expect(mocks.dmsBatchGet).not.toHaveBeenCalled();
@@ -127,22 +113,22 @@ describe('payloadLoader', () => {
       expect.objectContaining({
         compositeKey: 'feedback:feedback-1',
         id: 'feedback-1',
-        node_type: 'feedback',
+        nodeType: 'feedback',
       }),
       expect.objectContaining({
         compositeKey: 'beteiligungs_eingang:entry-1',
         id: 'entry-1',
-        node_type: 'beteiligungs_eingang',
+        nodeType: 'beteiligungs_eingang',
       }),
       expect.objectContaining({
         compositeKey: 'beteiligungs_eingang_markdown:markdown-1',
         id: 'markdown-1',
-        node_type: 'beteiligungs_eingang_markdown',
+        nodeType: 'beteiligungs_eingang_markdown',
       }),
       expect.objectContaining({
         compositeKey: 'topic:topic-1',
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
       }),
     ]);
   });
@@ -153,11 +139,11 @@ describe('payloadLoader', () => {
         results: [
           {
             id: 'topic-norm-1',
-            node_type: 'topic_norm',
-            topic_id: 'topic-1',
-            project_id: 'project-1',
-            mvp_status: 'needs_revision',
-            satz_statuses: {},
+            nodeType: 'topic_norm',
+            topicId: 'topic-1',
+            projectId: 'project-1',
+            mvpStatus: 'needs_revision',
+            satzStatuses: {},
           },
         ],
       },
@@ -165,17 +151,36 @@ describe('payloadLoader', () => {
 
     const loader = createNodeDataLoader('verfahren-topic-norm-test', 1);
     const payloads = await loader.loadMany([
-      { id: 'topic-norm-1', node_type: 'topic_norm' },
+      { id: 'topic-norm-1', nodeType: 'topic_norm' },
     ]);
 
     expect(payloads).toEqual([
       expect.objectContaining({
         compositeKey: 'topic_norm:topic-norm-1',
         id: 'topic-norm-1',
-        mvp_status: 'needs_revision',
-        node_type: 'topic_norm',
-        satz_statuses: {},
+        mvpStatus: 'needs_revision',
+        nodeType: 'topic_norm',
+        satzStatuses: {},
       }),
     ]);
+  });
+
+  it('reports a missing node when the batch omits its payload', async () => {
+    mocks.plsBatchGet.mockResolvedValue({
+      data: {
+        results: [],
+      } satisfies V1ProjectLogicServiceBatchGetNodesResponse,
+    });
+
+    const loader = createNodeDataLoader('verfahren-missing-node-test', 1);
+    const [result] = await loader.loadMany([
+      { id: 'topic-missing', nodeType: 'topic' },
+    ]);
+
+    expect(result).toBeInstanceOf(Error);
+    expect(result).toHaveProperty(
+      'message',
+      'Missing node payload for topic:topic-missing',
+    );
   });
 });

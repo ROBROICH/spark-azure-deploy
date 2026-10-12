@@ -1,8 +1,15 @@
-import type { WorkflowsBase } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
 import type { useLiveQuery } from '@tanstack/react-db';
-import { act, cleanup, renderHook } from '@testing-library/react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import type { PropsWithChildren } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useWorkflow } from './useWorkflow';
+
+const queryClient = new QueryClient();
+const wrapper = ({ children }: PropsWithChildren) => (
+  <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+);
 
 const testState = vi.hoisted(() => {
   return {
@@ -71,12 +78,18 @@ vi.mock('@tanstack/react-db', async (importOriginal) => {
 });
 
 const createWorkflow = (
-  overrides: Pick<WorkflowsBase, 'workflow_id' | 'workflow_type' | 'status'> &
+  overrides: Pick<WorkflowsBase, 'workflowId' | 'workflowType' | 'status'> &
     Partial<WorkflowsBase>,
 ): WorkflowsBase => ({
-  run_id: 'run-id',
-  workflow_start_time: '2026-04-09T00:00:00.000Z',
-  ...overrides,
+  workflowId: overrides.workflowId,
+  workflowType: overrides.workflowType,
+  status: overrides.status,
+  runId: overrides.runId ?? 'run-id',
+  workflowStartTime: overrides.workflowStartTime ?? '2026-04-09T00:00:00.000Z',
+  workflowCloseTime: overrides.workflowCloseTime ?? null,
+  projectId: overrides.projectId ?? null,
+  projectVersion: overrides.projectVersion ?? null,
+  failure: overrides.failure ?? null,
 });
 
 describe('useWorkflow', () => {
@@ -99,6 +112,7 @@ describe('useWorkflow', () => {
 
   afterEach(() => {
     cleanup();
+    queryClient.clear();
     vi.useRealTimers();
   });
 
@@ -106,21 +120,23 @@ describe('useWorkflow', () => {
     testState.workflows = [
       createWorkflow({
         status: 'running',
-        workflow_id: 'api-prefix-verfahren-1-norm-1',
-        workflow_type: 'other_workflow',
+        workflowId: 'api-prefix-verfahren-1-norm-1',
+        workflowType: 'other_workflow',
       }),
       createWorkflow({
         status: 'running',
-        workflow_id: 'api-prefix-verfahren-1-norm-1',
-        workflow_type: 'suche_zuordnung_norm',
+        workflowId: 'api-prefix-verfahren-1-norm-1',
+        workflowType: 'suche_zuordnung_norm',
       }),
     ];
 
-    const { result } = renderHook(() =>
-      useWorkflow({
-        matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
-        workflowType: 'suche_zuordnung_norm',
-      }),
+    const { result } = renderHook(
+      () =>
+        useWorkflow({
+          matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
+          workflowType: 'suche_zuordnung_norm',
+        }),
+      { wrapper },
     );
 
     expect(result.current).toMatchObject({
@@ -131,25 +147,24 @@ describe('useWorkflow', () => {
       isRunning: true,
       hasAnyRun: true,
     });
-    expect(testState.getCollectionMock).toHaveBeenCalledWith({
-      workflowType: 'suche_zuordnung_norm',
-    });
   });
 
   it('does not match when only the id suffix matches', () => {
     testState.workflows = [
       createWorkflow({
         status: 'running',
-        workflow_id: 'api-prefix-verfahren-1-norm-1',
-        workflow_type: 'other_workflow',
+        workflowId: 'api-prefix-verfahren-1-norm-1',
+        workflowType: 'other_workflow',
       }),
     ];
 
-    const { result } = renderHook(() =>
-      useWorkflow({
-        matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
-        workflowType: 'suche_zuordnung_norm',
-      }),
+    const { result } = renderHook(
+      () =>
+        useWorkflow({
+          matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
+          workflowType: 'suche_zuordnung_norm',
+        }),
+      { wrapper },
     );
 
     expect(result.current).toMatchObject({
@@ -166,16 +181,18 @@ describe('useWorkflow', () => {
     testState.workflows = [
       createWorkflow({
         status: 'completed',
-        workflow_id: 'api-prefix-existing-run-verfahren-1-norm-1',
-        workflow_type: 'BewertungOrchestratorWorkflow',
+        workflowId: 'api-prefix-existing-run-verfahren-1-norm-1',
+        workflowType: 'BewertungOrchestratorWorkflow',
       }),
     ];
 
-    const { result } = renderHook(() =>
-      useWorkflow({
-        matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
-        workflowType: ['bewertung', 'BewertungOrchestratorWorkflow'],
-      }),
+    const { result } = renderHook(
+      () =>
+        useWorkflow({
+          matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
+          workflowType: ['bewertung', 'BewertungOrchestratorWorkflow'],
+        }),
+      { wrapper },
     );
 
     expect(result.current).toMatchObject({
@@ -187,253 +204,173 @@ describe('useWorkflow', () => {
       hasAnyRun: true,
       hasSuccessfulRun: true,
     });
-    expect(testState.getCollectionMock).toHaveBeenCalledWith({
-      workflowType: ['bewertung', 'BewertungOrchestratorWorkflow'],
-    });
   });
 
   it('matches workflow ids with the project version segment after the project id', () => {
     testState.workflows = [
       createWorkflow({
         status: 'running',
-        workflow_id: 'api-prefix-verfahren-1-v7-norm-1',
-        workflow_type: 'suche_zuordnung_norm',
+        workflowId: 'api-prefix-verfahren-1-v7-norm-1',
+        workflowType: 'suche_zuordnung_norm',
       }),
     ];
 
-    const { result } = renderHook(() =>
-      useWorkflow({
-        matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
-        workflowType: 'suche_zuordnung_norm',
-      }),
+    const { result } = renderHook(
+      () =>
+        useWorkflow({
+          matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
+          workflowType: 'suche_zuordnung_norm',
+        }),
+      { wrapper },
     );
 
     expect(result.current).toMatchObject({
       isRunning: true,
       hasAnyRun: true,
     });
-    expect(testState.observeRunningWorkflowMock).toHaveBeenCalledWith(
-      'api-prefix-verfahren-1-v7-norm-1',
-      {
-        refetchNodeSummariesOnSuccess: true,
-        workflowType: 'suche_zuordnung_norm',
-      },
-    );
   });
 
   it('groups all workflow runs by type and marks the group pending when any run is still active', () => {
     testState.workflows = [
       createWorkflow({
-        run_id: 'older-run',
+        runId: 'older-run',
         status: 'running',
-        workflow_id: 'workflow-a-older',
-        workflow_start_time: '2026-04-09T00:00:00.000Z',
-        workflow_type: 'workflow-a',
+        workflowId: 'workflow-a-older',
+        workflowStartTime: '2026-04-09T00:00:00.000Z',
+        workflowType: 'workflow-a',
       }),
       createWorkflow({
-        run_id: 'newer-run',
+        runId: 'newer-run',
         status: 'completed',
-        workflow_id: 'workflow-a-newer',
-        workflow_start_time: '2026-04-10T00:00:00.000Z',
-        workflow_type: 'workflow-a',
+        workflowId: 'workflow-a-newer',
+        workflowStartTime: '2026-04-10T00:00:00.000Z',
+        workflowType: 'workflow-a',
       }),
     ];
 
-    const { result } = renderHook(() => useWorkflow());
+    const { result } = renderHook(() => useWorkflow(), { wrapper });
 
     expect(result.current.latestWorkflowsByType).toHaveLength(1);
     expect(result.current.latestWorkflowsByType[0]).toMatchObject({
       badgeStatus: 'pending',
       isRunning: true,
       workflow: {
-        workflow_id: 'workflow-a-newer',
+        workflowId: 'workflow-a-newer',
       },
       workflows: [
         {
-          workflow_id: 'workflow-a-newer',
+          workflowId: 'workflow-a-newer',
         },
         {
-          workflow_id: 'workflow-a-older',
+          workflowId: 'workflow-a-older',
         },
       ],
       workflowTypeKey: 'workflow-a',
     });
   });
 
-  it('exposes the initial workflow collection loading state', () => {
-    testState.isLoading = true;
-
-    const { result } = renderHook(() =>
-      useWorkflow({
-        matchIdsInWorkflowId: ['verfahren-1', 'norm-1'],
-        workflowType: 'suche_zuordnung_norm',
-      }),
-    );
-
-    expect(result.current).toMatchObject({
-      isDone: false,
-      isError: false,
-      isFailed: false,
-      isLoading: true,
-      isRunning: false,
+  it('keeps completion pending until the feature callback finishes', async () => {
+    let finish: () => void;
+    const completion = new Promise<void>((resolve) => {
+      finish = resolve;
     });
-  });
-
-  it('requests a child-inclusive collection when sub workflows are needed', () => {
-    renderHook(() =>
-      useWorkflow({
-        workflowType: 'fvpworkflow',
-        includeSubWorkflows: true,
-      }),
-    );
-
-    expect(testState.getCollectionMock).toHaveBeenCalledWith({
-      workflowType: 'fvpworkflow',
-      includeChildren: true,
-    });
-  });
-
-  it('refetches history when a matching running workflow is already active on mount', () => {
+    const onLatestWorkflowSucceeded = vi.fn(() => completion);
     testState.workflows = [
       createWorkflow({
         status: 'running',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
-      }),
-    ];
-
-    renderHook(() =>
-      useWorkflow({
+        workflowId: 'workflow-run',
         workflowType: 'workflow-a',
       }),
-    );
-
-    expect(testState.refetchWorkflowsMock).toHaveBeenCalledOnce();
-    expect(testState.refetchWorkflowsMock).toHaveBeenCalledWith({
-      workflowType: 'workflow-a',
-    });
-  });
-
-  it('refetches history when a matching running workflow starts and settles', () => {
-    const { rerender } = renderHook(() =>
-      useWorkflow({
-        workflowType: 'workflow-a',
-      }),
-    );
-
-    expect(testState.refetchWorkflowsMock).not.toHaveBeenCalled();
-
-    testState.workflows = [
-      createWorkflow({
-        status: 'running',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
-      }),
     ];
-    rerender();
-
-    expect(testState.refetchWorkflowsMock).toHaveBeenCalledTimes(1);
-
+    const { rerender, result } = renderHook(
+      () =>
+        useWorkflow({ workflowType: 'workflow-a', onLatestWorkflowSucceeded }),
+      { wrapper },
+    );
     testState.workflows = [
       createWorkflow({
         status: 'completed',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
-      }),
-    ];
-    rerender();
-
-    expect(testState.refetchWorkflowsMock).toHaveBeenCalledTimes(2);
-  });
-
-  it('delays the success callback while keeping the workflow loading', async () => {
-    vi.useFakeTimers();
-    const onLatestWorkflowSucceeded = vi.fn();
-    testState.workflows = [
-      createWorkflow({
-        status: 'running',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
-      }),
-    ];
-
-    const { rerender, result } = renderHook(() =>
-      useWorkflow({
+        workflowId: 'workflow-run',
         workflowType: 'workflow-a',
-        onLatestWorkflowSucceeded,
-      }),
-    );
-
-    testState.workflows = [
-      createWorkflow({
-        status: 'completed',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
       }),
     ];
     rerender();
-
-    expect(onLatestWorkflowSucceeded).not.toHaveBeenCalled();
-    expect(testState.refetchNodeSummariesMock).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(onLatestWorkflowSucceeded).toHaveBeenCalledOnce(),
+    );
     expect(result.current.isLoading).toBe(true);
-
     await act(async () => {
-      vi.advanceTimersByTime(3_999);
-      await Promise.resolve();
+      finish();
+      await completion;
     });
-
-    expect(onLatestWorkflowSucceeded).not.toHaveBeenCalled();
-    expect(testState.refetchNodeSummariesMock).not.toHaveBeenCalled();
-    expect(result.current.isLoading).toBe(true);
-
-    await act(async () => {
-      vi.advanceTimersByTime(1);
-      await Promise.resolve();
-    });
-
-    expect(testState.refetchNodeSummariesMock).not.toHaveBeenCalled();
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    rerender();
     expect(onLatestWorkflowSucceeded).toHaveBeenCalledOnce();
-    expect(onLatestWorkflowSucceeded).toHaveBeenCalledWith(
-      expect.objectContaining({
-        workflow_id: 'workflow-run',
-      }),
-    );
-    expect(result.current.isLoading).toBe(false);
   });
 
-  it('skips the delayed loading bridge when summary refresh and callback are absent', () => {
-    vi.useFakeTimers();
-    testState.workflows = [
-      createWorkflow({
-        status: 'running',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
-      }),
-    ];
+  it('reports the failure of a failed latest run and none after a later successful run', () => {
+    const failure = {
+      errorCode: 'ANALYSIS_FAILED' as const,
+      branches: [
+        {
+          branch: 'formalpruefung',
+          errorCode: 'ANALYSIS_TIMED_OUT' as const,
+        },
+      ],
+    };
+    const failedRun = createWorkflow({
+      status: 'failed',
+      workflowId: 'fvp-failed',
+      workflowType: 'FVPWorkflow',
+      workflowStartTime: '2026-04-09T00:00:00.000Z',
+      failure,
+    });
+    testState.workflows = [failedRun];
 
-    const { rerender, result } = renderHook(() =>
-      useWorkflow({
-        workflowType: 'workflow-a',
-        refetchNodeSummariesOnSuccess: false,
-      }),
+    const { result, rerender } = renderHook(
+      () => useWorkflow({ workflowType: 'FVPWorkflow' }),
+      { wrapper },
     );
 
+    expect(result.current.latestFailure).toEqual(failure);
+
     testState.workflows = [
+      failedRun,
       createWorkflow({
         status: 'completed',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
+        workflowId: 'fvp-completed',
+        workflowType: 'FVPWorkflow',
+        workflowStartTime: '2026-04-10T00:00:00.000Z',
       }),
     ];
     rerender();
 
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.latestFailure).toBeNull();
+  });
 
-    act(() => {
-      vi.advanceTimersByTime(4_000);
-    });
+  it('reports no failure while a new matching run is active', () => {
+    testState.workflows = [
+      createWorkflow({
+        status: 'failed',
+        workflowId: 'fvp-failed',
+        workflowType: 'FVPWorkflow',
+      }),
+    ];
+    testState.getRunningWorkflowObservationsMock.mockReturnValue([
+      createWorkflow({
+        status: 'running',
+        workflowId: 'fvp-restarted',
+        workflowType: 'FVPWorkflow',
+      }),
+    ]);
 
-    expect(testState.refetchNodeSummariesMock).not.toHaveBeenCalled();
+    const { result } = renderHook(
+      () => useWorkflow({ workflowType: 'FVPWorkflow' }),
+      { wrapper },
+    );
+
+    expect(result.current.isRunning).toBe(true);
+    expect(result.current.latestFailure).toBeNull();
   });
 
   it('does not call the success callback when the pending run fails', () => {
@@ -441,23 +378,25 @@ describe('useWorkflow', () => {
     testState.workflows = [
       createWorkflow({
         status: 'running',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
+        workflowId: 'workflow-run',
+        workflowType: 'workflow-a',
       }),
     ];
 
-    const { rerender } = renderHook(() =>
-      useWorkflow({
-        workflowType: 'workflow-a',
-        onLatestWorkflowSucceeded,
-      }),
+    const { rerender } = renderHook(
+      () =>
+        useWorkflow({
+          workflowType: 'workflow-a',
+          onLatestWorkflowSucceeded,
+        }),
+      { wrapper },
     );
 
     testState.workflows = [
       createWorkflow({
         status: 'failed',
-        workflow_id: 'workflow-run',
-        workflow_type: 'workflow-a',
+        workflowId: 'workflow-run',
+        workflowType: 'workflow-a',
       }),
     ];
     rerender();

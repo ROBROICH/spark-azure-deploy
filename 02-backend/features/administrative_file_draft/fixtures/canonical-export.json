@@ -1,0 +1,67 @@
+{
+  "project": {
+    "id": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+    "name": "Musterprojekt",
+    "internalProjectNumber": "MUSTER-2026-001",
+    "latestVersion": 2
+  },
+  "nodes": [
+    {
+      "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+      "title": "Entscheidung",
+      "text": "",
+      "order": 0,
+      "parentVaeNodeId": null,
+      "projectVersion": 2,
+      "isHidden": false,
+      "isDeleted": false
+    },
+    {
+      "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+      "title": "Feststellung des Plans",
+      "text": "Für das plangegenständliche Vorhaben ist eine UVP durchzuführen.",
+      "order": 1,
+      "parentVaeNodeId": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+      "projectVersion": 2,
+      "isHidden": false,
+      "isDeleted": false
+    }
+  ],
+  "document": {
+    "orderedBody": [
+      "Entscheidung",
+      "Feststellung des Plans",
+      "Für das plangegenständliche Vorhaben ist eine UVP durchzuführen."
+    ],
+    "systemValues": [
+      "Planfeststellungsbeschluss",
+      "Die Autobahn GmbH des Bundes",
+      "Musterprojekt",
+      "MUSTER-2026-001"
+    ],
+    "retainedPlaceholders": [
+      "[Fernziel 1 – Fernziel 2]",
+      "[Streckenabschnitt]",
+      "[Gemarkungen]",
+      "[Ort ,Datum]",
+      "[verkehrseinheit]",
+      "[landkreis]"
+    ],
+    "requiredParts": [
+      "[Content_Types].xml",
+      "_rels/.rels",
+      "word/document.xml",
+      "word/settings.xml",
+      "word/styles.xml",
+      "word/numbering.xml",
+      "word/header1.xml",
+      "word/media/image1.png"
+    ]
+  },
+  "response": {
+    "docxMediaType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "docxFilename": "beschluss_5ebebf2e-95dc-484e-9763-9ebd36389f2d.docx",
+    "pdfMediaType": "application/pdf",
+    "pdfFilename": "beschluss_5ebebf2e-95dc-484e-9763-9ebd36389f2d.pdf"
+  }
+}

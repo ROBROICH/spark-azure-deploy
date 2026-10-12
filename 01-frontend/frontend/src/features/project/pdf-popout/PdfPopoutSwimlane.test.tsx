@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest';
 
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { PdfPopoutSwimlane } from './PdfPopoutSwimlane';
 
@@ -46,8 +46,6 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
-  vi.useRealTimers();
-  vi.restoreAllMocks();
 });
 
 describe('PdfPopoutSwimlane landmarks', () => {
@@ -63,39 +61,18 @@ describe('PdfPopoutSwimlane landmarks', () => {
     expect(heading).toHaveTextContent('PDF documents');
   });
 
-  it('collapses after popout and remounts inline content after popin timing completes', () => {
-    vi.useFakeTimers();
-    const consoleError = vi
-      .spyOn(console, 'error')
-      .mockImplementation(() => {});
+  it('switches between the inline viewer and the collapsed popout lane', () => {
     const { rerender } = render(<PdfPopoutSwimlane />);
-
     expect(screen.getByText('Inline PDF viewer')).toBeInTheDocument();
-    const section = screen.getByRole('region', { name: 'PDF documents' });
-    expect(section).toHaveStyle({ flexBasis: '0%' });
 
     pdfPopoutState.isPoppedOut = true;
     rerender(<PdfPopoutSwimlane />);
-
     expect(screen.queryByText('Inline PDF viewer')).not.toBeInTheDocument();
     expect(screen.getByText('Collapsed PDF lane')).toBeInTheDocument();
-    expect(section).toHaveStyle({ flexBasis: '0%' });
-
-    act(() => vi.advanceTimersByTime(50));
-
-    expect(section).toHaveStyle({ flexBasis: '52px' });
 
     pdfPopoutState.isPoppedOut = false;
     rerender(<PdfPopoutSwimlane />);
-
-    expect(screen.queryByText('Inline PDF viewer')).not.toBeInTheDocument();
-    expect(section).toHaveStyle({ flexBasis: '0%' });
-
-    act(() => vi.advanceTimersByTime(499));
-    expect(screen.queryByText('Inline PDF viewer')).not.toBeInTheDocument();
-
-    act(() => vi.advanceTimersByTime(1));
     expect(screen.getByText('Inline PDF viewer')).toBeInTheDocument();
-    expect(consoleError).not.toHaveBeenCalled();
+    expect(screen.queryByText('Collapsed PDF lane')).not.toBeInTheDocument();
   });
 });

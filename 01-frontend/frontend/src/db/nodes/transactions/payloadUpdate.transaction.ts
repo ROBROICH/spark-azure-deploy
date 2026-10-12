@@ -36,19 +36,19 @@ function toInsertNodeAction<T extends NodeTypeLiteral>(
   node: NodePayloadByType<T>,
 ): InsertByType<T> {
   const {
-    node_type,
+    nodeType,
     id,
     compositeKey: _compositeKey,
-    project_id: _projectId,
-    created_at: _createdAt,
-    updated_at: _updatedAt,
-    is_deleted: _isDeleted,
+    projectId: _projectId,
+    createdAt: _createdAt,
+    updatedAt: _updatedAt,
+    isDeleted: _isDeleted,
     ...payload
   } = node;
 
-  // @ts-expect-error -- rest-spread payload loses the generic node_type discriminant so TS cannot narrow UpdateByType<T>
+  // @ts-expect-error -- rest-spread payload loses the generic nodeType discriminant so TS cannot narrow UpdateByType<T>
   return {
-    node_type,
+    nodeType,
     id,
     payload,
   };
@@ -62,16 +62,16 @@ function toUpdateNodeAction<T extends NodeTypeLiteral>(
     throw new Error("Can't happen");
   }
 
-  // @ts-expect-error -- rest-spread payload loses the generic node_type discriminant so TS cannot narrow UpdateByType<T>
+  // @ts-expect-error -- rest-spread payload loses the generic nodeType discriminant so TS cannot narrow UpdateByType<T>
   return {
-    node_type: original.node_type,
+    nodeType: original.nodeType,
     id: original.id,
     payload: omit(changes, [
-      'node_type',
-      'project_id',
-      'created_at',
-      'updated_at',
-      'is_deleted',
+      'nodeType',
+      'projectId',
+      'createdAt',
+      'updatedAt',
+      'isDeleted',
     ]),
   };
 }
@@ -104,7 +104,7 @@ const bulkUpdate =
         }
         case 'delete': {
           deletes.push({
-            node_type: mutation.modified.node_type,
+            nodeType: mutation.modified.nodeType,
             id: mutation.modified.id,
           });
           break;
@@ -125,23 +125,30 @@ const bulkUpdate =
         deletes,
       });
 
+      const toPayload = (node: (typeof data.inserted)[number]) =>
+        ({ ...node, compositeKey: toCompositeKey(node) }) as NodePayload;
+      const insertedPayloads = data.inserted.map(toPayload);
+      const updatedPayloads = data.updated.map(toPayload);
+
       payloadsCollection.utils.writeBatch(() => {
-        for (const inserted of data.inserted) {
-          payloadsCollection.utils.writeInsert({
-            ...inserted,
-            compositeKey: toCompositeKey(inserted),
-          } as NodePayload);
+        for (const inserted of insertedPayloads) {
+          payloadsCollection.utils.writeInsert(inserted);
         }
-        for (const updated of data.updated) {
-          payloadsCollection.utils.writeUpsert({
-            ...updated,
-            compositeKey: toCompositeKey(updated),
-          } as NodePayload);
+        for (const updated of updatedPayloads) {
+          payloadsCollection.utils.writeUpsert(updated);
         }
         payloadsCollection.utils.writeDelete(
           data.deleted.map((deleted) => toCompositeKey(deleted)),
         );
       });
+
+      // Keep the DataLoader cache aligned with the write so the next sync
+      // does not re-emit the pre-mutation payload (Epic #4567).
+      payloadsCollection.primeLoaderPayloads([
+        ...insertedPayloads,
+        ...updatedPayloads,
+      ]);
+      payloadsCollection.clearLoaderPayloads(data.deleted);
 
       syncInsertedSummaries(nodesCollection, data.inserted);
       syncUpdatedSummaries(nodesCollection, data.updated);

@@ -1,5 +1,7 @@
 """Prompt template for unbestimmte Rechtsbegriffe recognition."""
 
+from src.activities.prompt_blocks import closing_block
+
 ure_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht.  
@@ -39,10 +41,6 @@ Ausgabe:
 
 **Anwendung**
 Analysiere den folgenden juristischen Satz und extrahiere die unbestimmten Rechtsbegriffe:
-{external_data_tag_open}
-{satz_text}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "{satz_text}",
+)

@@ -29,7 +29,7 @@ export const DocumentsUpdateDialog = () => {
     <Dialog
       open={isDialogOpen}
       onOpenChange={(next) => {
-        if (!next) {
+        if (!next && phase !== 'diff') {
           close();
         }
       }}

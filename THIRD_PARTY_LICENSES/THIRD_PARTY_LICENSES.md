@@ -49,3 +49,103 @@ THE COPYRIGHT HOLDER DISCLAIM ALL WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLU
 
 Full license text:
 - https://www.gnu.org/licenses/agpl-3.0.html
+
+## BSD Zero Clause License
+
+Full license text:
+- https://spdx.org/licenses/0BSD.html
+
+## BSD 2-Clause License
+
+Full license text:
+- https://spdx.org/licenses/BSD-2-Clause.html
+
+## Boost Software License 1.0
+
+Full license text:
+- https://spdx.org/licenses/BSL-1.0.html
+
+## Blue Oak Model License 1.0.0
+
+Full license text:
+- https://spdx.org/licenses/BlueOak-1.0.0.html
+
+## Creative Commons Attribution 4.0 International
+
+Full license text:
+- https://spdx.org/licenses/CC-BY-4.0.html
+
+## Creative Commons Zero v1.0 Universal
+
+Full license text:
+- https://spdx.org/licenses/CC0-1.0.html
+
+## Community Data License Agreement Permissive 2.0
+
+Full license text:
+- https://spdx.org/licenses/CDLA-Permissive-2.0.html
+
+## CNRI Python License
+
+Full license text:
+- https://spdx.org/licenses/CNRI-Python.html
+
+## GNU General Public License v2
+
+Full license text:
+- https://www.gnu.org/licenses/old-licenses/gpl-2.0.html
+
+## GNU General Public License v3
+
+Full license text:
+- https://www.gnu.org/licenses/gpl-3.0.html
+
+## GNU Lesser General Public License v3
+
+Full license text:
+- https://www.gnu.org/licenses/lgpl-3.0.html
+
+## MIT No Attribution License
+
+Full license text:
+- https://spdx.org/licenses/MIT-0.html
+
+## OpenSSL License
+
+Full license text:
+- https://spdx.org/licenses/OpenSSL.html
+
+## Python Software Foundation License 2.0
+
+Full license text:
+- https://spdx.org/licenses/PSF-2.0.html
+
+## Unicode License v3
+
+Full license text:
+- https://spdx.org/licenses/Unicode-3.0.html
+
+## The Unlicense
+
+Full license text:
+- https://spdx.org/licenses/Unlicense.html
+
+## zlib License
+
+Full license text:
+- https://spdx.org/licenses/Zlib.html
+
+## bzip2 and libbzip2 License v1.0.6
+
+Full license text:
+- https://spdx.org/licenses/bzip2-1.0.6.html
+
+## LLVM Exception
+
+Full exception text:
+- https://spdx.org/licenses/LLVM-exception.html
+
+## SIL Open Font License 1.1
+
+Full license text:
+- https://spdx.org/licenses/OFL-1.1.html

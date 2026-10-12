@@ -6,7 +6,7 @@ from typing import Any
 
 from pydantic import BaseModel
 from temporal.activities.embedding import embedding_invoke
-from temporal.workflows.modul_suche_und_zuordnung.types import NormData
+from temporal.contracts import SucheZuordnungNormData as NormData
 from temporalio import workflow
 
 from src.Activities.processing_activities import (
@@ -17,7 +17,7 @@ from src.Activities.processing_activities import (
 )
 from src.config.env import ENV
 from src.tbm_matching.query_building import build_queries
-from src.tbm_matching.ranking import aggregate_to_documents
+from src.tbm_matching.ranking import reciprocal_rank_fusion
 from src.tbm_matching.tbm_enrichment import (
     extract_tbms_for_satz,
     fuse_retrieval_results,
@@ -62,11 +62,16 @@ class MatchSingleTBMWorkflowOutput(BaseModel):
 # =============================================================================
 # HELPERS
 # =============================================================================
-def _aggregate_to_documents(
-    raw_chunks: list[dict[str, Any]],
+def _fuse_tbm_results(
+    enriched_tbms: list[dict[str, Any]],
 ) -> list[MatchedDocument]:
-    """Satz-level document count cap is applied upstream in ``satz_orchestrator_workflow.py``."""
-    ranked = aggregate_to_documents(raw_chunks)
+    """Fuse the per-TBM document rankings of one satz into a single ranking.
+
+    Each TBM contributes one ranked list, so a document that is relevant for several
+    TBMs of the satz outranks one that is relevant for a single TBM. The satz-level
+    document count cap is applied upstream in ``satz_orchestrator_workflow.py``.
+    """
+    ranked = reciprocal_rank_fusion([tbm.get("svms") or [] for tbm in enriched_tbms], top_k=None)
     return [
         MatchedDocument(
             document_id=doc["document_id"],
@@ -120,14 +125,10 @@ class MatchSingleTBMWorkflow:
         # Step 4: Fuse results (pure computation, safe in workflow)
         workflow.logger.info("[STEP 4] Fusing retrieval results")
         enriched = fuse_retrieval_results(tbm_list, chunks, summaries, questions, rules)
-
-        raw_chunks: list[dict[str, Any]] = []
-        for tbm in enriched:
-            raw_chunks.extend(tbm.get("svms", []))
-
-        matched_docs = _aggregate_to_documents(raw_chunks)
+        matched_docs = _fuse_tbm_results(enriched)
         workflow.logger.info(
-            "[STEP 4 COMPLETE] Aggregated %d documents from fused results",
+            "[STEP 4 COMPLETE] Fused %d TBM rankings into %d documents",
+            len(enriched),
             len(matched_docs),
         )
 

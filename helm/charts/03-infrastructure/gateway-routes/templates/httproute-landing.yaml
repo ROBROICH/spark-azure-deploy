@@ -1,0 +1,70 @@
+{{- /*
+dashboard.<domain>/ (apex) + landing assets → the landingpage chart's Service
+(01-frontend/landingpage).
+The Exact-path set MUST mirror the file list baked into the landingpage image
+(one match per file, plus / for index.html) — the static server 404s anything else,
+and paths missing here fall through to a gateway 404 (/index.html is included; the
+server 301-redirects it to /).
+Deliberately NOT a target of the OIDC SecurityPolicy: the landing page is public;
+its /app button leads into the OIDC-protected dashboard-route.
+Serves the dashboard host and every extraDashboards entry with landing: true.
+The landing page Service lives in the release namespace unless
+backendNamespaces.landingpage moves it. Renders only when landing.enabled=true; when false the dashboard-route emits the
+apex -> /app redirect instead, so exactly one route claims Exact / (see
+httproute-dashboard.yaml).
+*/ -}}
+{{- if .Values.landing.enabled }}
+{{- $hosts := list }}
+{{- $groups := list }}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+{{- if $site.landing }}
+{{- $hosts = concat $hosts $site.hosts }}
+{{- $groups = append $groups $site.group }}
+{{- end }}
+{{- end }}
+{{- $parents := list }}
+{{- range $g := $groups }}
+{{- $parents = concat $parents (include "gateway-routes.groupParentRefs" (dict "root" $ "group" $g) | fromYamlArray) }}
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: landing-route
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  parentRefs:
+    {{- toYaml ($parents | uniq) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $hosts | nindent 4 }}
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /
+        - path:
+            type: Exact
+            value: /index.html
+        - path:
+            type: Exact
+            value: /favicon.svg
+        - path:
+            type: Exact
+            value: /landingpage.js
+        - path:
+            type: Exact
+            value: /SPARK_OS_Release_06.svg
+        - path:
+            type: Exact
+            value: /eulenachlinks-anzug.png
+        - path:
+            type: Exact
+            value: /eulenachlinks-anzug.webp
+      backendRefs:
+        - name: {{ include "gateway-routes.landingService" . }}
+          {{- with include "gateway-routes.explicitBackendNamespace" (dict "root" $ "chart" "landingpage") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ .Values.backendServicePort }}
+{{- end }}

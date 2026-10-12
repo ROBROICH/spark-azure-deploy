@@ -1,0 +1,59 @@
+{
+  "temporal": {
+    "zipSuccess": {
+      "projectId": "00000000-0000-4000-8000-000000000101",
+      "fileId": "00000000-0000-4000-8000-000000000201",
+      "projectVersion": 7,
+      "filename": "documents.zip",
+      "bucketPath": "fixtures/projects/101/documents.zip"
+    },
+    "zipAlreadyStarted": {
+      "projectId": "00000000-0000-4000-8000-000000000108",
+      "fileId": "00000000-0000-4000-8000-000000000208",
+      "projectVersion": 5,
+      "filename": "already-running.zip",
+      "bucketPath": "fixtures/projects/108/already-running.zip"
+    },
+    "singleAlreadyStarted": {
+      "projectId": "00000000-0000-4000-8000-000000000102",
+      "fileId": "00000000-0000-4000-8000-000000000202",
+      "projectVersion": 3,
+      "filename": "statement.pdf",
+      "bucketPath": "fixtures/projects/102/statement.pdf"
+    },
+    "approvalSuccess": {
+      "projectId": "00000000-0000-4000-8000-000000000103",
+      "fileId": "00000000-0000-4000-8000-000000000203",
+      "projectVersion": 9
+    },
+    "approvalNull": {
+      "projectId": "00000000-0000-4000-8000-000000000104",
+      "fileId": "00000000-0000-4000-8000-000000000204",
+      "projectVersion": 1
+    },
+    "approvalFailure": {
+      "projectId": "00000000-0000-4000-8000-000000000106",
+      "fileId": "00000000-0000-4000-8000-000000000206",
+      "projectVersion": 4
+    },
+    "cancelSuccess": {
+      "projectId": "00000000-0000-4000-8000-000000000105",
+      "fileId": "00000000-0000-4000-8000-000000000205",
+      "projectVersion": 2
+    },
+    "cancelFailure": {
+      "projectId": "00000000-0000-4000-8000-000000000107",
+      "fileId": "00000000-0000-4000-8000-000000000207",
+      "projectVersion": 6
+    }
+  },
+  "bytes": {
+    "publicDocument": "DMS public mutation contract bytes\n",
+    "publicDocumentV2": "DMS public mutation contract version two bytes\n",
+    "publicZip": "DMS public ZIP mutation contract bytes\n",
+    "internalDocument": "DMS internal mutation contract bytes\n",
+    "diffSource": "DMS diff source bytes\n",
+    "diffReplacement": "DMS diff replacement bytes\n",
+    "diffNew": "DMS diff new-file bytes\n"
+  }
+}

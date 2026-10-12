@@ -1,4 +1,3 @@
-import { Button } from '@/features/ui/button/Button';
 import { CloudUpload } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { DialogShell } from '../dialog-content/DialogShell';
@@ -6,7 +5,7 @@ import { useDocumentsUploadContext } from '../DocumentsUploadContext';
 
 export const UploadProgressStep = () => {
   const { t } = useTranslation('Project');
-  const { close, minimize } = useDocumentsUploadContext();
+  const { minimize } = useDocumentsUploadContext();
 
   return (
     <DialogShell
@@ -14,13 +13,6 @@ export const UploadProgressStep = () => {
       title={t('Documents.updateDocuments.upload.title')}
       onMinimize={minimize}
       lockClose
-      footer={
-        <div className="ml-auto">
-          <Button variant="ghost" size="default" onClick={close}>
-            {t('Documents.updateDocuments.uploading.cancel')}
-          </Button>
-        </div>
-      }
     >
       <div className="flex flex-1 flex-col items-center justify-center gap-6 px-4 py-10">
         <CloudUpload aria-hidden className="size-8 text-slate-600" />

@@ -21,7 +21,7 @@ export const createProjectNodeIndexCollections =
 const getParentRefs = (summary: NodeSummary): NodeRef[] => {
   return [
     ...summary.parents,
-    ...(summary.frontend_parent_ids ?? []).map(fromCompositeKey),
+    ...(summary.frontendParentIds ?? []).map(fromCompositeKey),
   ];
 };
 
@@ -37,13 +37,13 @@ export const registerProjectNodeSummary = (
   collections.childrenByNodeId.set(summary.id, []);
   collections.parentIdsByNodeId.set(summary.id, []);
 
-  const nodesForType = collections.nodesByType.get(summary.node_type) ?? [];
+  const nodesForType = collections.nodesByType.get(summary.nodeType) ?? [];
   nodesForType.push(summary);
-  collections.nodesByType.set(summary.node_type, nodesForType);
+  collections.nodesByType.set(summary.nodeType, nodesForType);
 
   collections.nodeCountsByType.set(
-    summary.node_type,
-    (collections.nodeCountsByType.get(summary.node_type) ?? 0) + 1,
+    summary.nodeType,
+    (collections.nodeCountsByType.get(summary.nodeType) ?? 0) + 1,
   );
 
   return true;

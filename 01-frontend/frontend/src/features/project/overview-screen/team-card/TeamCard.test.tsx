@@ -31,24 +31,20 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-vi.mock(
-  '@/api-clients/identity-management-module/@tanstack/react-query.gen',
-  () => ({
-    replaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostMutation:
-      () => ({}),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1IdentityReplaceProjectAssignmentsMutation: () => ({}),
+}));
 
 vi.mock('@/db/nodes/hooks/useGraph', () => ({
   useGraph: () => ({
-    getNodesByType: () => [{ id: 'topic-1', node_type: 'topic' }],
+    getNodesByType: () => [{ id: 'topic-1', nodeType: 'topic' }],
   }),
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
   useLiveNodes: () => ({
     data: [
-      { id: 'topic-1', node_type: 'topic', name: 'Topic 1', mvp_assignees: [] },
+      { id: 'topic-1', nodeType: 'topic', name: 'Topic 1', mvpAssignees: [] },
     ],
     isLoading: false,
   }),

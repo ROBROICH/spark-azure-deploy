@@ -1,4 +1,4 @@
-import type { GetSystemLoadResponse } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { GetSystemLoadResponse } from '@/api-clients/backend/types.gen';
 import {
   Popover,
   PopoverContent,
@@ -89,29 +89,34 @@ function SystemLoadWorkflowBreakdown(props: {
         <div className="space-y-2">
           {props.breakdown.map((item) => (
             <div
-              key={item.workflow_type}
+              key={
+                item.workflowType === null
+                  ? 'remainder'
+                  : `type:${item.workflowType}`
+              }
               className="rounded-md bg-slate-800/70 p-2"
             >
               <div className="truncate text-xs leading-4 font-semibold text-white">
-                {item.workflow_type}
+                {item.workflowType ??
+                  t('sidebar.systemLoad.otherWorkflowTypes')}
               </div>
               <dl className="mt-2 grid grid-cols-3 gap-2 text-[10px] leading-3 text-slate-400">
                 <div>
                   <dt>{t('sidebar.systemLoad.runningCount')}</dt>
                   <dd className="mt-1 text-xs font-semibold text-slate-100 tabular-nums">
-                    {formatNumber(item.running_count)}
+                    {formatNumber(item.runningCount)}
                   </dd>
                 </div>
                 <div>
                   <dt>{t('sidebar.systemLoad.complexityWeight')}</dt>
                   <dd className="mt-1 text-xs font-semibold text-slate-100 tabular-nums">
-                    {formatNumber(item.complexity_weight)}
+                    {formatNumber(item.complexityWeight)}
                   </dd>
                 </div>
                 <div>
                   <dt>{t('sidebar.systemLoad.totalComplexity')}</dt>
                   <dd className="mt-1 text-xs font-semibold text-slate-100 tabular-nums">
-                    {formatNumber(item.total_complexity)}
+                    {formatNumber(item.totalComplexity)}
                   </dd>
                 </div>
               </dl>
@@ -134,7 +139,7 @@ function SystemLoadTooltipContent(props: {
   showWorkflowBreakdown: boolean;
 }) {
   const { t } = useTranslation('shared');
-  const loadPercentage = props.load?.load_percentage;
+  const loadPercentage = props.load?.loadPercentage;
   const tone = getLoadTone(loadPercentage);
   const progressWidth = clampProgressWidth(loadPercentage);
   const statusMessage = props.isLoading
@@ -187,7 +192,7 @@ function SystemLoadTooltipContent(props: {
                 {t('sidebar.systemLoad.runningWorkflows')}
               </dt>
               <dd className="mt-1 text-sm leading-5 font-semibold text-white tabular-nums">
-                {formatNumber(props.load.running_workflows)}
+                {formatNumber(props.load.runningWorkflows)}
               </dd>
             </div>
             <div className="rounded-md bg-slate-800/80 p-2">
@@ -195,7 +200,7 @@ function SystemLoadTooltipContent(props: {
                 {t('sidebar.systemLoad.currentComplexity')}
               </dt>
               <dd className="mt-1 text-sm leading-5 font-semibold text-white tabular-nums">
-                {formatNumber(props.load.current_complexity)}
+                {formatNumber(props.load.currentComplexity)}
               </dd>
             </div>
             <div className="rounded-md bg-slate-800/80 p-2">
@@ -203,15 +208,13 @@ function SystemLoadTooltipContent(props: {
                 {t('sidebar.systemLoad.maxComplexity')}
               </dt>
               <dd className="mt-1 text-sm leading-5 font-semibold text-white tabular-nums">
-                {formatNumber(props.load.max_complexity)}
+                {formatNumber(props.load.maxComplexity)}
               </dd>
             </div>
           </dl>
 
           {props.showWorkflowBreakdown && (
-            <SystemLoadWorkflowBreakdown
-              breakdown={props.load.breakdown ?? []}
-            />
+            <SystemLoadWorkflowBreakdown breakdown={props.load.breakdown} />
           )}
         </>
       )}
@@ -226,7 +229,7 @@ export function SystemLoadSidebarButton() {
   // eslint-disable-next-line no-restricted-syntax -- the open state is ephemeral popover UI state local to this sidebar control
   const [isOpen, setIsOpen] = useState(false);
   const keepOpenOnTriggerInteractionRef = useRef(false);
-  const loadPercentage = systemLoad.data?.load_percentage;
+  const loadPercentage = systemLoad.data?.loadPercentage;
   const tone = getLoadTone(loadPercentage);
   const loadLabel =
     loadPercentage === undefined

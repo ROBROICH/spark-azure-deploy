@@ -1,9 +1,11 @@
 import type { NodePayloadByType } from '@/db/nodes/types';
+import { isNumber } from 'es-toolkit';
 
 export type FundstellenCardEntry = {
   id: string;
   pageNumber: number;
   title: string;
+  confidence?: number | null;
 };
 
 export type FundstellenDedupeKeyById = ReadonlyMap<string, string>;
@@ -50,14 +52,14 @@ export const createFundstellenByDocumentId = (
   >();
 
   for (const fundstelle of fundstellen) {
-    const existingEntries = fundstellenByDocumentId.get(fundstelle.dokument_id);
+    const existingEntries = fundstellenByDocumentId.get(fundstelle.dokumentId);
 
     if (existingEntries) {
       existingEntries.push(fundstelle);
       continue;
     }
 
-    fundstellenByDocumentId.set(fundstelle.dokument_id, [fundstelle]);
+    fundstellenByDocumentId.set(fundstelle.dokumentId, [fundstelle]);
   }
 
   return fundstellenByDocumentId;
@@ -72,30 +74,74 @@ export const createFundstellenByNormId = (
   >();
 
   for (const fundstelle of fundstellen) {
-    const existingEntries = fundstellenByNormId.get(fundstelle.norm_id);
+    const existingEntries = fundstellenByNormId.get(fundstelle.normId);
 
     if (existingEntries) {
       existingEntries.push(fundstelle);
       continue;
     }
 
-    fundstellenByNormId.set(fundstelle.norm_id, [fundstelle]);
+    fundstellenByNormId.set(fundstelle.normId, [fundstelle]);
   }
 
   return fundstellenByNormId;
+};
+
+/**
+ * Resolves the confidence a deduplicated group shows.
+ *
+ * The same passage is found once per Tatbestandsmerkmal, so duplicates carry
+ * their own confidence. Deduplication keeps one finding by page and id, which
+ * would make the shown level depend on a generated id rather than on the
+ * signal. The group therefore reports its highest confidence.
+ */
+const createMaximumConfidenceByDedupeKey = (
+  fundstellen: NodePayloadByType<'fundstelle'>[],
+  dedupeKeyByFundstelleId: FundstellenDedupeKeyById,
+) => {
+  const maximumConfidenceByDedupeKey = new Map<string, number>();
+
+  for (const fundstelle of fundstellen) {
+    const dedupeKey = dedupeKeyByFundstelleId.get(fundstelle.id);
+    const confidence = fundstelle.confidence;
+
+    if (!dedupeKey || !isNumber(confidence)) {
+      continue;
+    }
+
+    const current = maximumConfidenceByDedupeKey.get(dedupeKey);
+
+    if (current === undefined || confidence > current) {
+      maximumConfidenceByDedupeKey.set(dedupeKey, confidence);
+    }
+  }
+
+  return maximumConfidenceByDedupeKey;
 };
 
 export const createFundstellenCardEntries = (
   fundstellen: NodePayloadByType<'fundstelle'>[],
   dedupeKeyByFundstelleId: FundstellenDedupeKeyById = EMPTY_FUNDSTELLEN_DEDUPE_KEYS,
 ) => {
+  const maximumConfidenceByDedupeKey = createMaximumConfidenceByDedupeKey(
+    fundstellen,
+    dedupeKeyByFundstelleId,
+  );
   const sortedFundstellen = fundstellen
-    .map((fundstelle) => ({
-      dedupeKey: dedupeKeyByFundstelleId.get(fundstelle.id),
-      id: fundstelle.id,
-      pageNumber: getSmallestPageNumber(fundstelle.page_numbers),
-      title: fundstelle.title,
-    }))
+    .map((fundstelle) => {
+      const dedupeKey = dedupeKeyByFundstelleId.get(fundstelle.id);
+
+      return {
+        dedupeKey,
+        id: fundstelle.id,
+        pageNumber: getSmallestPageNumber(fundstelle.pageNumbers),
+        title: fundstelle.title,
+        confidence: dedupeKey
+          ? (maximumConfidenceByDedupeKey.get(dedupeKey) ??
+            fundstelle.confidence)
+          : fundstelle.confidence,
+      };
+    })
     .sort((left, right) => {
       if (left.pageNumber !== right.pageNumber) {
         return left.pageNumber - right.pageNumber;
@@ -119,7 +165,11 @@ export const createFundstellenCardEntries = (
       return true;
     })
     .map((entry) => {
-      const { dedupeKey: _dedupeKey, ...fundstelle } = entry;
+      const { dedupeKey: _dedupeKey, confidence, ...fundstelle } = entry;
+
+      if (isNumber(confidence)) {
+        return { ...fundstelle, confidence };
+      }
 
       return fundstelle;
     });
@@ -128,7 +178,7 @@ export const createFundstellenCardEntries = (
 export const createFundstellenDedupeKeyById = (
   fundstellen: NodePayloadByType<'fundstelle'>[],
   chunkIdsByFundstelleId: ChunkIdsByFundstelleId = new Map(
-    fundstellen.map((fundstelle) => [fundstelle.id, fundstelle.chunk_ids]),
+    fundstellen.map((fundstelle) => [fundstelle.id, fundstelle.chunkIds]),
   ),
 ) => {
   return new Map(
@@ -141,7 +191,7 @@ export const createFundstellenDedupeKeyById = (
             fundstelle.id,
             JSON.stringify([
               'chunks',
-              fundstelle.dokument_id,
+              fundstelle.dokumentId,
               [...chunkIds].sort((left, right) =>
                 left.localeCompare(right, 'de'),
               ),

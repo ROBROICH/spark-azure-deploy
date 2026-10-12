@@ -79,7 +79,7 @@ export const AiTopicHeader = (props: AiTopicHeaderProps) => {
   return (
     <SwimlaneHeaderPortal>
       {leading}
-      <span className="min-w-0 flex-1 text-[13px] leading-[18px] font-medium tracking-[-0.13px] text-brand-950">
+      <span className="flex-1 text-[13px] leading-[18px] font-medium tracking-[-0.13px] text-brand-950 md:min-w-0">
         {t(titleKey)}
       </span>
       <div className="flex shrink-0 items-center gap-2">

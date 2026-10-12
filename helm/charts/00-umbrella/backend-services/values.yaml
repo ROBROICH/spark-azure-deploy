@@ -1,0 +1,188 @@
+# =============================================================================
+# backend-services — base values
+# =============================================================================
+#
+# The backend layer of the SPARK Workflow platform:
+#   - the spark-backend modulith, deployed as independently scaled pools
+#     (one alias of 02-backend/spark-backend-pool per pool). All pools run the
+#     same image with the same configuration; they differ in API_POOL,
+#     ACTIVE_FEATURE_WORKER, replicas, resources and scaling.
+#
+# Pool defaults below set replicas, resources, workers and task queues.
+# Features that need cluster add-ons or environment data are opt-in: KEDA
+# ScaledObjects (keda.enabled; task queues are preset for
+# agent-orchestration/document-management/project-logic), PodMonitoring, the
+# deny-metrics policy, image pull secrets and secret refs. Environments set
+# global.backend and enable those.
+#
+# =============================================================================
+# global
+# =============================================================================
+#
+# global.stage.name / global.labels.environment / global.env /
+# global.extraEnv / global.namespaceOverride — as in every layer (see the
+# spark-environment README).
+#
+# global.backend — everything the pools share; documented in
+# 02-backend/spark-backend-pool/values.yaml. This umbrella additionally
+# renders from it:
+#   - ConfigMap global.backend.configMapName with global.backend.config
+#     (values rendered with tpl), when config is non-empty;
+#   - the Istio AuthorizationPolicy denying /metrics on the app port for
+#     every pool, when global.backend.denyMetricsPolicy.enabled.
+#
+# =============================================================================
+
+global:
+
+  # Stage suffix appended to resource names. Leave empty for no suffix.
+  stage:
+    name: ''
+
+  # "environment" pod label applied to all workloads.
+  labels:
+    environment: ''
+
+  # Shared environment variables for every container in this layer.
+  env: []
+
+  # Additional shared environment variables merged after env.
+  extraEnv: []
+
+  # Default namespace for every subchart in this layer. A subchart's own
+  # namespaceOverride (and, for the pools, global.backend.namespaceOverride)
+  # takes precedence; a parent umbrella's global.namespaceOverride overrides
+  # this layer default.
+  namespaceOverride: backend-services
+
+  # Shared backend settings — full reference in the spark-backend-pool chart.
+  backend:
+    namespaceOverride: ''
+    configMapName: ''
+    config: {}
+    denyMetricsPolicy:
+      enabled: false
+      name: ''
+
+# ---------------------------------------------------------------------------
+# spark-backend pools (alias -> API_POOL)
+# ---------------------------------------------------------------------------
+
+administrative-file-draft:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 100m, memory: 384Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+agent-orchestration-service:
+  enabled: true
+  replicaCount: 2
+  pool:
+    worker: agent-orchestration
+  keda:
+    taskQueue: orchestration
+  resources:
+    requests: {cpu: 700m, memory: 1280Mi}
+    limits: {cpu: 1600m, memory: 10Gi}
+
+comment-service:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+document-management-service:
+  enabled: true
+  replicaCount: 2
+  pool:
+    worker: document-management
+  keda:
+    taskQueue: dms
+  resources:
+    requests: {cpu: 120m, memory: 512Mi}
+    limits: {cpu: 300m, memory: 2Gi}
+
+examination-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 500m, memory: 768Mi}
+    limits: {cpu: 1500m, memory: 2560Mi}
+
+feedback-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+formal-completeness-check:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 100m, memory: 384Mi}
+    limits: {cpu: 500m, memory: 512Mi}
+
+fpp-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 30m, memory: 384Mi}
+    limits: {cpu: 120m, memory: 512Mi}
+
+identity-management-service:
+  enabled: true
+  replicaCount: 1
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+objections-management-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 1000Mi}
+
+plausibility-notes:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+project-logic-service:
+  enabled: true
+  replicaCount: 2
+  pool:
+    worker: project-logic
+  keda:
+    taskQueue: project_logic_service
+  resources:
+    requests: {cpu: 180m, memory: 512Mi}
+    limits: {cpu: 1500m, memory: 1280Mi}
+
+protocol-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+supplementary-requests-service:
+  enabled: true
+  replicaCount: 2
+  resources:
+    requests: {cpu: 20m, memory: 384Mi}
+    limits: {cpu: 100m, memory: 512Mi}
+
+temporal-job-service:
+  enabled: true
+  replicaCount: 2
+  pool:
+    worker: temporal-job
+  resources:
+    requests: {cpu: 30m, memory: 512Mi}
+    limits: {cpu: 250m, memory: 4000Mi}

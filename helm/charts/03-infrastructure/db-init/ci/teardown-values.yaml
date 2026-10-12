@@ -1,0 +1,21 @@
+# ci: teardown mode — drop the stage's databases and Qdrant collections.
+global:
+  stage: {name: ci}
+connection:
+  host: postgres.example.internal
+defaults:
+  owner: ci-user
+databases:
+  application:
+    name: '{{ .Values.global.stage.name }}-application'
+qdrant:
+  url: http://qdrant.example.internal:6333
+  collections:
+    data:
+      name: '{{ .Values.global.stage.name }}-data'
+teardown:
+  enabled: true
+  confirm: ci
+admin:
+  secretStore: {name: example-store}
+  remoteKey: shared/database-admin

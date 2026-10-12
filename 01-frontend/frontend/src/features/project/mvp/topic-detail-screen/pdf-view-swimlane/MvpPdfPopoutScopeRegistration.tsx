@@ -25,7 +25,7 @@ export function MvpPdfPopoutScopeRegistration(
   });
   const navigate = route.useNavigate();
   const deferredPreviewDocumentId = useDeferredValue(previewDocumentId);
-  const topicRef = { id: topicName, node_type: 'topic' as const };
+  const topicRef = { id: topicName, nodeType: 'topic' as const };
   const { data: topic } = useLiveNode(topicRef);
   const { topicDocuments } = props;
   const connectedFileId = findConnectedProjectDocumentId(
@@ -36,7 +36,7 @@ export function MvpPdfPopoutScopeRegistration(
     ? deferredPreviewDocumentId
     : undefined;
   const previewDocumentRef = validPreviewDocumentId
-    ? { id: validPreviewDocumentId, node_type: 'dokument' as const }
+    ? { id: validPreviewDocumentId, nodeType: 'dokument' as const }
     : null;
   const { data: previewDocument } = useLiveNode(previewDocumentRef);
   const connectedFilePreview =
@@ -85,7 +85,7 @@ export function MvpPdfPopoutScopeRegistration(
     (projectDocumentId: string) => {
       const nextDokumentId = topicDocuments.find(
         (projectDokument: NodePayloadByType<'dokument'>) =>
-          projectDokument.dms_file_id === projectDocumentId,
+          projectDokument.dmsFileId === projectDocumentId,
       )?.id;
 
       const resolvedDocumentId = nextDokumentId;
@@ -102,7 +102,7 @@ export function MvpPdfPopoutScopeRegistration(
   // eslint-disable-next-line no-restricted-syntax -- stable Set identity avoids re-registering the popout scope on every render
   const scopeFileIds = useMemo(
     () =>
-      new Set(topicDocuments.map((topicDokument) => topicDokument.dms_file_id)),
+      new Set(topicDocuments.map((topicDokument) => topicDokument.dmsFileId)),
     [topicDocuments],
   );
 

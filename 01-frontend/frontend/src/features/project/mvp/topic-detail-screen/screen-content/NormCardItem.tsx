@@ -9,8 +9,10 @@ import {
   WORKFLOW_TYPE_SUZ_NORM,
   useRunningWorkflow,
 } from '@/features/workflow-runtime/workflow-status/useRunningWorkflow';
+import { ProcessingFailureBadge } from '@/features/project/processing-failure/ProcessingFailureBadge';
 import { hasOutdatedNodeSummary } from '@/features/project/versioning/outdatedSummary';
 import type { LawChangeRecord } from '@/features/project/law-changes/data/lawChanges.types';
+import type { WorkflowFailureCode } from '@/features/workflow-runtime/workflow-status/workflowStatus.types';
 import { AiNormCard } from '@/features/ui/cards/ai-norm-card/AiNormCard';
 import { getRouteApi } from '@tanstack/react-router';
 import { memo } from 'react';
@@ -36,6 +38,7 @@ import {
 } from './normCardStatus';
 
 type NormCardItemProps = {
+  aiAnalysisFailureCode: WorkflowFailureCode | null;
   canMutateTopic: boolean;
   lawChanges: LawChangeRecord[];
   normIdsWithFundstellen: ReadonlySet<string>;
@@ -58,6 +61,7 @@ const NormCardItemComponent = (props: NormCardItemProps) => {
   const navigate = route.useNavigate();
 
   const {
+    aiAnalysisFailureCode,
     normIdsWithFundstellen,
     removingNormId,
     norm,
@@ -70,7 +74,7 @@ const NormCardItemComponent = (props: NormCardItemProps) => {
   } = props;
   const selectedDocumentLabel = useSelectedDocumentLabel();
   const { t } = useTranslation('MvpRedesign');
-  const mvpReviewStatus = norm.topicNorm.mvp_status;
+  const mvpReviewStatus = norm.topicNorm.mvpStatus;
   const normId = norm.norm?.id ?? '';
   const canStartAiAnalysis = normId.length > 0;
   const filterNormId = normId || norm.topicNorm.id;
@@ -79,7 +83,7 @@ const NormCardItemComponent = (props: NormCardItemProps) => {
     `${getTopicNormParagraphRef(norm)} ${norm.topicNorm.jurabk}`.trim() ||
     sourceItemId;
   const normRef = norm.norm
-    ? { id: norm.norm.id, node_type: 'norm' as const }
+    ? { id: norm.norm.id, nodeType: 'norm' as const }
     : null;
   const atomareTbmRefs = useDescendants('atomares_tbm', normRef);
   const fundstelleRefs = useDescendants('fundstelle', normRef);
@@ -139,7 +143,7 @@ const NormCardItemComponent = (props: NormCardItemProps) => {
     isSuzWorkflowLoading,
   });
   const isSelected = selectedNormId === filterNormId;
-  const isManualTopicNorm = norm.topicNorm.update_type === 'manual';
+  const isManualTopicNorm = norm.topicNorm.updateType === 'manual';
   const hasActiveSelectionContext =
     isSelected || Boolean(selectedDocumentLabel);
   const hasMatchHighlight =
@@ -242,10 +246,21 @@ const NormCardItemComponent = (props: NormCardItemProps) => {
   }
 
   const normCardTitle = getNormCardTitle(norm.norm);
+  // A new run supersedes the failure of the previous one.
+  const shownAiAnalysisFailureCode = isRunning ? null : aiAnalysisFailureCode;
 
   return (
     <AiNormCard
       title={normCardTitle}
+      notice={
+        shownAiAnalysisFailureCode ? (
+          <ProcessingFailureBadge
+            area="mvpNorm"
+            errorCode={shownAiAnalysisFailureCode}
+            subject={normCardTitle}
+          />
+        ) : null
+      }
       variant={cardVariant}
       selection={{
         ariaLabel: normSelectionAriaLabel,

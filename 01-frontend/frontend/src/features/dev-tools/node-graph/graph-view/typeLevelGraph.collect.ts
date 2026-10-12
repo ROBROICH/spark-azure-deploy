@@ -76,18 +76,18 @@ export function collectTypeGraph(
   const degreeByType = new Map<NodeTypeLiteral, number>();
 
   for (const attributes of getNodeSummaries(graph)) {
-    if (!options.includeProjectType && attributes.node_type === ROOT_TYPE) {
+    if (!options.includeProjectType && attributes.nodeType === ROOT_TYPE) {
       continue;
     }
 
     nodeCountsByType.set(
-      attributes.node_type,
-      (nodeCountsByType.get(attributes.node_type) ?? 0) + 1,
+      attributes.nodeType,
+      (nodeCountsByType.get(attributes.nodeType) ?? 0) + 1,
     );
   }
 
   for (const attributes of getNodeSummaries(graph)) {
-    const sourceType = attributes.node_type;
+    const sourceType = attributes.nodeType;
 
     if (!options.includeProjectType && sourceType === ROOT_TYPE) {
       continue;
@@ -99,7 +99,7 @@ export function collectTypeGraph(
         incomingCounts,
         outgoingCounts,
         sourceType,
-        targetType: child.node_type,
+        targetType: child.nodeType,
       });
     }
   }

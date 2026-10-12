@@ -1,0 +1,93 @@
+apiVersion: v2
+name: backend-services
+description: >-
+  Umbrella chart for the SPARK Workflow backend layer: the spark-backend
+  modulith as one pool per API surface/worker (spark-backend-pool, aliased per
+  pool). Renders the pools' shared ConfigMap and metrics
+  AuthorizationPolicy.
+type: application
+version: 0.4.0
+appVersion: "1.0.0"
+# One alias per pool of the spark-backend modulith. The alias is the pool's
+# API_POOL value and its default resource name ({release}-{alias}-{stage});
+# global.backend carries what the pools share; <pool>.enabled toggles a pool.
+dependencies:
+  - name: spark-backend-pool
+    alias: administrative-file-draft
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: administrative-file-draft.enabled
+  - name: spark-backend-pool
+    alias: agent-orchestration-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: agent-orchestration-service.enabled
+  - name: spark-backend-pool
+    alias: comment-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: comment-service.enabled
+  - name: spark-backend-pool
+    alias: document-management-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: document-management-service.enabled
+  - name: spark-backend-pool
+    alias: examination-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: examination-service.enabled
+  - name: spark-backend-pool
+    alias: feedback-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: feedback-service.enabled
+  - name: spark-backend-pool
+    alias: formal-completeness-check
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: formal-completeness-check.enabled
+  - name: spark-backend-pool
+    alias: fpp-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: fpp-service.enabled
+  - name: spark-backend-pool
+    alias: identity-management-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: identity-management-service.enabled
+  - name: spark-backend-pool
+    alias: objections-management-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: objections-management-service.enabled
+  - name: spark-backend-pool
+    alias: plausibility-notes
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: plausibility-notes.enabled
+  - name: spark-backend-pool
+    alias: project-logic-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: project-logic-service.enabled
+  - name: spark-backend-pool
+    alias: protocol-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: protocol-service.enabled
+  - name: spark-backend-pool
+    alias: supplementary-requests-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: supplementary-requests-service.enabled
+  - name: spark-backend-pool
+    alias: temporal-job-service
+    version: "0.3.0"
+    repository: "file://../../02-backend/spark-backend-pool"
+    condition: temporal-job-service.enabled
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

@@ -3,9 +3,9 @@
 import asyncio
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import Absatz
 from temporalio import workflow
 
+from src.absatz import Absatz
 from src.workflows.norm_workflow.atomarisierung.at import AtomarisierungsAgentWorkflow
 from src.workflows.norm_workflow.norm_types import (
     AtomarisierungsAgentInput,
@@ -61,20 +61,20 @@ class NormDekonstruktionWorkflow:
     @classmethod
     async def _process_satz(cls, satz: NormDekonstruktionWorkflowSatzInput) -> NormDekonstruktionWorkflowSatzOutput:
         """Classify and deconstruct a single Satz through the agent pipeline."""
-        norm_typ_lvl_1 = await workflow.execute_child_workflow(
+        norm_typ_lvl1 = await workflow.execute_child_workflow(
             NormTypAgentWorkflow.run, satz.satz_text, task_timeout=timedelta(seconds=60)
         )
 
-        norm_typ_lvl_2 = None
+        norm_typ_lvl2 = None
         tbms = None
         rechtsfolge = None
         atomare_tatbestandsmerkmale = None
 
-        if norm_typ_lvl_1 == "materiell-rechtlich":
-            norm_typ_lvl_2 = await workflow.execute_child_workflow(
+        if norm_typ_lvl1 == "materiell-rechtlich":
+            norm_typ_lvl2 = await workflow.execute_child_workflow(
                 SatzKategorieAgentWorkflow.run, satz.satz_text, task_timeout=timedelta(seconds=60)
             )
-            if norm_typ_lvl_2 == "wenn-dann":
+            if norm_typ_lvl2 == "wenn-dann":
                 (
                     tbms,
                     rechtsfolge,
@@ -82,14 +82,14 @@ class NormDekonstruktionWorkflow:
                     is_empty,
                 ) = await cls._get_tbms_and_rf(satz.satz_text)
                 if is_empty:
-                    norm_typ_lvl_2 = "sonstiges"
+                    norm_typ_lvl2 = "sonstiges"
 
         return NormDekonstruktionWorkflowSatzOutput(
             satz_nr=satz.satz_nr,
             markers=satz.markers,
             satz_text=satz.satz_text,
-            norm_typ_lvl_1=norm_typ_lvl_1,
-            norm_typ_lvl_2=norm_typ_lvl_2,
+            norm_typ_lvl1=norm_typ_lvl1,
+            norm_typ_lvl2=norm_typ_lvl2,
             tatbestandsmerkmale=tbms or None,
             rechtsfolge=rechtsfolge,
             atomare_tatbestandsmerkmale=atomare_tatbestandsmerkmale,

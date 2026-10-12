@@ -13,9 +13,11 @@ The activities bridge the gap between the Temporal workflow engine and the
 domain-specific logic for document analysis.
 """
 
+from temporal.activities.llm_guarded import llm_invoke_structured_guarded
 from temporalio import workflow
 
 from src.config.config import config
+from src.config.env import ENV
 from src.prompts.inhaltsverzeichnis_finder_prompts import (
     DOCUMENT_TYPE_DESCRIPTION_GENERATION_SYSTEM_PROMPT,
     DOCUMENT_TYPE_DESCRIPTION_GENERATION_USER_PROMPT,
@@ -44,8 +46,6 @@ from src.schemas.inhaltsverzeichnis_finder_schemas import (
     SelectInhaltsverzeichnisLLMActivityParams,
 )
 
-from .llm_call import llm_invoke_structured_guarded
-
 
 def _profile_kwargs() -> dict:
     profile = config.INHALTSVERZEICHNIS_FINDER.LLM_PROFILE
@@ -56,6 +56,7 @@ def _profile_kwargs() -> dict:
         "max_completion_tokens": profile.max_completion_tokens,
         "max_prompt_size": profile.llm_max_prompt_size,
         "reasoning_effort": profile.reasoning_effort,
+        "no_cache": ENV.LLM_NO_CACHE,
     }
 
 

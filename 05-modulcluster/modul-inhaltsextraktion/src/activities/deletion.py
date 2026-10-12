@@ -1,22 +1,21 @@
 """Temporal activities for deleting selected DMS documents and related Qdrant data."""
 
-import json
 import os
 from datetime import timedelta
 from uuid import UUID
 
+from temporal.contracts import SummaryData
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
 from src.activities.qdrant.indexing import _delete_document_by_source_file_id
 from src.config import get_config
-from src.utils.dms_utils import (
-    DmsUploadInput,
-    ListFilesInput,
-    delete_file,
-    download_file,
-    list_files,
-    upload_file,
+from src.utils.dms_utils import delete_file, download_file, list_all_files
+from src.utils.summary_file import (
+    SUMMARY_FILENAME,
+    list_summary_files,
+    replace_summary_file,
+    serialize_summary,
 )
 from src.workflows.deletion.types import (
     CleanupContentExtractionsInput,
@@ -59,74 +58,19 @@ async def _delete_matching_extractions(
     return deleted, failed
 
 
-def _find_summary_file(
-    content_extractions: list[DeletionFileInfo],
-) -> DeletionFileInfo | None:
-    """Find the summary.json entry in a list of content extraction files."""
-    for file_obj in content_extractions:
-        if file_obj.filename == "summary.json":
-            return file_obj
-    return None
-
-
-async def _replace_summary_json(
-    project_id: UUID,
-    summary_file_id: str,
-    summary_bytes: bytes,
-) -> None:
-    """Delete old summary.json and upload a new version."""
-    await delete_file(UUID(summary_file_id))
-    activity.logger.info("Deleted old summary.json: %s", summary_file_id)
-    await upload_file(
-        DmsUploadInput(
-            data=summary_bytes,
-            filename="summary.json",
-            project_id=project_id,
-            file_type="content_extraction",
-            content_type="application/json",
-        )
-    )
-
-
 async def _list_all_files(
     project_id: UUID,
     file_type: str,
-    page_size: int = 500,
 ) -> list[DeletionFileInfo]:
     """List all DMS files for a project and file type."""
-    all_files: list[DeletionFileInfo] = []
-    page = 1
-
-    while True:
-        batch = await list_files(
-            ListFilesInput(
-                project_id=project_id,
-                file_type=file_type,
-                page=page,
-                page_size=page_size,
-            )
+    return [
+        DeletionFileInfo(
+            file_id=str(file_obj.id),
+            filename=file_obj.filename,
+            file_type=file_obj.type,
         )
-
-        if not batch:
-            break
-
-        all_files.extend(
-            [
-                DeletionFileInfo(
-                    file_id=str(file_obj.id),
-                    filename=file_obj.filename,
-                    file_type=file_obj.type,
-                )
-                for file_obj in batch
-            ]
-        )
-
-        if len(batch) < page_size:
-            break
-
-        page += 1
-
-    return all_files
+        for file_obj in await list_all_files(project_id, file_type)
+    ]
 
 
 # ---------------------------------------------------------------------------
@@ -220,29 +164,26 @@ async def _update_summary_for_deleted_documents(
 ) -> UpdateSummaryResult:
     """Remove deleted documents from summary.json."""
     requested_filenames = input.deleted_document_filenames
-    content_extractions = await _list_all_files(input.project_id, "content_extraction")
-
-    summary_file = _find_summary_file(content_extractions)
-    if summary_file is None:
-        activity.logger.info("No summary.json found for project %s", input.project_id)
+    summary_files = await list_summary_files(input.project_id)
+    if not summary_files:
+        activity.logger.info("No %s found for project %s", SUMMARY_FILENAME, input.project_id)
         return UpdateSummaryResult(success=[], failed=requested_filenames)
 
+    summary_file = summary_files[0]
     try:
-        existing_bytes = await download_file(summary_file.file_id)
-        summary = json.loads(existing_bytes)
+        existing_bytes = await download_file(summary_file.id)
+        summary = SummaryData.model_validate_json(existing_bytes)
     except FileNotFoundError:
         activity.logger.warning(
-            "Found summary.json metadata (file_id=%s) but file not found in storage",
-            summary_file.file_id,
+            "Found %s metadata (file_id=%s) but file not found in storage",
+            SUMMARY_FILENAME,
+            summary_file.id,
         )
         return UpdateSummaryResult(success=[], failed=requested_filenames)
 
-    processed_files = summary.get("processed_files", [])
     filenames_to_remove = set(requested_filenames)
     removed_filenames = {
-        entry.get("document_path", "")
-        for entry in processed_files
-        if entry.get("document_path", "") in filenames_to_remove
+        entry.document_path for entry in summary.processed_files if entry.document_path in filenames_to_remove
     }
     failed_filenames = [name for name in requested_filenames if name not in removed_filenames]
 
@@ -250,16 +191,14 @@ async def _update_summary_for_deleted_documents(
         activity.logger.info("summary.json did not contain entries for deleted files: %s", requested_filenames)
         return UpdateSummaryResult(success=[], failed=failed_filenames)
 
-    summary["processed_files"] = [
-        entry for entry in processed_files if entry.get("document_path", "") not in filenames_to_remove
-    ]
-    summary_bytes = json.dumps(summary, indent=2, default=str).encode("utf-8")
-
-    try:
-        await _replace_summary_json(input.project_id, summary_file.file_id, summary_bytes)
-    except Exception as exc:
-        activity.logger.warning("Failed to replace summary.json for project %s: %s", input.project_id, exc)
-        return UpdateSummaryResult(success=[], failed=requested_filenames)
+    summary = summary.model_copy(
+        update={
+            "processed_files": [
+                entry for entry in summary.processed_files if entry.document_path not in filenames_to_remove
+            ]
+        }
+    )
+    await replace_summary_file(input.project_id, serialize_summary(summary), summary_files)
 
     return UpdateSummaryResult(
         success=[name for name in requested_filenames if name in removed_filenames],

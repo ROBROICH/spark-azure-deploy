@@ -44,7 +44,12 @@ export const PdfQuickView = (props: PdfQuickViewProps) => {
             !isEmbedded && 'border-b border-border-primary',
           )}
         >
-          <h3 className="text-label-m text-text-primary">{title}</h3>
+          <h3
+            className="text-label-m break-words text-text-primary lg:truncate"
+            title={title}
+          >
+            {title}
+          </h3>
           <button
             type="button"
             onClick={onClose}

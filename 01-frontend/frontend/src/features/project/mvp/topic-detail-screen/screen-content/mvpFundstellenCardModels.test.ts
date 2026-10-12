@@ -14,25 +14,28 @@ const createFundstelle = (
   const id = overrides.id ?? 'fundstelle-1';
 
   return {
-    node_type: 'fundstelle',
-    satz_id: 'satz-1',
-    dokument_id: 'doc-1',
-    gesetz_id: 'gesetz-1',
-    norm_id: 'norm-1',
+    nodeType: 'fundstelle',
+    sourceNodeId: null,
+    satzId: 'satz-1',
+    dokumentId: 'doc-1',
+    gesetzId: 'gesetz-1',
+    normId: 'norm-1',
     title: id,
     text: 'Textauszug',
-    page_numbers: [1],
-    chunk_ids: ['chunk-1'],
+    pageNumbers: [1],
+    chunkIds: ['chunk-1'],
     id,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: 'automated',
-    created_at: '2026-04-02T00:00:00.000Z',
-    updated_at: '2026-04-02T00:00:00.000Z',
-    sys_period: null,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: 'automated',
+    createdAt: '2026-04-02T00:00:00.000Z',
+    updatedAt: '2026-04-02T00:00:00.000Z',
     compositeKey: `fundstelle:${id}` as CompositeKey,
     ...overrides,
+    confidence: overrides.confidence ?? null,
+    consensusRatio: overrides.consensusRatio ?? null,
+    relevance: overrides.relevance ?? null,
   };
 };
 
@@ -41,14 +44,14 @@ describe('mvpFundstellenCardModels', () => {
     const fundstellen = [
       createFundstelle({
         id: 'fundstelle-1',
-        chunk_ids: ['chunk-1'],
-        page_numbers: [1],
+        chunkIds: ['chunk-1'],
+        pageNumbers: [1],
         title: 'Fundstelle 1',
       }),
       createFundstelle({
         id: 'fundstelle-2',
-        chunk_ids: ['chunk-2'],
-        page_numbers: [2],
+        chunkIds: ['chunk-2'],
+        pageNumbers: [2],
         title: 'Fundstelle 1',
       }),
     ];
@@ -69,18 +72,105 @@ describe('mvpFundstellenCardModels', () => {
     ]);
   });
 
+  it('reports the highest confidence of a deduplicated group', () => {
+    const fundstellen = [
+      createFundstelle({
+        id: 'fundstelle-1',
+        chunkIds: ['chunk-1'],
+        pageNumbers: [4],
+        title: 'Fundstelle 1',
+        confidence: 0.9,
+      }),
+      createFundstelle({
+        id: 'fundstelle-2',
+        chunkIds: ['chunk-2'],
+        pageNumbers: [1],
+        title: 'Fundstelle 1',
+        confidence: 0.2,
+      }),
+    ];
+    const dedupeKeyByFundstelleId = createFundstellenDedupeKeyById(
+      fundstellen,
+      new Map([
+        ['fundstelle-1', ['chunk-1']],
+        ['fundstelle-2', ['chunk-1']],
+      ]),
+    );
+    const entries = createFundstellenCardEntries(
+      fundstellen,
+      dedupeKeyByFundstelleId,
+    );
+
+    expect(entries).toEqual([
+      {
+        id: 'fundstelle-2',
+        pageNumber: 1,
+        title: 'Fundstelle 1',
+        confidence: 0.9,
+      },
+    ]);
+  });
+
+  it('ignores a duplicate without a confidence value instead of lowering the group', () => {
+    const fundstellen = [
+      createFundstelle({
+        id: 'fundstelle-1',
+        chunkIds: ['chunk-1'],
+        pageNumbers: [1],
+        title: 'Fundstelle 1',
+        confidence: 0.9,
+      }),
+      createFundstelle({
+        id: 'fundstelle-2',
+        chunkIds: ['chunk-2'],
+        pageNumbers: [4],
+        title: 'Fundstelle 1',
+      }),
+    ];
+    const dedupeKeyByFundstelleId = createFundstellenDedupeKeyById(
+      fundstellen,
+      new Map([
+        ['fundstelle-1', ['chunk-1']],
+        ['fundstelle-2', ['chunk-1']],
+      ]),
+    );
+    const entries = createFundstellenCardEntries(
+      fundstellen,
+      dedupeKeyByFundstelleId,
+    );
+
+    expect(entries).toEqual([
+      {
+        id: 'fundstelle-1',
+        pageNumber: 1,
+        title: 'Fundstelle 1',
+        confidence: 0.9,
+      },
+    ]);
+  });
+
+  it('carries no confidence value for a fundstelle without one', () => {
+    const entries = createFundstellenCardEntries([
+      createFundstelle({ id: 'fundstelle-1', title: 'Fundstelle 1' }),
+    ]);
+
+    expect(entries).toEqual([
+      { id: 'fundstelle-1', pageNumber: 1, title: 'Fundstelle 1' },
+    ]);
+  });
+
   it('keeps entries with the same resolved chunks and different titles', () => {
     const fundstellen = [
       createFundstelle({
         id: 'fundstelle-1',
-        chunk_ids: ['chunk-1'],
-        page_numbers: [1],
+        chunkIds: ['chunk-1'],
+        pageNumbers: [1],
         title: 'Fundstelle 1',
       }),
       createFundstelle({
         id: 'fundstelle-2',
-        chunk_ids: ['chunk-1'],
-        page_numbers: [2],
+        chunkIds: ['chunk-1'],
+        pageNumbers: [2],
         title: 'Fundstelle 2',
       }),
     ];
@@ -107,12 +197,12 @@ describe('mvpFundstellenCardModels', () => {
       createFundstelle({
         id: 'fundstelle-1',
         title: 'Deckblatt',
-        page_numbers: [1],
+        pageNumbers: [1],
       }),
       createFundstelle({
         id: 'fundstelle-2',
         title: 'Deckblatt',
-        page_numbers: [2],
+        pageNumbers: [2],
       }),
     ]);
 
@@ -132,8 +222,8 @@ describe('mvpFundstellenCardModels', () => {
         [
           createFundstelle({
             id: 'fundstelle-b',
-            norm_id: 'norm-b',
-            page_numbers: [5],
+            normId: 'norm-b',
+            pageNumbers: [5],
           }),
         ],
       ],
@@ -142,8 +232,8 @@ describe('mvpFundstellenCardModels', () => {
         [
           createFundstelle({
             id: 'fundstelle-a',
-            norm_id: 'norm-a',
-            page_numbers: [5],
+            normId: 'norm-a',
+            pageNumbers: [5],
           }),
         ],
       ],
@@ -152,8 +242,8 @@ describe('mvpFundstellenCardModels', () => {
         [
           createFundstelle({
             id: 'fundstelle-c',
-            norm_id: 'norm-c',
-            page_numbers: [7],
+            normId: 'norm-c',
+            pageNumbers: [7],
           }),
         ],
       ],
@@ -187,13 +277,13 @@ describe('mvpFundstellenCardModels', () => {
         [
           createFundstelle({
             id: 'fundstelle-1',
-            dokument_id: 'doc-1',
-            page_numbers: [3],
+            dokumentId: 'doc-1',
+            pageNumbers: [3],
           }),
           createFundstelle({
             id: 'fundstelle-2',
-            dokument_id: 'doc-1',
-            page_numbers: [3],
+            dokumentId: 'doc-1',
+            pageNumbers: [3],
           }),
         ],
       ],
@@ -202,8 +292,8 @@ describe('mvpFundstellenCardModels', () => {
         [
           createFundstelle({
             id: 'fundstelle-3',
-            dokument_id: 'doc-2',
-            page_numbers: [3],
+            dokumentId: 'doc-2',
+            pageNumbers: [3],
           }),
         ],
       ],

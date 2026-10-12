@@ -1,4 +1,4 @@
-import type { ContradictionOccurrence } from '@/api-clients/pns-module';
+import type { ContradictionOccurrence } from '@/api-clients/backend';
 import { SelectMenu } from '@/features/ui/select-menu/SelectMenu';
 
 type OccurrenceSelectProps = {

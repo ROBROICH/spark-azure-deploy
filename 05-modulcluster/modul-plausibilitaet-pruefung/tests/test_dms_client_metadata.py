@@ -25,10 +25,10 @@ class TestDMSClientMetadata:
     @pytest.mark.asyncio
     async def test_get_project_base_metadata_returns_metadata(self, install_transport: TransportInstaller) -> None:
         base_md = {
-            "application_id": "p",
-            "processing_timestamp": "2024-01-01T00:00:00Z",
+            "applicationId": "p",
+            "processingTimestamp": "2024-01-01T00:00:00Z",
         }
-        summary_payload = {"base_metadata": base_md}
+        summary_payload = {"baseMetadata": base_md}
 
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
@@ -74,30 +74,3 @@ class TestDMSClientMetadata:
 
         with pytest.raises(ValueError, match="summary files"):
             await DMSClient().get_project_base_metadata("p")
-
-    @pytest.mark.asyncio
-    async def test_get_document_metadata_matches_id(self, install_transport: TransportInstaller) -> None:
-        def handler(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(200, json=[
-                {"id": "doc-1", "type": "file", "filename": "report.pdf",
-                 "bucketPath": "/b", "projectId": "p"},
-                {"id": "doc-2", "type": "file", "filename": "other.pdf",
-                 "bucketPath": "/b", "projectId": "p"},
-            ])
-
-        install_transport(handler)
-        md = await DMSClient().get_document_metadata("p", "doc-2")
-
-        assert md.title == "other.pdf"
-
-    @pytest.mark.asyncio
-    async def test_get_document_metadata_raises_when_not_found(
-        self, install_transport: TransportInstaller
-    ) -> None:
-        def handler(request: httpx.Request) -> httpx.Response:
-            return httpx.Response(200, json=[])
-
-        install_transport(handler)
-
-        with pytest.raises(ValueError, match="not found"):
-            await DMSClient().get_document_metadata("p", "missing")

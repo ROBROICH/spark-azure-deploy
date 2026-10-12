@@ -1,0 +1,64 @@
+{{- if .Values.routes.temporal.enabled }}
+{{- /*
+OIDC policy for temporal-route. Differs from oidc-policy on purpose: no CORS section,
+the provider carries only the issuer (no explicit endpoints, no keycloak Backend
+backendRefs — Envoy resolves the issuer itself); session settings from oidc.temporal.
+*/ -}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: temporal-oidc-policy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: temporal-route
+  oidc:
+    provider:
+      issuer: {{ include "gateway-routes.keycloakIssuer" . }}
+    clientID: {{ .Values.auth.clientID }}
+    clientSecret:
+      name: {{ .Values.auth.clientSecretName }}
+    {{- with .Values.oidc.temporal }}
+    redirectURL: https://{{ include "gateway-routes.temporalHost" $ }}{{ .redirectPath }}
+    logoutPath: {{ .logoutPath }}
+    scopes:
+      {{- toYaml .scopes | nindent 6 }}
+    cookieDomain: {{ include "gateway-routes.temporalHost" $ }}
+    cookieNames:
+      {{- toYaml .cookieNames | nindent 6 }}
+    cookieConfig:
+      sameSite: {{ .sameSite }}
+    forwardAccessToken: true
+    refreshToken: true
+    defaultTokenTTL: {{ .tokenTTL }}
+    defaultRefreshTokenTTL: {{ .refreshTokenTTL }}
+    {{- end }}
+{{- if .Values.temporalAuthorization.enabled }}
+  # Optional role gate (values-switchable): only tokens whose
+  # realm_access.roles contains the required role reach the Temporal UI
+  # (OIDC forwardAccessToken + jwt provider + claim rule).
+  authorization:
+    defaultAction: Deny
+    rules:
+      - name: allow-{{ .Values.temporalAuthorization.requiredRole }}
+        action: Allow
+        principal:
+          jwt:
+            provider: keycloak
+            claims:
+              - name: realm_access.roles
+                valueType: StringArray
+                values:
+                  - {{ .Values.temporalAuthorization.requiredRole }}
+  jwt:
+    providers:
+      - name: keycloak
+        issuer: {{ include "gateway-routes.keycloakIssuer" . }}
+        remoteJWKS:
+          uri: {{ include "gateway-routes.keycloakIssuer" . }}/protocol/openid-connect/certs
+{{- end }}
+{{- end }}

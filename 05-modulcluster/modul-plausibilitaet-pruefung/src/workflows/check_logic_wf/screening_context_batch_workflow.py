@@ -1,7 +1,6 @@
 """Child workflow that processes a batch of screening bundles and returns context-check results.
 
-LLM calls run as shared ``llm_invoke_structured`` activities — invoked here directly from
-the workflow so the task queue is auto-resolved from the configured model.
+LLM activities are invoked directly from the workflow so the task queue resolves from the model.
 """
 
 from datetime import timedelta
@@ -14,6 +13,11 @@ from temporalio import workflow
 
 from src.activities.context_checker import build_chunk_contexts_batch
 from src.activities.dms_activities import ProjectMetadataResult, fetch_project_metadata
+from src.activities.prefilter import (
+    fetch_page_contexts_batch,
+    filter_hits,
+    page_keys_for_hits,
+)
 from src.activities.risk_screener import fetch_screening_payloads_batch
 from src.config.config import config
 from src.config.env import ENV
@@ -32,12 +36,14 @@ from src.workflows.check_logic_wf.schemas.context_checker_schemas import (
     ContextCheckerOutput,
     ContextCheckVerdict,
 )
+from src.workflows.check_logic_wf.schemas.note_schemas import FetchPageContextsInput, PageContext
 from src.workflows.check_logic_wf.schemas.risk_screener_schemas import (
     FetchScreeningPayloadsBatchInput,
     GroupedRiskScreenerPromptCheckClaim,
     GroupedRiskScreenerPromptPayload,
     GroupedRiskScreenerResponse,
     GroupedScreeningBundle,
+    ResolvedClaimData,
     ResolvedGroupedScreeningBundle,
     RiskScreenerReferencePromptItem,
     ScreeningHit,
@@ -52,10 +58,7 @@ async def _screen_grouped_bundle(
     resolved_bundle: ResolvedGroupedScreeningBundle,
     model: ChatModel,
 ) -> list[ScreeningHit]:
-    """Screen multiple claims from the same chunk in one LLM call.
-
-    Uses pre-fetched claim data (no Qdrant call) and issues one LLM call.
-    """
+    """Screen multiple claims from the same chunk in one LLM call."""
     payload_by_id = resolved_bundle.claim_payloads
 
     # 1. Build global reference pool with stable 1-based indices
@@ -113,7 +116,7 @@ async def _screen_grouped_bundle(
         model=model,
         temperature=0.0,
         top_p=1.0,
-        reasoning_effort="medium",
+        reasoning_effort=config.RISK_SCREENING.REASONING_EFFORT,
         retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
     )
 
@@ -154,7 +157,7 @@ async def _check_conflict(
     chunk_b_id: str,
     model: ChatModel,
 ) -> ContextCheckerOutput:
-    """Evaluate one screened claim pair with integrated self-audit in a single LLM call."""
+    """Evaluate one screened chunk pair with integrated self-audit in a single LLM call."""
     context_checker_input = ContextCheckerLLMInput(
         project_base_md=project_meta_result.metadata,
         project_base_md_status=project_meta_result.status,
@@ -170,7 +173,7 @@ async def _check_conflict(
         model=model,
         temperature=0.0,
         top_p=1.0,
-        reasoning_effort="medium",
+        reasoning_effort=config.CONTEXT_CHECKING.REASONING_EFFORT,
         retry_policy=config.TEMPORAL.LLM_RETRY_POLICY,
     )
 
@@ -196,18 +199,58 @@ async def _check_conflict(
     )
 
 
+async def _check_hit(
+    hit: ScreeningHit,
+    inp: ScreeningBatchInput,
+    claim_to_chunk: dict[str, str],
+    chunk_contexts: dict[str, ChunkWithContext],
+    project_meta_result: ProjectMetadataResult,
+    model: ChatModel,
+) -> ContextCheckerOutput:
+    """Checker call for one screening hit."""
+    chunk_a_id, chunk_b_id = claim_to_chunk[hit.claim_id], claim_to_chunk[hit.reference_id]
+    verdict = await _check_conflict(
+        request=ContextCheckerInput(
+            project_id=inp.project_id,
+            document_id=inp.document_id,
+            claim_id=hit.claim_id,
+            reference_claim_id=hit.reference_id,
+            screening_note=hit.note.strip(),
+        ),
+        chunk_a_context=chunk_contexts[chunk_a_id],
+        chunk_b_context=chunk_contexts[chunk_b_id],
+        project_meta_result=project_meta_result,
+        chunk_a_id=chunk_a_id,
+        chunk_b_id=chunk_b_id,
+        model=model,
+    )
+    return verdict.model_copy(update={"screening_note": hit.note})
+
+
+async def _fetch_pages_for_hits(
+    project_id: str,
+    hits: list[ScreeningHit],
+    claim_to_chunk: dict[str, str],
+    chunk_contexts: dict[str, ChunkWithContext],
+    instance_ids: dict[str, dict[str, list[str]]],
+) -> dict[str, PageContext]:
+    """Page contexts (identifier classes) for the instance rule — only for hits without stored identifiers."""
+    keys = page_keys_for_hits(hits, claim_to_chunk, chunk_contexts, instance_ids)
+    if not keys:
+        return {}
+    raw: dict[str, PageContext] = await workflow.execute_activity(
+        fetch_page_contexts_batch,
+        arg=FetchPageContextsInput(project_id=project_id, keys=keys),
+        start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
+    )
+    return {k: PageContext.model_validate(v) for k, v in raw.items()}
+
+
 async def _build_contexts_for_hits(
     project_id: str,
     hits: list[ScreeningHit],
 ) -> tuple[dict[str, str], dict[str, ChunkWithContext]]:
-    """Build chunk contexts for a list of hits.
-
-    Uses claim→chunk mappings already resolved during screening (carried on
-    ScreeningHit) so no extra Qdrant round-trip is needed.
-
-    Splits large ID sets into sub-batches to keep per-activity memory bounded
-    (each batch fetches base chunks + up to 11 neighbours per chunk).
-    """
+    """Build chunk contexts for a list of hits in sub-batches to bound activity memory."""
     batch_size = config.CONTEXT_CHECKING.CONTEXT_BATCH_SIZE
 
     # 1. Build claim_id → chunk_id from the hits (already resolved during screening)
@@ -242,11 +285,13 @@ class PlausibilityScreeningContextBatchWorkflow:
         model: ChatModel = ENV.LITELLM.MODEL
 
         # 1. Fetch all claim payloads for screening (Qdrant, non-LLM activity)
+        extra_claim_ids = [cid for h in inp.extra_hits for cid in (h.claim_id, h.reference_id)]
         raw_payloads = await workflow.execute_activity(
             fetch_screening_payloads_batch,
             FetchScreeningPayloadsBatchInput(
                 project_id=inp.project_id,
                 bundles=inp.bundles,
+                extra_claim_ids=extra_claim_ids,
             ),
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.ACTIVITY_TIMEOUT_SECONDS),
         )
@@ -271,6 +316,9 @@ class PlausibilityScreeningContextBatchWorkflow:
         )
 
         all_hits = [hit for hits in screening_results for hit in hits]
+        # Deterministic candidates join after the screener, before contexts and pre-filter.
+        screened = {frozenset((h.claim_id, h.reference_id)) for h in all_hits}
+        all_hits.extend(h for h in inp.extra_hits if frozenset((h.claim_id, h.reference_id)) not in screened)
 
         if not all_hits:
             return ScreeningBatchOutput(context_check_outputs=[])
@@ -285,8 +333,7 @@ class PlausibilityScreeningContextBatchWorkflow:
         )
         project_meta_result = ProjectMetadataResult.model_validate(raw_meta)
 
-        # 4. Filter out hits with missing chunk contexts — retrying would hit
-        #    the same missing data and end in a non-retryable error anyway.
+        # 4. Drop hits with missing chunk contexts; retrying would fail the same way.
         ready_hits: list[ScreeningHit] = []
         for hit in all_hits:
             chunk_a = claim_to_chunk.get(hit.claim_id)
@@ -310,24 +357,28 @@ class PlausibilityScreeningContextBatchWorkflow:
         if not ready_hits:
             return ScreeningBatchOutput(context_check_outputs=[])
 
-        # 5. Fan out context checks with all pre-fetched data (pure LLM activity)
+        # 5. Deterministic pre-filter: trivial pairs, template instances, version duplicates.
+        resolved = {cid: ResolvedClaimData.model_validate(p) for cid, p in raw_payloads.items()}
+        claim_texts: dict[str, str] = {cid: r.claim_text for cid, r in resolved.items()}
+        instance_ids: dict[str, dict[str, list[str]]] = {
+            cid: r.instance_identifiers for cid, r in resolved.items() if r.instance_identifiers
+        }
+        pages = await _fetch_pages_for_hits(inp.project_id, ready_hits, claim_to_chunk, chunk_contexts, instance_ids)
+        prefilter = filter_hits(ready_hits, claim_to_chunk, chunk_contexts, claim_texts, pages, instance_ids)
+        if prefilter.rejected:
+            workflow.logger.info(
+                "Pre-filter: %d of %d hits dropped before the checker (%s)",
+                sum(prefilter.rejected.values()),
+                len(ready_hits),
+                prefilter.rejected,
+            )
+        if not prefilter.kept:
+            return ScreeningBatchOutput(context_check_outputs=[])
+
+        # 6. Context checker per remaining hit.
         context_check_outputs: list[ContextCheckerOutput] = await sliding_window(
-            ready_hits,
-            lambda hit: _check_conflict(
-                request=ContextCheckerInput(
-                    project_id=inp.project_id,
-                    document_id=inp.document_id,
-                    claim_id=hit.claim_id,
-                    reference_claim_id=hit.reference_id,
-                    screening_note=hit.note,
-                ),
-                chunk_a_context=chunk_contexts[claim_to_chunk[hit.claim_id]],
-                chunk_b_context=chunk_contexts[claim_to_chunk[hit.reference_id]],
-                project_meta_result=project_meta_result,
-                chunk_a_id=claim_to_chunk[hit.claim_id],
-                chunk_b_id=claim_to_chunk[hit.reference_id],
-                model=model,
-            ),
+            prefilter.kept,
+            lambda hit: _check_hit(hit, inp, claim_to_chunk, chunk_contexts, project_meta_result, model),
             concurrency=config.TEMPORAL.MAX_PENDING_ACTIVITIES,
         )
 

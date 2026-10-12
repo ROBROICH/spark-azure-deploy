@@ -14,14 +14,8 @@ type PdfViewerPaneProps = {
 export const PdfViewerPane = (props: PdfViewerPaneProps) => {
   const { documentId, className, flush = false, connected = false } = props;
   const { t } = useTranslation('PdfPopout');
-  const {
-    projectId,
-    documentPreviewById,
-    connectedFileId,
-    connectedPageJump,
-    getPagePosition,
-    savePagePosition,
-  } = usePdfPopout();
+  const { projectId, documentPreviewById, connectedFileId, connectedPageJump } =
+    usePdfPopout();
   const preview = documentId ? documentPreviewById.get(documentId) : undefined;
   const filePreview = useProjectFilePreview({
     projectId,
@@ -60,8 +54,6 @@ export const PdfViewerPane = (props: PdfViewerPaneProps) => {
           hasDocumentNotFound={filePreview.isFileNotFound}
           isPdf={isPdf}
           flush={flush}
-          getPagePosition={getPagePosition}
-          savePagePosition={savePagePosition}
           requestedPageNumber={requestedPageNumber}
           requestedPageJumpKey={requestedPageJumpKey}
         />

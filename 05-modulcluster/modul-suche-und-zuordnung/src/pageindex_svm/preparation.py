@@ -10,7 +10,12 @@ from typing import Any
 
 import tiktoken
 from prompt_injection.prompt_defense import sanitize_and_wrap_external_data, sanitize_external_data
-from temporal.workflows.modul_suche_und_zuordnung.types import Document, DocumentNode
+from temporal.contracts import (
+    SucheZuordnungDocument as Document,
+)
+from temporal.contracts import (
+    SucheZuordnungDocumentNode as DocumentNode,
+)
 
 from src.config import CONFIG
 from src.pageindex_svm.prompts import STAGE1_USER_PROMPT, STAGE2_USER_PROMPT

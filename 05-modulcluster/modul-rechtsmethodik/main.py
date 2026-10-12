@@ -19,9 +19,9 @@ setup_observability(
     )
 )
 
+from temporal.registry import RECHTSMETHODIK_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.rechtsmethodik.rechtsmethodik_workflow import TASK_QUEUE as RECHTSMETHODIK_TASK_QUEUE
 
 from src.activities import activities
 from src.workflows.legal_definitionen.erkennung.lde import LegalDefinitionenExtrahiererAgent
@@ -174,8 +174,8 @@ async def main() -> None:
     storage = S3PayloadStorage(
         bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
         endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
-        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
-        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY,
+        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID.get_secret_value(),
+        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY.get_secret_value(),
         region=ENV.TEMPORAL.S3_REGION,
     )
     try:
@@ -183,7 +183,7 @@ async def main() -> None:
             host=ENV.TEMPORAL.HOST,
             workflows=WORKFLOWS,
             activities=activities,
-            task_queue=RECHTSMETHODIK_TASK_QUEUE,
+            task_queue=RECHTSMETHODIK_WORKFLOW.task_queue,
             storage=storage,
         )
     finally:

@@ -1,7 +1,7 @@
 """Data models for Ermessensart classification."""
 
 from pydantic import BaseModel, ConfigDict
-from temporal.workflows.rechtsmethodik.types import ErmessensArt
+from temporal.contracts import ErmessensArt
 
 
 class ErmessensArtAgentOutputFormat(BaseModel):

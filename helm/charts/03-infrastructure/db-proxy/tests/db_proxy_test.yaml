@@ -1,0 +1,82 @@
+suite: db-proxy
+release: {name: rel, namespace: db}
+values: [../ci/full-values.yaml]
+tests:
+  - it: renders nothing by default
+    templates: [templates/cloudsql-proxy.yaml, templates/pgbouncer.yaml, templates/serviceaccount.yaml]
+    set:
+      cloudSqlProxy.enabled: false
+      pgbouncer.enabled: false
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: requires the instance connection name
+    template: templates/cloudsql-proxy.yaml
+    set:
+      cloudSqlProxy.instanceConnectionName: ''
+    asserts:
+      - failedTemplate: {errorPattern: instanceConnectionName is required}
+
+  - it: names the proxy as configured and connects over the private IP
+    template: templates/cloudsql-proxy.yaml
+    documentSelector: {path: kind, value: Deployment}
+    asserts:
+      - equal: {path: metadata.name, value: cloudsql-proxy}
+      - equal: {path: metadata.namespace, value: db}
+      - contains: {path: 'spec.template.spec.containers[0].args', content: --private-ip}
+      - contains: {path: 'spec.template.spec.containers[0].args', content: example-project:europe-west4:example-instance}
+      - equal: {path: 'spec.template.metadata.annotations["sidecar.istio.io/inject"]', value: "false"}
+      - equal: {path: spec.template.spec.automountServiceAccountToken, value: false}
+      - equal: {path: 'spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem', value: true}
+
+  - it: exposes the proxy on 5432 with an Istio-style port name
+    template: templates/cloudsql-proxy.yaml
+    documentSelector: {path: kind, value: Service}
+    asserts:
+      - equal: {path: 'spec.ports[0]', value: {name: tcp-postgres, port: 5432, targetPort: postgres}}
+
+  - it: defaults the component names to the fullname
+    template: templates/cloudsql-proxy.yaml
+    documentSelector: {path: kind, value: Service}
+    set:
+      cloudSqlProxy.name: ''
+    asserts:
+      - equal: {path: metadata.name, value: rel-db-proxy-ci-cloudsql-proxy}
+
+  - it: requires the PgBouncer server and auth secret
+    template: templates/pgbouncer.yaml
+    set:
+      pgbouncer.auth.existingSecret: ''
+    asserts:
+      - failedTemplate: {errorPattern: existingSecret is required}
+
+  - it: configures PgBouncer for the server over TLS in session mode
+    template: templates/pgbouncer.yaml
+    documentSelector: {path: kind, value: ConfigMap}
+    asserts:
+      - matchRegex: {path: 'data["pgbouncer.ini"]', pattern: '\* = host=10\.0\.0\.5 port=5432'}
+      - matchRegex: {path: 'data["pgbouncer.ini"]', pattern: 'pool_mode = session'}
+      - matchRegex: {path: 'data["pgbouncer.ini"]', pattern: 'server_tls_sslmode = require'}
+
+  - it: runs PgBouncer as the image's user with the auth file mounted
+    template: templates/pgbouncer.yaml
+    documentSelector: {path: kind, value: Deployment}
+    asserts:
+      - equal: {path: metadata.name, value: cloudsql-direct}
+      - equal: {path: spec.template.spec.securityContext.runAsUser, value: 998}
+      - contains: {path: spec.template.spec.volumes, content: {name: auth, secret: {secretName: pgbouncer-userlist}}}
+      - exists: {path: 'spec.template.metadata.annotations["checksum/config"]'}
+
+  - it: renders a PodDisruptionBudget only with more than one replica
+    template: templates/pgbouncer.yaml
+    set:
+      pgbouncer.replicaCount: 1
+    asserts:
+      - hasDocuments: {count: 3}
+
+  - it: binds the ServiceAccount to a Google identity on request
+    template: templates/serviceaccount.yaml
+    set:
+      serviceAccount.annotations: {iam.gke.io/gcp-service-account: gsa@example.iam.gserviceaccount.com}
+    asserts:
+      - equal: {path: 'metadata.annotations["iam.gke.io/gcp-service-account"]', value: gsa@example.iam.gserviceaccount.com}

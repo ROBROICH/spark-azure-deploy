@@ -1,5 +1,7 @@
 """Prompt template for word extraction."""
 
+from src.activities.prompt_blocks import closing_block
+
 word_extractor_prompt = """
 **Rolle**
 Du bist ein präziser linguistischer Assistent mit Fokus auf deutsche Morphologie und Lemmatization.  
@@ -23,10 +25,6 @@ Ausgabe (JSON-Objekt): {{"extracted_words": ["signifikant", "Veränderung", "Lan
 
 **Anwendung**
 Verwende dieses Prompt-Template für die Extraktion von Lookup-Wörtern aus dem folgenden Text:
-{external_data_tag_open}
-Text: {unbestimmter_rechtsbegriff}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Text: {unbestimmter_rechtsbegriff}",
+)

@@ -1,0 +1,59 @@
+# Pod security defaults of the standard leaf template set.
+suite: standard leaf security
+templates: [templates/deployment.yaml]
+release:
+  name: rel
+  namespace: relns
+set:
+  fullnameOverride: app
+  image: {repository: registry.example.com/spark/app, tag: "1.0.0"}
+  podSecurityContext: null
+  securityContext: null
+  volumes: null
+  volumeMounts: null
+tests:
+  - it: applies the restricted Pod Security Standard by default
+    asserts:
+      - equal: {path: spec.template.spec.securityContext, value: {runAsNonRoot: true, runAsUser: 65532, runAsGroup: 65532, seccompProfile: {type: RuntimeDefault}}}
+      - equal: {path: 'spec.template.spec.containers[0].securityContext', value: {allowPrivilegeEscalation: false, capabilities: {drop: [ALL]}, readOnlyRootFilesystem: true}}
+      - contains: {path: 'spec.template.spec.containers[0].volumeMounts', content: {name: tmp, mountPath: /tmp}}
+      - contains: {path: spec.template.spec.volumes, content: {name: tmp, emptyDir: {}}}
+      - equal: {path: spec.template.spec.automountServiceAccountToken, value: false}
+
+  - it: lets single keys be overridden
+    set:
+      podSecurityContext: {runAsUser: 1000}
+      securityContext: {readOnlyRootFilesystem: false}
+    asserts:
+      - equal: {path: spec.template.spec.securityContext.runAsUser, value: 1000}
+      - equal: {path: spec.template.spec.securityContext.runAsNonRoot, value: true}
+      - equal: {path: 'spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem', value: false}
+      - notExists: {path: 'spec.template.spec.containers[0].volumeMounts'}
+
+  - it: keeps an existing /tmp mount
+    set:
+      volumes: [{name: scratch, emptyDir: {}}]
+      volumeMounts: [{name: scratch, mountPath: /tmp}]
+    asserts:
+      - equal: {path: 'spec.template.spec.containers[0].volumeMounts', value: [{name: scratch, mountPath: /tmp}]}
+
+  - it: applies none of them when restricted is off globally
+    set:
+      global.podSecurity.restricted: false
+    asserts:
+      - notExists: {path: spec.template.spec.securityContext}
+      - notExists: {path: 'spec.template.spec.containers[0].securityContext'}
+      - notExists: {path: spec.template.spec.volumes}
+
+  - it: a chart value wins over the global switch
+    set:
+      global.podSecurity.restricted: false
+      podSecurity.restricted: true
+    asserts:
+      - equal: {path: spec.template.spec.securityContext.runAsNonRoot, value: true}
+
+  - it: mounts the token only when asked
+    set:
+      serviceAccount.automount: true
+    asserts:
+      - notExists: {path: spec.template.spec.automountServiceAccountToken}

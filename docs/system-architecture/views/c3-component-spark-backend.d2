@@ -1,0 +1,586 @@
+# Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
+# inventory.toml, style.d2);
+# der Pfad steht in .agents/config.json unter architectureModelPath.
+# architecture-rendered-at: 06.10.2026, 15:51 UTC
+
+# SPARK Workflow — Styleguide der Architekturansichten
+#
+# Diese Datei wird beim Rendern wörtlich an den Anfang jeder erzeugten Ansicht
+# gesetzt. Eine veröffentlichte Ansicht ist dadurch eigenständig: sie lässt sich
+# allein mit der d2-CLI erneut rendern, ohne dieses Verzeichnis.
+#
+# Die Farben stammen aus den Design-Tokens des Frontends
+# (01-frontend/frontend/src/styles.css). Sie sind dort als Tailwind-Skalen
+# definiert und hier als Hexwerte aufgelöst, weil D2 keine CSS-Variablen kennt.
+# Wer einen Token ändert, ändert ihn dort zuerst und trägt ihn hier nach.
+#
+#   brand      indigo-950 #1e1b4b, brand-800 #31317e   Service-Layer
+#   primary    blue-600   #2563eb, blue-50   #eff6ff   Frontend, Datenzugriff
+#   ki         violet-800 #5b21b6, violet-50 #f5f3ff   KI-Module und Modelle
+#   success    emerald-700 #047857                     Orchestrierung
+#   warning    orange-600 #ea580c                      Autorisierung
+#   neutral    slate-Skala                             Basis, Kontext, Rahmen
+#
+# Keine eigene Schriftart: D2 bettet nur mitgelieferte Schriften ein. Inter
+# würde --font-regular voraussetzen und die Ansicht von einer Datei abhängig
+# machen, die nicht neben der SVG liegt.
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    # false: diagram grows from the top-left instead of floating in the canvas.
+    center: false
+    pad: 48
+  }
+}
+
+classes: {
+  # -- Rahmen ---------------------------------------------------------------
+
+  layer: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-frontend: {
+    style: {
+      stroke: "#93c5fd"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e3a8a"
+      border-radius: 8
+    }
+  }
+
+  layer-service: {
+    style: {
+      stroke: "#a5b4fc"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e1b4b"
+      border-radius: 8
+    }
+  }
+
+  layer-orchestration: {
+    style: {
+      stroke: "#6ee7b7"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-size: 24
+      bold: true
+      font-color: "#064e3b"
+      border-radius: 8
+    }
+  }
+
+  layer-ai: {
+    style: {
+      stroke: "#c4b5fd"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-size: 24
+      bold: true
+      font-color: "#4c1d95"
+      border-radius: 8
+    }
+  }
+
+  layer-basis: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-infrastructure: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f8fafc"
+      font-size: 24
+      bold: true
+      font-color: "#475569"
+      border-radius: 8
+    }
+  }
+
+  # Durchgezogen: eine Gruppe liegt im Repository, gestrichelt bleibt dem
+  # vorbehalten, was nicht aus ihm deployt wird.
+  group: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 1
+      fill: "#f8fafc"
+      font-size: 19
+      bold: true
+      font-color: "#475569"
+      border-radius: 6
+    }
+  }
+
+  legend: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 19
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  # Textspalte der Legende neben den Symbolen: ohne eigenen Rahmen.
+  legend-column: {
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Unsichtbare Endpunkte einer Musterkante in der Legende; sichtbar ist nur
+  # die Linie selbst.
+  legend-anchor: {
+    width: 4
+    height: 4
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Beschriftung einer Musterkante, rechts neben der Linie.
+  legend-label: {
+    shape: text
+    style: {
+      font-size: 15
+      font-color: "#334155"
+    }
+  }
+
+  # -- Systemkontext --------------------------------------------------------
+
+  actor: {
+    style: {
+      stroke: "#334155"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-color: "#0f172a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  actor-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 3
+      fill: "#f8fafc"
+      font-color: "#475569"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  system: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 2
+      fill: "#31317e"
+      font-color: "#ffffff"
+      font-size: 19
+      bold: true
+      border-radius: 8
+      shadow: true
+    }
+  }
+
+  external: {
+    style: {
+      stroke: "#64748b"
+      stroke-dash: 3
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Container ------------------------------------------------------------
+
+  frontend: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-color: "#1e3a8a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  service: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # Ein Pool ist eine Instanz des geteilten SPARK-Backend-Images. Die dunklere
+  # Füllung trennt ihn optisch von den eigenständigen Diensten desselben Layers.
+  pool: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#e0e7ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  modulith: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 3
+      fill: "#c7d2fe"
+      font-color: "#1e1b4b"
+      font-size: 16
+      bold: true
+      border-radius: 6
+    }
+  }
+
+  orchestration: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-color: "#064e3b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-module: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-infrastructure: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      fill: "#ede9fe"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  platform: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      fill: "#f8fafc"
+      font-color: "#1e293b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Komponenten ----------------------------------------------------------
+
+  component: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 1
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 15
+      border-radius: 4
+    }
+  }
+
+  # -- Betreiberseitig ------------------------------------------------------
+  #
+  # Gestrichelte Knoten und Rahmen heißen: nicht aus diesem Repository
+  # deployt (betreiberseitig, extern, Sprachmodelle, Beteiligte ohne
+  # Systemzugang). Bei Kanten unterscheidet die Strichelung dagegen den Typ.
+
+  infrastructure: {
+    style: {
+      stroke: "#64748b"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  language-model: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#faf5ff"
+      font-color: "#4c1d95"
+      font-size: 15
+      border-radius: 6
+    }
+  }
+
+  # -- Kantentypen ----------------------------------------------------------
+  #
+  # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
+  # Die Farben sind so gewählt, dass je zwei Typen mit gleicher Strichart auch
+  # bei Rot-Grün-Sehschwäche unterscheidbar bleiben; wer eine Farbe ändert,
+  # prüft das erneut (Farbabstand, nicht Augenmaß).
+
+  http: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#475569"
+    }
+  }
+
+  http-primary: {
+    style: {
+      stroke: "#1e293b"
+      stroke-width: 3
+      font-size: 14
+      font-color: "#0f172a"
+      bold: true
+    }
+  }
+
+  queue: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#047857"
+    }
+  }
+
+  datastore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  objectstore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      stroke-dash: 3
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  cache: {
+    style: {
+      stroke: "#60a5fa"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  authz: {
+    style: {
+      stroke: "#ea580c"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#9a3412"
+    }
+  }
+
+  llm: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#5b21b6"
+    }
+  }
+
+  uses: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#31317e"
+    }
+  }
+
+  # Beteiligung ohne Systemzugang: die Unterlagen erreichen das System, die
+  # Person selbst meldet sich nie an.
+  uses-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      font-size: 14
+      font-color: "#64748b"
+    }
+  }
+
+  # -- Hinweistext unterhalb einer Ansicht ----------------------------------
+
+  note: {
+    style: {
+      font-size: 15
+      font-color: "#475569"
+    }
+  }
+
+  diagram-meta: {
+    style: {
+      font-size: 15
+      font-color: "#334155"
+      bold: true
+    }
+  }
+}
+
+direction: down
+grid-columns: 1
+grid-gap: 32
+
+title: |md
+  # C3 Komponenten des SPARK Backend
+
+  Der Modulith von innen: Feature-Pakete, geteilte Pakete und Worker-Pools eines Containers
+| {
+  near: top-center
+  style: { font-size: 24; font-color: "#1e1b4b" }
+}
+
+spark-backend: "SPARK Backend: ein Container" {
+  class: layer-service
+  grid-columns: 1
+  daten-features: "Features mit eigenen Tabellen" {
+    class: group
+    grid-columns: 4
+    feat-administrative-file-draft: "Beschlusserstellung\n@spark-workflow/administrative-file-draft" { class: component }
+    feat-comment-service: "Kommentarverwaltung\n@spark-workflow/comment-service" { class: component }
+    feat-examination-service: "Rechtliche Pruefung\n@spark-workflow/examination-service" { class: component }
+    feat-feedback-service: "Feedbackverwaltung\n@spark-workflow/feedback-service" { class: component }
+    feat-formal-completeness-check: "Formale Vollstaendigkeitspruefung\n@spark-workflow/formal-completeness-check" { class: component }
+    feat-fpp-service: "Fachplanungsportalintegration\n@spark-workflow/fpp-service" { class: component }
+    feat-identity-management-service: "Identitaetsverwaltung\n@spark-workflow/identity-management-service" { class: component }
+    feat-objections-management-service: "Einwendungsverwaltung\n@spark-workflow/objections-management-service" { class: component }
+    feat-plausibility-notes: "Plausibilitaetshinweise\n@spark-workflow/plausibility-notes" { class: component }
+    feat-supplementary-requests-service: "Nachforderungsverwaltung\n@spark-workflow/supplementary-requests-service" { class: component }
+    feat-temporal-job-service: "Workflowmanagement\n@spark-workflow/temporal-job-service" { class: component }
+  }
+  plattform-features: "Features ohne eigene Tabellen" {
+    class: group
+    grid-columns: 2
+    feat-agent-orchestration-service: "Agentenorchestrierung\n@spark-workflow/agent-orchestration-service" { class: component }
+    feat-protocol-service: "Protokollverwaltung\n@spark-workflow/protocol-service" { class: component }
+  }
+  geteilte-pakete: "Geteilte Pakete der Komposition" {
+    class: group
+    grid-columns: 3
+    pkg-core: "Core\nTypeScript" { class: component }
+    pkg-http-host: "HTTP-Host\nTypeScript" { class: component }
+    pkg-resource: "Resource\nTypeScript" { class: component }
+    pkg-postgres: "Postgres-Runtime\nTypeScript" { class: component }
+    pkg-node-crud: "Node-CRUD\nTypeScript" { class: component }
+    pkg-authentification: "Authentifizierung\nPython und TypeScript" { class: component }
+    pkg-audit-client: "Audit-Client\nPython und TypeScript" { class: component }
+    pkg-temporal: "Temporal-Anbindung\nPython und TypeScript" { class: component }
+  }
+}
+
+worker: "Pools mit eigener Worker-Identitaet" {
+  class: layer-service
+  grid-columns: 2
+  project-logic-service: "Verfahrensverwaltung\nACTIVE_FEATURE_WORKER=project-logic" { class: pool }
+  temporal-job-service: "Workflowmanagement\nACTIVE_FEATURE_WORKER=temporal-job" { class: pool }
+  document-management-service: "Dokumentenmanagement\nACTIVE_FEATURE_WORKER=document-management" { class: pool }
+  agent-orchestration-service: "Agentenorchestrierung\nACTIVE_FEATURE_WORKER=agent-orchestration" { class: pool }
+}
+
+
+dokumentation: "Legende und Metadaten" {
+  class: legend
+  grid-columns: 3
+  grid-gap: 32
+  legende-symbole: "Symbole" {
+    class: legend
+    grid-columns: 1
+    l-component: "Feature- oder Shared-Paket" { class: component }
+    l-pool: "Pool mit Worker-Identitaet" { class: pool }
+    l-container: "Modulith-Container" { class: layer-service }
+  }
+
+  legende-text: "" {
+    class: legend-column
+    grid-columns: 1
+    metadaten: |md
+      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Ansicht** c3-component-spark-backend (C3)\
+      **Renderer** d2 v0.8.2\
+      **Quelle** kuratiertes Modell\
+      landscape.toml, views.toml, inventory.toml
+    | {
+      class: diagram-meta
+    }
+
+  }
+  hinweis: |md
+    Ein Container, kein Dienstverbund: die Feature-Pakete sind Komponenten\
+    des SPARK Backend, keine eigenen deploybaren Einheiten.
+
+    Die 15 Pools der C2-Karte sind Betriebsinstanzen genau dieses\
+    Images. Jeder stellt den vollstaendigen HTTP-Graphen bereit;\
+    nur die hier gezeigten 4 starten zusaetzlich einen Temporal-Worker.
+
+    Features greifen ueber Resources und Core aufeinander zu.\
+    Einzige Schema-Ausnahme: formal-completeness-check liest\
+    die Tabelle supplementary_request.
+  | {
+    class: note
+  }
+
+}

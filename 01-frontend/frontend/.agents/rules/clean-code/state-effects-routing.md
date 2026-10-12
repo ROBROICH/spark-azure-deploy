@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/state-effects-routing
+---
+
 # State, Effects, and Routing
 
 Use when code touches `useState`, `useEffect`, route params/search, navigation, prop-synced state, or `useControllableState`.
@@ -26,4 +30,4 @@ Name the owner that should hold the state: router search, a route schema, a feat
 
 ## References
 
-- `references/link-navigation-rationale-and-examples.md`
+- [Link navigation rationale and examples](references/link-navigation-rationale-and-examples.md)

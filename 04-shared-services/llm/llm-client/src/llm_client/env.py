@@ -6,24 +6,19 @@ import os
 
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from temporal.connection_config import TemporalConfig as SharedTemporalConfig
 
 
 class LiteLLMConfig(BaseModel):
     """LiteLLM proxy connection settings."""
+
     BASE_URL: str = Field(min_length=1)
     MASTER_KEY: str = Field(min_length=1)
     DISK_CACHE_DIR: str | None = None
 
 
-class TemporalConfig(BaseModel):
-    """Temporal cluster and S3 payload storage settings."""
-    HOST: str = Field(min_length=1)
+class TemporalConfig(SharedTemporalConfig):
     TASK_QUEUE: str = Field(default="llm", min_length=1)
-    S3_BUCKET_NAME: str = Field(min_length=1)
-    S3_ENDPOINT_URL: str = Field(min_length=1)
-    S3_ACCESS_KEY_ID: str = Field(min_length=1)
-    S3_SECRET_ACCESS_KEY: str = Field(min_length=1)
-    S3_REGION: str = Field(min_length=1)
 
 
 class QueueConfig(BaseModel):
@@ -36,6 +31,7 @@ class QueueConfig(BaseModel):
 
 class WorkerSettings(BaseSettings):
     """Top-level worker configuration populated from environment variables."""
+
     ENV: str
     QUEUE_NAME: str | None = None
     QUEUE_MAX_CONCURRENT: int | None = None

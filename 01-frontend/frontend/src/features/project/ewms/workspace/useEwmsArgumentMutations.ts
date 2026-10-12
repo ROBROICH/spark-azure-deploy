@@ -38,7 +38,7 @@ const canMutateArgument = (
   targetTopicId?: string,
 ) =>
   canMutateProject &&
-  (!argument.topic_id || hasTopicMutationRights(argument.topic_id)) &&
+  (!argument.topicId || hasTopicMutationRights(argument.topicId)) &&
   (!targetTopicId || hasTopicMutationRights(targetTopicId));
 
 const transactIfArgumentAuthorized = (
@@ -78,11 +78,11 @@ const updateArgumentClassification = (
 ) => {
   update(argument, (draft) => {
     if (values.topicId !== undefined) {
-      draft.topic_id = values.topicId || null;
-      draft.sub_topic_id = null;
+      draft.topicId = values.topicId || null;
+      draft.subTopicId = null;
     }
     if (values.subtopicId !== undefined) {
-      draft.sub_topic_id = values.subtopicId || null;
+      draft.subTopicId = values.subtopicId || null;
     }
     draft.status = getNextStatusAfterClassificationChange(argument);
   });
@@ -143,8 +143,8 @@ const createHandleReviewArgumentClassification =
       dependencies.update(argument, (draft) => {
         draft.status = EWMS_ARGUMENT_STATUS_SUBTOPIC_REVIEWED;
         if (!isAccepted) {
-          draft.topic_id = null;
-          draft.sub_topic_id = null;
+          draft.topicId = null;
+          draft.subTopicId = null;
         }
       });
     });

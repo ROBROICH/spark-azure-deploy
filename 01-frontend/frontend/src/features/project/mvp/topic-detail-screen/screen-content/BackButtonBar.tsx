@@ -24,7 +24,7 @@ export const BackButtonBar = (props: BackButtonBarProps) => {
   const { laneOrderPreference, onLaneOrderChange } = props;
   const { t } = useTranslation('MvpRedesign');
   const { topicName } = route.useParams();
-  const topicRef = { id: topicName, node_type: 'topic' as const };
+  const topicRef = { id: topicName, nodeType: 'topic' as const };
   const { data: topic } = useNode(topicRef);
   const { data: topicNorms } = useDescendantNodes('topic_norm', topicRef);
   const bearbeiteteNormCount = topicNorms.filter((topicNorm) =>
@@ -44,7 +44,7 @@ export const BackButtonBar = (props: BackButtonBarProps) => {
   ];
 
   return (
-    <div className="flex items-center justify-between border-b border-border-primary bg-neutral-white px-2 py-2">
+    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-primary bg-neutral-white px-2 py-2">
       <div className="flex items-center gap-2">
         <Button
           variant="secondary"
@@ -75,7 +75,7 @@ export const BackButtonBar = (props: BackButtonBarProps) => {
       <div className="flex items-center gap-2">
         {topic ? (
           <TopicWritePermissionBadge
-            assigneeIds={topic.mvp_assignees}
+            assigneeIds={topic.mvpAssignees}
             variant="large"
           />
         ) : null}
@@ -89,20 +89,23 @@ export const BackButtonBar = (props: BackButtonBarProps) => {
             total: totalNormCount,
           })}
         </CompletionIndicator>
-        <FilterPillSelect
-          icon={<ArrowLeftRight className="size-4" aria-hidden="true" />}
-          fallbackLabel={t('BackButtonBar.toggleLaneOrderFallback')}
-          options={laneOrderOptions}
-          value={laneOrderPreference}
-          clearable={false}
-          onValueChange={(value) => {
-            if (!value) {
-              return;
-            }
+        {/* Hidden below `md`: swimlanes stack vertically there, so lane order has no effect. */}
+        <div className="hidden md:inline-flex">
+          <FilterPillSelect
+            icon={<ArrowLeftRight className="size-4" aria-hidden="true" />}
+            fallbackLabel={t('BackButtonBar.toggleLaneOrderFallback')}
+            options={laneOrderOptions}
+            value={laneOrderPreference}
+            clearable={false}
+            onValueChange={(value) => {
+              if (!value) {
+                return;
+              }
 
-            onLaneOrderChange(value);
-          }}
-        />
+              onLaneOrderChange(value);
+            }}
+          />
+        </div>
       </div>
     </div>
   );

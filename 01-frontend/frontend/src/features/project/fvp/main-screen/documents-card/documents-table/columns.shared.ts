@@ -9,7 +9,6 @@ export type ColumnCallbacks = {
   activeDocumentId?: string;
   canMutateProject: boolean;
   onFileClick: (documentId: string) => void;
-  onConfirmDocumentType: (documentId: string) => void;
   onSelectDocumentType: (documentId: string, documentType: string) => void;
   onManageCustomDocumentTypes: () => void;
   onRequestDocument: (

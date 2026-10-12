@@ -42,7 +42,7 @@ const TopicDetailScreenContent = () => {
     }),
   });
   const navigate = route.useNavigate();
-  const topicRef = { id: topicName, node_type: 'topic' as const };
+  const topicRef = { id: topicName, nodeType: 'topic' as const };
   const { data: topicDocuments } = useDescendantNodes('dokument', topicRef);
   const hasTopicMutationRights = useHasTopicMutationRights();
   const canMutateTopic = hasTopicMutationRights(topicName);
@@ -115,7 +115,7 @@ const TopicDetailScreenContent = () => {
         onOpenChange={setIsRechtsgrundlageDialogOpen}
         open={isRechtsgrundlageDialogOpen && canMutateTopic}
       />
-      <div className="flex h-full w-full min-w-0 flex-1 flex-col overflow-hidden border border-border-primary bg-neutral-white">
+      <div className="flex min-h-[var(--reflow-min-h)] w-full min-w-0 flex-1 flex-col overflow-hidden border border-border-primary bg-neutral-white lg:h-full">
         <Suspense fallback={<BackButtonBarSkeleton />}>
           <BackButtonBar
             laneOrderPreference={effectiveLaneOrderPreference}
@@ -139,7 +139,7 @@ const TopicDetailScreenContent = () => {
         </Suspense>
         <section
           aria-label={t('MvpPage.sectionAriaLabel')}
-          className="min-h-0 flex-1 overflow-hidden"
+          className="min-h-[var(--reflow-min-h)] flex-1 overflow-hidden lg:min-h-0"
         >
           <TopicDetailScreenSwimlanes
             canMutateTopic={canMutateTopic}

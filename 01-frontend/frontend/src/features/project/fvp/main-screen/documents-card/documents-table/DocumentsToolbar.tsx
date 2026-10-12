@@ -1,3 +1,4 @@
+import { DOCUMENT_STATUS } from '@/features/project/data/document-tree/documentTree.types';
 import { useAvailableDocumentTypes } from '@/features/project/fvp/main-screen/data/read-model/useRequiredDocuments';
 import {
   FilterPillSelect,
@@ -12,15 +13,15 @@ const route = getRouteApi('/verfahren/$verfahrenId/fvp/documents/');
 
 const STATUS_FILTER_OPTIONS = [
   {
-    value: 'Zugeordnet',
+    value: DOCUMENT_STATUS.assigned,
     labelKey: 'DocumentsCard.toolbar.statusFilter.assigned',
   },
   {
-    value: 'Nicht zugeordnet',
+    value: DOCUMENT_STATUS.unassigned,
     labelKey: 'DocumentsCard.toolbar.statusFilter.unassigned',
   },
   {
-    value: 'Auf Nachforderungsliste',
+    value: DOCUMENT_STATUS.onRequestList,
     labelKey: 'DocumentsCard.toolbar.statusFilter.onRequestList',
   },
 ] as const;

@@ -15,13 +15,12 @@ def get_absatz_nr(absatz: str | None) -> tuple[str, str]:
     a tuple of (absatz_nr, absatz_text)"""
     if absatz is None:
         raise ValueError("absatz is None")
-    stripped = absatz.strip()
+    stripped = absatz.lstrip()
     absatz_nr_match = re.match(r"^\((\d+\w?)\)", stripped)
     if absatz_nr_match is None:
         raise ValueError(f"can't find absatz nr for absatz: {absatz}")
     absatz_nr = absatz_nr_match.group(1)
-    # black is adding a space before `:`? skip formatting
-    clean_absatz = stripped[absatz_nr_match.end():].strip()  # fmt: skip
+    clean_absatz = stripped[absatz_nr_match.end() :].lstrip()
     return (absatz_nr, clean_absatz)
 
 

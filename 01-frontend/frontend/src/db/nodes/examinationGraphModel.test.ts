@@ -13,9 +13,9 @@ import {
 import type { NodeSummary } from './types';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -23,12 +23,12 @@ const createSummary = (
 describe('examinationGraphModel', () => {
   it('builds indexed roots from parent relationships', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
-      createSummary({ id: 'topic-2', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
+      createSummary({ id: 'topic-2', nodeType: 'topic' }),
       createSummary({
         id: 'topic-norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 
@@ -37,9 +37,9 @@ describe('examinationGraphModel', () => {
 
   it('returns nodes by type from the type index', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
-      createSummary({ id: 'topic-2', node_type: 'topic' }),
-      createSummary({ id: 'norm-1', node_type: 'topic_norm' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
+      createSummary({ id: 'topic-2', nodeType: 'topic' }),
+      createSummary({ id: 'norm-1', nodeType: 'topic_norm' }),
     ]);
 
     expect(getNodesByType(index, 'topic').map((node) => node.id)).toEqual([
@@ -50,9 +50,9 @@ describe('examinationGraphModel', () => {
 
   it('returns node counts by type from the precomputed counts', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
-      createSummary({ id: 'topic-2', node_type: 'topic' }),
-      createSummary({ id: 'norm-1', node_type: 'topic_norm' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
+      createSummary({ id: 'topic-2', nodeType: 'topic' }),
+      createSummary({ id: 'norm-1', nodeType: 'topic_norm' }),
     ]);
 
     expect(countNodesByType(index).get('topic')).toBe(2);
@@ -61,16 +61,16 @@ describe('examinationGraphModel', () => {
 
   it('returns typed descendants without including the start node', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'norm-2',
-        node_type: 'topic_norm',
-        parents: [{ id: 'norm-1', node_type: 'topic_norm' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'norm-1', nodeType: 'topic_norm' }],
       }),
     ]);
 
@@ -88,11 +88,11 @@ describe('examinationGraphModel', () => {
 
   it('counts typed descendants from the shared node index', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 
@@ -105,11 +105,11 @@ describe('examinationGraphModel', () => {
 
   it('checks descendant presence by type with true and false cases', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 
@@ -119,16 +119,16 @@ describe('examinationGraphModel', () => {
 
   it('returns the first matching descendant ref by type', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'norm-1',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'norm-2',
-        node_type: 'topic_norm',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 
@@ -136,18 +136,18 @@ describe('examinationGraphModel', () => {
       getFirstDescendantNodeRefByType(index, 'topic-1', 'topic_norm'),
     ).toMatchObject({
       id: 'norm-1',
-      node_type: 'topic_norm',
+      nodeType: 'topic_norm',
     });
   });
 
   it('does not duplicate child relationships when parent refs are repeated', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'norm-1',
-        node_type: 'topic_norm',
-        frontend_parent_ids: ['topic:topic-1'],
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'topic_norm',
+        frontendParentIds: ['topic:topic-1'],
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
     ]);
 

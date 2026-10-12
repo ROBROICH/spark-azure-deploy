@@ -1,0 +1,22 @@
+{{- if (.Values.podMonitoring | default dict).enabled }}
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: {{ .Values.podMonitoring.name | default (include "modul-plausibilitaet-pruefung.fullname" .) }}
+  namespace: {{ include "modul-plausibilitaet-pruefung.namespace" . }}
+  labels:
+    {{- include "modul-plausibilitaet-pruefung.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- with .Values.podMonitoring.selector }}
+      {{- toYaml . | nindent 6 }}
+      {{- else }}
+      {{- include "modul-plausibilitaet-pruefung.selectorLabels" . | nindent 6 }}
+      {{- end }}
+  {{- if not .Values.podMonitoring.endpoints }}
+  {{- fail (printf "%s: podMonitoring.endpoints is required when podMonitoring.enabled" .Chart.Name) }}
+  {{- end }}
+  endpoints:
+    {{- toYaml .Values.podMonitoring.endpoints | nindent 4 }}
+{{- end }}

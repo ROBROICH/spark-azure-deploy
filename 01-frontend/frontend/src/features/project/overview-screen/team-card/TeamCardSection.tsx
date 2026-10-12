@@ -36,7 +36,7 @@ export function TeamCardSection(props: TeamCardSectionProps) {
 
   return (
     <div className="mt-6 flex flex-col gap-4 p-2">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <span aria-hidden className="rounded-lg bg-bg-quaternary p-2">
           <Users className="size-4" />
         </span>

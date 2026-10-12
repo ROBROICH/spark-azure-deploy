@@ -67,13 +67,13 @@ describe('node query hooks', () => {
     });
     graphMocks.getNodesByType.mockReset();
     graphMocks.getNodesByType.mockReturnValue([
-      { id: 'topic-1', node_type: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
     ]);
   });
 
   it('tracks the active payload collection in useNode query deps', () => {
     const { rerender } = renderHook(() =>
-      useNode({ id: 'topic-1', node_type: 'topic' }),
+      useNode({ id: 'topic-1', nodeType: 'topic' }),
     );
 
     const [, firstDeps] = mocks.useLiveSuspenseQuery.mock.calls[0] as [
@@ -96,7 +96,7 @@ describe('node query hooks', () => {
 
   it('tracks the active payload collection in useNodes query deps', () => {
     const { rerender } = renderHook(() =>
-      useNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     const [, firstDeps] = mocks.useLiveSuspenseQuery.mock.calls[0] as [
@@ -124,26 +124,26 @@ describe('node query hooks', () => {
         {
           compositeKey: 'topic:stale-topic',
           id: 'stale-topic',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
         {
           compositeKey: 'topic:topic-1',
           id: 'topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
       ],
       state: null,
     });
 
     const { result } = renderHook(() =>
-      useNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.data).toEqual([
       {
         compositeKey: 'topic:topic-1',
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
       },
     ]);
   });
@@ -155,19 +155,19 @@ describe('node query hooks', () => {
         {
           compositeKey: 'topic:topic-1',
           id: 'topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
         {
           compositeKey: 'topic:topic-2',
           id: 'topic-2',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
       ],
       state: null,
     });
     let nodeRefs: NodeRef[] = [
-      { id: 'topic-1', node_type: 'topic' },
-      { id: 'topic-2', node_type: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
+      { id: 'topic-2', nodeType: 'topic' },
     ];
 
     const { rerender, result } = renderHook(() => useNodes(nodeRefs));
@@ -178,8 +178,8 @@ describe('node query hooks', () => {
     ]);
 
     nodeRefs = [
-      { id: 'topic-2', node_type: 'topic' },
-      { id: 'topic-1', node_type: 'topic' },
+      { id: 'topic-2', nodeType: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
     ];
     rerender();
 
@@ -191,7 +191,7 @@ describe('node query hooks', () => {
 
   it('tracks the active payload collection in useLiveNode query deps', () => {
     const { rerender } = renderHook(() =>
-      useLiveNode({ id: 'topic-1', node_type: 'topic' }),
+      useLiveNode({ id: 'topic-1', nodeType: 'topic' }),
     );
 
     const [, firstDeps] = mocks.useLiveQuery.mock.calls[0] as [
@@ -214,7 +214,7 @@ describe('node query hooks', () => {
 
   it('tracks the active payload collection in useLiveNodes query deps', () => {
     const { rerender } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     const [, firstDeps] = mocks.useLiveQuery.mock.calls[0] as [
@@ -245,7 +245,7 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.isLoading).toBe(true);
@@ -261,7 +261,7 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.data).toEqual([]);
@@ -291,7 +291,7 @@ describe('node query hooks', () => {
         {
           compositeKey: 'topic:topic-1',
           id: 'topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
       ],
       isLoading: true,
@@ -300,14 +300,14 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.data).toEqual([
       {
         compositeKey: 'topic:topic-1',
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
       },
     ]);
     expect(result.current.isLoading).toBe(true);
@@ -323,7 +323,7 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.isLoading).toBe(false);
@@ -336,17 +336,17 @@ describe('node query hooks', () => {
         {
           compositeKey: 'topic:stale-topic-1',
           id: 'stale-topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
         {
           compositeKey: 'topic:stale-topic-2',
           id: 'stale-topic-2',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
         {
           compositeKey: 'topic:topic-1',
           id: 'topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
       ],
       isLoading: false,
@@ -354,14 +354,14 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.data).toEqual([
       {
         compositeKey: 'topic:topic-1',
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
       },
     ]);
   });
@@ -373,20 +373,20 @@ describe('node query hooks', () => {
         {
           compositeKey: 'topic:topic-1',
           id: 'topic-1',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
         {
           compositeKey: 'topic:topic-2',
           id: 'topic-2',
-          node_type: 'topic',
+          nodeType: 'topic',
         },
       ],
       isLoading: false,
       state: null,
     });
     let nodeRefs: NodeRef[] = [
-      { id: 'topic-1', node_type: 'topic' },
-      { id: 'topic-2', node_type: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
+      { id: 'topic-2', nodeType: 'topic' },
     ];
 
     const { rerender, result } = renderHook(() => useLiveNodes(nodeRefs));
@@ -397,8 +397,8 @@ describe('node query hooks', () => {
     ]);
 
     nodeRefs = [
-      { id: 'topic-2', node_type: 'topic' },
-      { id: 'topic-1', node_type: 'topic' },
+      { id: 'topic-2', nodeType: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
     ];
     rerender();
 
@@ -412,7 +412,7 @@ describe('node query hooks', () => {
     const getPayload = vi.fn(() => ({
       compositeKey: 'topic:topic-1',
       id: 'topic-1',
-      node_type: 'topic',
+      nodeType: 'topic',
     }));
     mocks.currentPayloadsCollection = {
       id: 'payloads-1',
@@ -426,7 +426,7 @@ describe('node query hooks', () => {
     });
 
     const { result } = renderHook(() =>
-      useLiveNodes([{ id: 'topic-1', node_type: 'topic' }]),
+      useLiveNodes([{ id: 'topic-1', nodeType: 'topic' }]),
     );
 
     expect(result.current.data).toEqual([]);

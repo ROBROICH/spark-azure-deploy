@@ -16,12 +16,11 @@ import re
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from pydantic import BaseModel
-from temporal.workflows.inhaltsextraktion.types import TASK_QUEUE, BaseMetadata, DocumentTopic
+from temporal.contracts import BaseMetadata, DocumentTopic
 from temporalio import workflow
-from temporalio.client import Client, WorkflowHandle
 from temporalio.common import WorkflowIDReusePolicy
 
 from src.activities.deletion import CleanupContentExtractionsInput, cleanup_content_extractions_dms
@@ -31,7 +30,7 @@ from src.activities.postprocessing.filtering import filter_enhance, prepare_vlm_
 from src.activities.postprocessing.images import upload_images_to_dms
 from src.activities.postprocessing.schemas import CreateFinalJsonInput, FilterEnhanceResult
 from src.activities.vlm_processing import apply_vlm_results
-from src.config import snapshot_config
+from src.config import CONFIG_MEMO_KEY, snapshot_config
 from src.schemas import Chunk, ExtractionOutput
 from src.services.docling_processing import DoclingActivityInput
 from src.workflows.chunk_enrichment.workflow import (
@@ -86,26 +85,6 @@ class SingleDocumentWorkflowInput(BaseModel):
     base_metadata: BaseMetadata | None = None
     is_priority_doc: bool = False
     possible_topics: list[DocumentTopic] | None
-
-
-async def start_single_document(client: Client, input: SingleDocumentWorkflowInput) -> WorkflowHandle[Any, Any]:
-    """Start a SingleDocumentWorkflow as a child workflow."""
-    return await client.start_workflow(
-        single_document_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=TASK_QUEUE,
-    )
-
-
-async def execute_single_document(client: Client, input: SingleDocumentWorkflowInput) -> SingleDocumentWorkflowOutput:
-    """Execute a SingleDocumentWorkflow and await its result."""
-    return await client.execute_workflow(
-        single_document_workflow_id,
-        input,
-        id=str(uuid4()),
-        task_queue=TASK_QUEUE,
-    )
 
 
 @workflow.defn(name=single_document_workflow_id)
@@ -165,6 +144,7 @@ class SingleDocumentWorkflow:
             id_reuse_policy=WorkflowIDReusePolicy.TERMINATE_IF_RUNNING,
             task_queue=workflow.info().task_queue,
             task_timeout=timedelta(seconds=60),
+            memo={CONFIG_MEMO_KEY: cfg},
         )
         workflow.logger.info(f"Extraction completed: {document_stem}")
 
@@ -302,6 +282,7 @@ class SingleDocumentWorkflow:
             id_reuse_policy=WorkflowIDReusePolicy.TERMINATE_IF_RUNNING,
             task_queue=workflow.info().task_queue,
             task_timeout=timedelta(minutes=10),
+            memo={CONFIG_MEMO_KEY: cfg},
         )
         chunks = page_out.chunks
 

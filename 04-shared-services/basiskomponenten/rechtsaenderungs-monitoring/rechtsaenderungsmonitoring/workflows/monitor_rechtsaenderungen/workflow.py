@@ -4,32 +4,33 @@ Fan out one ``MonitorRechtsaenderungenSourceWorkflow`` sub-workflow per
 configured feed source and aggregate their written/skipped/failed counts.
 """
 
-from temporal.utils import sliding_window
-from temporal.workflows.rechtsaenderungs_monitoring.monitor_rechtsaenderungen import (
-    MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID,
-)
-from temporal.workflows.rechtsaenderungs_monitoring.monitor_rechtsaenderungen_source import (
-    execute_monitor_rechtsaenderungen_source_workflow,
-)
-from temporal.workflows.rechtsaenderungs_monitoring.types import (
+from temporal.contracts import (
     MonitorRechtsaenderungenInput,
     MonitorRechtsaenderungenOutput,
 )
+from temporal.registry import (
+    RECHTSAENDERUNGS_MONITORING_SOURCE_WORKFLOW,
+    RECHTSAENDERUNGS_MONITORING_WORKFLOW,
+)
+from temporal.utils import execute_child_workflow, sliding_window
 from temporalio import workflow
 
 
-@workflow.defn(name=MONITOR_RECHTSAENDERUNGEN_WORKFLOW_ID)
+@workflow.defn(name=RECHTSAENDERUNGS_MONITORING_WORKFLOW.name)
 class MonitorRechtsaenderungenWorkflow:
     """Refresh each configured RSS feed source via a sub-workflow."""
 
     @workflow.run
-    async def run(
-        self, inputs: list[MonitorRechtsaenderungenInput]
-    ) -> MonitorRechtsaenderungenOutput:
+    async def run(self, inputs: list[MonitorRechtsaenderungenInput]) -> MonitorRechtsaenderungenOutput:
         async def run_source(
             src_input: MonitorRechtsaenderungenInput,
         ) -> MonitorRechtsaenderungenOutput:
-            return await execute_monitor_rechtsaenderungen_source_workflow(src_input)
+            return MonitorRechtsaenderungenOutput.model_validate(
+                await execute_child_workflow(
+                    definition=RECHTSAENDERUNGS_MONITORING_SOURCE_WORKFLOW,
+                    input=src_input,
+                )
+            )
 
         results = await sliding_window(
             items=inputs,

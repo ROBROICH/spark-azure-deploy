@@ -1,13 +1,16 @@
-import { allDeadlinesCollection } from '@/features/main-page/data/collections/allDeadlines.collection';
 import {
-  projectsCollection,
-  useAllProjects,
-} from '@/features/project/data/collections/projects.collection';
+  v1ProjectLogicListDeadlineDates,
+  v1ProjectLogicListDeadlines,
+} from '@/api-clients/backend';
+import { v1ProjectLogicGetProjectOptions } from '@/api-clients/backend/@tanstack/react-query.gen';
+import { deadlineResponseArraySchema } from '@/features/main-page/data/schemas/apiResponse.schema';
+import { Button } from '@/features/ui/button/Button';
 import { Calendar } from '@/features/ui/calendar/Calendar';
 import { getDateLocale } from '@/i18n/dateLocale';
-import { useLiveQuery } from '@tanstack/react-db';
+import { useInfiniteQuery, useQueries } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
-import { useMemo } from 'react';
+import { addMonths, startOfMonth, subMonths } from 'date-fns';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CalendarDayButtonWithEvents } from './CalendarDayButtonWithEvents';
 import { CalendarEventDatesContext } from './CalendarDayButton';
@@ -17,79 +20,86 @@ import { formatDateKey, parseDateKey } from './calendarUtils';
 
 const route = getRouteApi('/');
 
-/** Refetches the deadline and project collections so a failed load can recover. */
-const retryCalendarData = () => {
-  void allDeadlinesCollection.utils.refetch();
-  void projectsCollection.utils.refetch();
-};
-
 /**
- * Calendar widget component that displays a calendar and events for the selected date.
- * The selected date is stored in URL search params for shareability and state persistence.
+ * Month markers remain complete independently of the selected day's event pages.
+ * @returns The calendar and its explicitly paged event list.
  */
 export const CalendarWidget = () => {
   const calendarDate = route.useSearch({
     select: (search) => search.calendarDate,
   });
   const navigate = route.useNavigate();
-  const { i18n } = useTranslation('Dashboard');
+  const { t, i18n } = useTranslation('Dashboard');
   const locale = getDateLocale(i18n.language);
-
-  const {
-    data: allProjects,
-    isLoading: isLoadingProjects,
-    isError: isProjectsError,
-  } = useAllProjects();
-
-  const {
-    data: rawDeadlines,
-    isLoading: isLoadingDeadlines,
-    isError: isDeadlinesError,
-  } = useLiveQuery((q) => q.from({ deadlines: allDeadlinesCollection }));
-
-  const projectNameById = new Map(allProjects.map((p) => [p.id, p.name]));
-
-  const allDeadlines: CalendarEvent[] = rawDeadlines.map((d) => ({
-    ...d,
-    projectName: projectNameById.get(d.projectId) ?? '',
-  }));
-
-  const isLoading = isLoadingProjects || isLoadingDeadlines;
-  const isError = isProjectsError || isDeadlinesError;
-
-  const eventsData = (() => {
-    const nextEventsData: Record<string, CalendarEvent[]> = {};
-
-    for (const event of allDeadlines) {
-      const startKey = event.startAt.slice(0, 10);
-      const startEvents = nextEventsData[startKey] ?? [];
-      startEvents.push(event);
-      nextEventsData[startKey] = startEvents;
-
-      const endKey = event.endAt.slice(0, 10);
-      if (endKey !== startKey) {
-        const endEvents = nextEventsData[endKey] ?? [];
-        endEvents.push(event);
-        nextEventsData[endKey] = endEvents;
-      }
-    }
-
-    return nextEventsData;
-  })();
-
-  // Parse date from URL or default to today
   const selectedDate = calendarDate ? parseDateKey(calendarDate) : new Date();
-
   const selectedDateKey = formatDateKey(selectedDate);
-  const selectedEvents = eventsData[selectedDateKey] ?? [];
-  // eslint-disable-next-line no-restricted-syntax -- context value identity should only change when the event-date set changes.
+  // eslint-disable-next-line no-restricted-syntax -- the browsed month is an ephemeral calendar viewport, independent of the URL-selected event date.
+  const [month, setMonth] = useState(selectedDate);
+  const deadlines = useInfiniteQuery({
+    queryKey: ['calendar-deadlines', selectedDateKey],
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
+      const { data } = await v1ProjectLogicListDeadlines({
+        query: { date: selectedDateKey, limit: 50, offset: pageParam },
+        throwOnError: true,
+      });
+      return deadlineResponseArraySchema.parse(data);
+    },
+    getNextPageParam: (lastPage, _pages, lastPageParam) =>
+      lastPage.length === 50 ? lastPageParam + lastPage.length : undefined,
+  });
+  const rawDeadlines = deadlines.data?.pages.flat() ?? [];
+  const projects = useQueries({
+    queries: [...new Set(rawDeadlines.map(({ projectId }) => projectId))].map(
+      (projectId) => v1ProjectLogicGetProjectOptions({ path: { projectId } }),
+    ),
+  });
+  const markers = useQueries({
+    queries: [subMonths(month, 1), month, addMonths(month, 1)].map(
+      (visibleMonth) => {
+        const monthKey = formatDateKey(startOfMonth(visibleMonth));
+        return {
+          queryKey: ['deadline-dates', monthKey],
+          queryFn: async () => {
+            const { data } = await v1ProjectLogicListDeadlineDates({
+              query: { month: monthKey },
+              throwOnError: true,
+            });
+            return data;
+          },
+        };
+      },
+    ),
+  });
+  const projectNameById = new Map(
+    projects.flatMap(({ data }) =>
+      data ? [[data.id, data.name] as const] : [],
+    ),
+  );
+  const selectedEvents: CalendarEvent[] = rawDeadlines.map((deadline) => ({
+    ...deadline,
+    projectName: projectNameById.get(deadline.projectId) ?? '',
+  }));
+  const isLoading =
+    deadlines.isLoading || markers.some((marker) => marker.isLoading);
+  const isError = deadlines.isError || markers.some((marker) => marker.isError);
+  const [previousMonthDates, currentMonthDates, nextMonthDates] = markers.map(
+    (marker) => marker.data?.dates,
+  );
+  // eslint-disable-next-line no-restricted-syntax -- context consumers need a stable date set when marker data has not changed.
   const eventDates = useMemo(
-    () => new Set(Object.keys(eventsData)),
-    [eventsData],
+    () =>
+      new Set([
+        ...(previousMonthDates ?? []),
+        ...(currentMonthDates ?? []),
+        ...(nextMonthDates ?? []),
+      ]),
+    [previousMonthDates, currentMonthDates, nextMonthDates],
   );
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
+      setMonth(date);
       navigate({
         search: (prev) => ({ ...prev, calendarDate: formatDateKey(date) }),
       });
@@ -102,7 +112,6 @@ export const CalendarWidget = () => {
       });
     }
   };
-
   const selectedDateLongLabel = selectedDate.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'long',
@@ -116,30 +125,45 @@ export const CalendarWidget = () => {
           mode="single"
           selected={selectedDate}
           onSelect={handleDateSelect}
+          month={month}
+          onMonthChange={setMonth}
           captionLayout="dropdown"
-          className="[--cell-size:--spacing(8)] md:[--cell-size:--spacing(8)]"
+          className="[--cell-size:--spacing(6)] sm:[--cell-size:--spacing(8)]"
           classNames={{
             day: 'px-1 [&_button]:flex [&_button]:items-center [&_button]:justify-center [&_button]:text-xs',
           }}
-          components={{
-            DayButton: CalendarDayButtonWithEvents,
-          }}
+          components={{ DayButton: CalendarDayButtonWithEvents }}
         />
       </CalendarEventDatesContext.Provider>
-
       <div className="flex-1 overflow-auto rounded-md bg-bg-secondary p-4">
-        <h4 className="mt-1 mb-4 text-center text-sm font-medium text-text-primary">
+        <h4 className="mt-1 mb-4 text-center text-sm font-medium tracking-tight text-text-primary">
           {selectedDateLongLabel}
         </h4>
-
         <CalendarEventsPanel
           isError={isError}
           isLoading={isLoading}
           events={selectedEvents}
           locale={locale}
           selectedDateLongLabel={selectedDateLongLabel}
-          onRetry={retryCalendarData}
+          onRetry={() => {
+            void deadlines.refetch();
+            for (const marker of markers) {
+              void marker.refetch();
+            }
+          }}
         />
+        {!isError && deadlines.hasNextPage && (
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={deadlines.isFetchingNextPage}
+            onClick={() => void deadlines.fetchNextPage()}
+          >
+            {deadlines.isFetchingNextPage
+              ? t('Calendar.loadingEvents')
+              : t('Calendar.loadMore')}
+          </Button>
+        )}
       </div>
     </div>
   );

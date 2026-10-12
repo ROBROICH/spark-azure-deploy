@@ -1,0 +1,18 @@
+{{- /*
+Additional Istio PeerAuthentications (mesh.peerAuthentications), independent
+of the mesh.enabled policy set — e.g. a namespace whose sidecars must accept
+plaintext from a sidecar-less gateway on one port while the mesh default is
+STRICT. Keyed by object name; the value is the PeerAuthentication spec.
+*/ -}}
+{{- range $name, $spec := .Values.mesh.peerAuthentications }}
+---
+apiVersion: security.istio.io/v1
+kind: PeerAuthentication
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "environment-config.namespace" $ }}
+  labels:
+    {{- include "environment-config.labels" $ | nindent 4 }}
+spec:
+  {{- toYaml $spec | nindent 2 }}
+{{- end }}

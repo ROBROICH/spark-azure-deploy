@@ -1,3 +1,9 @@
+---
+ruleId: codebase-structure/special-file-names
+paths:
+  - "src/**"
+---
+
 # Special File Names
 
 Use when creating, moving, or reviewing TypeScript files under `src/features`.

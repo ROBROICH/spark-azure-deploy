@@ -1,0 +1,54 @@
+{{- /*
+dashboard.<domain>/app → the in-namespace frontend chart Service.
+*/ -}}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $site.prefix }}-route
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $site.group) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $site.hosts | nindent 4 }}
+  rules:
+    {{- if not (and $.Values.landing.enabled $site.landing) }}
+    # Host apex -> /app: AUTOMATIC fallback whenever the landing page is
+    # disabled (landing.enabled=false). Without it the bare dashboard host —
+    # the first thing a visitor types — would 404. When landing is enabled,
+    # httproute-landing serves / instead, so exactly one route ever claims the
+    # Exact-/ match — no separate flag, no conflict.
+    - matches:
+        - path:
+            type: Exact
+            value: /
+      filters:
+        - type: RequestRedirect
+          requestRedirect:
+            path:
+              type: ReplaceFullPath
+              replaceFullPath: /app
+            statusCode: 302
+    {{- end }}
+    # Dashboard SPA - catch-all for /app
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /app
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: /
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" $site.frontendChart) }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" $site.frontendChart) }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+{{- end }}

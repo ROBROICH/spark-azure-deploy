@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/styling-ui-primitives
+---
+
 # Styling and UI Primitives
 
 Use when code changes Tailwind classes, CSS tokens, shared UI primitives, or feature wrappers around UI components.

@@ -1,287 +1,147 @@
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { client } from '@/api-clients/backend/client.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
+import { queryClient } from '@/integrations/tanstack-query/root-provider';
+import { getProjectTemporalWorkflowsManager } from '@/features/workflow-runtime/workflow-status/projectTemporalWorkflows.collection';
+import {
+  WORKFLOW_TYPE_EWMS,
+  WORKFLOW_TYPE_FILE_PROCESSING,
+} from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
+import { createElement, type PropsWithChildren } from 'react';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useEwmsImportJobState } from './useEwmsImportJobState';
 
-const mocks = vi.hoisted(() => ({
-  getWorkflowTemporalWorkflowsWorkflowIdGet: vi.fn(),
-  useQuery: vi.fn(),
-  useWorkflow: vi.fn(),
+const scope = vi.hoisted(() => ({
+  projectId: '62000000-0000-4000-8000-000000000020',
+  projectVersion: 0,
 }));
-
-vi.mock('@/api-clients/temporal-jobs-module', () => ({
-  getWorkflowTemporalWorkflowsWorkflowIdGet:
-    mocks.getWorkflowTemporalWorkflowsWorkflowIdGet,
-}));
-
-vi.mock('@/features/workflow-runtime/workflow-status/useWorkflow', () => ({
-  useWorkflow: mocks.useWorkflow,
-}));
-
-vi.mock(
-  '@/features/workflow-runtime/workflow-status/useRunningWorkflow',
-  () => ({
-    WORKFLOW_TYPE_FILE_PROCESSING: 'FileProcessingWorkflow',
+vi.mock('@tanstack/react-router', () => ({
+  getRouteApi: () => ({
+    useParams: () => ({ verfahrenId: scope.projectId }),
+    useLoaderData: () => ({
+      projectVersion: scope.projectVersion,
+      workflowsManager: getProjectTemporalWorkflowsManager(
+        scope.projectId,
+        scope.projectVersion,
+      ),
+    }),
   }),
-);
-
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: mocks.useQuery,
 }));
 
-const createWorkflowState = (overrides = {}) => ({
-  workflows: [],
-  latestWorkflow: undefined,
-  latestWorkflowsByType: [],
-  subWorkflows: [],
-  hasAnyRun: false,
-  hasSuccessfulRun: false,
-  isRunning: false,
-  isLastRunError: false,
-  isLastRunSuccessful: false,
-  isDone: false,
-  isFailed: false,
-  isLoading: false,
-  isError: false,
-  ...overrides,
+const originalClient = client.getConfig();
+const originalDefaults = queryClient.getDefaultOptions();
+let childRunning = false;
+let unavailable = false;
+const wrapper = ({ children }: PropsWithChildren) =>
+  createElement(QueryClientProvider, { client: queryClient }, children);
+
+beforeEach(() => {
+  scope.projectVersion += 1;
+  childRunning = false;
+  unavailable = false;
+  queryClient.setDefaultOptions({
+    ...originalDefaults,
+    queries: { ...originalDefaults.queries, retry: false },
+  });
+  client.setConfig({
+    baseUrl: 'http://ewms-status.test',
+    fetch: (request) => {
+      if (unavailable) {
+        return Promise.resolve(
+          Response.json({ message: 'Temporal unavailable' }, { status: 503 }),
+        );
+      }
+      const url = new URL(
+        request instanceof Request ? request.url : String(request),
+      );
+      const descendant = url.searchParams.has('rootRunId');
+      const status = url.searchParams.get('executionStatus');
+      const running: WorkflowsBase = {
+        workflowId: descendant
+          ? 'ewms-running-child'
+          : `DMSFileProcessingWorkflow-${scope.projectId}`,
+        runId: descendant
+          ? '62000000-0000-4000-8000-000000000022'
+          : '62000000-0000-4000-8000-000000000021',
+        workflowType: descendant
+          ? WORKFLOW_TYPE_EWMS
+          : WORKFLOW_TYPE_FILE_PROCESSING,
+        status: 'running',
+        workflowStartTime: '2026-09-01T08:00:00.000Z',
+        workflowCloseTime: null,
+        projectId: scope.projectId,
+        projectVersion: scope.projectVersion,
+        failure: null,
+      };
+      const workflows =
+        (status === 'all' || status === 'Running') &&
+        (!descendant || childRunning)
+          ? [running]
+          : [];
+      return Promise.resolve(
+        Response.json({
+          workflows,
+          retrievedWorkflows: workflows.length,
+          nextPageToken: null,
+        }),
+      );
+    },
+  });
 });
 
-describe('useEwmsImportJobState', () => {
-  beforeEach(() => {
-    mocks.getWorkflowTemporalWorkflowsWorkflowIdGet.mockReset();
-    mocks.useQuery.mockReset();
-    mocks.useQuery.mockReturnValue({
-      data: [],
-      isError: false,
-    });
-    mocks.useWorkflow.mockReset();
-    mocks.useWorkflow.mockReturnValue(createWorkflowState());
-  });
+afterEach(async () => {
+  cleanup();
+  const manager = getProjectTemporalWorkflowsManager(
+    scope.projectId,
+    scope.projectVersion,
+  );
+  await manager
+    .getCollection({ workflowType: WORKFLOW_TYPE_FILE_PROCESSING })
+    .cleanup();
+  await manager
+    .getCollection({
+      workflowType: WORKFLOW_TYPE_FILE_PROCESSING,
+      executionStatus: 'Running',
+    })
+    .cleanup();
+  queryClient.clear();
+  queryClient.setDefaultOptions(originalDefaults);
+  client.setConfig(originalClient);
+});
 
-  it('loads FileProcessing workflows with children in the current project scope', () => {
-    renderHook(() => useEwmsImportJobState('project-1'));
-
-    expect(mocks.useWorkflow).toHaveBeenCalledWith({
-      includeSubWorkflows: true,
-      matchIdsInWorkflowId: ['project-1'],
-      workflowType: 'FileProcessingWorkflow',
-    });
-  });
-
-  it('loads detail for deeply nested running EWMS child candidates', async () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        workflows: [
-          {
-            status: 'completed',
-            workflow_id: 'file-processing-1',
-            workflow_type: 'FileProcessingWorkflow',
-            children: [
-              {
-                status: 'completed',
-                workflow_id: 'intermediate-1',
-                workflow_type: 'IntermediateWorkflow',
-                children: [
-                  {
-                    status: 'running',
-                    workflow_id: 'ewms-1',
-                    workflow_type: 'EWMSOrchestratorWorkflow',
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      }),
+describe('EWMS import status', () => {
+  it('keeps file processing separate from an EWMS orchestrator that has not started', async () => {
+    const { result } = renderHook(
+      () => useEwmsImportJobState(scope.projectId),
+      { wrapper },
     );
-    renderHook(() => useEwmsImportJobState('project-1'));
-    const queryOptions = mocks.useQuery.mock.calls[0]?.[0];
-    mocks.getWorkflowTemporalWorkflowsWorkflowIdGet.mockResolvedValue({
-      data: {
-        run_id: 'run-ewms-1',
-        status: 'completed',
-        workflow_id: 'ewms-1',
-        workflow_type: 'EWMSOrchestratorWorkflow',
-      },
-    });
-
-    await queryOptions.queryFn();
-
-    expect(queryOptions).toMatchObject({
-      enabled: true,
-      queryKey: ['ewms-running-workflow-details', ['ewms-1']],
-      refetchInterval: 10_000,
-    });
-    expect(
-      mocks.getWorkflowTemporalWorkflowsWorkflowIdGet,
-    ).toHaveBeenCalledWith({
-      path: {
-        workflow_id: 'ewms-1',
-      },
-      throwOnError: true,
-    });
-  });
-
-  it('falls back to the running child snapshot when a workflow detail request fails', async () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        workflows: [
-          {
-            status: 'completed',
-            workflow_id: 'file-processing-1',
-            workflow_type: 'FileProcessingWorkflow',
-            children: [
-              {
-                status: 'running',
-                workflow_id: 'ewms-1',
-                workflow_type: 'EWMSOrchestratorWorkflow',
-              },
-              {
-                status: 'running',
-                workflow_id: 'ewms-2',
-                workflow_type: 'EWMSOrchestratorWorkflow',
-              },
-            ],
-          },
-        ],
-      }),
+    await waitFor(() =>
+      expect(result.current.isFileProcessingWorkflowRunning).toBe(true),
     );
-    renderHook(() => useEwmsImportJobState('project-1'));
-    const queryOptions = mocks.useQuery.mock.calls[0]?.[0];
-    mocks.getWorkflowTemporalWorkflowsWorkflowIdGet
-      .mockRejectedValueOnce(new Error('detail unavailable'))
-      .mockResolvedValueOnce({
-        data: {
-          run_id: 'run-ewms-2',
-          status: 'completed',
-          workflow_id: 'ewms-2',
-          workflow_type: 'EWMSOrchestratorWorkflow',
-        },
-      });
-
-    const details = await queryOptions.queryFn();
-
-    expect(details).toEqual([
-      {
-        run_id: 'ewms-1',
-        status: 'running',
-        workflow_id: 'ewms-1',
-        workflow_type: 'EWMSOrchestratorWorkflow',
-      },
-      {
-        run_id: 'ewms-2',
-        status: 'completed',
-        workflow_id: 'ewms-2',
-        workflow_type: 'EWMSOrchestratorWorkflow',
-      },
-    ]);
-  });
-
-  it('does not trust stale running child snapshots without running detail status', () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        workflows: [
-          {
-            status: 'completed',
-            workflow_id: 'file-processing-1',
-            workflow_type: 'FileProcessingWorkflow',
-            children: [
-              {
-                status: 'running',
-                workflow_id: 'ewms-1',
-                workflow_type: 'EWMSOrchestratorWorkflow',
-              },
-            ],
-          },
-        ],
-      }),
-    );
-    mocks.useQuery.mockReturnValue({
-      data: [
-        {
-          run_id: 'run-ewms-1',
-          status: 'completed',
-          workflow_id: 'ewms-1',
-          workflow_type: 'EWMSOrchestratorWorkflow',
-        },
-      ],
-      isError: false,
-    });
-
-    const { result } = renderHook(() => useEwmsImportJobState('project-1'));
-
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.isEwmsWorkflowRunning).toBe(false);
-    expect(result.current.isEwmsFileImportWorkflowRunning).toBe(false);
-    expect(result.current.latestRunningWorkflow).toBeUndefined();
+    expect(result.current.isEwmsFileImportWorkflowRunning).toBe(true);
   });
 
-  it('marks EWMS as running only from verified detail status', () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        workflows: [
-          {
-            status: 'completed',
-            workflow_id: 'file-processing-1',
-            workflow_type: 'FileProcessingWorkflow',
-            children: [
-              {
-                status: 'running',
-                workflow_id: 'ewms-1',
-                workflow_type: 'EWMSOrchestratorWorkflow',
-              },
-            ],
-          },
-        ],
-      }),
+  it('retains the verified running child and exposes an unavailable poll without declaring completion', async () => {
+    childRunning = true;
+    const { result } = renderHook(
+      () => useEwmsImportJobState(scope.projectId),
+      { wrapper },
     );
-    mocks.useQuery.mockReturnValue({
-      data: [
-        {
-          run_id: 'run-ewms-1',
-          status: 'running',
-          workflow_id: 'ewms-1',
-          workflow_start_time: '2026-05-02T00:00:00.000Z',
-          workflow_type: 'EWMSOrchestratorWorkflow',
-        },
-      ],
-      isError: false,
+    await waitFor(() =>
+      expect(result.current.isEwmsWorkflowRunning).toBe(true),
+    );
+    expect(result.current.latestRunningWorkflow?.runId).toBe(
+      '62000000-0000-4000-8000-000000000022',
+    );
+    unavailable = true;
+    await act(async () => {
+      await queryClient.invalidateQueries();
     });
-
-    const { result } = renderHook(() => useEwmsImportJobState('project-1'));
-
+    await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.isEwmsWorkflowRunning).toBe(true);
     expect(result.current.isEwmsFileImportWorkflowRunning).toBe(true);
-    expect(result.current.latestRunningWorkflow?.workflow_id).toBe('ewms-1');
-  });
-
-  it('keeps file processing running separate from EWMS orchestrator running', () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        isRunning: true,
-        workflows: [],
-      }),
-    );
-
-    const { result } = renderHook(() => useEwmsImportJobState('project-1'));
-
-    expect(result.current.isFileProcessingWorkflowRunning).toBe(true);
-    expect(result.current.isEwmsWorkflowRunning).toBe(false);
-    expect(result.current.isEwmsFileImportWorkflowRunning).toBe(true);
-  });
-
-  it('exposes workflow loading and detail error states', () => {
-    mocks.useWorkflow.mockReturnValue(
-      createWorkflowState({
-        isLoading: true,
-      }),
-    );
-    mocks.useQuery.mockReturnValue({
-      data: [],
-      isError: true,
-    });
-
-    const { result } = renderHook(() => useEwmsImportJobState('project-1'));
-
-    expect(result.current.isError).toBe(true);
-    expect(result.current.isLoading).toBe(true);
   });
 });

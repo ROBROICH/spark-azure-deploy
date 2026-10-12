@@ -1,6 +1,6 @@
 import type { WorkflowStartTimeSource } from '@/features/workflow-runtime/workflow-status/workflowProgressPrediction';
 import { FileScan, FileSearch, ListTree, type LucideIcon } from 'lucide-react';
-import type { ComponentType } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import { TableOfContentsResultCard } from './TableOfContentsResultCard';
 import { PlausibilityResultCard } from './PlausibilityResultCard';
 import { RequiredDocumentsResultCard } from './RequiredDocumentsResultCard';
@@ -57,4 +57,7 @@ export const RESULT_CARD_BY_TASK_ID = {
   tableOfContents: TableOfContentsResultCard,
   requiredDocuments: RequiredDocumentsResultCard,
   plausibility: PlausibilityResultCard,
-} satisfies Record<AiAnalysisTaskId, ComponentType<{ projectId: string }>>;
+} satisfies Record<
+  AiAnalysisTaskId,
+  ComponentType<{ projectId: string; statusAddon?: ReactNode }>
+>;

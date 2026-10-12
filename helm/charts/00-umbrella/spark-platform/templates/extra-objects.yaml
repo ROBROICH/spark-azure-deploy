@@ -1,0 +1,14 @@
+{{- /*
+Environment-specific manifests no chart models (values: extraObjects).
+A map entry is emitted verbatim (so ESO/Go templating such as {{ .password }}
+inside an ExternalSecret survives); a string entry is rendered with tpl and
+may reference .Values and .Release.
+*/ -}}
+{{- range .Values.extraObjects }}
+---
+{{- if kindIs "string" . }}
+{{ tpl . $ }}
+{{- else }}
+{{ toYaml . }}
+{{- end }}
+{{- end }}

@@ -13,9 +13,13 @@ Already covered elsewhere:
   MatchedDocument / MatchSingleTBMWorkflowOutput        → test_match_single_tbm_workflow.py
 """
 
-from temporal.workflows.modul_suche_und_zuordnung.types import (
-    NormData,
-    PageIndexSVMEntry,
+import pytest
+from pydantic import ValidationError
+from temporal.contracts import (
+    SucheZuordnungNormData as NormData,
+)
+from temporal.contracts import (
+    SucheZuordnungPageIndexSVMEntry as PageIndexSVMEntry,
 )
 
 from src.tbm_db_research.models import RechtsbegriffEintrag
@@ -33,6 +37,9 @@ EXPECTED_TATBESTANDSMERKMALE_COUNT = 2
 EXPECTED_PRUEFFRAGEN_COUNT = 1
 EXPECTED_MAX_CONCURRENT_PAGEINDEX_SVM = 3
 EXPECTED_ORIGINALTEXTE_COUNT = 1
+EXPECTED_CONSENSUS_RATIO = 1.0
+EXPECTED_RELEVANCE = 0.4
+EXPECTED_CONFIDENCE = 0.7
 
 MINIMAL_NORM_DATA = NormData(
     gesetz="TestGesetz",
@@ -56,17 +63,14 @@ class TestPageIndexSVMWorkflowInput:
         """Verify that PageIndexSVMWorkflowInput is constructed correctly with all fields."""
         model = PageIndexSVMWorkflowInput(
             project_id="proj-1",
-            document_id="doc-1",
             file_id="file-1",
-            filename="Unterlage.pdf",
             norm="§ 34 BauGB",
             tbm="Erschließung",
             research_report="Some report",
             document=None,
         )
         assert model.project_id == "proj-1"
-        assert model.document_id == "doc-1"
-        assert model.filename == "Unterlage.pdf"
+        assert model.file_id == "file-1"
         assert model.norm == "§ 34 BauGB"
         assert model.tbm == "Erschließung"
         assert model.research_report == "Some report"
@@ -75,9 +79,7 @@ class TestPageIndexSVMWorkflowInput:
         """Verify that research_report can be set to None."""
         model = PageIndexSVMWorkflowInput(
             project_id="p",
-            document_id="d",
             file_id="f",
-            filename="file.pdf",
             norm="norm",
             tbm="tbm",
             research_report=None,
@@ -236,6 +238,41 @@ class TestSatzOrchestratorWorkflowOutput:
         assert model.norm_id == "norm-uuid-1"
         assert len(model.originaltexte) == EXPECTED_ORIGINALTEXTE_COUNT
         assert model.originaltexte[0].node_id == "n1"
+
+    def test_entry_reliability_values_default_to_absent(self) -> None:
+        """Verify that an entry built without reliability signals carries none of the three values."""
+        entry = PageIndexSVMEntry(node_id="n1", title="Title", text="Content", chunk_ids=["c1"], document_id="abc")
+        assert entry.consensus_ratio is None
+        assert entry.relevance is None
+        assert entry.confidence is None
+
+    def test_entry_carries_reliability_values(self) -> None:
+        """Verify that an entry stores the confidence next to both raw signals."""
+        entry = PageIndexSVMEntry(
+            node_id="n1",
+            title="Title",
+            text="Content",
+            chunk_ids=["c1"],
+            document_id="abc",
+            consensus_ratio=1.0,
+            relevance=0.4,
+            confidence=0.7,
+        )
+        assert entry.consensus_ratio == EXPECTED_CONSENSUS_RATIO
+        assert entry.relevance == EXPECTED_RELEVANCE
+        assert entry.confidence == EXPECTED_CONFIDENCE
+
+    def test_entry_rejects_a_value_outside_the_range(self) -> None:
+        """Verify that a confidence outside 0.0 to 1.0 is rejected."""
+        with pytest.raises(ValidationError):
+            PageIndexSVMEntry(
+                node_id="n1",
+                title="Title",
+                text="Content",
+                chunk_ids=["c1"],
+                document_id="abc",
+                confidence=1.5,
+            )
 
     def test_empty_originaltexte(self) -> None:
         """Verify that an empty originaltexte list is accepted."""

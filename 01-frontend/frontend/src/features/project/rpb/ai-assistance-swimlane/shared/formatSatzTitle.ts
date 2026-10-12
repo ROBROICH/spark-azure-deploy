@@ -78,8 +78,8 @@ export const formatSatzTitle = (
   return formatAbsatzSatzTitle(
     t,
     {
-      absatzNr: absatz.absatz_nr,
-      satzNr: satz.satz_nr,
+      absatzNr: absatz.absatzNr,
+      satzNr: satz.satzNr,
     },
     {
       ...options,

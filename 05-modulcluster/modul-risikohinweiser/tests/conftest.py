@@ -4,12 +4,12 @@ import os
 from uuid import UUID
 
 import pytest
+from temporal.contracts import PFBChapter
 
 from src.schemas.workflow import (
     CriteriaDefinitionResponse,
     CriterionRatingItem,
     IntentionAnalysisResponse,
-    PFBChapter,
     QualityAnalysisResponse,
     QualityCheckItem,
     RiskFormulatorFinding,
@@ -45,10 +45,7 @@ def sample_chapter() -> PFBChapter:
     return PFBChapter(
         id=CHAPTER_ID,
         title="Begründung der Planfeststellung",
-        text=(
-            "Die Planfeststellung wird hiermit erteilt. "
-            "Die Belange des Naturschutzes wurden berücksichtigt."
-        ),
+        text=("Die Planfeststellung wird hiermit erteilt. Die Belange des Naturschutzes wurden berücksichtigt."),
     )
 
 

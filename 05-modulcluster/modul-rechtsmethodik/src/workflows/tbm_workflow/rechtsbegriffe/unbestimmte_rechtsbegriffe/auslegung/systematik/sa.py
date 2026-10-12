@@ -4,11 +4,11 @@ import asyncio
 import re
 from typing import Any
 
-from temporal.utils import sliding_window
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Auslegungsvorschlag,
     UnbestimmterRechtsbegriff,
 )
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from src.activities.law_api_calls import (

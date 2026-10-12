@@ -1,0 +1,25 @@
+# chart-testing (ct lint) — https://github.com/helm/chart-testing
+# Runs every chart's default values and ci/*-values.yaml through helm lint and
+# yamale/yamllint. Schema validation of the renders is tools/chart-verify.sh.
+chart-dirs:
+  - charts/00-umbrella
+  - charts/01-frontend
+  - charts/02-backend
+  - charts/03-infrastructure
+  - charts/04-shared-services
+  - charts/05-modulcluster
+target-branch: main
+remote: origin
+validate-maintainers: false
+validate-chart-schema: true
+validate-yaml: false
+# Versions are bumped deliberately (SemVer; while 0.x, a minor bump for
+# breaking or new behaviour), not on every change: changes without effect on
+# the rendered workloads (comments, docs) keep the version.
+check-version-increment: false
+# Dependencies are vendored as committed archives (charts/*.tgz); ct still
+# resolves the remote ones while building dependencies, so their repositories
+# are declared (OCI dependencies need none).
+chart-repos:
+  - temporal=https://go.temporal.io/helm-charts
+skip-missing-values: true

@@ -1,5 +1,7 @@
 """Prompt template for implicit Verweise identification."""
 
+from src.activities.prompt_blocks import closing_block
+
 verweis_agent_prompt_implizit = """
 **Rolle**
 Du bist ein hochspezialisierter juristischer Experte für die Analyse und Strukturierung von impliziten Verweisen in Gesetzestexten. 
@@ -93,10 +95,6 @@ Ausgabe:
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und extrahiere alle impliziten Verweise, falls vorhanden aus dem folgenden juristischen Satz:
-{external_data_tag_open}
-- Juristischer Satz: {satz_text}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- Juristischer Satz: {satz_text}",
+)

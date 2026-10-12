@@ -1,4 +1,5 @@
 import type { ExaminationDb } from '@/db/nodes/createExaminationDb';
+import { redirectExcludedStepToEwms } from '@/features/project/route/productModeRedirect';
 import { ProjectNavbar } from '@/features/project/route-navbar/ProjectNavbar';
 import { ProjectNavbarSkeleton } from '@/features/project/route-navbar/ProjectNavbarSkeleton';
 import { createFileRoute, Outlet } from '@tanstack/react-router';
@@ -17,6 +18,9 @@ const loadMvpLayoutRoute = async (loaderContext: {
 };
 
 export const Route = createFileRoute('/verfahren/$verfahrenId/mvp')({
+  beforeLoad: ({ params }) => {
+    redirectExcludedStepToEwms(params.verfahrenId);
+  },
   component: MvpLayout,
   loader: loadMvpLayoutRoute,
 });

@@ -8,7 +8,13 @@ import type { SwimlanesLaneProps } from './swimlanes.types';
 
 type SwimlanesLaneHeaderProps = Pick<
   SwimlanesLaneProps,
-  'title' | 'icon' | 'headingLevel' | 'variant' | 'action' | 'headerChildren'
+  | 'title'
+  | 'icon'
+  | 'headingLevel'
+  | 'variant'
+  | 'action'
+  | 'headerChildren'
+  | 'headerClassName'
 > & {
   headingId: string;
   headerPortalTarget: HTMLDivElement | null;
@@ -23,6 +29,7 @@ const SwimlanesLaneHeader = (props: SwimlanesLaneHeaderProps) => {
     variant,
     action,
     headerChildren,
+    headerClassName,
     headingId,
     headerPortalTarget,
     setHeaderPortalTarget,
@@ -37,6 +44,7 @@ const SwimlanesLaneHeader = (props: SwimlanesLaneHeaderProps) => {
       headingId={headingId}
       variant={variant}
       action={action}
+      className={headerClassName}
       hasOverrideContent={hasHeaderOverride}
       overrideContent={
         <div
@@ -65,6 +73,7 @@ export const SwimlanesLane = (props: SwimlanesLaneProps) => {
     variant,
     action,
     headerChildren,
+    headerClassName,
     children,
     className,
   } = props;
@@ -100,7 +109,7 @@ export const SwimlanesLane = (props: SwimlanesLaneProps) => {
       <section
         aria-labelledby={headingId}
         className={cn(
-          'flex min-h-0 min-w-0 flex-1 flex-col bg-white',
+          'flex min-h-0 min-w-[var(--swimlane-min-w)] flex-1 flex-col bg-white',
           className,
         )}
       >
@@ -112,6 +121,7 @@ export const SwimlanesLane = (props: SwimlanesLaneProps) => {
           headingId={headingId}
           action={action}
           headerChildren={headerChildren}
+          headerClassName={headerClassName}
           headerPortalTarget={
             headerOverrideCount > 0 ? headerPortalTarget : null
           }

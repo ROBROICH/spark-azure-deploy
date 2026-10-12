@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 
-from pydantic import Field, SecretStr
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel, EmbeddingModel, VlmModel
 
@@ -49,11 +49,17 @@ class Settings(BaseSettings):
     DOCLING_PORT: int = Field(ge=1, le=65535)
     DOCLING_PROTOCOL: str = Field(default="http")
     DOCLING_OCR_ENGINE: str = Field(default="easyocr")
+    DOCLING_TIMEOUT: int = Field(default=3600, ge=60)
+    DOCLING_QUEUE_WAIT_TIMEOUT: int = Field(default=3600, ge=60)
+    DOCLING_IMAGE_EXPORT_MODE: str = Field(default="placeholder", pattern="^(placeholder|embedded|referenced)$")
+    ENABLE_PICTURE_FURNITURE_FILTER: bool = Field(default=True)
+    ENABLE_PLAN_FAST_PATH: bool = Field(default=True)
+    DETECT_FULL_PAGE_IMAGES: bool = Field(default=True)
 
     # Keycloak auth for docling-serve (optional, for cluster deployment)
-    KEYCLOAK_CLIENT_ID: str = Field(default="")
-    KEYCLOAK_CLIENT_SECRET: SecretStr = Field(default=SecretStr(""))
-    KEYCLOAK_TOKEN_URL: str = Field(default="")
+    OIDC_CLIENT_ID: str = Field(default="")
+    OIDC_CLIENT_SECRET: SecretStr = Field(default=SecretStr(""))
+    OIDC_TOKEN_URL: str = Field(default="")
 
     QDRANT_BASE_URL: str = Field(min_length=1)
     QDRANT_API_KEY: SecretStr = Field(default=SecretStr(""))
@@ -61,11 +67,19 @@ class Settings(BaseSettings):
     QDRANT_COLLECTION_NAME: str = Field(default="data", min_length=1)
     EMBEDDING_MODEL: EmbeddingModel = Field(min_length=1)
 
-    # Injeciton Model
     INJECTION_LLM_MODEL: str = Field(min_length=1)
-    INJECTION_MODEL_TOKEN: str = Field(min_length=1)
-    INJECTION_MODEL_URL: str = Field(min_length=1)
+    INJECTION_MODEL_TOKEN: str = ""
+    INJECTION_MODEL_URL: str = ""
     INJECTION_LLM_SCAN_ENABLED: bool = Field(default=True)
+    INJECTION_MODEL_SCAN_ENABLED: bool = Field(default=True)
+
+    @model_validator(mode="after")
+    def require_injection_scanner(self) -> Settings:
+        if not self.INJECTION_LLM_SCAN_ENABLED and not self.INJECTION_MODEL_SCAN_ENABLED:
+            raise ValueError("at least one prompt injection scanner must be enabled")
+        if self.INJECTION_MODEL_SCAN_ENABLED and (not self.INJECTION_MODEL_URL or not self.INJECTION_MODEL_TOKEN):
+            raise ValueError("prompt injection classifier URL and token are required when enabled")
+        return self
 
     model_config = SettingsConfigDict(
         env_file=[".env.local", ".env"] if not os.getenv("SKIP_DOTENV") else None,

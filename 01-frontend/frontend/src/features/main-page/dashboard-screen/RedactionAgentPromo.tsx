@@ -13,7 +13,7 @@ export const RedactionAgentPromo = (props: RedactionAgentPromoProps) => {
 
   return (
     <div className="-mx-4 flex flex-col gap-4">
-      <div className="flex items-center gap-2 rounded-2xl bg-[var(--effect-gradient-ai-fill-primary-hover)] px-4 py-3">
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-[var(--effect-gradient-ai-fill-primary-hover)] px-4 py-3">
         <span
           aria-hidden="true"
           className="bg-ai-gradient rounded-lg border-[0.5px] border-[var(--effect-gradient-ai-border-secondary)] p-2 shadow-elevated"

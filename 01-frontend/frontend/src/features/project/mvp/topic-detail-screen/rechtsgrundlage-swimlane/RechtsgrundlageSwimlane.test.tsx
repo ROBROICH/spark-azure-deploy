@@ -1,5 +1,6 @@
 import { cleanup, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type * as ResolvedTopicNormEntries from '../screen-content/useResolvedTopicNormEntries';
 import { RechtsgrundlageSwimlane } from './RechtsgrundlageSwimlane';
 
 type RouteSearch = {
@@ -17,6 +18,7 @@ const {
   normCardItemPropsMock,
   resolvedNormTextViewPropsMock,
   routeState,
+  secondTopicNorm,
   topicNorm,
   updateMock,
   useNodeMock,
@@ -34,11 +36,17 @@ const {
       selectedDocumentId: 'doc-1' as string | undefined,
     } satisfies RouteSearch,
   },
+  secondTopicNorm: {
+    id: 'topic-norm-2',
+    jurabk: 'BNatSchG',
+    mvpStatus: 'unchecked',
+    paragraphNr: '45',
+  },
   topicNorm: {
     id: 'topic-norm-1',
     jurabk: 'BNatSchG',
-    mvp_status: 'unchecked',
-    paragraph_nr: '44',
+    mvpStatus: 'unchecked',
+    paragraphNr: '44',
   },
   updateMock: vi.fn(),
   useNodeMock: vi.fn(),
@@ -74,6 +82,35 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
   useNode: useNodeMock,
 }));
 
+vi.mock('@/db/nodes/hooks/useGraph', () => ({
+  useGraph: () => ({
+    index: {
+      childrenByNodeId: new Map([
+        ['topic-norm-1', ['norm-1']],
+        ['topic-norm-2', ['norm-2']],
+      ]),
+      nodeById: new Map([
+        ['norm-1', { nodeType: 'norm' }],
+        ['norm-2', { nodeType: 'norm' }],
+      ]),
+    },
+  }),
+}));
+
+// The topic read reports a failed newest AI analysis for norm-2 only.
+vi.mock(
+  '@/features/workflow-runtime/workflow-status/useLatestWorkflowFailureByTarget',
+  () => ({
+    useLatestWorkflowFailureByTarget: (args: { targetIds: string[] }) => ({
+      failureCodeByTargetId: new Map(
+        args.targetIds.includes('norm-2')
+          ? [['norm-2', 'ANALYSIS_TIMED_OUT']]
+          : [],
+      ),
+    }),
+  }),
+);
+
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string) => key,
@@ -88,10 +125,13 @@ vi.mock('../screen-data/useRechtsgrundlageData', () => ({
       {
         id: 'law-group-1',
         label: 'Law group 1',
-        topicNorms: [topicNorm],
+        topicNorms: [topicNorm, secondTopicNorm],
       },
     ],
-    topicNormById: new Map([['topic-norm-1', topicNorm]]),
+    topicNormById: new Map([
+      ['topic-norm-1', topicNorm],
+      ['topic-norm-2', secondTopicNorm],
+    ]),
   }),
 }));
 
@@ -117,15 +157,24 @@ vi.mock('../screen-content/NormTextView', () => ({
   NormTextView: () => null,
 }));
 
-vi.mock('../screen-content/useResolvedTopicNormEntries', () => ({
-  useResolvedTopicNormEntries: () => [
-    {
-      gesetz: null,
-      norm: { id: 'norm-1' },
-      topicNorm,
-    },
-  ],
-}));
+vi.mock(
+  '../screen-content/useResolvedTopicNormEntries',
+  async (importOriginal) => ({
+    ...(await importOriginal<typeof ResolvedTopicNormEntries>()),
+    useResolvedTopicNormEntries: () => [
+      {
+        gesetz: null,
+        norm: { id: 'norm-1' },
+        topicNorm,
+      },
+      {
+        gesetz: null,
+        norm: { id: 'norm-2' },
+        topicNorm: secondTopicNorm,
+      },
+    ],
+  }),
+);
 
 vi.mock('../screen-content/RechtsgrundlageAccordionView', () => ({
   RechtsgrundlageAccordionView: (props: Record<string, unknown>) => {
@@ -208,7 +257,7 @@ describe('RechtsgrundlageSwimlane', () => {
       useNodeMock.mock.calls.some((call) => {
         const [nodeRef] = call;
 
-        return nodeRef?.node_type === 'dokument';
+        return nodeRef?.nodeType === 'dokument';
       }),
     ).toBe(false);
   });
@@ -304,6 +353,29 @@ describe('RechtsgrundlageSwimlane', () => {
     });
   });
 
+  it('gives each norm card only its own AI analysis failure', () => {
+    render(
+      <RechtsgrundlageSwimlane
+        canMutateTopic
+        selectedDocumentLabel="Dokument 1.pdf"
+      />,
+    );
+    renderLawGroupContent();
+
+    const failureCodeByNormId = new Map(
+      normCardItemPropsMock.mock.calls.map(([cardProps]) => [
+        cardProps.norm.norm.id,
+        cardProps.aiAnalysisFailureCode,
+      ]),
+    );
+    expect(failureCodeByNormId).toEqual(
+      new Map([
+        ['norm-1', null],
+        ['norm-2', 'ANALYSIS_TIMED_OUT'],
+      ]),
+    );
+  });
+
   it('guards review updates in read-only state', () => {
     render(
       <RechtsgrundlageSwimlane
@@ -315,7 +387,7 @@ describe('RechtsgrundlageSwimlane', () => {
 
     normCardItemPropsMock.mock.calls[0]?.[0].onToggleReviewed({
       id: 'topic-norm-1',
-      mvp_status: 'unchecked',
+      mvpStatus: 'unchecked',
     });
 
     expect(updateMock).not.toHaveBeenCalled();

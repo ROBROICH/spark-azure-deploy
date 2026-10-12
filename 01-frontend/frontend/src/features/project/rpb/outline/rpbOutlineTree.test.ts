@@ -22,34 +22,33 @@ const createVaeNode = (
   },
 ): NodePayloadByType<'vae_node'> => {
   return {
-    node_type: 'vae_node',
+    nodeType: 'vae_node',
     id: overrides.id,
     title: overrides.title,
     text: overrides.text ?? '',
     assignee: overrides.assignee ?? null,
-    checked_by_assignee: overrides.checked_by_assignee ?? false,
-    checked_by_leader: overrides.checked_by_leader ?? false,
-    checked_at_assignee: overrides.checked_at_assignee ?? null,
-    checked_at_leader: overrides.checked_at_leader ?? null,
-    parent_vae_node_id: overrides.parent_vae_node_id ?? null,
+    checkedByAssignee: overrides.checkedByAssignee ?? false,
+    checkedByLeader: overrides.checkedByLeader ?? false,
+    checkedAtAssignee: overrides.checkedAtAssignee ?? null,
+    checkedAtLeader: overrides.checkedAtLeader ?? null,
+    parentVaeNodeId: overrides.parentVaeNodeId ?? null,
     order: overrides.order ?? 0,
-    template_id: overrides.template_id ?? null,
-    is_hidden: overrides.is_hidden ?? false,
-    can_add_child: overrides.can_add_child ?? false,
-    topic_id: overrides.topic_id ?? null,
-    subtopic_id: overrides.subtopic_id ?? null,
-    project_id: overrides.project_id ?? 'project-1',
-    is_deleted: overrides.is_deleted ?? false,
-    frontend_parent_ids: overrides.frontend_parent_ids ?? [],
-    update_type: overrides.update_type ?? null,
-    created_at: overrides.created_at ?? '2026-01-01T00:00:00Z',
-    updated_at: overrides.updated_at ?? '2026-01-01T00:00:00Z',
-    sys_period: overrides.sys_period ?? null,
+    templateId: overrides.templateId ?? null,
+    isHidden: overrides.isHidden ?? false,
+    canAddChild: overrides.canAddChild ?? false,
+    topicId: overrides.topicId ?? null,
+    subtopicId: overrides.subtopicId ?? null,
+    projectId: overrides.projectId ?? 'project-1',
+    isDeleted: overrides.isDeleted ?? false,
+    frontendParentIds: overrides.frontendParentIds ?? [],
+    updateType: overrides.updateType ?? null,
+    createdAt: overrides.createdAt ?? '2026-01-01T00:00:00Z',
+    updatedAt: overrides.updatedAt ?? '2026-01-01T00:00:00Z',
     compositeKey: overrides.compositeKey
       ? overrides.compositeKey
       : toCompositeKey({
           id: overrides.id,
-          node_type: 'vae_node',
+          nodeType: 'vae_node',
         }),
   };
 };
@@ -61,21 +60,21 @@ describe('buildRpbOutlineTree', () => {
         id: 'child-b',
         title: 'Child B',
         order: 2,
-        parent_vae_node_id: 'root-a',
+        parentVaeNodeId: 'root-a',
       }),
       createVaeNode({ id: 'root-b', title: 'Root B', order: 2 }),
       createVaeNode({
         id: 'grandchild',
         title: 'Grandchild',
         order: 1,
-        parent_vae_node_id: 'child-b',
+        parentVaeNodeId: 'child-b',
       }),
       createVaeNode({ id: 'root-a', title: 'Root A', order: 1 }),
       createVaeNode({
         id: 'child-a',
         title: 'Child A',
         order: 1,
-        parent_vae_node_id: 'root-a',
+        parentVaeNodeId: 'root-a',
       }),
     ]);
 
@@ -99,20 +98,20 @@ describe('buildRpbOutlineTree', () => {
         id: 'hidden-root',
         title: 'Hidden Root',
         order: 2,
-        is_hidden: true,
+        isHidden: true,
       }),
       createVaeNode({
         id: 'deleted-child',
         title: 'Deleted Child',
         order: 1,
-        parent_vae_node_id: 'visible-root',
-        is_deleted: true,
+        parentVaeNodeId: 'visible-root',
+        isDeleted: true,
       }),
       createVaeNode({
         id: 'orphan',
         title: 'Orphan',
         order: 3,
-        parent_vae_node_id: 'missing-parent',
+        parentVaeNodeId: 'missing-parent',
       }),
     ]);
 
@@ -129,7 +128,7 @@ describe('buildRpbOutlineTree', () => {
         id: 'self-parent',
         title: 'Self Parent',
         order: 2,
-        parent_vae_node_id: 'self-parent',
+        parentVaeNodeId: 'self-parent',
       }),
       createVaeNode({ id: 'root-b', title: 'Root B', order: 1 }),
       createVaeNode({ id: 'root-a', title: 'Root A', order: 1 }),
@@ -137,13 +136,13 @@ describe('buildRpbOutlineTree', () => {
         id: 'child-b',
         title: 'Child B',
         order: 1,
-        parent_vae_node_id: 'root-a',
+        parentVaeNodeId: 'root-a',
       }),
       createVaeNode({
         id: 'child-a',
         title: 'Child A',
         order: 1,
-        parent_vae_node_id: 'root-a',
+        parentVaeNodeId: 'root-a',
       }),
     ]);
 
@@ -166,13 +165,13 @@ describe('outline tree helpers', () => {
       id: 'child',
       title: 'Child',
       order: 1,
-      parent_vae_node_id: 'root',
+      parentVaeNodeId: 'root',
     }),
     createVaeNode({
       id: 'grandchild',
       title: 'Grandchild',
       order: 1,
-      parent_vae_node_id: 'child',
+      parentVaeNodeId: 'child',
     }),
   ]);
 
@@ -221,15 +220,15 @@ describe('outline tree helpers', () => {
         id: 'child-a',
         title: 'Child A',
         order: 1,
-        parent_vae_node_id: 'root',
-        checked_by_assignee: true,
+        parentVaeNodeId: 'root',
+        checkedByAssignee: true,
       }),
       createVaeNode({
         id: 'child-b',
         title: 'Child B',
         order: 2,
-        parent_vae_node_id: 'root',
-        checked_by_assignee: true,
+        parentVaeNodeId: 'root',
+        checkedByAssignee: true,
       }),
     ]);
     const checkedStateById = createRpbOutlineCheckedStateById(
@@ -255,13 +254,13 @@ describe('outline tree helpers', () => {
         id: 'assignee-only',
         title: 'Assignee only',
         order: 1,
-        checked_by_assignee: true,
+        checkedByAssignee: true,
       }),
       createVaeNode({
         id: 'leader-only',
         title: 'Leader only',
         order: 2,
-        checked_by_leader: true,
+        checkedByLeader: true,
       }),
       createVaeNode({
         id: 'neither',
@@ -287,20 +286,20 @@ describe('outline tree helpers', () => {
         id: 'root-a',
         title: 'Root A',
         order: 1,
-        checked_by_assignee: true,
+        checkedByAssignee: true,
       }),
       createVaeNode({
         id: 'root-b',
         title: 'Root B',
         order: 2,
-        checked_by_assignee: false,
+        checkedByAssignee: false,
       }),
       createVaeNode({
         id: 'child-a',
         title: 'Child A',
         order: 1,
-        parent_vae_node_id: 'root-b',
-        checked_by_assignee: true,
+        parentVaeNodeId: 'root-b',
+        checkedByAssignee: true,
       }),
     ]);
     const checkedStateById = createRpbOutlineCheckedStateById(
@@ -324,12 +323,12 @@ describe('outline tree helpers', () => {
       createVaeNode({
         id: 'topic-root',
         title: 'Topic Root',
-        topic_id: 'topic-1',
+        topicId: 'topic-1',
       }),
       createVaeNode({
         id: 'topic-grandchild',
         title: 'Topic Grandchild',
-        parent_vae_node_id: 'topic-root',
+        parentVaeNodeId: 'topic-root',
       }),
       createVaeNode({
         id: 'project-root',
@@ -338,22 +337,22 @@ describe('outline tree helpers', () => {
       createVaeNode({
         id: 'project-grandchild',
         title: 'Project Grandchild',
-        parent_vae_node_id: 'project-root',
+        parentVaeNodeId: 'project-root',
       }),
       createVaeNode({
         id: 'broken-child',
         title: 'Broken Child',
-        parent_vae_node_id: 'missing-parent',
+        parentVaeNodeId: 'missing-parent',
       }),
       createVaeNode({
         id: 'cycle-a',
         title: 'Cycle A',
-        parent_vae_node_id: 'cycle-b',
+        parentVaeNodeId: 'cycle-b',
       }),
       createVaeNode({
         id: 'cycle-b',
         title: 'Cycle B',
-        parent_vae_node_id: 'cycle-a',
+        parentVaeNodeId: 'cycle-a',
       }),
     ];
 

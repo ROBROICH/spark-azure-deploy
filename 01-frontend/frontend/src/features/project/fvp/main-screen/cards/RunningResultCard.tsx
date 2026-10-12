@@ -11,6 +11,8 @@ type RunningResultCardProps = {
   progressDescriptionKey?: string;
   progressDescriptionOptions?: TOptions;
   showProgress?: boolean;
+  /** Marker below the description, such as a failed latest run. */
+  statusAddon?: ReactNode;
 };
 
 export const RunningResultCard = (props: RunningResultCardProps) => {
@@ -22,6 +24,7 @@ export const RunningResultCard = (props: RunningResultCardProps) => {
     progressDescriptionKey,
     progressDescriptionOptions,
     showProgress,
+    statusAddon,
   } = props;
   const { t } = useTranslation('FormalCompletenessCheck');
   const titleId = useId();
@@ -43,6 +46,7 @@ export const RunningResultCard = (props: RunningResultCardProps) => {
           {t(descriptionKey)}
         </p>
       </div>
+      {statusAddon}
       {shouldShowProgress && (
         <div className="flex w-full flex-col gap-3">
           <ProgressBar ariaLabelledBy={titleId} progress={progress} />

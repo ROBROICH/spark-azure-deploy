@@ -62,9 +62,7 @@ class GroupedRiskScreenerPromptPayload(BaseModel):
     check_claims: list[GroupedRiskScreenerPromptCheckClaim] = Field(
         description="Check claims with their assigned reference IDs."
     )
-    reference_claims: list[RiskScreenerReferencePromptItem] = Field(
-        description="Global pool of reference claims."
-    )
+    reference_claims: list[RiskScreenerReferencePromptItem] = Field(description="Global pool of reference claims.")
 
 
 class GroupedScreeningResultItem(BaseModel):
@@ -99,14 +97,30 @@ class DocumentBundleResult(BaseModel):
     bundles: list[ScreeningCandidateBundle] = Field(
         description="One bundle per claim in the same order as the input claim_ids."
     )
+    overflow_pairs: list[tuple[str, str]] = Field(
+        default_factory=list,
+        description="(claim_id, neighbour_id) pairs above the upper cosine window (copied-sentence test).",
+    )
+    verweis_bundles: int = Field(default=0, description="Number of claims that received cross-reference references.")
+
+
+class OverflowCheckInput(BaseModel):
+    """Input for the ``check_overflow_pairs`` activity."""
+
+    project_id: str
+    pairs: list[tuple[str, str]]
 
 
 class ResolvedClaimData(BaseModel):
-    """Minimal pre-fetched claim data needed for screening (avoids Qdrant call in LLM activity)."""
+    """Minimal claim data the screener prompt needs, resolved before the LLM call."""
 
     claim_id: str = Field(description="Claim ID.")
     chunk_id: str = Field(description="Chunk ID the claim originated from.")
     claim_text: str = Field(description="Claim text to be used in the LLM prompt.")
+    instance_identifiers: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Page-level instance identifiers captured at extraction (extraction evidence); empty on legacy claims.",
+    )
 
 
 class FetchScreeningPayloadsBatchInput(BaseModel):
@@ -114,6 +128,10 @@ class FetchScreeningPayloadsBatchInput(BaseModel):
 
     project_id: str = Field(description="Project scope used for Qdrant collections.")
     bundles: list[GroupedScreeningBundle] = Field(description="All grouped bundles whose claims need fetching.")
+    extra_claim_ids: list[str] = Field(
+        default_factory=list,
+        description="Claims of deterministic candidate hits that bypass the screener (deterministic candidates).",
+    )
 
 
 class ResolvedGroupedScreeningBundle(BaseModel):
@@ -122,6 +140,4 @@ class ResolvedGroupedScreeningBundle(BaseModel):
     project_id: str = Field(description="Project scope used for Qdrant collections.")
     document_id: str = Field(description="Document containing the check claims.")
     bundles: list[ScreeningCandidateBundle] = Field(description="1-N bundles from the same chunk.")
-    claim_payloads: dict[str, ResolvedClaimData] = Field(
-        description="Pre-fetched claim payloads keyed by claim_id."
-    )
+    claim_payloads: dict[str, ResolvedClaimData] = Field(description="Pre-fetched claim payloads keyed by claim_id.")

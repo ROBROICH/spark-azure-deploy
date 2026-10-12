@@ -1,0 +1,6 @@
+# ci: one pool with a pinned image.
+global:
+  backend:
+    image:
+      repository: registry.example.com/spark/spark-backend
+      tag: "1.0.0"

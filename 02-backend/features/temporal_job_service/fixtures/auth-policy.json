@@ -1,0 +1,8 @@
+{
+  "mode": "disabled",
+  "cases": [
+    { "credentials": "absent", "expectedStatus": 200 },
+    { "credentials": "malformed", "expectedStatus": 200 }
+  ],
+  "reason": "The read fixture isolates behavior; strict authorization is owned by the shared authentication capability."
+}

@@ -61,11 +61,11 @@ function EwmsPendingComponent() {
 
 function RouteComponent() {
   return (
-    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-clip">
+    <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-clip overflow-y-auto">
       <Suspense fallback={<ProjectNavbarSkeleton />}>
         <ProjectNavbar selectedStep="ewms" />
       </Suspense>
-      <main className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-x-clip">
+      <main className="flex min-h-[var(--reflow-min-h)] w-full min-w-0 flex-1 flex-col overflow-x-clip lg:min-h-0">
         <EwmsPage />
       </main>
     </div>

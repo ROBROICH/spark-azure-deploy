@@ -20,7 +20,10 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  delete window.__APP_CONFIG__;
+});
 
 describe('Accessibility', () => {
   it('renders the accessibility statement contacts and public links', () => {

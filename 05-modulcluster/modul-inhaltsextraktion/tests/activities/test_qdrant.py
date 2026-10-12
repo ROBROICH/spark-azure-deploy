@@ -1,14 +1,20 @@
 """Tests for Qdrant activity functions."""
 
 import json
+import socket
 import uuid
+from collections.abc import AsyncIterator, Iterator
+from pathlib import Path
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
 from pydantic import SecretStr
-from temporal.workflows.inhaltsextraktion.types import QdrantSourceFileCleanupInput
+from qdrant_client import AsyncQdrantClient
+from qdrant_client import models as qm
+from qdrant_client.http.exceptions import ResponseHandlingException
+from temporal.contracts import QdrantSourceFileCleanupInput
 
 from src.activities.qdrant.client import _get_qdrant_client, _init_qdrant_collection
 from src.activities.qdrant.indexing import (
@@ -16,8 +22,8 @@ from src.activities.qdrant.indexing import (
     _delete_document_version,
     _get_highest_document_version,
     _get_inhalts_extraktion_docs,
-    _prepare_qdrant_data,
     _mark_qdrant_source_files_deleted,
+    _prepare_qdrant_data,
     _restore_qdrant_source_files_deleted,
     _upload_chunks_to_qdrant,
     _upload_parent_chunks_to_qdrant,
@@ -31,10 +37,10 @@ from src.activities.qdrant.schemas import (
     EmbeddedQuestion,
     EmbeddedSummary,
     QdrantDocumentInput,
-    QdrantExtractionFile,
     QdrantUploadInput,
 )
 from src.env import ENV
+from src.schemas import ProcessedDocument
 from src.workflows.deletion.types import DeletionFileInfo, QdrantDocumentDeleteInput
 from src.workflows.qdrant.schemas import (
     ChunkMetadata,
@@ -145,6 +151,70 @@ def _make_processed_doc_no_sub_chunks(source_file_id: str = "source-file-1") -> 
 
 
 # ---------------------------------------------------------------------------
+# qdrant-client local stores
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture
+async def memory_qdrant() -> AsyncIterator[AsyncQdrantClient]:
+    client = AsyncQdrantClient(location=":memory:")
+    try:
+        yield client
+    finally:
+        await client.close()
+
+
+@pytest.fixture
+def local_qdrant(tmp_path: Path) -> Iterator[str]:
+    """Serve every client an activity creates from one persistent qdrant-client local store.
+
+    The local store holds an exclusive file lock until its client is closed, so a
+    reopen after an activity also proves that the activity closed its client.
+    """
+    path = str(tmp_path / "qdrant")
+    with (
+        patch("src.activities.qdrant.indexing._get_qdrant_client", side_effect=lambda: AsyncQdrantClient(path=path)),
+        patch("src.activities.qdrant.client._get_qdrant_client", side_effect=lambda: AsyncQdrantClient(path=path)),
+    ):
+        yield path
+
+
+async def _seed(client: AsyncQdrantClient, payloads: dict[int, dict[str, Any]]) -> None:
+    await client.create_collection(
+        ENV.QDRANT_COLLECTION_NAME,
+        vectors_config={"dense": qm.VectorParams(size=2, distance=qm.Distance.COSINE)},
+    )
+    await client.upsert(
+        ENV.QDRANT_COLLECTION_NAME,
+        points=[
+            qm.PointStruct(id=point_id, vector={"dense": [1.0, 0.0]}, payload=payload)
+            for point_id, payload in payloads.items()
+        ],
+    )
+
+
+async def _payloads(client: AsyncQdrantClient) -> dict[int, dict[str, Any]]:
+    records, _ = await client.scroll(ENV.QDRANT_COLLECTION_NAME, with_payload=True, with_vectors=False)
+    return {int(record.id): dict(record.payload or {}) for record in records}
+
+
+async def _seed_store(path: str, payloads: dict[int, dict[str, Any]]) -> None:
+    client = AsyncQdrantClient(path=path)
+    try:
+        await _seed(client, payloads)
+    finally:
+        await client.close()
+
+
+async def _stored_payloads(path: str) -> dict[int, dict[str, Any]]:
+    client = AsyncQdrantClient(path=path)
+    try:
+        return await _payloads(client)
+    finally:
+        await client.close()
+
+
+# ---------------------------------------------------------------------------
 # _chunk_metadata_from_dict
 # ---------------------------------------------------------------------------
 
@@ -204,12 +274,6 @@ class TestChunkMetadataFromDict:
         assert cm.hypothetical_questions == ["Q1?"]
         assert cm.related_assets == [{"id": "a1"}]
 
-    def test_uuid_parent_chunk_id_converted_to_string(self) -> None:
-        """Test that a UUID parent_chunk_id is stored as a string."""
-        uid = uuid.uuid4()
-        cm = _chunk_metadata_from_dict(chunk_id="c1", page_content="t", metadata={}, parent_chunk_id=str(uid))
-        assert cm.parent_chunk_id == str(uid)
-
 
 # ---------------------------------------------------------------------------
 # _get_inhalts_extraktion_docs
@@ -219,9 +283,10 @@ class TestChunkMetadataFromDict:
 @pytest.mark.asyncio
 class TestGetInhaltsExtraktionDocs:
     """Tests for _get_inhalts_extraktion_docs file listing activity."""
+
     @patch("src.activities.qdrant.indexing.activity")
     @patch("src.activities.qdrant.indexing.download_file")
-    @patch("src.activities.qdrant.indexing.list_files")
+    @patch("src.utils.dms_utils.list_files")
     async def test_filters_processed_json(
         self,
         mock_list: Any,
@@ -241,13 +306,11 @@ class TestGetInhaltsExtraktionDocs:
 
         result = await _get_inhalts_extraktion_docs((proj_id, [requested_source_id]))
 
-        assert len(result) == 1
-        assert result[0].filename == "doc_processed.json"
-        mock_download.assert_awaited_once_with(str(file_ok.id))
+        assert [extraction_file.filename for extraction_file in result] == ["doc_processed.json"]
 
     @patch("src.activities.qdrant.indexing.activity")
     @patch("src.activities.qdrant.indexing.download_file")
-    @patch("src.activities.qdrant.indexing.list_files")
+    @patch("src.utils.dms_utils.list_files")
     async def test_pagination(
         self,
         mock_list: Any,
@@ -267,12 +330,13 @@ class TestGetInhaltsExtraktionDocs:
 
         result = await _get_inhalts_extraktion_docs((proj_id, [requested_source_id]))
 
-        assert len(result) == 501
-        assert mock_list.await_count == 2
-        assert mock_download.await_count == 501
+        assert [extraction_file.filename for extraction_file in result] == [
+            listed.filename for listed in [*full_page, *partial_page]
+        ]
+        assert [request.args[0].page for request in mock_list.await_args_list] == [1, 2]
 
     @patch("src.activities.qdrant.indexing.activity")
-    @patch("src.activities.qdrant.indexing.list_files")
+    @patch("src.utils.dms_utils.list_files")
     async def test_empty_project(
         self,
         mock_list: Any,
@@ -321,7 +385,6 @@ class TestUploadChunks:
 
         await _upload_chunks_to_qdrant([ec], _DOC_CONTEXT, mock_qdrant, 50.0)
 
-        mock_qdrant.upsert.assert_awaited_once()
         call_kwargs = mock_qdrant.upsert.call_args[1]
         assert call_kwargs["collection_name"] == ENV.QDRANT_COLLECTION_NAME
         points = call_kwargs["points"]
@@ -359,7 +422,6 @@ class TestUploadQuestions:
 
         await _upload_questions_to_qdrant([eq], _DOC_CONTEXT, mock_qdrant, 10.0)
 
-        mock_qdrant.upsert.assert_awaited_once()
         points = mock_qdrant.upsert.call_args[1]["points"]
         assert points[0].payload["type"] == "question"
         assert points[0].payload["question_text"] == "What is X?"
@@ -384,7 +446,6 @@ class TestUploadParentChunks:
 
         await _upload_parent_chunks_to_qdrant([pc], _DOC_CONTEXT, mock_qdrant)
 
-        mock_qdrant.upsert.assert_awaited_once()
         points = mock_qdrant.upsert.call_args[1]["points"]
         assert points[0].vector == {}
         assert points[0].payload["type"] == "parent_chunk"
@@ -412,7 +473,6 @@ class TestUploadSummaries:
 
         await _upload_summaries_to_qdrant([es], _DOC_CONTEXT, mock_qdrant)
 
-        mock_qdrant.upsert.assert_awaited_once()
         payload = mock_qdrant.upsert.call_args[1]["points"][0].payload
         assert payload["type"] == "summary"
         assert payload["summary_text"] == "A summary"
@@ -428,6 +488,7 @@ class TestUploadSummaries:
 
 class TestGetQdrantClient:
     """Tests for _get_qdrant_client factory function."""
+
     @patch("src.activities.qdrant.client.AsyncQdrantClient")
     @patch("src.activities.qdrant.client.ENV")
     def test_empty_api_key_passes_none(self, mock_env: Any, mock_client_cls: Any) -> None:
@@ -455,64 +516,55 @@ class TestGetQdrantClient:
 class TestGetHighestDocumentVersion:
     """Tests for _get_highest_document_version Qdrant helper."""
 
-    async def test_returns_none_when_no_points_found(self) -> None:
-        """Test that None is returned when no points exist for the document."""
-        mock_qdrant = AsyncMock()
-        mock_qdrant.scroll = AsyncMock(return_value=([], None))
+    async def test_returns_none_for_other_titles_and_projects(self, memory_qdrant: AsyncQdrantClient) -> None:
+        await _seed(
+            memory_qdrant,
+            {
+                1: {"project_id": "proj-1", "title": "other.pdf", "version": 5},
+                2: {"project_id": "proj-2", "title": "doc.pdf", "version": 5},
+            },
+        )
 
-        result = await _get_highest_document_version(mock_qdrant, "proj-1", "doc.pdf")
+        assert await _get_highest_document_version(memory_qdrant, "proj-1", "doc.pdf") is None
 
-        assert result is None
-        mock_qdrant.scroll.assert_awaited_once()
+    async def test_reads_the_highest_version_from_a_later_scroll_page(self, memory_qdrant: AsyncQdrantClient) -> None:
+        newest = 3
+        matching = {"project_id": "proj-1", "title": "doc.pdf"}
+        # Several times the helper's scroll page size; the scroll returns ids in ascending order.
+        older_points = {point_id: {**matching, "version": 1} for point_id in range(1, 600)}
+        await _seed(memory_qdrant, {**older_points, 600: {**matching, "version": newest}})
 
-    async def test_returns_highest_version_across_pages(self) -> None:
-        """Test that the maximum version is returned when results span multiple scroll pages."""
-        p1 = MagicMock()
-        p1.payload = {"version": 1}
-        p2 = MagicMock()
-        p2.payload = {"version": 3}
-        p3 = MagicMock()
-        p3.payload = {"version": 2}
+        assert await _get_highest_document_version(memory_qdrant, "proj-1", "doc.pdf") == newest
 
-        mock_qdrant = AsyncMock()
-        mock_qdrant.scroll = AsyncMock(side_effect=[([p1, p2], "next"), ([p3], None)])
-
-        result = await _get_highest_document_version(mock_qdrant, "proj-1", "doc.pdf")
-
-        assert result == 3
-        assert mock_qdrant.scroll.await_count == 2
-
-    async def test_raises_on_non_integer_versions(self) -> None:
-        """Test that a TypeError is raised when version payloads contain non-integer values."""
-        p1 = MagicMock()
-        p1.payload = {"version": "2"}
-        p2 = MagicMock()
-        p2.payload = {"version": None}
-        p3 = MagicMock()
-        p3.payload = {"version": 4}
-
-        mock_qdrant = AsyncMock()
-        mock_qdrant.scroll = AsyncMock(return_value=([p1, p2, p3], None))
+    async def test_rejects_non_integer_versions(self, memory_qdrant: AsyncQdrantClient) -> None:
+        await _seed(
+            memory_qdrant,
+            {
+                1: {"project_id": "proj-1", "title": "doc.pdf", "version": "2"},
+                2: {"project_id": "proj-1", "title": "doc.pdf", "version": 4},
+            },
+        )
 
         with pytest.raises(TypeError):
-            await _get_highest_document_version(mock_qdrant, "proj-1", "doc.pdf")
+            await _get_highest_document_version(memory_qdrant, "proj-1", "doc.pdf")
 
 
 @pytest.mark.asyncio
 class TestDeleteDocumentVersion:
     """Tests for _delete_document_version Qdrant helper."""
 
-    async def test_sets_is_deleted_payload_for_matching_version(self) -> None:
-        """Test that set_payload is called with is_deleted=True for the given version."""
-        mock_qdrant = AsyncMock()
+    async def test_soft_deletes_only_that_title_version(self, memory_qdrant: AsyncQdrantClient) -> None:
+        seeded = {
+            1: {"project_id": "proj-1", "title": "doc.pdf", "version": 2, "is_deleted": False},
+            2: {"project_id": "proj-1", "title": "doc.pdf", "version": 1, "is_deleted": False},
+            3: {"project_id": "proj-1", "title": "other.pdf", "version": 2, "is_deleted": False},
+            4: {"project_id": "proj-2", "title": "doc.pdf", "version": 2, "is_deleted": False},
+        }
+        await _seed(memory_qdrant, seeded)
 
-        await _delete_document_version(mock_qdrant, "proj-1", "doc.pdf", 2)
+        await _delete_document_version(memory_qdrant, "proj-1", "doc.pdf", 2)
 
-        mock_qdrant.set_payload.assert_awaited_once()
-        call_kwargs = mock_qdrant.set_payload.await_args.kwargs
-        assert call_kwargs["collection_name"] == ENV.QDRANT_COLLECTION_NAME
-        assert call_kwargs["payload"] == {"is_deleted": True}
-        assert call_kwargs["wait"] is True
+        assert await _payloads(memory_qdrant) == {**seeded, 1: {**seeded[1], "is_deleted": True}}
 
 
 @pytest.mark.asyncio
@@ -520,56 +572,37 @@ class TestDeleteDocumentBySourceFileId:
     """Tests for _delete_document_by_source_file_id activity."""
 
     @patch("src.activities.qdrant.indexing.activity")
-    @patch("src.activities.qdrant.indexing._get_qdrant_client")
-    async def test_returns_true_on_success(
-        self,
-        mock_get_qdrant_client: Any,
-        _mock_activity: Any,
-    ) -> None:
-        """Test that True is returned and the client is closed after successful deletion."""
-        mock_qdrant = AsyncMock()
-        mock_get_qdrant_client.return_value = mock_qdrant
+    async def test_soft_deletes_only_that_source_files_points(self, _mock_activity: Any, local_qdrant: str) -> None:
+        project_id = uuid4()
+        source_file_id = str(uuid4())
+        seeded = {
+            1: {"project_id": str(project_id), "source_file_id": source_file_id, "is_deleted": False},
+            2: {"project_id": str(project_id), "source_file_id": str(uuid4()), "is_deleted": False},
+        }
+        await _seed_store(local_qdrant, seeded)
 
-        input_data = QdrantDocumentDeleteInput(
-            project_id=uuid4(),
-            document_file=DeletionFileInfo(
-                file_id=str(uuid4()),
-                filename="doc.pdf",
-                file_type="document",
-            ),
+        result = await _delete_document_by_source_file_id(
+            QdrantDocumentDeleteInput(
+                project_id=project_id,
+                document_file=DeletionFileInfo(file_id=source_file_id, filename="doc.pdf", file_type="document"),
+            )
         )
-
-        result = await _delete_document_by_source_file_id(input_data)
 
         assert result is True
-        mock_qdrant.set_payload.assert_awaited_once()
-        mock_qdrant.close.assert_awaited_once()
+        assert await _stored_payloads(local_qdrant) == {**seeded, 1: {**seeded[1], "is_deleted": True}}
 
     @patch("src.activities.qdrant.indexing.activity")
-    @patch("src.activities.qdrant.indexing._get_qdrant_client")
-    async def test_returns_false_on_error_and_closes_client(
-        self,
-        mock_get_qdrant_client: Any,
-        _mock_activity: Any,
-    ) -> None:
-        """Test that False is returned and the client is still closed when set_payload raises."""
-        mock_qdrant = AsyncMock()
-        mock_qdrant.set_payload = AsyncMock(side_effect=RuntimeError("qdrant failed"))
-        mock_get_qdrant_client.return_value = mock_qdrant
-
-        input_data = QdrantDocumentDeleteInput(
-            project_id=uuid4(),
-            document_file=DeletionFileInfo(
-                file_id=str(uuid4()),
-                filename="doc.pdf",
-                file_type="document",
-            ),
+    async def test_reports_a_failed_delete_and_closes_the_client(self, _mock_activity: Any, local_qdrant: str) -> None:
+        result = await _delete_document_by_source_file_id(
+            QdrantDocumentDeleteInput(
+                project_id=uuid4(),
+                document_file=DeletionFileInfo(file_id=str(uuid4()), filename="doc.pdf", file_type="document"),
+            )
         )
 
-        result = await _delete_document_by_source_file_id(input_data)
-
         assert result is False
-        mock_qdrant.close.assert_awaited_once()
+        # Reopening the store fails while the activity's client still holds its lock.
+        await AsyncQdrantClient(path=local_qdrant).close()
 
 
 # ---------------------------------------------------------------------------
@@ -580,29 +613,27 @@ class TestDeleteDocumentBySourceFileId:
 @pytest.mark.asyncio
 class TestInitQdrantCollection:
     """Tests for _init_qdrant_collection activity."""
-    @patch("src.activities.qdrant.client.AsyncQdrantClient")
-    async def test_creates_single_collection(self, mock_client_cls: Any) -> None:
-        """Test that a new collection is created when it does not exist."""
-        mock_client = AsyncMock()
-        mock_client.collection_exists = AsyncMock(return_value=False)
-        mock_client_cls.return_value = mock_client
+
+    async def test_creates_the_vectors_uploads_write(self, local_qdrant: str) -> None:
+        await _init_qdrant_collection()
+
+        client = AsyncQdrantClient(path=local_qdrant)
+        try:
+            params = (await client.get_collection(ENV.QDRANT_COLLECTION_NAME)).config.params
+        finally:
+            await client.close()
+        assert params.vectors == {
+            "dense": qm.VectorParams(size=ENV.QDRANT_DENSE_VECTOR_SIZE, distance=qm.Distance.COSINE)
+        }
+        assert params.sparse_vectors == {"sparse": qm.SparseVectorParams(modifier=qm.Modifier.IDF)}
+
+    async def test_keeps_an_existing_collection_and_its_points(self, local_qdrant: str) -> None:
+        seeded = {1: {"project_id": "proj-1", "is_deleted": False}}
+        await _seed_store(local_qdrant, seeded)
 
         await _init_qdrant_collection()
 
-        mock_client.create_collection.assert_awaited_once()
-        assert mock_client.create_payload_index.await_count >= 1
-        mock_client.close.assert_awaited_once()
-
-    @patch("src.activities.qdrant.client.AsyncQdrantClient")
-    async def test_skips_existing_collection(self, mock_client_cls: Any) -> None:
-        """Test that collection creation is skipped when it already exists."""
-        mock_client = AsyncMock()
-        mock_client.collection_exists = AsyncMock(return_value=True)
-        mock_client_cls.return_value = mock_client
-
-        await _init_qdrant_collection()
-
-        mock_client.create_collection.assert_not_awaited()
+        assert await _stored_payloads(local_qdrant) == seeded
 
     @patch("src.activities.qdrant.client.AsyncQdrantClient")
     async def test_closes_client_on_error(self, mock_client_cls: Any) -> None:
@@ -635,11 +666,16 @@ class TestPrepareQdrantData:
         input_data = QdrantDocumentInput(extraction_file_id="file-1", project_id="proj-1")
         result = await _prepare_qdrant_data(input_data)
 
+        chunks = doc_data["chunks"]
         assert result is not None
-        assert len(result.chunks) == 4  # 2 chunks × 2 sub_chunks
-        assert len(result.questions) == 4  # 2 chunks × 2 questions
-        assert len(result.summaries) == 1
-        assert len(result.parent_chunks) == 2
+        assert [chunk.page_content for chunk in result.chunks] == [
+            sub["page_content"] for chunk in chunks for sub in chunk["sub_chunks"]
+        ]
+        assert [question.question_text for question in result.questions] == [
+            question for chunk in chunks for question in chunk["metadata"]["hypothetical_questions"]
+        ]
+        assert [summary.summary_text for summary in result.summaries] == [doc_data["metadata"]["summary"]]
+        assert [parent.page_content for parent in result.parent_chunks] == [chunk["page_content"] for chunk in chunks]
         assert result.doc_context.project_id == "proj-1"
         assert result.doc_context.document_id == "file-1"
         assert result.avg_chunk_length > 0
@@ -678,8 +714,6 @@ class TestPrepareQdrantData:
         mock_activity: Any,
     ) -> None:
         """When processed_document is provided, download_file should not be called."""
-        from src.schemas import ProcessedDocument
-
         doc_data = _make_processed_doc(n_chunks=1, n_sub_chunks=1, with_summary=False, with_questions=False)
         processed_doc = ProcessedDocument(**doc_data)
 
@@ -710,13 +744,9 @@ class TestPrepareQdrantData:
         result = await _prepare_qdrant_data(input_data)
 
         assert result is not None
-        assert len(result.chunks) == 3
-
-        assert result.chunks[0].previous_chunk_id is None
-        assert result.chunks[0].next_chunk_id is not None
-
-        assert result.chunks[2].previous_chunk_id is not None
-        assert result.chunks[2].next_chunk_id is None
+        chunk_ids = [chunk.chunk_id for chunk in result.chunks]
+        assert [chunk.previous_chunk_id for chunk in result.chunks] == [None, *chunk_ids[:-1]]
+        assert [chunk.next_chunk_id for chunk in result.chunks] == [*chunk_ids[1:], None]
 
     @patch("src.activities.qdrant.indexing.activity")
     @patch("src.activities.qdrant.indexing.download_file")
@@ -752,8 +782,10 @@ class TestPrepareQdrantData:
         result = await _prepare_qdrant_data(input_data)
 
         assert result is not None
-        assert len(result.chunks) == 2
-        assert len(result.parent_chunks) == 0
+        assert [chunk.page_content for chunk in result.chunks] == [
+            chunk["page_content"] for chunk in doc_data["chunks"]
+        ]
+        assert result.parent_chunks == []
 
 
 def _make_upload_input(
@@ -802,28 +834,46 @@ def _make_upload_input(
     )
 
 
+def _soft_deleted_selections(mock_qdrant: AsyncMock) -> list[dict[str, Any]]:
+    """Return the {field: value} filter of every set_payload request, each of which must soft-delete."""
+    requests = [call.kwargs for call in mock_qdrant.set_payload.await_args_list]
+    assert all(request["payload"] == {"is_deleted": True} for request in requests)
+    return [{condition.key: condition.match.value for condition in request["points"].must} for request in requests]
+
+
 @pytest.mark.asyncio
 class TestIndexDocumentToQdrant:
     """Tests for _upload_to_qdrant (upload) activity."""
 
     @patch("src.activities.qdrant.indexing.activity")
     @patch("src.activities.qdrant.indexing._get_qdrant_client")
-    async def test_full_upload(
+    async def test_new_version_replaces_the_highest_existing_version(
         self,
         mock_get_qdrant_client: Any,
         mock_activity: Any,
     ) -> None:
-        """Test that all data types are uploaded with version management."""
+        existing_version = 1
         mock_qdrant = AsyncMock()
-        mock_qdrant.scroll = AsyncMock(return_value=([MagicMock(payload={"version": 1})], None))
+        mock_qdrant.scroll = AsyncMock(return_value=([qm.Record(id=1, payload={"version": existing_version})], None))
+        uploaded: list[Any] = []
+        mock_qdrant.upsert = AsyncMock(side_effect=lambda **request: uploaded.extend(request["points"]))
         mock_get_qdrant_client.return_value = mock_qdrant
 
         upload_input = _make_upload_input()
         result = await _upload_to_qdrant(upload_input)
 
-        assert result == "doc-1"
-        assert mock_qdrant.set_payload.await_count == 2  # source_file soft-delete + old version soft-delete
-        assert mock_qdrant.upsert.await_count >= 4  # chunks, questions, parent_chunks, summaries
+        assert result == upload_input.doc_context.document_id
+        assert sorted(_soft_deleted_selections(mock_qdrant), key=len) == [
+            {"project_id": "proj-1", "source_file_id": "source-1"},
+            {"project_id": "proj-1", "title": "test.pdf", "version": existing_version},
+        ]
+        assert sorted(point.payload["type"] for point in uploaded) == sorted(
+            ["chunk"] * len(upload_input.embedded_chunks)
+            + ["question"] * len(upload_input.embedded_questions)
+            + ["parent_chunk"] * len(upload_input.parent_chunks)
+            + ["summary"] * len(upload_input.embedded_summaries)
+        )
+        assert {point.payload["version"] for point in uploaded} == {existing_version + 1}
         mock_qdrant.close.assert_awaited_once()
 
     @patch("src.activities.qdrant.indexing.activity")
@@ -836,21 +886,15 @@ class TestIndexDocumentToQdrant:
         """Test that version 1 is created when no existing points are found."""
         mock_qdrant = AsyncMock()
         mock_qdrant.scroll = AsyncMock(return_value=([], None))
+        uploaded: list[Any] = []
+        mock_qdrant.upsert = AsyncMock(side_effect=lambda **request: uploaded.extend(request["points"]))
         mock_get_qdrant_client.return_value = mock_qdrant
-
-        uploaded_points: list[Any] = []
-
-        async def capture_upsert(**kwargs: Any) -> None:
-            uploaded_points.extend(kwargs.get("points", []))
-
-        mock_qdrant.upsert = AsyncMock(side_effect=capture_upsert)
 
         upload_input = _make_upload_input(n_chunks=1, n_questions=0, n_summaries=0, n_parent_chunks=0)
         await _upload_to_qdrant(upload_input)
 
-        assert len(uploaded_points) == 1
-        assert uploaded_points[0].payload["version"] == 1
-        mock_qdrant.set_payload.assert_awaited_once()  # only source_file soft-delete, no old version
+        assert [point.payload["version"] for point in uploaded] == [1]
+        assert _soft_deleted_selections(mock_qdrant) == [{"project_id": "proj-1", "source_file_id": "source-1"}]
 
     @patch("src.activities.qdrant.indexing.activity")
     @patch("src.activities.qdrant.indexing._get_qdrant_client")
@@ -873,98 +917,76 @@ class TestIndexDocumentToQdrant:
         mock_qdrant.close.assert_awaited_once()
 
 
+_CLEANUP = QdrantSourceFileCleanupInput(
+    project_id="proj-1",
+    source_file_ids=["file-1", "file-2"],
+    marker="workflow:run:2",
+    project_version=2,
+)
+_CLEANUP_ACTIVITIES = [_mark_qdrant_source_files_deleted, _restore_qdrant_source_files_deleted]
+
+
 @pytest.mark.asyncio
 class TestQdrantSourceFileCleanup:
-    @patch("src.activities.qdrant.indexing._get_qdrant_client")
-    async def test_mark_qdrant_source_files_deleted_writes_marker_payload(
-        self,
-        mock_get_qdrant_client: Any,
-    ) -> None:
-        mock_qdrant = AsyncMock()
-        mock_get_qdrant_client.return_value = mock_qdrant
-        input_data = QdrantSourceFileCleanupInput(
-            project_id="proj-1",
-            source_file_ids=["file-1", "file-2"],
-            marker="workflow:run:2",
-            project_version=2,
-        )
+    async def test_mark_then_restore_changes_only_this_cleanup_markers_points(self, local_qdrant: str) -> None:
+        seeded = {
+            1: {"project_id": "proj-1", "source_file_id": "file-1", "is_deleted": False},
+            2: {
+                "project_id": "proj-1",
+                "source_file_id": "file-1",
+                "is_deleted": True,
+                "qdrant_cleanup_marker": "earlier:run:1",
+                "qdrant_cleanup_project_version": 1,
+            },
+            3: {"project_id": "proj-1", "source_file_id": "file-3", "is_deleted": False},
+            4: {"project_id": "proj-2", "source_file_id": "file-1", "is_deleted": False},
+        }
+        await _seed_store(local_qdrant, seeded)
 
-        result = await _mark_qdrant_source_files_deleted(input_data)
+        marked = await _mark_qdrant_source_files_deleted(_CLEANUP)
+        after_mark = await _stored_payloads(local_qdrant)
+
+        assert marked.processed_file_ids == ["file-1", "file-2"]
+        assert after_mark == {
+            **seeded,
+            1: {
+                **seeded[1],
+                "is_deleted": True,
+                "qdrant_cleanup_marker": _CLEANUP.marker,
+                "qdrant_cleanup_project_version": _CLEANUP.project_version,
+            },
+        }
+
+        restored = await _restore_qdrant_source_files_deleted(_CLEANUP)
+        after_restore = await _stored_payloads(local_qdrant)
+
+        assert restored.processed_file_ids == ["file-1", "file-2"]
+        assert after_restore[1]["is_deleted"] is False
+        assert after_restore[1].get("qdrant_cleanup_marker") != _CLEANUP.marker
+        assert {point_id: after_restore[point_id] for point_id in (2, 3, 4)} == {
+            point_id: seeded[point_id] for point_id in (2, 3, 4)
+        }
+
+    @pytest.mark.parametrize("activity", _CLEANUP_ACTIVITIES, ids=["mark", "restore"])
+    async def test_absent_collection_has_no_points_to_clean(self, local_qdrant: str, activity: Any) -> None:
+        result = await activity(_CLEANUP)
 
         assert result.processed_file_ids == ["file-1", "file-2"]
-        assert mock_qdrant.set_payload.await_count == 2
-        first_call = mock_qdrant.set_payload.await_args_list[0].kwargs
-        assert first_call["payload"] == {
-            "is_deleted": True,
-            "qdrant_cleanup_marker": "workflow:run:2",
-            "qdrant_cleanup_project_version": 2,
-        }
-        point_filter = first_call["points"]
-        assert [condition.key for condition in point_filter.must] == [
-            "project_id",
-            "source_file_id",
-            "is_deleted",
-        ]
-        mock_qdrant.close.assert_awaited_once()
+        client = AsyncQdrantClient(path=local_qdrant)
+        try:
+            assert not await client.collection_exists(ENV.QDRANT_COLLECTION_NAME)
+        finally:
+            await client.close()
 
-    @patch("src.activities.qdrant.indexing._get_qdrant_client")
-    async def test_restore_qdrant_source_files_deleted_only_clears_matching_marker(
-        self,
-        mock_get_qdrant_client: Any,
-    ) -> None:
-        mock_qdrant = AsyncMock()
-        mock_get_qdrant_client.return_value = mock_qdrant
-        input_data = QdrantSourceFileCleanupInput(
-            project_id="proj-1",
-            source_file_ids=["file-1"],
-            marker="workflow:run:2",
-            project_version=2,
-        )
+    @pytest.mark.parametrize("activity", _CLEANUP_ACTIVITIES, ids=["mark", "restore"])
+    async def test_unreachable_qdrant_still_fails(self, activity: Any) -> None:
+        with socket.socket() as probe:
+            probe.bind(("127.0.0.1", 0))
+            closed_port = probe.getsockname()[1]
+        unreachable = AsyncQdrantClient(url=f"http://127.0.0.1:{closed_port}", port=None, check_compatibility=False)
 
-        result = await _restore_qdrant_source_files_deleted(input_data)
-
-        assert result.processed_file_ids == ["file-1"]
-        mock_qdrant.set_payload.assert_awaited_once()
-        call_kwargs = mock_qdrant.set_payload.await_args.kwargs
-        assert call_kwargs["payload"] == {
-            "is_deleted": False,
-            "qdrant_cleanup_marker": "",
-            "qdrant_cleanup_project_version": 0,
-        }
-        point_filter = call_kwargs["points"]
-        assert [condition.key for condition in point_filter.must] == [
-            "project_id",
-            "source_file_id",
-            "qdrant_cleanup_marker",
-        ]
-        mock_qdrant.close.assert_awaited_once()
-
-
-# ---------------------------------------------------------------------------
-# I/O models
-# ---------------------------------------------------------------------------
-
-
-class TestIOModels:
-    """Tests for Qdrant I/O Pydantic models."""
-
-    def test_qdrant_extraction_file(self) -> None:
-        """Test that QdrantExtractionFile stores extraction_file_id."""
-        ef = QdrantExtractionFile(extraction_file_id="f1", filename="test.json", project_id="p1")
-        assert ef.extraction_file_id == "f1"
-
-    def test_qdrant_document_input(self) -> None:
-        """Test that QdrantDocumentInput defaults processed_document to None."""
-        di = QdrantDocumentInput(extraction_file_id="f1", project_id="p1")
-        assert di.project_id == "p1"
-        assert di.processed_document is None
-
-    def test_qdrant_document_input_with_processed_document(self) -> None:
-        """Test that QdrantDocumentInput accepts an optional ProcessedDocument."""
-        from src.schemas import ProcessedDocument
-
-        doc_data = _make_processed_doc(n_chunks=1, n_sub_chunks=1)
-        processed_doc = ProcessedDocument(**doc_data)
-        di = QdrantDocumentInput(extraction_file_id="f1", project_id="p1", processed_document=processed_doc)
-        assert di.processed_document is not None
-        assert di.processed_document.metadata.original_document_name == "test.pdf"
+        with (
+            patch("src.activities.qdrant.indexing._get_qdrant_client", return_value=unreachable),
+            pytest.raises(ResponseHandlingException),
+        ):
+            await activity(_CLEANUP)

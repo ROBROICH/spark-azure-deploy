@@ -1,9 +1,11 @@
 {
   "app": {
-    "title": "SPARK Workflow"
+    "title": "SPARK Workflow",
+    "titleEwms": "SPARK Workflow eEWMS"
   },
   "pages": {
     "accessibility": "Erklärung zur Barrierefreiheit",
+    "administration": "Administration",
     "changelog": "Changelog",
     "dashboard": "Dashboard",
     "loading": "Laden",

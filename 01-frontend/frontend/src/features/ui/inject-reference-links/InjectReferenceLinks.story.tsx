@@ -9,25 +9,25 @@ import {
 
 const storyReferences: InjectReferenceMap = {
   '0001': {
-    document_id: 'dummy-doc-001',
+    documentId: 'dummy-doc-001',
     node_id: '3710d48d-ceb8-5ef4-9bdc-596941adc39b',
     title: 'Beispieldokument A',
-    chunk_ids: ['chunk-0001'],
-    page_numbers: [5, 7],
+    chunkIds: ['chunk-0001'],
+    pageNumbers: [5, 7],
   },
   '0002': {
-    document_id: 'dummy-doc-001',
+    documentId: 'dummy-doc-001',
     node_id: '9d41a997-a4c8-59d9-913b-d054a0a43202',
     title: 'Bearbeiter:',
-    chunk_ids: ['chunk-0002'],
-    page_numbers: [11],
+    chunkIds: ['chunk-0002'],
+    pageNumbers: [11],
   },
   '0064': {
-    document_id: 'dummy-doc-002',
+    documentId: 'dummy-doc-002',
     node_id: '0064-node',
     title: 'Beispieldokument B',
-    chunk_ids: ['chunk-0064'],
-    page_numbers: [42, 44],
+    chunkIds: ['chunk-0064'],
+    pageNumbers: [42, 44],
   },
 };
 

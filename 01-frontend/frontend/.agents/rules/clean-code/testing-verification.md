@@ -1,22 +1,32 @@
+---
+ruleId: clean-code/testing-verification
+---
+
 # Testing and Verification
 
 Use when code changes tests, bug fixes, risky behavior, mocks, assertions, or test placement.
 
 ## Rules
 
-- Add or update tests when a change protects behavior likely to regress: bug fixes, branching logic, state transitions, async mutations, data transforms, schema validation, URL/search parsing, permission/security checks, accessibility contracts, generated API boundaries, or TanStack DB collection behavior.
-- Bug fixes should add or update a regression test that would have failed before the fix, covering the user-visible behavior or business outcome rather than only the changed implementation detail.
-- Do not add tests only for trivial wrappers, static copy, pass-through props, CSS classes, icon choices, one-line constants, or render-only smoke checks. Use type-checking, linting, or browser verification for those when that gives better signal.
-- Useful tests are durable handoff specs for future agents: they explain the product/domain guarantee, not the component tree choreography.
-- Prefer a focused test around the riskiest behavior over broad mock-heavy coverage that mostly restates implementation.
-- Assertions must verify specific values, state changes, calls with meaningful arguments, or user-visible output. Avoid truthy-only, render-only, or no-crash assertions.
-- Keep test files near the code they verify and match the source filename/location. Prefer updating the nearest existing test before creating detached tests elsewhere.
-- If risky behavior is intentionally left without tests, record the reason and the chosen non-test verification path in task/review notes.
+- Default to few, high-value tests, not coverage growth. Each permanent test must protect a concrete, relevant behavior against a plausible regression.
+- Name that regression before adding a test. Branches, hooks, async code, and changed files do not by themselves justify tests.
+- Do not cover every unlikely edge case or input combination. Cover rare cases only when concrete evidence or serious security/data-loss impact warrants them.
+- For bug fixes, reproduce the defect before changing production code and verify the same scenario afterward. Preserve mandatory workflow RED/GREEN gates.
+- Prefer one focused regression test for a real defect. Otherwise use browser verification, an existing check, or a throwaway smoke script when sufficient.
+- Assert independently expected user-visible outcomes or stable product, API, security, or persistence contracts. Do not reimplement production logic to calculate expectations.
+- Change-detector tests are defects: implementation-only refactors must not require assertion changes when the observable contract stays unchanged.
+- Remove assertions that only pin internal call order, helper names, component structure, private state, mock echoes, or oversized snapshots.
+- Do not test static copy, CSS classes, icons, constants, prop forwarding, or route/component inventories unless that detail is itself a required contract.
+- Review assertions as keep, trim, or replace. Delete redundant change detectors instead of updating them to match the new implementation.
+- Prefer the nearest existing test and the smallest stable behavioral surface. Avoid mock-heavy setup and duplicate coverage across layers.
+- Record the exercised verification path and any material residual risk. Fewer tests never means skipping verification.
 
 ## Report When
 
-Report bug fixes without failing-before coverage, tests that would pass before the change, shallow assertions, mock-heavy tests with no behavioral guarantee, detached test placement, or missing verification notes for risky untested behavior.
+Report change detectors and tests without a credible behavioral guarantee as defects, not style preferences.
+Request missing coverage only for a named plausible regression with material impact and inadequate existing verification.
+Do not report test counts, coverage percentages, or speculative edge cases as findings. Keep required bug-fix RED/GREEN evidence.
 
 ## Human Triage Suggestion
 
-Suggest one focused behavior assertion, a regression test from the bug story, moving the test next to the source, deleting a trivial smoke test, or documenting the non-test verification path.
+Suggest deleting redundant assertions, replacing a change detector with one focused behavior check, or using an adequate non-test verification path.

@@ -1,3 +1,4 @@
+import { DEFAULT_RATING_THRESHOLD } from './data/filtering/contradictionFilters';
 import { getRouteApi, Link } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 import { useState } from 'react';
@@ -39,9 +40,9 @@ export const PlausibilityCheckScreen = () => {
   });
   /*
    * The sensitivity threshold is local-only by requirement: shared links must
-   * always open at the lowest available value instead of restoring a filter.
+   * always open at the default threshold instead of restoring a filter.
    */
-  // eslint-disable-next-line no-restricted-syntax -- this filter must not be URL-backed; shared PP links must start from the lowest available sensitivity.
+  // eslint-disable-next-line no-restricted-syntax -- this filter must not be URL-backed; shared PP links must start from the default sensitivity threshold.
   const [ratingThreshold, setRatingThreshold] = useState<number | undefined>();
   const {
     contradictions,
@@ -60,7 +61,7 @@ export const PlausibilityCheckScreen = () => {
     ratingThreshold,
   });
   const processedCount = Math.max(summary.total - summary.open, 0);
-  const defaultRatingThreshold = Math.round(minimumRating * 100) / 100;
+  const defaultRatingThreshold = DEFAULT_RATING_THRESHOLD;
   const currentRatingThreshold = ratingThreshold ?? defaultRatingThreshold;
   const hasCustomRatingThreshold =
     ratingThreshold !== undefined &&
@@ -82,7 +83,7 @@ export const PlausibilityCheckScreen = () => {
 
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col bg-white">
-      <div className="flex items-center gap-2 border-b border-slate-200 bg-white p-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-white p-2">
         <Button
           variant="secondary"
           size="sm"
@@ -98,7 +99,7 @@ export const PlausibilityCheckScreen = () => {
             <ChevronLeft />
           </Link>
         </Button>
-        <h2 className="min-w-0 flex-1 text-[13px] leading-[18px] font-medium text-brand-950">
+        <h2 className="flex-1 text-[13px] leading-[18px] font-medium text-brand-950">
           {t('redesign.stepTitle')}
         </h2>
         <CompletionIndicator
@@ -113,8 +114,8 @@ export const PlausibilityCheckScreen = () => {
         </CompletionIndicator>
       </div>
 
-      <div className="flex min-h-0 flex-1 justify-center overflow-auto bg-white">
-        <div className="flex w-full max-w-container items-start gap-4 px-32 py-16">
+      <div className="flex min-h-0 flex-1 justify-center bg-white md:overflow-auto">
+        <div className="flex w-full max-w-container items-start gap-4 px-8 py-16 md:px-32">
           <div
             className={cn(
               'flex min-w-0 flex-col gap-16',

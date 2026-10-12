@@ -1,0 +1,18 @@
+suite: redis authentication
+templates: [templates/validate.yaml]
+tests:
+  - it: requires an existing Secret while auth is on
+    asserts:
+      - failedTemplate: {errorPattern: needs redis.auth.existingSecret}
+
+  - it: accepts an existing Secret
+    set:
+      redis.auth.existingSecret: redis-auth
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: can run without auth
+    set:
+      redis.auth.enabled: false
+    asserts:
+      - hasDocuments: {count: 0}

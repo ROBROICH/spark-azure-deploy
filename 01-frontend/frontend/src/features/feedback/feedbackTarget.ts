@@ -26,13 +26,13 @@ export const createFeedbackPayload = (params: {
     rating,
     reason: reason ?? null,
     text: text ?? null,
-    user_id: userId,
-    frontend_parent_ids: [toCompositeKey(targetRef)],
-    update_type: 'manual',
+    userId: userId,
+    frontendParentIds: [toCompositeKey(targetRef)],
+    updateType: 'manual',
   };
 
   return {
-    node_type: 'feedback',
+    nodeType: 'feedback',
     id: feedbackId,
     payload,
   };

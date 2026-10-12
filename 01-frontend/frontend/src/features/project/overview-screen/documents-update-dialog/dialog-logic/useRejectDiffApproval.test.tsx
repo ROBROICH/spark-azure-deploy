@@ -98,7 +98,7 @@ describe('useRejectDiffApproval', () => {
     });
 
     expect(mocks.submitDecisionMutate).toHaveBeenCalledWith({
-      path: { file_id: 'zip-1' },
+      path: { fileId: 'zip-1' },
       query: { decision: 'reject' },
     });
     const invalidatedKeys = invalidateSpy.mock.calls.map(

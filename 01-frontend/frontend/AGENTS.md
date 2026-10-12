@@ -6,10 +6,11 @@ details belong in [README.md](README.md).
 
 ## Start Here
 
-1. Read [README.md](README.md) for the package overview, local setup, and
+1. Load the frontend rules before direct planning, edits or review: read
+   [.agents/CODE-STANDARDS.md](.agents/CODE-STANDARDS.md), its baseline rules and
+   only the rules whose triggers match the selected code.
+2. Read [README.md](README.md) for the package overview, local setup, and
    current command list.
-2. Read [.agents/CODE-STANDARDS.md](.agents/CODE-STANDARDS.md) before making
-   code changes. Load only the rule files that match the files you touch.
 3. Inspect the existing feature or shared module before choosing an approach.
    Prefer local patterns over new abstractions.
 
@@ -46,7 +47,8 @@ before handing off when the change is ready.
 
 - Keep changes scoped to the requested behavior.
 - Use generated API client types and existing domain types instead of mirroring
-  backend shapes by hand.
+  backend shapes by hand. Regenerate with `pnpm openapi-ts`. Handwritten wire
+  types are a recorded mock exception only.
 - Prefer TanStack Router for route state and navigation.
 - Prefer existing TanStack Query, TanStack DB, and nodes patterns in the
   relevant feature before adding new data access code.

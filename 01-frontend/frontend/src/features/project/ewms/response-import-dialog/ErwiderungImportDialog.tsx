@@ -1,4 +1,4 @@
-import type { ErwiderungImportResponse } from '@/api-clients/oms-module';
+import type { V1ObjectionsManagementImportObjectionsArgumentsResponse as ImportObjectionsArgumentsResponse } from '@/api-clients/backend';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import {
   Dialog,
@@ -20,7 +20,7 @@ import {
 import { uploadErwiderungImportFile } from './uploadErwiderungImportFile';
 
 type ImportStep = 'upload' | 'importing' | 'result';
-type ImportResult = ErwiderungImportResponse | null;
+type ImportResult = ImportObjectionsArgumentsResponse | null;
 type Status = ErwiderungImportStatus;
 
 type ErwiderungImportDialogProps = {

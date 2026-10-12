@@ -27,7 +27,7 @@ type AiLegalBasisLawGroupProps = {
 };
 
 const isSatzRef = (nodeRef: NodeRef): nodeRef is NodeRefByType<'satz'> => {
-  return nodeRef.node_type === 'satz';
+  return nodeRef.nodeType === 'satz';
 };
 
 const getUniqueSatzIds = (satzRefs: NodeRefByType<'satz'>[]) => {
@@ -42,7 +42,7 @@ const isTopicNormFullyChecked = (
     return false;
   }
 
-  return areAllSatzStatusesChecked(topicNorm.satz_statuses, satzIds);
+  return areAllSatzStatusesChecked(topicNorm.satzStatuses, satzIds);
 };
 
 export const AiLegalBasisLawGroup = (props: AiLegalBasisLawGroupProps) => {
@@ -80,7 +80,7 @@ export const AiLegalBasisLawGroup = (props: AiLegalBasisLawGroupProps) => {
             <AggregatedLawChangeIndicator
               norms={topicNorms.map((topicNorm) => ({
                 jurabk: topicNorm.jurabk,
-                paragraphNr: topicNorm.paragraph_nr,
+                paragraphNr: topicNorm.paragraphNr,
               }))}
             />
           </span>

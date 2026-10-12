@@ -1,0 +1,552 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /v2/files/{file_id} HTTP contract snapshots the current versioned file and its topic projection 1`] = `
+{
+  "body": {
+    "addedInVersion": 2,
+    "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v2/basis.pdf",
+    "createdAt": "2026-01-02T12:00:00Z",
+    "filename": "basis.pdf",
+    "id": "20000000-0000-4000-8000-000000000001",
+    "isDeleted": false,
+    "mimeType": "application/pdf",
+    "projectId": "10000000-0000-4000-8000-000000000001",
+    "projectVersion": 3,
+    "runId": null,
+    "topics": [
+      "30000000-0000-4000-8000-000000000001",
+    ],
+    "type": "document",
+    "updatedAt": "2026-01-02T12:00:00Z",
+    "vectorSearchable": true,
+    "version": 2,
+    "workflowId": null,
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /v2/files/{file_id} HTTP contract snapshots the same logical file at its historical project version 1`] = `
+{
+  "body": {
+    "addedInVersion": 2,
+    "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v1/basis.pdf",
+    "createdAt": "2026-01-01T12:00:00Z",
+    "filename": "basis.pdf",
+    "id": "20000000-0000-4000-8000-000000000001",
+    "isDeleted": false,
+    "mimeType": "application/pdf",
+    "projectId": "10000000-0000-4000-8000-000000000001",
+    "projectVersion": 2,
+    "runId": null,
+    "topics": [],
+    "type": "document",
+    "updatedAt": "2026-01-01T12:00:00Z",
+    "vectorSearchable": false,
+    "version": 1,
+    "workflowId": null,
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /v2/files/{file_id} HTTP contract snapshots unknown id 1`] = `
+{
+  "body": {
+    "detail": "File not found",
+  },
+  "status": 404,
+}
+`;
+
+exports[`GET /v2/files/{file_id} HTTP contract snapshots unknown project version 1`] = `
+{
+  "body": {
+    "detail": "File not found",
+  },
+  "status": 404,
+}
+`;
+
+exports[`GET /v2/files/{file_id} HTTP contract snapshots soft-deleted row 1`] = `
+{
+  "body": {
+    "detail": "File not found",
+  },
+  "status": 404,
+}
+`;
+
+exports[`GET /v2/files/{file_id}/versions HTTP contract snapshots all versions in visible incumbent order without crossing projects 1`] = `
+{
+  "body": [
+    {
+      "addedInVersion": 2,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v2/basis.pdf",
+      "createdAt": "2026-01-02T12:00:00Z",
+      "filename": "basis.pdf",
+      "id": "20000000-0000-4000-8000-000000000001",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [
+        "30000000-0000-4000-8000-000000000001",
+      ],
+      "type": "document",
+      "updatedAt": "2026-01-02T12:00:00Z",
+      "vectorSearchable": true,
+      "version": 2,
+      "workflowId": null,
+    },
+    {
+      "addedInVersion": 2,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v1/basis.pdf",
+      "createdAt": "2026-01-01T12:00:00Z",
+      "filename": "basis.pdf",
+      "id": "20000000-0000-4000-8000-000000000001",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 2,
+      "runId": null,
+      "topics": [],
+      "type": "document",
+      "updatedAt": "2026-01-01T12:00:00Z",
+      "vectorSearchable": false,
+      "version": 1,
+      "workflowId": null,
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /v2/files/{file_id}/versions HTTP contract snapshots the absent-id response 1`] = `
+{
+  "body": {
+    "detail": "File not found",
+  },
+  "status": 404,
+}
+`;
+
+exports[`GET /v2/files HTTP contract snapshots a populated project/version and excludes deleted and other-project rows 1`] = `
+{
+  "body": [
+    {
+      "addedInVersion": 3,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/pending/pending.pdf",
+      "createdAt": "2026-01-08T12:00:00Z",
+      "filename": "pending.pdf",
+      "id": "20000000-0000-4000-8000-000000000007",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [],
+      "type": "document",
+      "updatedAt": "2026-01-08T12:00:00Z",
+      "vectorSearchable": null,
+      "version": 1,
+      "workflowId": null,
+    },
+    {
+      "addedInVersion": 3,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/missing/missing-object.pdf",
+      "createdAt": "2026-01-07T12:00:00Z",
+      "filename": "missing-object.pdf",
+      "id": "20000000-0000-4000-8000-000000000006",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [],
+      "type": "document",
+      "updatedAt": "2026-01-07T12:00:00Z",
+      "vectorSearchable": null,
+      "version": 1,
+      "workflowId": null,
+    },
+    {
+      "addedInVersion": 3,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/beta.pdf",
+      "createdAt": "2026-01-05T12:00:00Z",
+      "filename": "Beta Appendix.pdf",
+      "id": "20000000-0000-4000-8000-000000000004",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [],
+      "type": "document",
+      "updatedAt": "2026-01-05T12:00:00Z",
+      "vectorSearchable": null,
+      "version": 1,
+      "workflowId": null,
+    },
+    {
+      "addedInVersion": 3,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+      "createdAt": "2026-01-04T12:00:00Z",
+      "filename": "Alpha Report.pdf",
+      "id": "20000000-0000-4000-8000-000000000003",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [
+        "30000000-0000-4000-8000-000000000001",
+      ],
+      "type": "document",
+      "updatedAt": "2026-01-04T12:00:00Z",
+      "vectorSearchable": null,
+      "version": 1,
+      "workflowId": null,
+    },
+    {
+      "addedInVersion": 2,
+      "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v2/basis.pdf",
+      "createdAt": "2026-01-02T12:00:00Z",
+      "filename": "basis.pdf",
+      "id": "20000000-0000-4000-8000-000000000001",
+      "isDeleted": false,
+      "mimeType": "application/pdf",
+      "projectId": "10000000-0000-4000-8000-000000000001",
+      "projectVersion": 3,
+      "runId": null,
+      "topics": [
+        "30000000-0000-4000-8000-000000000001",
+      ],
+      "type": "document",
+      "updatedAt": "2026-01-02T12:00:00Z",
+      "vectorSearchable": true,
+      "version": 2,
+      "workflowId": null,
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /v2/files HTTP contract snapshots an empty project/version 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /v2/files HTTP contract snapshots name, path, topic, and deleted filters alone and combined 1`] = `
+{
+  "combined": {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  "deleted": {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/deleted/deleted.pdf",
+        "createdAt": "2026-01-03T12:00:00Z",
+        "filename": "deleted.pdf",
+        "id": "20000000-0000-4000-8000-000000000002",
+        "isDeleted": true,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-03T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  "name": {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  "path": {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/beta.pdf",
+        "createdAt": "2026-01-05T12:00:00Z",
+        "filename": "Beta Appendix.pdf",
+        "id": "20000000-0000-4000-8000-000000000004",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-05T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  "topic": {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+      {
+        "addedInVersion": 2,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v2/basis.pdf",
+        "createdAt": "2026-01-02T12:00:00Z",
+        "filename": "basis.pdf",
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-02T12:00:00Z",
+        "vectorSearchable": true,
+        "version": 2,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+}
+`;
+
+exports[`GET /v2/files HTTP contract snapshots historical and another-project isolation 1`] = `
+[
+  {
+    "body": [
+      {
+        "addedInVersion": 2,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v1/basis.pdf",
+        "createdAt": "2026-01-01T12:00:00Z",
+        "filename": "basis.pdf",
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 2,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-01T12:00:00Z",
+        "vectorSearchable": false,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [
+      {
+        "addedInVersion": 2,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000003/other/basis.pdf",
+        "createdAt": "2026-01-06T12:00:00Z",
+        "filename": "basis.pdf",
+        "id": "20000000-0000-4000-8000-000000000005",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000003",
+        "projectVersion": 2,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-06T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+]
+`;
+
+exports[`GET /v2/files HTTP contract snapshots first, middle, and empty pages 1`] = `
+[
+  {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/pending/pending.pdf",
+        "createdAt": "2026-01-08T12:00:00Z",
+        "filename": "pending.pdf",
+        "id": "20000000-0000-4000-8000-000000000007",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-08T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/missing/missing-object.pdf",
+        "createdAt": "2026-01-07T12:00:00Z",
+        "filename": "missing-object.pdf",
+        "id": "20000000-0000-4000-8000-000000000006",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-07T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/beta.pdf",
+        "createdAt": "2026-01-05T12:00:00Z",
+        "filename": "Beta Appendix.pdf",
+        "id": "20000000-0000-4000-8000-000000000004",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [],
+        "type": "document",
+        "updatedAt": "2026-01-05T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "mimeType": "application/pdf",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "topics": [
+          "30000000-0000-4000-8000-000000000001",
+        ],
+        "type": "document",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+      },
+    ],
+    "status": 200,
+  },
+  {
+    "body": [],
+    "status": 200,
+  },
+]
+`;

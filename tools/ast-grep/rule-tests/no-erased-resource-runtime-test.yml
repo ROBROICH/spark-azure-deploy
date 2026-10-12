@@ -1,0 +1,24 @@
+id: no-erased-resource-runtime
+
+invalid:
+  - |
+    const runtime: ResourceRuntime<AnyResource> = createRuntime();
+
+  - |
+    let resources: ReturnType<typeof makeEffectResourceRuntime>;
+
+  - |
+    const features: AnyFeature[] = [];
+
+  - |
+    const features: readonly AnyFeature[] = [];
+
+valid:
+  - |
+    const runtime: ResourceRuntime<typeof Projects | typeof PostgreSQL> = createRuntime();
+
+  - |
+    const resources = makeEffectResourceRuntime(features);
+
+  - |
+    const features = [comments.feature, feedback.feature] as const;

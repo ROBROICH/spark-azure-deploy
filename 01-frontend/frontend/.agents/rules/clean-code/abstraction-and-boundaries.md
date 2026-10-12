@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/abstraction-and-boundaries
+---
+
 # Abstraction and Boundaries
 
 Use when code adds or changes helpers, hooks, components, contexts, shared utilities, adapters, or cross-feature reuse.

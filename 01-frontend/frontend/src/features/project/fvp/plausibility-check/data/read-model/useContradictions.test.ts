@@ -106,10 +106,11 @@ describe('useFilteredContradictions', () => {
     ]);
   });
 
-  it('clamps the rating threshold to the lowest usable rating', () => {
+  it('always starts the slider at 0 and applies the requested threshold', () => {
     mockContradictions([
       makeContradiction({ id: 'keep-high', rating: 0.9 }),
       makeContradiction({ id: 'keep-lowest', rating: 0.5 }),
+      makeContradiction({ id: 'drop', confidenceScore: 12 }),
     ]);
 
     const { result } = renderHook(() =>
@@ -119,10 +120,25 @@ describe('useFilteredContradictions', () => {
       }),
     );
 
-    expect(result.current.minimumRating).toBe(0.5);
+    expect(result.current.minimumRating).toBe(0);
     expect(result.current.contradictions.map((item) => item.id)).toEqual([
       'keep-high',
       'keep-lowest',
+    ]);
+  });
+
+  it('opens at the uncertainty threshold when no threshold is given', () => {
+    mockContradictions([
+      makeContradiction({ id: 'strong', confidenceScore: 75 }),
+      makeContradiction({ id: 'weak', confidenceScore: 45 }),
+    ]);
+
+    const { result } = renderHook(() =>
+      useFilteredContradictions({ projectId: 'project-1' }),
+    );
+
+    expect(result.current.contradictions.map((item) => item.id)).toEqual([
+      'strong',
     ]);
   });
 

@@ -7,11 +7,9 @@ import { SwimlaneHeader } from '@/features/ui/swimlane-header/SwimlaneHeader';
 import { SwimlanesLaneHeaderOverrideContext } from '@/features/ui/swimlanes/SwimlanesContext';
 import { cn } from '@/features/ui/style/cn';
 import { ExternalLink, FileText } from 'lucide-react';
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useId, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const LANE_ANIMATION_MS = 500;
-const LANE_COLLAPSE_DELAY_MS = 50;
 const LANE_TRANSITION =
   'flex-grow 500ms ease-in-out, flex-shrink 500ms ease-in-out, flex-basis 500ms ease-in-out, max-width 500ms ease-in-out';
 
@@ -46,6 +44,7 @@ const PdfPopoutSwimlaneHeader = (props: PdfPopoutSwimlaneHeaderProps) => {
     tree,
     isLoadingFiles,
     isFilesError,
+    filePagination,
     connectedFileId,
     documentPreviewById,
     popOut,
@@ -79,6 +78,7 @@ const PdfPopoutSwimlaneHeader = (props: PdfPopoutSwimlaneHeaderProps) => {
           isLoading={isLoadingFiles}
           isError={isFilesError}
           nodes={tree}
+          pagination={filePagination}
           selectedDocumentId={connectedFileId}
           onRequestFiles={requestFileCatalog}
           onSelectDocument={(documentId) =>
@@ -100,38 +100,15 @@ const PdfPopoutSwimlaneHeader = (props: PdfPopoutSwimlaneHeaderProps) => {
   );
 };
 
-/**
- * Dedicated swimlane variant for PDF viewers that need to collapse into a
- * narrow lane while a shared detached popup window stays active. The component
- * owns the standard documents-lane header, collapse timing, collapsed stub,
- * and connected inline viewer so feature pages can reuse the same behavior
- * with a zero-prop API.
- */
 export const PdfPopoutSwimlane = () => {
   const { t } = useTranslation('PdfPopout');
   const headingId = useId();
   const { isPoppedOut, connectedFileId } = usePdfPopout();
-  // eslint-disable-next-line no-restricted-syntax -- frame-local lane transition state, not URL-worthy
-  const [transitionState, setTransitionState] = useState(() => ({
-    isCollapsed: isPoppedOut,
-    isPoppedOut,
-    showInlineContent: !isPoppedOut,
-  }));
   const [headerPortalTarget, setHeaderPortalTarget] =
     // eslint-disable-next-line no-restricted-syntax -- portal DOM target is a transient reference to a rendered node, not URL-worthy state
     useState<HTMLDivElement | null>(null);
   // eslint-disable-next-line no-restricted-syntax -- transient count of mounted header-override portals, not URL-worthy state
   const [headerOverrideCount, setHeaderOverrideCount] = useState(0);
-  let { isCollapsed, showInlineContent } = transitionState;
-  if (transitionState.isPoppedOut !== isPoppedOut) {
-    isCollapsed = isPoppedOut ? transitionState.isCollapsed : false;
-    showInlineContent = false;
-    setTransitionState({
-      isCollapsed,
-      isPoppedOut,
-      showInlineContent,
-    });
-  }
 
   // eslint-disable-next-line no-restricted-syntax -- the portal registration callbacks must stay stable so the header portal effect does not tear down and re-register on unrelated lane renders
   const registerHeaderOverride = useCallback(() => {
@@ -153,53 +130,17 @@ export const PdfPopoutSwimlane = () => {
     [headerPortalTarget, registerHeaderOverride, unregisterHeaderOverride],
   );
 
-  // eslint-disable-next-line no-restricted-syntax -- setTimeout-based delay is required so the browser paints the expanded layout before collapsing styles apply
-  useEffect(() => {
-    if (!isPoppedOut) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTransitionState((currentState) => ({
-        ...currentState,
-        isCollapsed: true,
-      }));
-    }, LANE_COLLAPSE_DELAY_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isPoppedOut]);
-
-  // eslint-disable-next-line no-restricted-syntax -- delaying inline content remount until after expansion prevents layout jump during the width transition
-  useEffect(() => {
-    if (isPoppedOut) {
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTransitionState((currentState) => ({
-        ...currentState,
-        showInlineContent: true,
-      }));
-    }, LANE_ANIMATION_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isPoppedOut]);
-
-  const isLaneCollapsed = isPoppedOut && isCollapsed;
-  const shouldRenderInlineContent = !isPoppedOut && showInlineContent;
-
   return (
     <SwimlanesLaneHeaderOverrideContext.Provider
       value={headerOverrideContextValue}
     >
       <section
         aria-labelledby={headingId}
-        className={cn('flex min-h-0 min-w-0 flex-1 flex-col bg-white')}
-        style={isLaneCollapsed ? COLLAPSED_STYLE : EXPANDED_STYLE}
+        className={cn(
+          'flex min-h-0 min-w-0 flex-1 flex-col bg-white',
+          !isPoppedOut && 'min-w-[var(--swimlane-min-w)]',
+        )}
+        style={isPoppedOut ? COLLAPSED_STYLE : EXPANDED_STYLE}
       >
         {!isPoppedOut ? (
           <PdfPopoutSwimlaneHeader
@@ -217,14 +158,14 @@ export const PdfPopoutSwimlane = () => {
         <div className="min-h-0 flex-1 overflow-auto">
           {isPoppedOut ? (
             <PdfCollapsedLane />
-          ) : shouldRenderInlineContent ? (
+          ) : (
             <PdfViewerPane
               documentId={connectedFileId}
               className="h-full"
               flush
               connected
             />
-          ) : null}
+          )}
         </div>
       </section>
     </SwimlanesLaneHeaderOverrideContext.Provider>

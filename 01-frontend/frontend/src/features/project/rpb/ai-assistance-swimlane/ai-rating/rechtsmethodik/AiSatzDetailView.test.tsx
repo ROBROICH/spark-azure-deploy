@@ -19,7 +19,9 @@ const routeState = vi.hoisted(() => ({
 const nodeState = vi.hoisted(() => ({
   hasMultipleAbsaetze: true,
   hasMultipleSaetze: false,
+  missingErmessen: false,
   missingGesetz: false,
+  missingSollensanordnungen: false,
   missingNorm: false,
   missingSatz: false,
 }));
@@ -29,7 +31,7 @@ const topicNormState = vi.hoisted(() => ({
   isSatzChecked: vi.fn(() => false),
   toggleSatzChecked: vi.fn(),
   topicNorm: {
-    satz_statuses: {} as Record<string, 'checked' | 'needs_revision'>,
+    satzStatuses: {} as Record<string, 'checked' | 'needs_revision'>,
   },
 }));
 
@@ -123,59 +125,59 @@ vi.mock('@/features/project/law-changes/ui/LawChangeIndicator', async () => {
 });
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | null) => {
-    if (nodeRef?.node_type === 'satz') {
+  useNode: (nodeRef: { id: string; nodeType: string } | null) => {
+    if (nodeRef?.nodeType === 'satz') {
       if (nodeState.missingSatz) {
         return { data: null };
       }
 
       return {
         data: {
-          absatz_id: 'absatz-1',
+          absatzId: 'absatz-1',
           formel: 'TBM 1 und TBM 2',
           id: nodeRef.id,
           markers: [],
-          node_type: 'satz',
-          norm_typ_lvl_1: 'materiell-rechtlich',
-          norm_typ_lvl_2: 'wenn-dann',
-          satz_nr: '1',
+          nodeType: 'satz',
+          normTypLvl1: 'materiell-rechtlich',
+          normTypLvl2: 'wenn-dann',
+          satzNr: '1',
           text: 'Es ist verboten, wild lebenden Tieren nachzustellen.',
-          wenn_dann: null,
+          wennDann: null,
         },
       };
     }
 
-    if (nodeRef?.node_type === 'absatz') {
+    if (nodeRef?.nodeType === 'absatz') {
       return {
         data: {
-          absatz_nr: '1',
+          absatzNr: '1',
           id: nodeRef.id,
-          node_type: 'absatz',
-          norm_id: 'norm-1',
+          nodeType: 'absatz',
+          normId: 'norm-1',
           text: 'Absatztext',
         },
       };
     }
 
-    if (nodeRef?.node_type === 'norm') {
+    if (nodeRef?.nodeType === 'norm') {
       if (nodeState.missingNorm) {
         return { data: null };
       }
 
       return {
         data: {
-          gesetz_id: 'gesetz-1',
+          gesetzId: 'gesetz-1',
           id: nodeRef.id,
-          node_type: 'norm',
-          paragraph_nr: '17',
-          paragraph_titel: null,
+          nodeType: 'norm',
+          paragraphNr: '17',
+          paragraphTitel: null,
           regelungsgegenstand: null,
           text: 'Normtext',
         },
       };
     }
 
-    if (nodeRef?.node_type === 'gesetz') {
+    if (nodeRef?.nodeType === 'gesetz') {
       if (nodeState.missingGesetz) {
         return { data: null };
       }
@@ -185,7 +187,7 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
           id: nodeRef.id,
           jurabk: 'BNatSchG',
           name: 'Bundesnaturschutzgesetz',
-          node_type: 'gesetz',
+          nodeType: 'gesetz',
         },
       };
     }
@@ -202,10 +204,10 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
 
     return nodeState.hasMultipleAbsaetze
       ? [
-          { id: 'absatz-1', node_type: 'absatz' },
-          { id: 'absatz-2', node_type: 'absatz' },
+          { id: 'absatz-1', nodeType: 'absatz' },
+          { id: 'absatz-2', nodeType: 'absatz' },
         ]
-      : [{ id: 'absatz-1', node_type: 'absatz' }];
+      : [{ id: 'absatz-1', nodeType: 'absatz' }];
   },
 }));
 
@@ -216,23 +218,23 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         return {
           data: [
             {
-              absatz_id: 'absatz-1',
+              absatzId: 'absatz-1',
               id: 'satz-1',
               markers: [],
-              node_type: 'satz',
+              nodeType: 'satz',
               position: 1,
-              satz_nr: '1',
+              satzNr: '1',
               text: 'Es ist verboten, wild lebenden Tieren nachzustellen.',
             },
             ...(nodeState.hasMultipleSaetze
               ? [
                   {
-                    absatz_id: 'absatz-1',
+                    absatzId: 'absatz-1',
                     id: 'satz-2',
                     markers: [],
-                    node_type: 'satz',
+                    nodeType: 'satz',
                     position: 2,
-                    satz_nr: '2',
+                    satzNr: '2',
                     text: 'Weitere Verbote gelten entsprechend.',
                   },
                 ]
@@ -244,18 +246,18 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
           data: [
             {
               id: 'tbm-1',
-              node_type: 'atomares_tbm',
+              nodeType: 'atomares_tbm',
               prueffrage: 'Pruefe, ob wild lebenden Tieren nachgestellt wird!',
               pruefgegenstand: null,
-              satz_id: 'satz-1',
+              satzId: 'satz-1',
               text: 'TBM 1',
             },
             {
               id: 'tbm-2',
-              node_type: 'atomares_tbm',
+              nodeType: 'atomares_tbm',
               prueffrage: 'Pruefe, ob Tiere gefangen oder verletzt werden!',
               pruefgegenstand: null,
-              satz_id: 'satz-1',
+              satzId: 'satz-1',
               text: 'TBM 2',
             },
           ],
@@ -265,8 +267,8 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
           data: [
             {
               id: 'rechtsfolge-1',
-              node_type: 'rechtsfolge',
-              satz_id: 'satz-1',
+              nodeType: 'rechtsfolge',
+              satzId: 'satz-1',
               text: 'Es ist verboten',
             },
           ],
@@ -277,19 +279,53 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
             {
               entscheidung: 'Gebundene Entscheidung',
               id: 'adressat-1',
-              node_type: 'adressat',
-              rechtsfolge_id: 'rechtsfolge-1',
+              nodeType: 'adressat',
+              rechtsfolgeId: 'rechtsfolge-1',
+            },
+          ],
+        };
+      case 'ermessensspielraum':
+        if (nodeState.missingErmessen) {
+          return { data: [] };
+        }
+
+        return {
+          data: [
+            {
+              entscheidung: 'Ermessensentscheidung',
+              id: 'ermessensspielraum-1',
+              nodeType: 'ermessensspielraum',
+              rechtsfolgeId: 'rechtsfolge-1',
+            },
+          ],
+        };
+      case 'ermessensart':
+        if (nodeState.missingErmessen) {
+          return { data: [] };
+        }
+
+        return {
+          data: [
+            {
+              art: 'Auswahlermessen',
+              id: 'ermessensart-1',
+              nodeType: 'ermessensart',
+              rechtsfolgeId: 'rechtsfolge-1',
             },
           ],
         };
       case 'sollensanordnungen':
+        if (nodeState.missingSollensanordnungen) {
+          return { data: [] };
+        }
+
         return {
           data: [
             {
               id: 'soll-1',
               kategorie: 'Sollensanordnung',
-              node_type: 'sollensanordnungen',
-              rechtsfolge_id: 'rechtsfolge-1',
+              nodeType: 'sollensanordnungen',
+              rechtsfolgeId: 'rechtsfolge-1',
             },
           ],
         };
@@ -297,10 +333,10 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         return {
           data: [
             {
-              atomares_tbm_id: 'tbm-1',
+              atomaresTbmId: 'tbm-1',
               begriff: 'besonders geschuetzte Arten',
               id: 'bestimmt-1',
-              node_type: 'bestimmter_rechtsbegriff',
+              nodeType: 'bestimmter_rechtsbegriff',
             },
           ],
         };
@@ -309,12 +345,12 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
           data: [
             {
               begriff: 'besonders geschuetzte Arten',
-              bestimmter_rechtsbegriff_id: 'bestimmt-1',
+              bestimmterRechtsbegriffId: 'bestimmt-1',
               definition: 'Tier- und Pflanzenarten gemaess § 7.',
               id: 'legaldefinition-1',
-              node_type: 'legaldefinition',
-              source_jurabk: 'BNatSchG',
-              source_paragraph_nr: '7',
+              nodeType: 'legaldefinition',
+              sourceJurabk: 'BNatSchG',
+              sourceParagraphNr: '7',
             },
           ],
         };
@@ -322,11 +358,11 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         return {
           data: [
             {
-              atomares_tbm_id: 'tbm-2',
+              atomaresTbmId: 'tbm-2',
               auslegung: 'Gesamtauslegung aus dem Begriffsknoten.',
               begriff: 'beteiligte Kreise',
               id: 'unbestimmt-1',
-              node_type: 'unbestimmter_rechtsbegriff',
+              nodeType: 'unbestimmter_rechtsbegriff',
             },
           ],
         };
@@ -336,16 +372,16 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
             {
               id: 'auslegung-1',
               methode: 'Wortlaut',
-              node_type: 'auslegungsvorschlag',
+              nodeType: 'auslegungsvorschlag',
               text: 'Der Wortlaut spricht fuer eine weite Auslegung.',
-              unbestimmter_rechtsbegriff_id: 'unbestimmt-1',
+              unbestimmterRechtsbegriffId: 'unbestimmt-1',
             },
             {
               id: 'auslegung-2',
               methode: 'Systematik',
-              node_type: 'auslegungsvorschlag',
+              nodeType: 'auslegungsvorschlag',
               text: 'Die Systematik bestaetigt die Beteiligung weiterer Gruppen.',
-              unbestimmter_rechtsbegriff_id: 'unbestimmt-1',
+              unbestimmterRechtsbegriffId: 'unbestimmt-1',
             },
           ],
         };
@@ -353,17 +389,17 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         return {
           data: [
             {
-              absatz_nr: '1',
-              atomares_tbm_id: null,
+              absatzNr: '1',
+              atomaresTbmId: null,
               gesetz: 'EnWG',
               id: 'verweis-1',
               kontext: ['Planfeststellung'],
-              node_type: 'expliziter_verweis',
-              paragraph_nr: '43',
-              rechtsfolge_id: 'rechtsfolge-1',
-              satz_nr: '2',
+              nodeType: 'expliziter_verweis',
+              paragraphNr: '43',
+              rechtsfolgeId: 'rechtsfolge-1',
+              satzNr: '2',
               untergliederung: null,
-              verweis_typ: 'explizit',
+              verweisTyp: 'explizit',
             },
           ],
         };
@@ -451,7 +487,9 @@ describe('AiSatzDetailView', () => {
     mocks.navigateMock.mockReset();
     nodeState.hasMultipleAbsaetze = true;
     nodeState.hasMultipleSaetze = false;
+    nodeState.missingErmessen = false;
     nodeState.missingGesetz = false;
+    nodeState.missingSollensanordnungen = false;
     nodeState.missingNorm = false;
     nodeState.missingSatz = false;
     topicNormState.getSatzReviewStatus.mockReset();
@@ -459,7 +497,7 @@ describe('AiSatzDetailView', () => {
     topicNormState.isSatzChecked.mockReset();
     topicNormState.isSatzChecked.mockReturnValue(false);
     topicNormState.toggleSatzChecked.mockReset();
-    topicNormState.topicNorm.satz_statuses = {};
+    topicNormState.topicNorm.satzStatuses = {};
   });
 
   it('renders an error state when no sentence is selected', () => {
@@ -499,7 +537,11 @@ describe('AiSatzDetailView', () => {
     ).toBeInTheDocument();
     expect(screen.getByText('Rechtsfolge')).toBeInTheDocument();
     expect(screen.getByText('Sollensanordnung')).toBeInTheDocument();
-    expect(screen.getByText('Gebundene Entscheidung')).toBeInTheDocument();
+    expect(screen.getByText('Ermessensentscheidung')).toBeInTheDocument();
+    expect(screen.getByText('Auswahlermessen')).toBeInTheDocument();
+    expect(
+      screen.queryByText('Gebundene Entscheidung'),
+    ).not.toBeInTheDocument();
     expect(screen.getByText('Es ist verboten')).toBeInTheDocument();
     expect(
       screen.getByText('Bestimmte Rechtsbegriffe (1)'),
@@ -528,6 +570,20 @@ describe('AiSatzDetailView', () => {
     expect(screen.getByText('Verweise (1)')).toBeInTheDocument();
     expect(screen.getByText('§ 43 Absatz 1 Satz 2 EnWG')).toBeInTheDocument();
     expect(screen.queryByText('explizit')).not.toBeInTheDocument();
+  });
+
+  it('keeps the Rechtsfolge section when the sentence has no badge evidence', () => {
+    routeState.search = { rechtsmethodikSatzId: 'satz-1' };
+    nodeState.missingErmessen = true;
+    nodeState.missingSollensanordnungen = true;
+
+    render(<AiSatzDetailView />);
+
+    expect(screen.getByText('Rechtsfolge')).toBeInTheDocument();
+    expect(screen.getByText('Es ist verboten')).toBeInTheDocument();
+    expect(screen.queryByText('Sollensanordnung')).not.toBeInTheDocument();
+    expect(screen.queryByText('Ermessensentscheidung')).not.toBeInTheDocument();
+    expect(screen.queryByText('Auswahlermessen')).not.toBeInTheDocument();
   });
 
   it('keeps the Satz number when the current Absatz has multiple Saetze', () => {

@@ -6,16 +6,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { NodeUuidSearch } from './NodeUuidSearch';
 
 const firstNode: NodeSummary = {
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   id: '11111111-1111-1111-1111-111111111111',
-  node_type: 'satz',
+  nodeType: 'satz',
   parents: [],
 };
 
 const secondNode: NodeSummary = {
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   id: '22222222-2222-2222-2222-222222222222',
-  node_type: 'argument',
+  nodeType: 'argument',
   parents: [],
 };
 

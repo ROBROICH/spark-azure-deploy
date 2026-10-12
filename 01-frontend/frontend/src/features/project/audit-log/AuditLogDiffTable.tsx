@@ -1,5 +1,5 @@
 import { Button } from '@/features/ui/button/Button';
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import { Database } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,8 +19,8 @@ export function AuditLogDiffTable(props: AuditLogDiffTableProps) {
   // eslint-disable-next-line no-restricted-syntax -- Diff row disclosure is ephemeral UI state, not URL state.
   const [visibleRowCount, setVisibleRowCount] = useState(DIFF_ROW_BATCH_SIZE);
   const rows = getAuditLogDiffRows({
-    oldRow: item.old_row,
-    newRow: item.new_row,
+    oldRow: item.oldRow,
+    newRow: item.newRow,
   });
   const visibleRows = rows.slice(0, visibleRowCount);
   const remainingRowCount = rows.length - visibleRows.length;

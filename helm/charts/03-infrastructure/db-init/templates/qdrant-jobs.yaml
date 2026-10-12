@@ -1,0 +1,87 @@
+{{- /*
+One pre-install/pre-upgrade Job per Qdrant collection that asked for a
+restore (values: qdrant.collections.*). Script: files/qdrant-init.sh.
+*/ -}}
+{{- range $c := include "db-init.collections" . | fromJsonArray }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-qdrant-%s" (include "db-init.fullname" $) ($c.key | lower | replace "_" "-") | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "db-init.namespace" $ }}
+  labels:
+    {{- include "db-init.labels" $ | nindent 4 }}
+    db-init/collection: {{ $c.key | quote }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: {{ $.Values.backoffLimit }}
+  activeDeadlineSeconds: {{ $.Values.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "db-init.labels" $ | nindent 8 }}
+        db-init/collection: {{ $c.key | quote }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "db-init.fullname" $ }}
+      {{- include "db-init.podSecurity" $ | nindent 6 }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        {{- include "db-init.fetchContainer" (dict "root" $ "url" $c.url) | nindent 8 }}
+      containers:
+        - name: qdrant-init
+          image: {{ $.Values.images.fetch }}
+          {{- with include "db-init.containerSecurity" $ }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          command: [bash, /scripts/qdrant-init.sh]
+          env:
+            {{- with include "db-init.homeEnv" $ }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: QDRANT_URL
+              value: {{ required "db-init: qdrant.url is required" (tpl (toString $.Values.qdrant.url) $) | quote }}
+            {{- with $.Values.qdrant.apiKeySecret }}
+            - name: QDRANT_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .name }}
+                  key: {{ .key }}
+            {{- end }}
+            - name: COLLECTION
+              value: {{ $c.name | quote }}
+            - name: DROP
+              value: {{ $c.drop | quote }}
+            - name: SNAPSHOT_FILE
+              value: /work/dump
+            - name: ACTION_ID
+              value: {{ printf "qdrant|%t|%s|%s" $c.drop (regexReplaceAll "\\?.*$" $c.url "") (toString ($.Values.runId | default "")) | sha256sum | trunc 16 | quote }}
+          volumeMounts:
+            {{- with include "db-init.tmpMount" $ }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: work
+              mountPath: /work
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            {{- toYaml $.Values.resources | nindent 12 }}
+      volumes:
+        {{- with include "db-init.tmpVolume" $ }}
+        {{- . | nindent 8 }}
+        {{- end }}
+        - name: work
+          emptyDir:
+            sizeLimit: {{ $.Values.workVolume.sizeLimit }}
+        - name: scripts
+          configMap:
+            name: {{ include "db-init.fullname" $ }}-script
+{{- end }}

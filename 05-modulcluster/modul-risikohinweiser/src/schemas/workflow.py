@@ -1,5 +1,4 @@
 from typing import Literal
-from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field
 
@@ -14,12 +13,6 @@ QualityCriteria = Literal[
     "ABWAEGUNGSSORGFALT",
     "WUERDIGUNGSTIEFE",
 ]
-
-
-class PFBChapter(BaseModel):
-    id: UUID = Field(default_factory=uuid4, description="Eindeutige ID des Kapitels")
-    title: str | None = None
-    text: str
 
 
 class IntentionAnalysisResponse(BaseModel):
@@ -139,21 +132,3 @@ class RiskFormulatorFinding(BaseModel):
 
 class RiskFormulatorResponse(BaseModel):
     risks: list[RiskFormulatorFinding]
-
-
-class RiskFinding(BaseModel):
-    risk_id: UUID = Field(default_factory=uuid4, description="Eindeutige ID des Risikos")
-    chapter_id: UUID = Field(
-        default_factory=uuid4, description="Eindeutige ID des Kapitels, auf das sich der Risikohinweis bezieht"
-    )
-    quote: str
-    description: str
-    implications: str
-    recommendation: str
-    severity: int = Field(
-        ..., ge=1, le=10, description="Schwere des Risikos auf einer Skala von 1 (gering) bis 10 (sehr hoch)"
-    )
-
-
-class RiskFinderOutput(BaseModel):
-    risks: list[RiskFinding]

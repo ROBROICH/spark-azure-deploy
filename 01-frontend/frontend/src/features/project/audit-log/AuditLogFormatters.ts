@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import { format, isValid } from 'date-fns';
 
 export function formatTimestamp(value: string) {
@@ -23,7 +23,7 @@ export function formatSource(source: string, t: (key: string) => string) {
 }
 
 export function formatChangeType(
-  changeType: HistoryItem['change_type'],
+  changeType: HistoryItem['changeType'],
   t: (key: string, options?: Record<string, unknown>) => string,
 ) {
   return t(`changeType.${changeType}`);

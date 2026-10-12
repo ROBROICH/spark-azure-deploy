@@ -46,7 +46,7 @@ function GraphDataNodePopoverFallback(props: { nodeRef: NodeRef }) {
 
   return (
     <div className="rounded-xl border border-neutral-200 bg-white p-4 text-xs text-neutral-600 shadow-lg">
-      Loading {nodeRef.node_type} payload for {nodeRef.id.slice(0, 8)}...
+      Loading {nodeRef.nodeType} payload for {nodeRef.id.slice(0, 8)}...
     </div>
   );
 }

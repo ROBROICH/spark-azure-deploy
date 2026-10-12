@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import { federalStateCodes, type FederalStateCode } from './federalStates';
-import { isDuplicateInternalProjectNumber } from './projectForm.logic';
 
 export type ProjectStepValues = {
   name: string;
@@ -61,85 +60,49 @@ export function isValidEntryDate(value: string): boolean {
   return value <= ENTRY_DATE_MAX;
 }
 
-export function createProjectSchema(
-  t: (key: string) => string,
-  existingInternalProjectNumbers: Iterable<string> = [],
-) {
-  return z
-    .object({
-      name: z
-        .string()
-        .trim()
-        .min(1, t('fieldRequired'))
-        .max(PROJECT_NAME_MAX_LENGTH, t('projectNameTooLong'))
-        .refine((value) => !EMOJI_REGEX.test(value), t('emojiNotAllowed')),
-      projectTypeId: z.string().trim().min(1, t('fieldRequired')),
-      federalState: z.enum(federalStateCodes, {
-        message: t('fieldRequired'),
-      }),
-      entryDate: z
-        .string()
-        .trim()
-        .min(1, t('fieldRequired'))
-        .refine(
-          (value) => value === '' || isValidEntryDate(value),
-          t('entryDateInvalid'),
-        ),
-      internalProjectNumber: z.string().trim().min(1, t('fieldRequired')),
-    })
-    .superRefine((value, ctx) => {
-      if (
-        isDuplicateInternalProjectNumber(
-          existingInternalProjectNumbers,
-          value.internalProjectNumber,
-        )
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['internalProjectNumber'],
-          message: t('internalProjectNumberDuplicate'),
-        });
-      }
-    });
+export function createProjectSchema(t: (key: string) => string) {
+  return z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t('fieldRequired'))
+      .max(PROJECT_NAME_MAX_LENGTH, t('projectNameTooLong'))
+      .refine((value) => !EMOJI_REGEX.test(value), t('emojiNotAllowed')),
+    projectTypeId: z.string().trim().min(1, t('fieldRequired')),
+    federalState: z.enum(federalStateCodes, {
+      message: t('fieldRequired'),
+    }),
+    entryDate: z
+      .string()
+      .trim()
+      .min(1, t('fieldRequired'))
+      .refine(
+        (value) => value === '' || isValidEntryDate(value),
+        t('entryDateInvalid'),
+      ),
+    internalProjectNumber: z.string().trim().min(1, t('fieldRequired')),
+  });
 }
 
-export function createProjectDetailsSchema(
-  t: (key: string) => string,
-  existingInternalProjectNumbers: Iterable<string> = [],
-) {
-  return z
-    .object({
-      name: z
-        .string()
-        .trim()
-        .min(1, t('fieldRequired'))
-        .max(PROJECT_NAME_MAX_LENGTH, t('projectNameTooLong'))
-        .refine((value) => !EMOJI_REGEX.test(value), t('emojiNotAllowed')),
-      projectTypeId: z.string().trim().min(1, t('fieldRequired')),
-      entryDate: z
-        .string()
-        .trim()
-        .min(1, t('fieldRequired'))
-        .refine(
-          (value) => value === '' || isValidEntryDate(value),
-          t('entryDateInvalid'),
-        ),
-      internalProjectNumber: z.string().trim().min(1, t('fieldRequired')),
-    })
-    .superRefine((value, ctx) => {
-      if (
-        isDuplicateInternalProjectNumber(
-          existingInternalProjectNumbers,
-          value.internalProjectNumber,
-        )
-      ) {
-        ctx.addIssue({
-          code: 'custom',
-          path: ['internalProjectNumber'],
-          message: t('internalProjectNumberDuplicate'),
-        });
-      }
-    });
+export function createProjectDetailsSchema(t: (key: string) => string) {
+  return z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, t('fieldRequired'))
+      .max(PROJECT_NAME_MAX_LENGTH, t('projectNameTooLong'))
+      .refine((value) => !EMOJI_REGEX.test(value), t('emojiNotAllowed')),
+    projectTypeId: z.string().trim().min(1, t('fieldRequired')),
+    entryDate: z
+      .string()
+      .trim()
+      .min(1, t('fieldRequired'))
+      .refine(
+        (value) => value === '' || isValidEntryDate(value),
+        t('entryDateInvalid'),
+      ),
+    internalProjectNumber: z.string().trim().min(1, t('fieldRequired')),
+  });
 }
 
 export function createApplicantSchema(t: (key: string) => string) {

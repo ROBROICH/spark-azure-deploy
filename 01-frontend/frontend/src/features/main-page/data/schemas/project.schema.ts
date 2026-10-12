@@ -1,4 +1,4 @@
-import type { ProjectResponse } from '@/api-clients/pls-module/types.gen';
+import type { ProjectResponse } from '@/api-clients/backend/types.gen';
 
 export const ProjectStatus = {
   InBearbeitung: 'In Bearbeitung',

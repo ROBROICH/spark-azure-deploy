@@ -1,3 +1,4 @@
+import { v1CommentDeleteComment } from '@/api-clients/backend';
 import { commentsCollection } from '../collections/comments.collection';
 import type {
   CommentItem,
@@ -45,7 +46,10 @@ export const editComment = async (
   await tx.isPersisted.promise;
 };
 
-export const removeComment = async (id: string) => {
-  const tx = commentsCollection.delete(id);
-  await tx.isPersisted.promise;
+export const removeComment = async (projectId: string, commentId: string) => {
+  await v1CommentDeleteComment({
+    path: { projectId, commentId },
+    throwOnError: true,
+  });
+  await commentsCollection.utils.refetch();
 };

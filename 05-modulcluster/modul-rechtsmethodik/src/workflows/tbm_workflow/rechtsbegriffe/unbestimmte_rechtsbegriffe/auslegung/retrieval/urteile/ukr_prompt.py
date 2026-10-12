@@ -1,5 +1,7 @@
 """Prompt template for Urteil relevance filtering."""
 
+from src.activities.prompt_blocks import closing_block
+
 ukr_prompt_w_fq = """
 **Rolle** 
 Du bist ein Experte für juristische Knowledge-Graphs und Information-Retrieval. 
@@ -84,17 +86,13 @@ Ausgabe:
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmter Rechtsbegriff:
-{unbestimmter_rechtsbegriff}
-
-Chunks:
-{chunks}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmter Rechtsbegriff:",
+    "{unbestimmter_rechtsbegriff}",
+    "",
+    "Chunks:",
+    "{chunks}",
+)
 
 ukr_prompt = """
 **Rolle** 
@@ -162,14 +160,10 @@ Ausgabe:
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmter Rechtsbegriff:
-{unbestimmter_rechtsbegriff}
-
-Chunks:
-{chunks}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmter Rechtsbegriff:",
+    "{unbestimmter_rechtsbegriff}",
+    "",
+    "Chunks:",
+    "{chunks}",
+)

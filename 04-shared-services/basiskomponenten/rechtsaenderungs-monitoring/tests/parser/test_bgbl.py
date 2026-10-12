@@ -1,14 +1,16 @@
 """bundesgesetzblatt parser tests"""
 
 from pathlib import Path
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from httpx import HTTPError, Response
 from rechtsaenderungsmonitoring.config import app_config
 from rechtsaenderungsmonitoring.parser.base import Entry
 from rechtsaenderungsmonitoring.parser.bgbl import BGBLParser
+from rechtsaenderungsmonitoring.workflows.monitor_rechtsaenderungen.activities import _get_parser
 from respx import MockRouter, Route
+from temporal.contracts import Bundesland, RechtsaenderungenSource
 
 
 @pytest.mark.usefixtures("respx_mock")
@@ -113,3 +115,14 @@ class TestBGBLParser:
         pages = parser.fetch_and_extract(parser._current_entries[0])
         assert mock_doc.called
         assert all(isinstance(page_nr, int) and isinstance(text, str) for page_nr, text in pages)
+
+
+def test_activity_parsers_use_configured_cache_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(app_config, "cache_dir", tmp_path)
+
+    with patch("rechtsaenderungsmonitoring.parser.bgbl.GesetzeNormenDB"):
+        bund_parser = _get_parser(RechtsaenderungenSource.BUND)
+    state_parser = _get_parser(RechtsaenderungenSource.BUNDESLAND, Bundesland.BY)
+
+    assert bund_parser.cache_dir == tmp_path
+    assert state_parser.cache_dir == tmp_path

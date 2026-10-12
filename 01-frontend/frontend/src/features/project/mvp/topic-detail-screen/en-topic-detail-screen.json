@@ -29,7 +29,9 @@
     "aiSupportDescription": "This document contains AI findings.",
     "aiSupportDescriptionForNorm": "This document contains AI references for the selected norm {{norm}}.",
     "sichten": "View",
-    "gesichtet": "Viewed"
+    "gesichtet": "Viewed",
+    "sichtenEntfernen": "Remove review mark",
+    "actionsMenuAriaLabel": "Actions for {{file}}"
   },
   "FundstellenTabContent": {
     "keinDokument": "No document",
@@ -94,6 +96,12 @@
   },
   "FundstellenSelectedReferenceCard": {
     "pageNumber": "p. {{page}}"
+  },
+  "FundstellenReliability": {
+    "focusCount": "Focus: {{focused}} of {{total}}",
+    "focusCountExplanation": "The AI suggests starting with these {{focused}} of {{total}} evidence matches. They hold concrete information about the matter.",
+    "notInFocusExplanation": "Not in focus. The passage holds no concrete information about the matter, but it may still be useful for your assessment.",
+    "unratedExplanation": "Not in focus. The AI stored no assessment for this passage."
   },
   "FundstellenOutdatedTrigger": {
     "title": "AI references outdated",

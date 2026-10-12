@@ -2,6 +2,7 @@ import type { NodePayloadByType } from '@/db/nodes/types';
 import { uniqBy } from 'es-toolkit';
 import { getNormLabel } from '../../rechtsgrundlage/aiNormLabel';
 import {
+  capitalizeFirstWord,
   getNormTypeBadgeDescriptor,
   type NormTypeBadgeDescriptor,
 } from './normTypeBadgeLabels';
@@ -24,12 +25,12 @@ export type RechtsmethodikBestimmterRechtsbegriffNode = Pick<
 
 export type RechtsmethodikLegaldefinition = Pick<
   NodePayloadByType<'legaldefinition'>,
-  'bestimmter_rechtsbegriff_id' | 'definition' | 'id'
+  'bestimmterRechtsbegriffId' | 'definition' | 'id'
 > &
   Partial<
     Pick<
       NodePayloadByType<'legaldefinition'>,
-      'source_jurabk' | 'source_paragraph_nr'
+      'sourceJurabk' | 'sourceParagraphNr'
     >
   >;
 
@@ -40,7 +41,7 @@ export type RechtsmethodikUnbestimmterRechtsbegriffNode = Pick<
 
 type RechtsmethodikAuslegungsvorschlagNode = Pick<
   NodePayloadByType<'auslegungsvorschlag'>,
-  'id' | 'methode' | 'text' | 'unbestimmter_rechtsbegriff_id'
+  'id' | 'methode' | 'text' | 'unbestimmterRechtsbegriffId'
 >;
 
 export type RechtsmethodikBestimmterBegriff = {
@@ -101,7 +102,7 @@ export const getRechtsmethodikHeaderTitle = (
   norm: NodePayloadByType<'norm'> | null,
 ): string => {
   const jurabk = gesetz?.jurabk.trim();
-  const paragraphNumber = norm?.paragraph_nr.trim();
+  const paragraphNumber = norm?.paragraphNr.trim();
 
   if (jurabk && paragraphNumber) {
     return `${jurabk} § ${paragraphNumber}`;
@@ -122,8 +123,8 @@ export const getSentenceTypeBadges = (
   }
 
   let badges: NormTypeBadgeDescriptor[] = [];
-  badges = appendUniqueNormTypeBadge(badges, satz.norm_typ_lvl_1);
-  badges = appendUniqueNormTypeBadge(badges, satz.norm_typ_lvl_2);
+  badges = appendUniqueNormTypeBadge(badges, satz.normTypLvl1);
+  badges = appendUniqueNormTypeBadge(badges, satz.normTypLvl2);
   return badges;
 };
 
@@ -158,7 +159,7 @@ export const getBestimmteRechtsbegriffe = (
 ): RechtsmethodikBestimmterBegriff[] => {
   const definitionsByTermId = new Map(
     definitions.map((definition) => [
-      definition.bestimmter_rechtsbegriff_id,
+      definition.bestimmterRechtsbegriffId,
       definition,
     ]),
   );
@@ -188,9 +189,9 @@ export const getUnbestimmteRechtsbegriffe = (
 
   for (const interpretation of interpretations) {
     const existingMethods =
-      methodsByTermId.get(interpretation.unbestimmter_rechtsbegriff_id) ?? [];
+      methodsByTermId.get(interpretation.unbestimmterRechtsbegriffId) ?? [];
 
-    methodsByTermId.set(interpretation.unbestimmter_rechtsbegriff_id, [
+    methodsByTermId.set(interpretation.unbestimmterRechtsbegriffId, [
       ...existingMethods,
       {
         id: interpretation.id,
@@ -214,18 +215,51 @@ export const getUnbestimmteRechtsbegriffe = (
   );
 };
 
+const BOTH_ERMESSENSART_VALUE = 'beides';
+
+/**
+ * The legal-method workflow reports `beides` when a legal effect grants both
+ * kinds of discretion. The badge row names them instead, because the reader
+ * acts on the two kinds, not on the combined value.
+ */
+const ERMESSENSART_VALUES_FOR_BOTH = [
+  'auswahlermessen',
+  'entschließungsermessen',
+];
+
+const getErmessensartValues = (art: string): string[] => {
+  if (art.trim().toLocaleLowerCase('de') === BOTH_ERMESSENSART_VALUE) {
+    return ERMESSENSART_VALUES_FOR_BOTH;
+  }
+
+  return [art];
+};
+
 export const getRechtsfolgeBadges = (
-  adressaten: NodePayloadByType<'adressat'>[],
   sollensanordnungen: NodePayloadByType<'sollensanordnungen'>[],
+  ermessensspielraeume: NodePayloadByType<'ermessensspielraum'>[],
+  ermessensarten: NodePayloadByType<'ermessensart'>[],
 ): string[] => {
   let badges: string[] = [];
 
   for (const sollensanordnung of sollensanordnungen) {
-    badges = appendUnique(badges, sollensanordnung.kategorie);
+    badges = appendUnique(
+      badges,
+      capitalizeFirstWord(sollensanordnung.kategorie),
+    );
   }
 
-  for (const adressat of adressaten) {
-    badges = appendUnique(badges, adressat.entscheidung);
+  for (const ermessensspielraum of ermessensspielraeume) {
+    badges = appendUnique(
+      badges,
+      capitalizeFirstWord(ermessensspielraum.entscheidung),
+    );
+  }
+
+  for (const ermessensart of ermessensarten) {
+    for (const art of getErmessensartValues(ermessensart.art)) {
+      badges = appendUnique(badges, capitalizeFirstWord(art));
+    }
   }
 
   return badges;
@@ -237,12 +271,12 @@ export const getLegalDefinitionSourceLabel = (
 ): string | null => {
   const sourceParts: string[] = [];
 
-  if (definition.source_jurabk?.trim()) {
-    sourceParts.push(definition.source_jurabk.trim());
+  if (definition.sourceJurabk?.trim()) {
+    sourceParts.push(definition.sourceJurabk.trim());
   }
 
-  if (definition.source_paragraph_nr?.trim()) {
-    sourceParts.push(`§ ${definition.source_paragraph_nr.trim()}`);
+  if (definition.sourceParagraphNr?.trim()) {
+    sourceParts.push(`§ ${definition.sourceParagraphNr.trim()}`);
   }
 
   if (sourceParts.length === 0) {

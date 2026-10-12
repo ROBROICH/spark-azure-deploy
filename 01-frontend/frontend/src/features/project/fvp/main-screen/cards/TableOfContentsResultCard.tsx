@@ -9,7 +9,7 @@ import {
   requestSidebarSearchUpdate,
 } from '@/features/project/action-sidebar/sidebarSearchParams';
 import { getRouteApi } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ResultCard,
@@ -18,6 +18,7 @@ import {
   type ResultCardHintStatus,
 } from './ResultCard';
 import { ResultCardSkeleton } from './ResultCardSkeleton';
+import { ResultCardStatusFallback } from './ResultCardStatusFallback';
 import {
   ResultCardRequestAllButton,
   ResultCardShowMoreButton,
@@ -41,6 +42,7 @@ const route = getRouteApi('/verfahren/$verfahrenId/fvp/documents/');
 
 type TableOfContentsResultCardProps = {
   projectId: string;
+  statusAddon?: ReactNode;
 };
 
 /**
@@ -53,7 +55,7 @@ type TableOfContentsResultCardProps = {
 export const TableOfContentsResultCard = (
   props: TableOfContentsResultCardProps,
 ) => {
-  const { projectId } = props;
+  const { projectId, statusAddon } = props;
   const { t } = useTranslation('FormalCompletenessCheck');
   const navigate = route.useNavigate();
   const { canMutateProject } = useCanMutateProject({
@@ -64,14 +66,16 @@ export const TableOfContentsResultCard = (
   const { items, isLoading, isError } = useTableOfContentsDocuments(projectId);
 
   if (isLoading) {
-    return <ResultCardSkeleton />;
+    return <ResultCardSkeleton statusAddon={statusAddon} />;
   }
 
   if (isError) {
     return (
-      <CollectionErrorAlert
-        onRetry={() => retryTableOfContentsReads(projectId)}
-      />
+      <ResultCardStatusFallback statusAddon={statusAddon}>
+        <CollectionErrorAlert
+          onRetry={() => retryTableOfContentsReads(projectId)}
+        />
+      </ResultCardStatusFallback>
     );
   }
 
@@ -227,6 +231,7 @@ export const TableOfContentsResultCard = (
   const hiddenCount = Math.max(hints.length - COLLAPSED_HINTS, 0);
   return (
     <ResultCard
+      statusAddon={statusAddon}
       processed={processedCount}
       total={totalItems}
       statusTextKey="redesign.tableOfContentsCard.status.progress"

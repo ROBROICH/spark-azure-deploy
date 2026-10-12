@@ -17,7 +17,7 @@ import asyncio  # noqa: E402
 
 from temporal.s3_payload_storage import S3PayloadStorage  # noqa: E402
 from temporal.worker import start_temporal_worker  # noqa: E402
-from temporal.workflows.bewertung.bewertung import TASK_QUEUE as BEWERTUNG_TASK_QUEUE  # noqa: E402
+from temporal.registry import BEWERTUNG_WORKFLOW  # noqa: E402
 
 from src.workflows.applicability import ApplicabilityWorkflow  # noqa: E402
 from src.workflows.detail_planner import DetailPlannerWorkflow  # noqa: E402
@@ -47,7 +47,7 @@ async def main() -> None:
             WriterWorkflow,
         ],
         activities=[],
-        task_queue=BEWERTUNG_TASK_QUEUE,
+        task_queue=BEWERTUNG_WORKFLOW.task_queue,
         storage=storage,
     )
 

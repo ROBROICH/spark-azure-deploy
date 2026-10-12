@@ -35,7 +35,7 @@ export const SwimlaneHeader = (props: SwimlaneHeaderProps) => {
   return (
     <div
       className={cn(
-        'flex h-12 items-center gap-2 border-b border-b-border-primary bg-bg-primary p-2 text-[13px] font-medium tracking-[-0.13px] text-brand-950',
+        'flex min-h-12 flex-nowrap items-center gap-1 border-b border-b-border-primary bg-bg-primary p-2 text-[13px] font-medium tracking-[-0.13px] text-brand-950 md:gap-2',
         className,
       )}
     >
@@ -50,7 +50,7 @@ export const SwimlaneHeader = (props: SwimlaneHeaderProps) => {
           ) : (
             <span
               aria-hidden="true"
-              className="rounded-lg bg-bg-quaternary p-2"
+              className="inline-flex rounded-lg bg-bg-quaternary p-2"
             >
               <Icon className="size-4" />
             </span>

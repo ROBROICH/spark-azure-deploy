@@ -73,7 +73,7 @@ describe('nodePayloads.collection reloads', () => {
       {
         compositeKey: 'fundstelle:f-1',
         id: 'f-1',
-        node_type: 'fundstelle',
+        nodeType: 'fundstelle',
       },
       new Error('Missing node payload for fundstelle:f-missing'),
     ]);
@@ -93,7 +93,7 @@ describe('nodePayloads.collection reloads', () => {
       {
         compositeKey: 'fundstelle:f-1',
         id: 'f-1',
-        node_type: 'fundstelle',
+        nodeType: 'fundstelle',
       },
     ]);
   });

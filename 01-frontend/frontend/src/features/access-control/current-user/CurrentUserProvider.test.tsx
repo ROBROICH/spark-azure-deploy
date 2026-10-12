@@ -1,9 +1,9 @@
 import '@testing-library/jest-dom/vitest';
-import { getIdentityMeGet } from '@/api-clients/identity-management-module/sdk.gen';
+import { v1IdentityGetCurrentIdentity as getCurrentIdentity } from '@/api-clients/backend/sdk.gen';
 import type {
   IdentityResponse,
   OidcRole,
-} from '@/api-clients/identity-management-module/types.gen';
+} from '@/api-clients/backend/types.gen';
 import { DEV_MODE_STORAGE_KEY } from '@/features/dev-mode/useDevMode';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { cleanup, render, screen } from '@testing-library/react';
@@ -13,8 +13,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { CurrentUserProvider, useCurrentUser } from './CurrentUserProvider';
 import { CURRENT_USER_ROLE_MOCK_STORAGE_KEY } from './currentUserRoleMock';
 
-vi.mock('@/api-clients/identity-management-module/sdk.gen', () => ({
-  getIdentityMeGet: vi.fn(),
+vi.mock('@/api-clients/backend/sdk.gen', () => ({
+  v1IdentityGetCurrentIdentity: vi.fn(),
 }));
 
 vi.mock('react-i18next', () => ({
@@ -23,7 +23,7 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-const getIdentityMeGetMock = vi.mocked(getIdentityMeGet);
+const getIdentityMeGetMock = vi.mocked(getCurrentIdentity);
 
 const originalLocation = window.location;
 
@@ -58,9 +58,7 @@ class RenderCountDisplay extends PureComponent<RenderCountDisplayProps> {
     this.renderCount += 1;
 
     return (
-      <div data-testid="render-count">
-        {`${this.props.role}/${this.renderCount}`}
-      </div>
+      <div data-testid="render-count">{`${this.props.role}/${this.renderCount}`}</div>
     );
   }
 }
@@ -113,6 +111,7 @@ describe('CurrentUserProvider', () => {
   beforeEach(() => {
     window.localStorage.clear();
     vi.stubEnv('DEV', false);
+    vi.stubEnv('VITE_DEV_API_MODE', '');
     vi.stubEnv('VITE_SENTRY_ENVIRONMENT', 'production');
     getIdentityMeGetMock.mockReset();
     getIdentityMeGetMock.mockResolvedValue(
@@ -172,10 +171,9 @@ describe('CurrentUserProvider', () => {
     expect(reloadMock).toHaveBeenCalledTimes(1);
   });
 
-  it.each<{ label: string; role: OidcRole | null | undefined }>([
+  it.each<{ label: string; role: OidcRole | null }>([
     { label: 'service role', role: 'service' },
     { label: 'null role', role: null },
-    { label: 'missing role', role: undefined },
   ])('renders the error screen for a backend $label', async ({ role }) => {
     getIdentityMeGetMock.mockResolvedValue(
       createIdentityClientResult({

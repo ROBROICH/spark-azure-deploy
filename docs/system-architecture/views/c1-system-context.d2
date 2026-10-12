@@ -1,0 +1,614 @@
+# Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
+# inventory.toml, style.d2);
+# der Pfad steht in .agents/config.json unter architectureModelPath.
+# architecture-rendered-at: 06.10.2026, 15:51 UTC
+
+# SPARK Workflow — Styleguide der Architekturansichten
+#
+# Diese Datei wird beim Rendern wörtlich an den Anfang jeder erzeugten Ansicht
+# gesetzt. Eine veröffentlichte Ansicht ist dadurch eigenständig: sie lässt sich
+# allein mit der d2-CLI erneut rendern, ohne dieses Verzeichnis.
+#
+# Die Farben stammen aus den Design-Tokens des Frontends
+# (01-frontend/frontend/src/styles.css). Sie sind dort als Tailwind-Skalen
+# definiert und hier als Hexwerte aufgelöst, weil D2 keine CSS-Variablen kennt.
+# Wer einen Token ändert, ändert ihn dort zuerst und trägt ihn hier nach.
+#
+#   brand      indigo-950 #1e1b4b, brand-800 #31317e   Service-Layer
+#   primary    blue-600   #2563eb, blue-50   #eff6ff   Frontend, Datenzugriff
+#   ki         violet-800 #5b21b6, violet-50 #f5f3ff   KI-Module und Modelle
+#   success    emerald-700 #047857                     Orchestrierung
+#   warning    orange-600 #ea580c                      Autorisierung
+#   neutral    slate-Skala                             Basis, Kontext, Rahmen
+#
+# Keine eigene Schriftart: D2 bettet nur mitgelieferte Schriften ein. Inter
+# würde --font-regular voraussetzen und die Ansicht von einer Datei abhängig
+# machen, die nicht neben der SVG liegt.
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    # false: diagram grows from the top-left instead of floating in the canvas.
+    center: false
+    pad: 48
+  }
+}
+
+classes: {
+  # -- Rahmen ---------------------------------------------------------------
+
+  layer: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-frontend: {
+    style: {
+      stroke: "#93c5fd"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e3a8a"
+      border-radius: 8
+    }
+  }
+
+  layer-service: {
+    style: {
+      stroke: "#a5b4fc"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e1b4b"
+      border-radius: 8
+    }
+  }
+
+  layer-orchestration: {
+    style: {
+      stroke: "#6ee7b7"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-size: 24
+      bold: true
+      font-color: "#064e3b"
+      border-radius: 8
+    }
+  }
+
+  layer-ai: {
+    style: {
+      stroke: "#c4b5fd"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-size: 24
+      bold: true
+      font-color: "#4c1d95"
+      border-radius: 8
+    }
+  }
+
+  layer-basis: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-infrastructure: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f8fafc"
+      font-size: 24
+      bold: true
+      font-color: "#475569"
+      border-radius: 8
+    }
+  }
+
+  # Durchgezogen: eine Gruppe liegt im Repository, gestrichelt bleibt dem
+  # vorbehalten, was nicht aus ihm deployt wird.
+  group: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 1
+      fill: "#f8fafc"
+      font-size: 19
+      bold: true
+      font-color: "#475569"
+      border-radius: 6
+    }
+  }
+
+  legend: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 19
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  # Textspalte der Legende neben den Symbolen: ohne eigenen Rahmen.
+  legend-column: {
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Unsichtbare Endpunkte einer Musterkante in der Legende; sichtbar ist nur
+  # die Linie selbst.
+  legend-anchor: {
+    width: 4
+    height: 4
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Beschriftung einer Musterkante, rechts neben der Linie.
+  legend-label: {
+    shape: text
+    style: {
+      font-size: 15
+      font-color: "#334155"
+    }
+  }
+
+  # -- Systemkontext --------------------------------------------------------
+
+  actor: {
+    style: {
+      stroke: "#334155"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-color: "#0f172a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  actor-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 3
+      fill: "#f8fafc"
+      font-color: "#475569"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  system: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 2
+      fill: "#31317e"
+      font-color: "#ffffff"
+      font-size: 19
+      bold: true
+      border-radius: 8
+      shadow: true
+    }
+  }
+
+  external: {
+    style: {
+      stroke: "#64748b"
+      stroke-dash: 3
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Container ------------------------------------------------------------
+
+  frontend: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-color: "#1e3a8a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  service: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # Ein Pool ist eine Instanz des geteilten SPARK-Backend-Images. Die dunklere
+  # Füllung trennt ihn optisch von den eigenständigen Diensten desselben Layers.
+  pool: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#e0e7ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  modulith: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 3
+      fill: "#c7d2fe"
+      font-color: "#1e1b4b"
+      font-size: 16
+      bold: true
+      border-radius: 6
+    }
+  }
+
+  orchestration: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-color: "#064e3b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-module: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-infrastructure: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      fill: "#ede9fe"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  platform: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      fill: "#f8fafc"
+      font-color: "#1e293b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Komponenten ----------------------------------------------------------
+
+  component: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 1
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 15
+      border-radius: 4
+    }
+  }
+
+  # -- Betreiberseitig ------------------------------------------------------
+  #
+  # Gestrichelte Knoten und Rahmen heißen: nicht aus diesem Repository
+  # deployt (betreiberseitig, extern, Sprachmodelle, Beteiligte ohne
+  # Systemzugang). Bei Kanten unterscheidet die Strichelung dagegen den Typ.
+
+  infrastructure: {
+    style: {
+      stroke: "#64748b"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  language-model: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#faf5ff"
+      font-color: "#4c1d95"
+      font-size: 15
+      border-radius: 6
+    }
+  }
+
+  # -- Kantentypen ----------------------------------------------------------
+  #
+  # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
+  # Die Farben sind so gewählt, dass je zwei Typen mit gleicher Strichart auch
+  # bei Rot-Grün-Sehschwäche unterscheidbar bleiben; wer eine Farbe ändert,
+  # prüft das erneut (Farbabstand, nicht Augenmaß).
+
+  http: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#475569"
+    }
+  }
+
+  http-primary: {
+    style: {
+      stroke: "#1e293b"
+      stroke-width: 3
+      font-size: 14
+      font-color: "#0f172a"
+      bold: true
+    }
+  }
+
+  queue: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#047857"
+    }
+  }
+
+  datastore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  objectstore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      stroke-dash: 3
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  cache: {
+    style: {
+      stroke: "#60a5fa"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  authz: {
+    style: {
+      stroke: "#ea580c"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#9a3412"
+    }
+  }
+
+  llm: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#5b21b6"
+    }
+  }
+
+  uses: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#31317e"
+    }
+  }
+
+  # Beteiligung ohne Systemzugang: die Unterlagen erreichen das System, die
+  # Person selbst meldet sich nie an.
+  uses-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      font-size: 14
+      font-color: "#64748b"
+    }
+  }
+
+  # -- Hinweistext unterhalb einer Ansicht ----------------------------------
+
+  note: {
+    style: {
+      font-size: 15
+      font-color: "#475569"
+    }
+  }
+
+  diagram-meta: {
+    style: {
+      font-size: 15
+      font-color: "#334155"
+      bold: true
+    }
+  }
+}
+
+direction: down
+grid-columns: 1
+grid-gap: 32
+
+title: |md
+  # C1 Systemkontext
+
+  SPARK Workflow, seine Akteure und die angebundenen Systeme
+| {
+  near: top-center
+  style: { font-size: 24; font-color: "#1e1b4b" }
+}
+
+kontext: "Kontext" {
+  class: group
+  direction: right
+  akteure: "Akteure" {
+    class: group
+    direction: down
+    nutzende: "Angemeldete Rollen" {
+      class: group
+      direction: down
+      administration: "Administration\nKeycloak-Rolle admin" { class: actor }
+      verfahrensleitung: "Verfahrensleitung\nSpiceDB-Relation owner" { class: actor }
+      zugewiesene-bearbeitende: "Zugewiesene Bearbeitende\nSpiceDB-Relation member" { class: actor }
+      bearbeitende: "Bearbeitende\nKeycloak-Rolle user" { class: actor }
+      auditierende: "Auditierende\nSpiceDB-Relation auditor" { class: actor }
+    }
+    beteiligte: "Ohne Systemzugang" {
+      class: group
+      direction: down
+      vorhabentraegerin: "Vorhabentraegerin\nOhne Systemzugang" { class: actor-indirect }
+      antragstellende: "Antragstellende\nOhne Systemzugang" { class: actor-indirect }
+      einwendende: "Einwendende\nOhne Systemzugang" { class: actor-indirect }
+    }
+  }
+  system: "SPARK Workflow\nPlanfeststellung und Genehmigung" { class: system }
+  anbindung: "Anbindungen" {
+    class: group
+    direction: down
+    behoerdenplattformen: "Behoerdenplattformen" {
+      class: group
+      direction: down
+      fachplanungsportal: "Fachplanungsportal" { class: external }
+      diplan: "DiPlanung" { class: external }
+    }
+    sprachmodelle: "Sprachmodelle" {
+      class: group
+      direction: down
+      bge-m3: "BGE-M3\nEmbeddings" { class: language-model }
+      gpt-oss-120b: "gpt-oss-120b\nReasoning" { class: language-model }
+      gemma-4-26b-a4b: "Gemma 4 26B A4B\nMultimodales Reasoning" { class: language-model }
+      lightonocr-2-1b: "LightOnOCR-2-1B\nOCR" { class: language-model }
+      qwen3-235b-a22b: "Qwen3-235B-A22B-Instruct-2507\nReasoning" { class: language-model }
+    }
+  }
+  akteure.nutzende.administration -> system: "nutzt" { class: uses }
+  akteure.nutzende.verfahrensleitung -> system: "nutzt" { class: uses }
+  akteure.nutzende.zugewiesene-bearbeitende -> system: "nutzt" { class: uses }
+  akteure.nutzende.bearbeitende -> system: "nutzt" { class: uses }
+  akteure.nutzende.auditierende -> system: "nutzt" { class: uses }
+  akteure.beteiligte.vorhabentraegerin -> system: "mittelbar" { class: uses-indirect }
+  akteure.beteiligte.antragstellende -> system: "mittelbar" { class: uses-indirect }
+  akteure.beteiligte.einwendende -> system: "mittelbar" { class: uses-indirect }
+  system -> anbindung.behoerdenplattformen.fachplanungsportal: "Antraege / Beteiligung" { class: http }
+  system -> anbindung.behoerdenplattformen.diplan: "Planwerke / Verfahren" { class: http }
+  system -> anbindung.sprachmodelle: "LLM-Proxy" { class: llm }
+}
+
+
+dokumentation: "Legende und Metadaten" {
+  class: legend
+  grid-columns: 3
+  grid-gap: 32
+  legende-symbole: "Symbole" {
+    class: legend
+    grid-columns: 2
+    grid-gap: 32
+    ls-akteur: "Angemeldete Rolle\nKeycloak / SpiceDB" { class: actor }
+    ls-beteiligt: "Verfahrensbeteiligung\nohne Systemzugang" { class: actor-indirect }
+    ls-system: "SPARK Workflow (System)" { class: system }
+    ls-extern: "Behoerdenplattform (extern)" { class: external }
+    ls-llm: "Sprachmodell (extern)" { class: language-model }
+  }
+
+  legende-text: "" {
+    class: legend-column
+    grid-columns: 1
+    legende-kanten: "Kantentypen (Laufzeit)" {
+      class: legend-column
+      grid-rows: 4
+      grid-columns: 3
+      horizontal-gap: 72
+      vertical-gap: 16
+      von-http: "" { class: legend-anchor }
+      nach-http: "" { class: legend-anchor }
+      text-http: "Synchroner Aufruf ueber HTTP" { class: legend-label }
+      von-llm: "" { class: legend-anchor }
+      nach-llm: "" { class: legend-anchor }
+      text-llm: "Aufruf eines Sprachmodells ueber den LLM-Proxy" { class: legend-label }
+      von-uses: "" { class: legend-anchor }
+      nach-uses: "" { class: legend-anchor }
+      text-uses: "Benutzung durch einen menschlichen Akteur" { class: legend-label }
+      von-uses-indirect: "" { class: legend-anchor }
+      nach-uses-indirect: "" { class: legend-anchor }
+      text-uses-indirect: "Mittelbare Beteiligung ohne Systemzugang" { class: legend-label }
+      von-http -> nach-http: { class: http }
+      von-llm -> nach-llm: { class: llm }
+      von-uses -> nach-uses: { class: uses }
+      von-uses-indirect -> nach-uses-indirect: { class: uses-indirect }
+    }
+
+    metadaten: |md
+      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Ansicht** c1-system-context (C1)\
+      **Renderer** d2 v0.8.2\
+      **Quelle** kuratiertes Modell\
+      landscape.toml, views.toml, inventory.toml
+    | {
+      class: diagram-meta
+    }
+
+  }
+  hinweis: |md
+    C4-Systemkontext: menschliche Akteure, das System und angebundene\
+    Plattformen. Gestrichelte Kanten = mittelbare Beteiligung ohne Login.
+  | {
+    class: note
+  }
+
+}

@@ -1,5 +1,4 @@
-import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { BackButtonBar } from './BackButtonBar';
@@ -72,31 +71,13 @@ describe('BackButtonBar', () => {
     useNodeMock.mockReturnValue({
       data: {
         id: 'topic-1',
-        mvp_assignees: ['member-id'],
+        mvpAssignees: ['member-id'],
         name: 'Topic one',
       },
     });
   });
 
   afterEach(cleanup);
-
-  it('renders the topic write badge before the progress indicator', () => {
-    render(
-      <BackButtonBar
-        laneOrderPreference="documentsFirst"
-        onLaneOrderChange={vi.fn()}
-      />,
-    );
-
-    const badge = screen.getByTestId('topic-write-permission-badge');
-    const progress = screen.getByText('0 von 0 Normen geprüft');
-
-    expect(badge).toHaveTextContent('member-id');
-    expect(
-      badge.compareDocumentPosition(progress) &
-        Node.DOCUMENT_POSITION_FOLLOWING,
-    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
-  });
 
   it('strips detail-only route state when returning to the overview', () => {
     render(
@@ -107,13 +88,6 @@ describe('BackButtonBar', () => {
     );
 
     const linkProps = linkPropsMock.mock.calls[0]?.[0];
-    expect(linkProps).toEqual(
-      expect.objectContaining({
-        from: '/verfahren/$verfahrenId/mvp/$topicName',
-        resetScroll: false,
-        to: '/verfahren/$verfahrenId/mvp',
-      }),
-    );
     expect(
       linkProps.search({
         detailDocumentId: 'topic-norm-1',

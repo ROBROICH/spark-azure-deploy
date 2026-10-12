@@ -1,6 +1,7 @@
 {
   "welcome": "Herzlich willkommen",
   "welcomeSubtitle": "SPARK Workflow",
+  "welcomeSubtitleEwms": "SPARK Workflow eEWMS",
   "newProject": "Neues Verfahren",
   "deadlinesAndDates": "Fristen und Termine",
   "schwarzagent": "Schwärzungsagent",
@@ -24,6 +25,7 @@
     "noEvents": "Keine Fristen oder Termine am {{date}}.",
     "hasEvents": "Fristen oder Termine am {{date}}",
     "loadingEvents": "Termine werden geladen …",
+    "loadMore": "Weitere Termine laden",
     "loadError": "Fristen und Termine konnten nicht geladen werden."
   },
   "ProjectsTable": {
@@ -37,7 +39,7 @@
     "searchPlaceholder": "Nach Verfahrensname, Aktenzeichen oder Status suchen …",
     "filterByArt": "Art",
     "filterByAnlage": "Anlage",
-    "anlageSpark": "SPARK",
+    "anlageSpark": "SPARK Workflow",
     "anlageFpp": "FPP",
     "filterByStatus": "Status",
     "filterByFavorite": "Favoriten",
@@ -47,7 +49,9 @@
     "zuordnungMeine": "Meine Verfahren",
     "zuordnungAlle": "Alle Verfahren",
     "loadingProjects": "Projekte werden geladen …",
+    "loadMore": "Weitere Verfahren laden",
     "noProjectsFound": "Keine Projekte gefunden.",
+    "tableAriaLabel": "Verfahrenstabelle",
     "loadError": "Projekte konnten nicht geladen werden.",
     "favoriteProject": "Projekt als Favorit markieren",
     "unfavoriteProject": "Favorit entfernen",

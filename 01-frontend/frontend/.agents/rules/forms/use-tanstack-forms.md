@@ -1,3 +1,7 @@
+---
+ruleId: forms/use-tanstack-forms
+---
+
 # Use TanStack Forms
 
 - Always use `@tanstack/react-form` for form handling

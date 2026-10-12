@@ -5,23 +5,22 @@ one ``UpdateRechtsgrundlageSource`` sub-workflow per parser block (EU,
 Bund, and one per Bundesland) and aggregate their written/skipped counts.
 """
 
-from temporal.utils import sliding_window
-from temporal.workflows.gesetze_normen.types import (
+from temporal.contracts import (
+    GesetzeNormenSource,
     RelevantLaws,
-    Source,
-    StateRelevantLaws,
     UpdateRechtsgrundlageInput,
     UpdateRechtsgrundlageOutput,
     UpdateRechtsgrundlageSourceInput,
     UpdateRechtsgrundlageSourceOutput,
 )
-from temporal.workflows.gesetze_normen.update_rechtsgrundlage import (
-    UPDATE_RECHTSGRUNDLAGE_WORKFLOW_ID,
+from temporal.registry import (
+    GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_SOURCE_WORKFLOW,
+    GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW,
 )
-from temporal.workflows.gesetze_normen.update_rechtsgrundlage_source import (
-    execute_update_rechtsgrundlage_source_workflow,
-)
+from temporal.utils import execute_child_workflow, sliding_window
 from temporalio import workflow
+
+from db_pipelines.norm_specs import state_law_blocks
 
 
 def _build_source_inputs(
@@ -33,7 +32,7 @@ def _build_source_inputs(
     if relevant_laws.eu:
         inputs.append(
             UpdateRechtsgrundlageSourceInput(
-                source=Source.EU,
+                source=GesetzeNormenSource.EU,
                 laws=relevant_laws.eu,
                 location=None,
                 overwrite=overwrite,
@@ -42,23 +41,17 @@ def _build_source_inputs(
     if relevant_laws.bund:
         inputs.append(
             UpdateRechtsgrundlageSourceInput(
-                source=Source.BUND,
+                source=GesetzeNormenSource.BUND,
                 laws=relevant_laws.bund,
                 location=None,
                 overwrite=overwrite,
             )
         )
 
-    state_configs: list[StateRelevantLaws] = []
-    if relevant_laws.bundeslaender:
-        state_configs = list(relevant_laws.bundeslaender)
-    elif relevant_laws.bundesland:
-        state_configs = [relevant_laws.bundesland]
-
-    for state_config in state_configs:
+    for state_config in state_law_blocks(relevant_laws):
         inputs.append(
             UpdateRechtsgrundlageSourceInput(
-                source=Source.BUNDESLAND,
+                source=GesetzeNormenSource.BUNDESLAND,
                 laws=state_config,
                 location=state_config.name,
                 overwrite=overwrite,
@@ -67,7 +60,7 @@ def _build_source_inputs(
     return inputs
 
 
-@workflow.defn(name=UPDATE_RECHTSGRUNDLAGE_WORKFLOW_ID)
+@workflow.defn(name=GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.name)
 class UpdateRechtsgrundlageWorkflow:
     """Ingest the configured EU/Bund/Bundeslaender laws into the database."""
 
@@ -78,7 +71,12 @@ class UpdateRechtsgrundlageWorkflow:
         async def run_source(
             src_input: UpdateRechtsgrundlageSourceInput,
         ) -> UpdateRechtsgrundlageSourceOutput:
-            return await execute_update_rechtsgrundlage_source_workflow(src_input)
+            return UpdateRechtsgrundlageSourceOutput.model_validate(
+                await execute_child_workflow(
+                    definition=GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_SOURCE_WORKFLOW,
+                    input=src_input,
+                )
+            )
 
         results = await sliding_window(
             items=source_inputs,

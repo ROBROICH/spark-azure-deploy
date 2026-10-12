@@ -1,0 +1,252 @@
+{
+  "fixtures": [
+    {
+      "name": "bewertung-bnatschg-44-satz-1",
+      "kind": "bewertung",
+      "input": {
+        "gesetz": "Bundesnaturschutzgesetz",
+        "jurabk": "BNatSchG",
+        "paragraphNr": "44",
+        "paragraphTitle": "Vorschriften fuer besonders geschuetzte Arten",
+        "paragraphText": "Es ist verboten, wild lebende Tiere zu toeten.",
+        "satzId": "00000000-0000-4000-8000-000000006103",
+        "satzText": "Wild lebende Tiere duerfen nicht getoetet werden.",
+        "rechtsfolge": null,
+        "atomareTbm": [],
+        "researchReport": null,
+        "originaltexte": [
+          {
+            "documentId": "00000000-0000-4000-8000-000000006105",
+            "nodeId": "00000000-0000-4000-8000-000000006104",
+            "title": "Artenschutzkartierung",
+            "text": "Die Kartierung weist ein betroffenes Tier nach.",
+            "chunkIds": [
+              "00000000-0000-4000-8000-000000006109"
+            ],
+            "pageNumbers": [
+              3
+            ]
+          }
+        ]
+      },
+      "output": {
+        "id": "00000000-0000-4000-8000-000000006106",
+        "satzId": "00000000-0000-4000-8000-000000006103",
+        "norm": "BNatSchG § 44",
+        "satzText": "Wild lebende Tiere duerfen nicht getoetet werden.",
+        "result": "erfuellt",
+        "kurzform": "Artenschutzrechtliches Toetungsverbot",
+        "kapitel": [
+          {
+            "id": "00000000-0000-4000-8000-000000006107",
+            "titel": "Bewertung",
+            "markdown": "Die Fundstelle belegt das Tatbestandsmerkmal.",
+            "kurzform": null
+          }
+        ],
+        "fullText": "Die Fundstelle belegt das Tatbestandsmerkmal.",
+        "sources": {
+          "SVM-1": {
+            "documentId": "00000000-0000-4000-8000-000000006105",
+            "nodeId": "00000000-0000-4000-8000-000000006104",
+            "title": "Artenschutzkartierung",
+            "chunkIds": [
+              "00000000-0000-4000-8000-000000006109"
+            ],
+            "pageNumbers": [
+              3
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "ewms-process-clean-document",
+      "kind": "ewms-documents",
+      "input": {
+        "fileIds": [
+          "00000000-0000-4000-8000-000000006108"
+        ],
+        "projectId": "00000000-0000-4000-8000-000000006101"
+      },
+      "output": {
+        "processedFilesOutput": [
+          {
+            "promptInjection": {
+              "injectionDetected": false,
+              "snippet": null
+            },
+            "markdown": "# Stellungnahme\nMehr Schutz ist erforderlich.",
+            "chunks": [
+              {
+                "chunkId": "00000000-0000-4000-8000-000000006109",
+                "pageContent": "Mehr Schutz ist erforderlich.",
+                "pageNumbers": [
+                  1
+                ]
+              }
+            ],
+            "originalFileId": "00000000-0000-4000-8000-000000006108"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ewms-extract-one-argument",
+      "kind": "ewms-extraction",
+      "input": {
+        "processedFilesOutput": [
+          {
+            "promptInjection": {
+              "injectionDetected": false,
+              "snippet": null
+            },
+            "markdown": "# Stellungnahme\nMehr Schutz ist erforderlich.",
+            "chunks": [
+              {
+                "chunkId": "00000000-0000-4000-8000-000000006109",
+                "pageContent": "Mehr Schutz ist erforderlich.",
+                "pageNumbers": [
+                  1
+                ]
+              }
+            ],
+            "originalFileId": "00000000-0000-4000-8000-000000006108"
+          }
+        ]
+      },
+      "output": {
+        "documentArguments": [
+          {
+            "documentId": "00000000-0000-4000-8000-000000006108",
+            "chunkArguments": [
+              {
+                "chunk": {
+                  "chunkId": "00000000-0000-4000-8000-000000006109",
+                  "pageContent": "Mehr Schutz ist erforderlich.",
+                  "pageNumbers": [
+                    1
+                  ]
+                },
+                "arguments": [
+                  {
+                    "argument": {
+                      "text": "Mehr Schutz",
+                      "span": {
+                        "startIdx": 0,
+                        "endIdx": 11
+                      }
+                    },
+                    "description": "fordert einen staerkeren Schutz",
+                    "context": {
+                      "text": "Mehr Schutz ist erforderlich.",
+                      "span": {
+                        "startIdx": 0,
+                        "endIdx": 30
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "ewms-classify-one-argument",
+      "kind": "ewms-classification",
+      "input": {
+        "argumentRecords": [
+          {
+            "argumentId": "00000000-0000-4000-8000-000000006110",
+            "extractedArgument": {
+              "argument": {
+                "text": "Mehr Schutz",
+                "span": {
+                  "startIdx": 0,
+                  "endIdx": 11
+                }
+              },
+              "description": "fordert einen staerkeren Schutz",
+              "context": {
+                "text": "Mehr Schutz ist erforderlich.",
+                "span": {
+                  "startIdx": 0,
+                  "endIdx": 30
+                }
+              }
+            }
+          }
+        ],
+        "topics": [
+          {
+            "topicId": "00000000-0000-4000-8000-000000006111",
+            "name": "Artenschutz",
+            "description": "Schutz wild lebender Arten",
+            "subtopics": []
+          }
+        ]
+      },
+      "output": {
+        "classifiedArguments": [
+          {
+            "argumentRecord": {
+              "argumentId": "00000000-0000-4000-8000-000000006110",
+              "extractedArgument": {
+                "argument": {
+                  "text": "Mehr Schutz",
+                  "span": {
+                    "startIdx": 0,
+                    "endIdx": 11
+                  }
+                },
+                "description": "fordert einen staerkeren Schutz",
+                "context": {
+                  "text": "Mehr Schutz ist erforderlich.",
+                  "span": {
+                    "startIdx": 0,
+                    "endIdx": 30
+                  }
+                }
+              }
+            },
+            "topic": {
+              "topicId": "00000000-0000-4000-8000-000000006111",
+              "name": "Artenschutz",
+              "description": "Schutz wild lebender Arten",
+              "subtopics": []
+            },
+            "subtopic": null,
+            "reasoning": "Das Argument fordert mehr Artenschutz.",
+            "confidence": 0.96,
+            "topicConfidence": 0.96,
+            "subtopicConfidence": null
+          }
+        ]
+      }
+    },
+    {
+      "name": "risk-check-vae-chapter",
+      "kind": "risk",
+      "input": {
+        "id": "00000000-0000-4000-8000-000000006112",
+        "title": "Artenschutz",
+        "text": "Die Schutzpruefung ist noch nicht beschrieben."
+      },
+      "output": {
+        "risks": [
+          {
+            "riskId": "00000000-0000-4000-8000-000000006113",
+            "chapterId": "00000000-0000-4000-8000-000000006112",
+            "quote": "Schutzpruefung",
+            "description": "Die Pruefung bleibt unvollstaendig.",
+            "implications": "Das Vollzugsrisiko bleibt offen.",
+            "recommendation": "Die Schutzpruefung konkretisieren.",
+            "severity": 6
+          }
+        ]
+      }
+    }
+  ]
+}

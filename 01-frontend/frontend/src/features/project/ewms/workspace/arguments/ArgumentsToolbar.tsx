@@ -21,7 +21,7 @@ const ArgumentsProgressBadge = (props: ArgumentsProgressBadgeProps) => {
   return (
     <div
       className={cn(
-        'shrink-0 rounded bg-green-50 px-2 py-[5px] text-[11px] leading-[14px] font-medium tracking-[0.22px] text-green-900 shadow-[inset_0_0_0_0.5px_rgb(34_197_94)]',
+        'rounded bg-green-50 px-2 py-[5px] text-[11px] leading-[14px] font-medium tracking-[0.22px] text-green-900 shadow-[inset_0_0_0_0.5px_rgb(34_197_94)] md:shrink-0',
         className,
       )}
     >

@@ -1,4 +1,4 @@
-import type { WorkflowsBase } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
 import {
   getFakeProgressPercent,
   getFakeRemainingMinutes,
@@ -7,10 +7,7 @@ import {
 const MINUTES_PER_HOUR = 60;
 const MAX_RUNNING_PROGRESS_PERCENT = 90;
 
-export type WorkflowStartTimeSource = Pick<
-  WorkflowsBase,
-  'workflow_start_time'
->;
+export type WorkflowStartTimeSource = Pick<WorkflowsBase, 'workflowStartTime'>;
 
 export type WorkflowRemainingTimeEstimate = {
   count: number;
@@ -79,7 +76,7 @@ export const getFakeWorkflowProgressPrediction = (params: {
   } = params;
   const startedAt = getWorkflowStartedAtMs({
     fallbackStartedAt,
-    workflowStartedAt: workflow.workflow_start_time,
+    workflowStartedAt: workflow.workflowStartTime,
   });
   const progressPercent = getFakeProgressPercent({
     estimatedDurationMs,

@@ -10,45 +10,31 @@ import {
 } from '@/features/ui/dialog/Dialog';
 import { toast } from '@/features/ui/toast/Toast';
 import * as Sentry from '@sentry/react';
-import { eq, useLiveQuery } from '@tanstack/react-db';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { removeRequestItem } from '@/features/project/nachforderungen/data/actions/requestItemActions';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
+import type { RequestItem } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
 
 // Use the layout route (shared across FVP and PP)
 const route = getRouteApi('/verfahren/$verfahrenId');
 
 type DeleteDialogProps = {
   canMutateProject: boolean;
+  items: ReadonlyArray<RequestItem>;
 };
 
 export const DeleteDialog = (props: DeleteDialogProps) => {
-  const { canMutateProject } = props;
+  const { canMutateProject, items } = props;
   const { t } = useTranslation('SupplementaryRequests');
   const navigate = useNavigate();
   const descriptionId = useId();
   const { verfahrenId } = route.useParams();
   const { deleteRequestItemId } = route.useSearch();
-  const { data: requestItemsData } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, verfahrenId)),
-  );
-  const requestItems = [...requestItemsData].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return dateA - dateB;
-  });
+  const itemToDelete = items.find((item) => item.id === deleteRequestItemId);
 
-  // Find the item to delete
-  const itemToDelete = requestItems.find(
-    (item) => item.id === deleteRequestItemId,
-  );
-
-  const isOpen = !!deleteRequestItemId && !!itemToDelete;
+  const isOpen = !!deleteRequestItemId;
 
   const handleClose = () => {
     navigate({
@@ -68,7 +54,7 @@ export const DeleteDialog = (props: DeleteDialogProps) => {
     }
 
     try {
-      await removeRequestItem(deleteRequestItemId);
+      await removeRequestItem(verfahrenId, deleteRequestItemId);
     } catch (error) {
       // Keep the dialog open so the user can retry the deletion.
       Sentry.captureException(error);

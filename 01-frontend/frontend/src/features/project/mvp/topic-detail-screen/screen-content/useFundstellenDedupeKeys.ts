@@ -10,15 +10,15 @@ const resolveFundstelleChunkIds = (
 ) => {
   return Array.from(
     new Set(
-      fundstelle.chunk_ids.flatMap((chunkId) => {
+      fundstelle.chunkIds.flatMap((chunkId) => {
         const node = getNode(index, chunkId);
 
-        if (node?.node_type === 'chunk') {
+        if (node?.nodeType === 'chunk') {
           return [chunkId];
         }
 
         const parentChunkId = node?.parents.find(
-          (parent) => parent.node_type === 'chunk',
+          (parent) => parent.nodeType === 'chunk',
         )?.id;
 
         return parentChunkId ? [parentChunkId] : [];

@@ -18,7 +18,7 @@ const routeState = vi.hoisted<{ search: RouteSearch }>(() => ({
 function createArgumentRef(id: string): NodeRef {
   return {
     id,
-    node_type: 'argument',
+    nodeType: 'argument',
   } satisfies NodeRef;
 }
 

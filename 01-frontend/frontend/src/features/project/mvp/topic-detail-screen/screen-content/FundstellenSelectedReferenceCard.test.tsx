@@ -37,19 +37,32 @@ vi.mock('@/features/feedback/useFeedbackLookup', () => ({
 }));
 
 vi.mock('@/features/ui/ai/AiReferenceCard', () => ({
-  AiReferenceCard: (props: { children: ReactNode; title: string }) => (
-    <section aria-label={props.title}>{props.children}</section>
+  AiReferenceCard: (props: {
+    children: ReactNode;
+    title: string;
+    titleTrailing?: ReactNode;
+  }) => (
+    <section aria-label={props.title}>
+      {props.titleTrailing}
+      {props.children}
+    </section>
   ),
 }));
 
 vi.mock('@/features/ui/ai/AiReferenceRow', () => ({
   AiReferenceRow: (props: {
+    afterTitle?: ReactNode;
     item: { label: string; page?: string };
     onClick?: () => void;
+    trailing?: ReactNode;
   }) => (
-    <button type="button" onClick={props.onClick}>
-      {[props.item.label, props.item.page].filter(Boolean).join(' ')}
-    </button>
+    <>
+      <button type="button" onClick={props.onClick}>
+        {[props.item.label, props.item.page].filter(Boolean).join(' ')}
+      </button>
+      {props.afterTitle}
+      {props.trailing}
+    </>
   ),
 }));
 
@@ -60,7 +73,15 @@ vi.mock('react-i18next', () => ({
         return `S. ${String(params?.page ?? '')}`;
       }
 
+      if (key === 'FundstellenReliability.focusCount') {
+        return `Fokus: ${String(params?.focused ?? '')} von ${String(params?.total ?? '')}`;
+      }
+
       const translations = {
+        'FundstellenReliability.notInFocusExplanation':
+          'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+        'FundstellenReliability.unratedExplanation':
+          'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
         'FundstellenTabContent.keinDokument': 'Keine Unterlage',
         'FundstellenTabContent.missingTitlePlaceholder': 'Ohne Titel',
         'FundstellenTabContent.referencesTitle': 'Fundstellen',
@@ -78,26 +99,25 @@ vi.mock('react-i18next', () => ({
 const createDocument = (overrides: Partial<NodePayloadByType<'dokument'>>) =>
   ({
     id: 'document-1',
-    dms_file_id: 'file-1',
+    dmsFileId: 'file-1',
     filename: 'folder/document.pdf',
-    compositeKey: toCompositeKey({ id: 'document-1', node_type: 'dokument' }),
-    created_at: '2026-04-02T00:00:00.000Z',
-    document_id: null,
-    document_type: null,
-    frontend_parent_ids: [],
-    is_deleted: false,
-    is_outdated: false,
-    is_toc_document: false,
-    markdown_text_id: 'markdown-text-1',
-    mime_type: 'application/pdf',
-    node_type: 'dokument',
-    page_count: 1,
-    project_id: 'project-1',
-    project_version: 1,
+    compositeKey: toCompositeKey({ id: 'document-1', nodeType: 'dokument' }),
+    createdAt: '2026-04-02T00:00:00.000Z',
+    documentId: null,
+    documentType: null,
+    frontendParentIds: [],
+    isDeleted: false,
+    isOutdated: false,
+    isTocDocument: false,
+    markdownTextId: 'markdown-text-1',
+    mimeType: 'application/pdf',
+    nodeType: 'dokument',
+    pageCount: 1,
+    projectId: 'project-1',
+    projectVersion: 1,
     summary: '',
-    sys_period: null,
-    update_type: 'automated',
-    updated_at: '2026-04-02T00:00:00.000Z',
+    updateType: 'automated',
+    updatedAt: '2026-04-02T00:00:00.000Z',
     ...overrides,
   }) satisfies NodePayloadByType<'dokument'>;
 
@@ -177,7 +197,7 @@ describe('FundstellenSelectedReferenceCard', () => {
 
     render(
       <FundstellenSelectedReferenceCard
-        document={createDocument({ dms_file_id: undefined })}
+        document={createDocument({ dmsFileId: undefined })}
         entries={[{ id: 'fundstelle-1', pageNumber: 4, title: '' }]}
       />,
     );
@@ -188,5 +208,41 @@ describe('FundstellenSelectedReferenceCard', () => {
     expect(navigateMock).not.toHaveBeenCalled();
     expect(openConnectedFileMock).not.toHaveBeenCalled();
     expect(jumpToConnectedFilePageMock).not.toHaveBeenCalled();
+  });
+
+  it('marks only the passages that do not carry the assessment', () => {
+    render(
+      <FundstellenSelectedReferenceCard
+        document={createDocument({})}
+        entries={[
+          {
+            id: 'fundstelle-1',
+            pageNumber: 4,
+            title: 'Tragende Passage',
+            confidence: 0.8,
+          },
+          {
+            id: 'fundstelle-2',
+            pageNumber: 5,
+            title: 'Ergaenzende Passage',
+            confidence: 0.2,
+          },
+          { id: 'fundstelle-3', pageNumber: 6, title: 'Passage ohne Wert' },
+        ]}
+      />,
+    );
+
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
+      }),
+    ).toBeDefined();
+    expect(screen.getAllByRole('img')).toHaveLength(2);
+    expect(screen.getByText('Fokus: 1 von 3')).toBeDefined();
   });
 });

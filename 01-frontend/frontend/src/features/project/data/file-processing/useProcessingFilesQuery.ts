@@ -1,4 +1,4 @@
-import { type ZipFileResponse } from '@/api-clients/dms-module';
+import { type ZipFileResponse } from '@/api-clients/backend';
 import { useProjectRouteVersion } from '@/features/project/versioning/projectVersioning';
 import { useQuery, type UseQueryResult } from '@tanstack/react-query';
 import { loadProjectProcessingFiles } from './loadProjectProcessingFiles';

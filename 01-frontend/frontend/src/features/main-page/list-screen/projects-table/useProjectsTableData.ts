@@ -1,13 +1,17 @@
-import { useDeferredValue, useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
+import { v1ProjectLogicListProjects } from '@/api-clients/backend';
+import { v1ProjectLogicListProjectStatusesOptions } from '@/api-clients/backend/@tanstack/react-query.gen';
 import {
-  projectsCollection,
-  useAllProjects,
+  useProjectList,
+  type ProjectListFilters,
 } from '@/features/project/data/collections/projects.collection';
+import { projectTypesCollection } from '@/features/project/data/project-types/projectTypes.collection';
+import { useLiveQuery } from '@tanstack/react-db';
+import { skipToken, useQuery } from '@tanstack/react-query';
+import { useDeferredValue } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { AnlageFilterValue } from './ProjectsTable.constants';
 import {
   deriveOptions,
-  filterProjects,
   type FavoriteFilterValue,
   type ZuordnungFilterValue,
 } from './ProjectsTable.utils';
@@ -25,23 +29,21 @@ type UseProjectsTableDataParams = {
   filters: ProjectsTableFilterValues;
   favoriteIds: string[];
   currentUserId: string | undefined;
-};
-
-/** Refetches the projects collection so a failed load can recover on retry. */
-const retryProjects = () => {
-  void projectsCollection.utils.refetch();
+  sortColumn: ProjectListFilters['sort'];
+  sortDirection: ProjectListFilters['direction'];
 };
 
 /**
- * Derives the sorted, filtered project list and the localized filter options for
- * the projects table. Applies search, type, status, favorite, and zuordnung
- * filters to the projects collection.
- *
- * @param params - The search string, active filter values, favorite IDs, and current user ID.
- * @returns The filtered projects, loading/error state, a retry callback, and the table filter options.
+ * Converts table selections into filters applied before server pagination.
+ * @param params - Current table selections and favorite project IDs.
+ * @param deferredSearch - Search value deferred while the user types.
+ * @returns Filters for the authorized project list.
  */
-export const useProjectsTableData = (params: UseProjectsTableDataParams) => {
-  const { search, filters, favoriteIds, currentUserId } = params;
+const getProjectListFilters = (
+  params: UseProjectsTableDataParams,
+  deferredSearch: string,
+): ProjectListFilters => {
+  const { filters, favoriteIds, sortColumn, sortDirection } = params;
   const {
     anlageFilter,
     typeFilter,
@@ -49,67 +51,97 @@ export const useProjectsTableData = (params: UseProjectsTableDataParams) => {
     favoriteFilter,
     zuordnungFilter,
   } = filters;
+  return {
+    search: deferredSearch.trim() || undefined,
+    assignment: zuordnungFilter === 'meine' ? 'mine' : 'all',
+    imported: anlageFilter.length === 1 ? anlageFilter[0] === 'fpp' : undefined,
+    projectTypeName: typeFilter.length ? typeFilter : undefined,
+    statusName: statusFilter.length ? statusFilter : undefined,
+    ids:
+      favoriteFilter.length === 1 && favoriteFilter[0] === 'favorited'
+        ? favoriteIds
+        : undefined,
+    excludeIds:
+      favoriteFilter.length === 1 &&
+      favoriteFilter[0] === 'not-favorited' &&
+      favoriteIds.length
+        ? favoriteIds
+        : undefined,
+    sort: sortColumn,
+    direction: sortDirection,
+  };
+};
+
+/**
+ * All/mine, search, and ordering apply before paging on the authorized server set.
+ * @param params - Current table filters, ordering, favorites, and user identity.
+ * @returns Loaded rows, continuation controls, and dataset-independent filter options.
+ */
+export const useProjectsTableData = (params: UseProjectsTableDataParams) => {
+  const { currentUserId, filters } = params;
   const { t } = useTranslation('Dashboard');
-  const deferredSearch = useDeferredValue(search);
-  const { data: projects, isLoading, isError } = useAllProjects();
-
-  // eslint-disable-next-line no-restricted-syntax -- stable sort identity avoids re-filtering on unrelated renders
-  const projectsSortedByUpdatedAt = useMemo(
-    () =>
-      [...projects].sort((a, b) => {
-        const tA = new Date(a.updatedAt).getTime();
-        const tB = new Date(b.updatedAt).getTime();
-        return tB - tA;
-      }),
-    [projects],
+  const deferredSearch = useDeferredValue(params.search);
+  const projects = useProjectList(
+    getProjectListFilters(params, deferredSearch),
   );
-
-  const filteredProjects = isLoading
-    ? []
-    : filterProjects({
-        projects: projectsSortedByUpdatedAt,
-        anlageFilter,
-        typeFilter,
-        statusFilter,
-        favoriteFilter,
-        zuordnungFilter,
-        currentUserId,
-        favoriteIds,
-        search: deferredSearch,
-      });
-
-  const hasAssignedProjects =
-    currentUserId !== undefined &&
-    projects.some(
-      (p) =>
-        p.owners?.includes(currentUserId) || p.members?.includes(currentUserId),
-    );
+  const projectTypes = useLiveQuery((q) =>
+    q.from({ projectTypes: projectTypesCollection }),
+  );
+  const statuses = useQuery(v1ProjectLogicListProjectStatusesOptions());
+  const assignedProjects = useQuery({
+    queryKey: ['project-list', 'assigned', currentUserId],
+    queryFn: currentUserId
+      ? async () => {
+          const { data } = await v1ProjectLogicListProjects({
+            query: { assignment: 'mine', limit: 1, offset: 0 },
+            throwOnError: true,
+          });
+          return data;
+        }
+      : skipToken,
+  });
 
   return {
-    isLoading,
-    isError,
-    retry: retryProjects,
-    projects: filteredProjects,
+    isLoading:
+      projects.isLoading ||
+      projectTypes.isLoading ||
+      statuses.isLoading ||
+      assignedProjects.isLoading,
+    isError:
+      projects.isError ||
+      projectTypes.isError ||
+      statuses.isError ||
+      assignedProjects.isError,
+    retry: () => {
+      void projects.refetch();
+      void projectTypesCollection.utils.refetch();
+      void statuses.refetch();
+      if (currentUserId) {
+        void assignedProjects.refetch();
+      }
+    },
+    projects: projects.data,
+    hasNextPage: projects.hasNextPage,
+    isFetchingNextPage: projects.isFetchingNextPage,
+    fetchNextPage: projects.fetchNextPage,
     anlageOptions: [
-      {
-        label: t('ProjectsTable.anlageSpark'),
-        value: 'spark',
-      },
+      { label: t('ProjectsTable.anlageSpark'), value: 'spark' },
       { label: t('ProjectsTable.anlageFpp'), value: 'fpp' },
     ] satisfies { label: string; value: AnlageFilterValue }[],
-    artOptions: deriveOptions(
-      projects.map((project) => project.projectTypeName),
+    artOptions: deriveOptions(projectTypes.data.map((type) => type.name)),
+    statusOptions: deriveOptions(
+      (statuses.data ?? []).map((status) => status.name),
     ),
-    statusOptions: deriveOptions(projects.map((project) => project.statusName)),
     favoriteOptions: [
       { label: t('ProjectsTable.favorited'), value: 'favorited' },
       { label: t('ProjectsTable.notFavorited'), value: 'not-favorited' },
     ] satisfies { label: string; value: FavoriteFilterValue }[],
-    zuordnungOptions: hasAssignedProjects
-      ? ([
-          { label: t('ProjectsTable.zuordnungMeine'), value: 'meine' },
-          { label: t('ProjectsTable.zuordnungAlle'), value: 'alle' },
-        ] satisfies { label: string; value: ZuordnungFilterValue }[])
-      : [],
+    zuordnungOptions:
+      assignedProjects.data?.length || filters.zuordnungFilter === 'meine'
+        ? ([
+            { label: t('ProjectsTable.zuordnungMeine'), value: 'meine' },
+            { label: t('ProjectsTable.zuordnungAlle'), value: 'alle' },
+          ] satisfies { label: string; value: ZuordnungFilterValue }[])
+        : [],
   };
 };

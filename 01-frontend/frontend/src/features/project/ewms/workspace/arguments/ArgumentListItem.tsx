@@ -21,6 +21,7 @@ import { CheckCircle2, CircleDashed, Mail, Trash2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArgumentClassificationReviewActions } from '../../shared-ui/ArgumentClassificationReviewActions';
+import { ArgumentClassificationUncertaintyWarning } from '../../shared-ui/ArgumentClassificationUncertaintyWarning';
 import type {
   EwmsArgumentNode,
   EwmsBeteiligungsEingang,
@@ -243,16 +244,21 @@ export const ArgumentListItem = (props: ArgumentListItemProps) => {
                 }
               />
               {isTopicReviewOpen && (
-                <ArgumentClassificationReviewActions
-                  referenceId={referenceId}
-                  disabled={!canMutateProject}
-                  onAccept={() =>
-                    onReviewArgumentClassification(argument, true)
-                  }
-                  onReject={() =>
-                    onReviewArgumentClassification(argument, false)
-                  }
-                />
+                <>
+                  <ArgumentClassificationUncertaintyWarning
+                    argument={argument}
+                  />
+                  <ArgumentClassificationReviewActions
+                    referenceId={referenceId}
+                    disabled={!canMutateProject}
+                    onAccept={() =>
+                      onReviewArgumentClassification(argument, true)
+                    }
+                    onReject={() =>
+                      onReviewArgumentClassification(argument, false)
+                    }
+                  />
+                </>
               )}
             </div>
             <div
@@ -265,10 +271,10 @@ export const ArgumentListItem = (props: ArgumentListItemProps) => {
               <ArgumentStatusBadge checked={hasTextValue(argument.einordnung)}>
                 {t('topicClassification.einordnung')}
               </ArgumentStatusBadge>
-              <ArgumentStatusBadge checked={argument.in_vae}>
+              <ArgumentStatusBadge checked={argument.inVae}>
                 {t('arguments.inResolutionBadge')}
               </ArgumentStatusBadge>
-              {argument.is_valid_argument === false && (
+              {argument.isValidArgument === false && (
                 <span className="rounded border border-amber-300 bg-amber-50 px-2 py-[3px] text-[11px] leading-[14px] font-medium text-amber-900">
                   {t('arguments.invalidBadge')}
                 </span>

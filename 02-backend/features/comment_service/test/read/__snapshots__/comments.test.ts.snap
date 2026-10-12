@@ -1,0 +1,290 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots the complete populated project in stable creation order 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots an explicit empty project 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching process-step filters: matching process step 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching process-step filters: nonmatching process step 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching source-type filters: matching source type 1`] = `
+{
+  "body": [
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching source-type filters: nonmatching source type 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching combined filters: matching combined filters 1`] = `
+{
+  "body": [
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots matching and nonmatching combined filters: nonmatching combined filters 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots repeated process-step values as an OR filter 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots first, middle, and empty pagination windows: first page 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots first, middle, and empty pagination windows: middle page 1`] = `
+{
+  "body": [
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots first, middle, and empty pagination windows: empty page 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots accepted limit and offset boundaries: minimum limit 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots accepted limit and offset boundaries: maximum limit 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /projects/{project_id}/comments HTTP contract snapshots accepted limit and offset boundaries: minimum offset 1`] = `
+{
+  "body": [
+    {
+      "content": "test",
+      "createdAt": "2026-04-15T13:33:10.751Z",
+      "id": "f1e4f737-270f-4067-8371-abb1ef3d0781",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": null,
+      "title": "test",
+      "updatedAt": "2026-04-15T13:33:10.751Z",
+    },
+    {
+      "content": "adfadfaf",
+      "createdAt": "2026-04-15T14:45:25.619Z",
+      "id": "09eb9df7-0a88-46ff-8cf8-f15b8812f8db",
+      "processStep": "legalReview",
+      "projectId": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+      "sourceRef": {
+        "itemId": "0df93885-7b54-4eaf-9190-dffc47c7f678",
+        "type": "materialSatz",
+      },
+      "title": "§ 16 Absatz 1 Satz 1 Nr 5 BNatSchG",
+      "updatedAt": "2026-04-15T14:45:25.619Z",
+    },
+  ],
+  "status": 200,
+}
+`;

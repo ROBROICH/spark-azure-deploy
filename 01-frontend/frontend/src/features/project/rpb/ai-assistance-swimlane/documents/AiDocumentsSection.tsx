@@ -26,7 +26,7 @@ export const AiDocumentsSection = () => {
   const topicRef = topicId
     ? ({
         id: topicId,
-        node_type: 'topic',
+        nodeType: 'topic',
       } satisfies NodeRefByType<'topic'>)
     : null;
   const { data: topicDocuments } = useDescendantNodes('dokument', topicRef);

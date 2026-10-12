@@ -175,34 +175,36 @@ vi.mock('../shared/AiTopicHeader', () => ({
 
 const argument = (overrides: Partial<RpbArgumentNode>): RpbArgumentNode =>
   ({
-    argument_id: 'A1',
-    beteiligungs_eingang_id: 'entry-1',
+    argumentId: 'A1',
+    beteiligungsEingangId: 'entry-1',
+    extractionPayload: null,
     compositeKey: toCompositeKey({
       id: overrides.id ?? 'argument-1',
-      node_type: 'argument',
+      nodeType: 'argument',
     }),
     context: null,
-    context_end_idx: null,
-    context_start_idx: null,
-    created_at: '2026-01-01T00:00:00.000Z',
+    contextEndIdx: null,
+    contextStartIdx: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
     einordnung: null,
-    end_idx: null,
+    endIdx: null,
     erwiderung: null,
-    frontend_parent_ids: [],
+    frontendParentIds: [],
     id: 'argument-1',
-    in_vae: false,
-    is_deleted: false,
-    is_valid_argument: true,
-    node_type: 'argument',
-    project_id: 'project-1',
-    start_idx: null,
+    inVae: false,
+    isDeleted: false,
+    isValidArgument: true,
+    nodeType: 'argument',
+    projectId: 'project-1',
+    startIdx: null,
     status: 'open',
-    sub_topic_id: 'subtopic-1',
-    sys_period: null,
+    topicConfidence: null,
+    subTopicConfidence: null,
+    subTopicId: 'subtopic-1',
     text: 'Argument text',
-    topic_id: 'topic-1',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00.000Z',
+    topicId: 'topic-1',
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   }) satisfies RpbArgumentNode;
 
@@ -210,23 +212,22 @@ const subtopic = (overrides: Partial<RpbSubtopicNode>): RpbSubtopicNode =>
   ({
     compositeKey: toCompositeKey({
       id: overrides.id ?? 'subtopic-1',
-      node_type: 'subtopic',
+      nodeType: 'subtopic',
     }),
-    created_at: '2026-01-01T00:00:00.000Z',
+    createdAt: '2026-01-01T00:00:00.000Z',
     description: null,
-    frontend_parent_ids: [],
+    frontendParentIds: [],
     id: 'subtopic-1',
-    is_deleted: false,
+    isDeleted: false,
     name: 'Artenschutz',
-    node_type: 'subtopic',
-    project_id: 'project-1',
-    show_in_beschluss: false,
-    show_in_ewm: false,
-    show_in_mvp: false,
-    sys_period: null,
-    topic_id: 'topic-1',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00.000Z',
+    nodeType: 'subtopic',
+    projectId: 'project-1',
+    showInBeschluss: false,
+    showInEwm: false,
+    showInMvp: false,
+    topicId: 'topic-1',
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   }) satisfies RpbSubtopicNode;
 
@@ -245,12 +246,12 @@ describe('AiParticipationDetailView', () => {
         'subtopic-1',
         [
           argument({
-            argument_id: 'A2',
+            argumentId: 'A2',
             id: 'argument-2',
             text: 'Second selected argument',
           }),
           argument({
-            argument_id: 'A1',
+            argumentId: 'A1',
             id: 'argument-1',
             text: 'First selected argument',
           }),
@@ -291,12 +292,12 @@ describe('AiParticipationDetailView', () => {
     };
     const unassignedArgument = argument({
       id: 'argument-unassigned',
-      sub_topic_id: null,
+      subTopicId: null,
       text: 'Unassigned argument',
     });
     const assignedArgument = argument({
       id: 'argument-assigned',
-      sub_topic_id: 'subtopic-1',
+      subTopicId: 'subtopic-1',
       text: 'Assigned argument',
     });
     mocks.argumentsById = new Map([
@@ -307,14 +308,14 @@ describe('AiParticipationDetailView', () => {
       [
         'topic-1:argument',
         [
-          { id: unassignedArgument.id, node_type: 'argument' },
-          { id: assignedArgument.id, node_type: 'argument' },
+          { id: unassignedArgument.id, nodeType: 'argument' },
+          { id: assignedArgument.id, nodeType: 'argument' },
         ],
       ],
-      ['topic-1:subtopic', [{ id: 'subtopic-1', node_type: 'subtopic' }]],
+      ['topic-1:subtopic', [{ id: 'subtopic-1', nodeType: 'subtopic' }]],
       [
         'subtopic-1:argument',
-        [{ id: assignedArgument.id, node_type: 'argument' }],
+        [{ id: assignedArgument.id, nodeType: 'argument' }],
       ],
     ]);
 

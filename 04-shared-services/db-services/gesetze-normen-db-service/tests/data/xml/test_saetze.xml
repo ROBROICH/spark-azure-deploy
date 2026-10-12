@@ -62,7 +62,7 @@
             <text format="XML">
                 <Content>
                     <!-- abs 1: the abbreviation "e. V." must not trigger a sentence split -->
-                    <P>(1) Die Regeln des Projekts Spark Workflow eingehalten worden sind. Die Regeln der Auftraggeber eingehalten worden sind.</P>
+                    <P>(1) Die Regeln des Projekts SPARK Workflow eingehalten worden sind. Die Regeln der Auftraggeber eingehalten worden sind.</P>
                     <!-- abs 2: list with shared endtext followed by a new sentence in the same paragraph -->
                     <P>(2) Der Plan enthält:
                         <DL Font="normal" Type="arabic">

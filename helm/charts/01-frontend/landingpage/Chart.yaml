@@ -1,0 +1,15 @@
+apiVersion: v2
+name: landingpage
+description: >
+  Helm chart for the SPARK landing page (mock-landing-app): a scratch-image Go
+  static file server for the dashboard host apex (index.html + assets, with a
+  host-relative /app link into the SPA). Deployment + Service. The
+  gateway-routes chart's landing-route serves dashboard.<domain>/ from this
+  chart's Service ({release}-landingpage[-stage], port 80).
+type: application
+version: 0.3.0
+appVersion: "10"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

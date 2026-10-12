@@ -67,21 +67,21 @@ export const AiSatzBewertungFull = (props: AiSatzBewertungFullProps) => {
   const satzRef = satzId
     ? ({
         id: satzId,
-        node_type: 'satz',
+        nodeType: 'satz',
       } satisfies NodeRefByType<'satz'>)
     : null;
   const { data: satz } = useNode(satzRef);
-  const absatzRef = satz?.absatz_id
+  const absatzRef = satz?.absatzId
     ? ({
-        id: satz.absatz_id,
-        node_type: 'absatz',
+        id: satz.absatzId,
+        nodeType: 'absatz',
       } satisfies NodeRefByType<'absatz'>)
     : null;
   const { data: absatz } = useNode(absatzRef);
-  const normRef = absatz?.norm_id
+  const normRef = absatz?.normId
     ? ({
-        id: absatz.norm_id,
-        node_type: 'norm',
+        id: absatz.normId,
+        nodeType: 'norm',
       } satisfies NodeRefByType<'norm'>)
     : null;
   const satzRefs = useDescendants('satz', absatzRef);

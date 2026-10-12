@@ -1,7 +1,7 @@
 """Parser for Rechtsprechung im Internet (RII) court decision XML files"""
 
+import json
 import logging
-import pickle
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -12,9 +12,11 @@ from xsdata.formats.dataclass.parsers import XmlParser
 from xsdata.formats.dataclass.parsers.config import ParserConfig
 
 from jura_db.chunking import process_doc, vectorise_chunks
+from jura_db.config import app_config
 from jura_db.schemas.db import (
     BaseListItem,
     Chunk,
+    Citation,
     Document,
     Entscheidungsgrund,
     Grund,
@@ -23,7 +25,6 @@ from jura_db.schemas.db import (
     Region,
     Tatbestand,
     Tenor,
-    Citation,
 )
 from jura_db.schemas.dtd.rii_dok import DL, Div, Dokument
 
@@ -149,6 +150,54 @@ def extract_norm(norm: str) -> Norm:
     )
 
 
+def _chunk_cache_path(doc_id: str) -> Path:
+    """chunk cache location, kept outside of the archive extraction directory"""
+    return Path(app_config.cache_dir) / "chunk-cache" / f"{doc_id}.chunks.json"
+
+
+def _write_cached_chunks(cache_path: Path, chunks: list[Chunk]) -> None:
+    """store vectorised chunks as plain json, relationships are inlined"""
+    records = [
+        {
+            **chunk.model_dump(),
+            "citations": [citation.model_dump() for citation in chunk.citations or []],
+            "normen": [norm.model_dump() for norm in chunk.normen or []],
+        }
+        for chunk in chunks
+    ]
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(json.dumps(records, ensure_ascii=False), encoding="utf-8")
+
+
+def _load_cached_chunks(cache_path: Path, doc: Document) -> list[Chunk] | None:
+    """rebuild chunks and their relationships from the json cache, a broken cache counts as a miss"""
+    if not cache_path.exists():
+        return None
+    try:
+        records = json.loads(cache_path.read_text(encoding="utf-8"))
+        return [_chunk_from_record(record, doc) for record in records]
+    except (ValueError, TypeError, KeyError, AttributeError):
+        logger.warning(f"Ignoring unreadable chunk cache {cache_path}")
+        return None
+
+
+def _chunk_from_record(record: dict[str, Any], doc: Document) -> Chunk:
+    """rebuild one cached chunk, reusing the norms of the document"""
+    citations = record.pop("citations")
+    cached_norms = record.pop("normen")
+    chunk = Chunk(citations=[Citation(**c) for c in citations], **record)
+    norms = []
+    # norms share a link table, so we should reuse them if they exist
+    for norm_dict in cached_norms:
+        existing_norm = [norm for norm in doc.normen or [] if norm.full_text == norm_dict["full_text"]]
+        if existing_norm != []:
+            norms.append(existing_norm[0])
+        else:
+            norms.append(Norm(**norm_dict))
+    chunk.normen = norms
+    return chunk
+
+
 def parse_doc(xml_path: str | Path) -> Document:
     raw_doc: Dokument = parser.parse(xml_path, Dokument)
     # if no norms are listed, doc is irrelevant!
@@ -239,35 +288,15 @@ def parse_doc(xml_path: str | Path) -> Document:
     )
 
     logger.debug("processing chunks")
-    chunk_cache_path = Path(xml_path).with_suffix(".chunks.pkl")
-    if chunk_cache_path.exists():
-        logger.debug(f"Loading chunks from cache for document {doc.doc_id}")
-        with open(chunk_cache_path, "rb") as f:
-            raw_chunks = pickle.load(f)  # nosec B301 - cache wird nur lokal vom cli selbst geschrieben
-            # reload data only because old relationships get cached in pickle
-            chunks = []
-            for ch in raw_chunks:
-                chunk = Chunk(
-                    citations=[Citation(**c.model_dump()) for c in ch.citations] if ch.citations else [],
-                    **ch.model_dump(exclude={"citations", "normen"}),
-                )
-                norms = []
-                # norms share a link table, so we should reuse them if they exist
-                for norm in ch.normen:
-                    norm_dict = norm.model_dump()
-                    existing_norm = [norm for norm in doc.normen if norm.full_text == norm_dict["full_text"]]
-                    if existing_norm != []:
-                        norms.append(existing_norm[0])
-                    else:
-                        norms.append(Norm(**norm.model_dump()))
-                chunk.normen=norms
-                chunks.append(chunk)
+    chunk_cache_path = _chunk_cache_path(doc.doc_id)
+    chunks = _load_cached_chunks(chunk_cache_path, doc)
+    if chunks is not None:
+        logger.debug(f"Loaded chunks from cache for document {doc.doc_id}")
     else:
         raw_chunks = process_doc(doc)
         logger.debug(f"Vectorising chunks for document {doc.doc_id}")
         chunks = vectorise_chunks(raw_chunks, doc.doc_id)
-        with open(chunk_cache_path, "wb") as f:
-            pickle.dump(chunks, f)
+        _write_cached_chunks(chunk_cache_path, chunks)
     doc.chunks = chunks
 
     return doc

@@ -1,0 +1,138 @@
+{{- $backend := ((.Values.global | default dict).backend | default dict) }}
+{{- $_ := required "global.backend.image is required" $backend.image }}
+{{- $image := include "spark-backend-pool.effectiveImage" . | fromYaml }}
+{{- $probes := mergeOverwrite (deepCopy ($backend.probes | default dict)) (.Values.probes | default dict) }}
+{{- /* per-pool value, else the shared global.backend one */ -}}
+{{- $pick := dict }}
+{{- range $k := list "nodeSelector" "affinity" "tolerations" "topologySpreadConstraints" "priorityClassName" "terminationGracePeriodSeconds" "initContainers" "extraContainers" "extraVolumes" "extraVolumeMounts" "extraEnvFrom" "lifecycle" }}
+{{- $v := get $.Values $k }}
+{{- if or (kindIs "invalid" $v) (and (not (kindIs "float64" $v)) (not (kindIs "int64" $v)) (not (kindIs "int" $v)) (empty $v)) }}
+{{- $v = get $backend $k }}
+{{- end }}
+{{- $_ := set $pick $k $v }}
+{{- end }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "spark-backend-pool.fullname" . }}
+  namespace: {{ include "spark-backend-pool.namespace" . }}
+  labels:
+    {{- include "spark-backend-pool.labels" . | nindent 4 }}
+spec:
+  {{- if not (or .Values.autoscaling.enabled .Values.keda.enabled) }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "spark-backend-pool.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include "spark-backend-pool.renderedConfig" . | sha256sum }}
+        {{- with mergeOverwrite (deepCopy ((.Values.global | default dict).podAnnotations | default dict)) (deepCopy ($backend.podAnnotations | default dict)) (.Values.podAnnotations | default dict) }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- /* chart labels win: podLabels cannot redefine selector or standard keys */}}
+        {{- merge (include "spark-backend-pool.labels" . | fromYaml) (.Values.podLabels | default dict) | toYaml | nindent 8 }}
+    spec:
+      {{- with include "spark-backend-pool.imagePullSecrets" . }}
+      imagePullSecrets:
+        {{- . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "spark-backend-pool.serviceAccountName" . }}
+      {{- if eq (include "spark-backend-pool.automountToken" .) "false" }}
+      automountServiceAccountToken: false
+      {{- end }}
+      {{- with $pick.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- $grace := toString $pick.terminationGracePeriodSeconds }}
+      {{- if not (has $grace (list "" "<nil>")) }}
+      terminationGracePeriodSeconds: {{ $pick.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- with include "spark-backend-pool.podSecurityContext" . }}
+      securityContext:
+        {{- . | nindent 8 }}
+      {{- end }}
+      {{- with $pick.initContainers }}
+      initContainers:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ .Values.containerName | default "spark-backend" }}
+          {{- with include "spark-backend-pool.containerSecurityContext" . }}
+          securityContext:
+            {{- . | nindent 12 }}
+          {{- end }}
+          image: {{ include "spark-backend-pool.image" . | quote }}
+          imagePullPolicy: {{ $image.pullPolicy | default "Always" }}
+          ports:
+            - name: http
+              containerPort: {{ $backend.containerPort | default 8000 }}
+              protocol: TCP
+          {{- range $name := list "startupProbe" "livenessProbe" "readinessProbe" }}
+          {{- with get $probes $name }}
+          {{ $name }}:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- end }}
+          {{- $useConfig := and $backend.config (ne (toString $backend.configEnabled) "false") }}
+          {{- if or $useConfig $backend.secretRefs }}
+          envFrom:
+            {{- if $useConfig }}
+            - configMapRef:
+                name: {{ include "spark-backend-pool.configMapName" . }}
+            {{- end }}
+            {{- range $backend.secretRefs }}
+            - secretRef:
+                name: {{ . }}
+            {{- end }}
+            {{- with $pick.extraEnvFrom }}
+            {{- tpl (toYaml .) $ | nindent 12 }}
+            {{- end }}
+          {{- else if $pick.extraEnvFrom }}
+          envFrom:
+            {{- tpl (toYaml $pick.extraEnvFrom) $ | nindent 12 }}
+          {{- end }}
+          env:
+            {{- include "spark-backend-pool.containerEnv" . | nindent 12 }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with $pick.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $sc := include "spark-backend-pool.containerSecurityContext" . | fromYaml }}
+          {{- $tmpMounted := false }}
+          {{- range ($pick.extraVolumeMounts | default list) }}{{ if eq (.mountPath | toString | trimSuffix "/") "/tmp" }}{{ $tmpMounted = true }}{{ end }}{{ end }}
+          {{- $tmp := and (eq (include "spark-backend-pool.restricted" .) "true") (eq (toString $sc.readOnlyRootFilesystem) "true") (not $tmpMounted) }}
+          {{- with concat ($pick.extraVolumeMounts | default list) (ternary (list (dict "name" "tmp" "mountPath" "/tmp")) list $tmp) }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with $pick.extraContainers }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+      {{- with concat ($pick.extraVolumes | default list) (ternary (list (dict "name" "tmp" "emptyDir" dict)) list $tmp) }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $pick.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $pick.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $pick.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $pick.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}

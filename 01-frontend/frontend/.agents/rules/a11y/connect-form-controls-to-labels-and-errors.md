@@ -1,9 +1,15 @@
+---
+ruleId: a11y/connect-form-controls-to-labels-and-errors
+---
+
 # Connect Form Controls to Labels and Errors
 
-- Form inputs must have a programmatic label via `label`/`htmlFor` or the shared `FieldLabel` helpers.
+- Form inputs must have a programmatic label via `label`/`htmlFor` or a shared
+  field primitive already owned by the selected application.
 - Validation errors should be linked to the field with `aria-describedby` and announced with `role="alert"` when shown.
 - Mark invalid fields explicitly with `aria-invalid` instead of relying on color alone.
-- Reuse the shared field primitives in `src/features/ui/form/field.tsx` before inventing ad hoc labeling or error patterns.
+- Reuse the selected application's existing field primitives when present;
+  otherwise use semantic HTML instead of inventing an ad hoc abstraction.
 
 ## Bad Example
 
@@ -21,8 +27,8 @@
 ## Good Example
 
 ```tsx
-<FieldLabel htmlFor="request-title">Title</FieldLabel>
-<Input
+<label htmlFor="request-title">Title</label>
+<input
   id="request-title"
   value={title}
   onChange={(e) => setTitle(e.target.value)}

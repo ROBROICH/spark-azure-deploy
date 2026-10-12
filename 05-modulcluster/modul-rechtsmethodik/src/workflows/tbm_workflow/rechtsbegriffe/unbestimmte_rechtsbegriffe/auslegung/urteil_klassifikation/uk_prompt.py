@@ -1,5 +1,7 @@
 """Prompt template for Urteil classification."""
 
+from src.activities.prompt_blocks import closing_block
+
 uk_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht. Deine Aufgabe ist es, Entscheidungsausschnitte (Chunks) des Bundesverwaltungsgerichts den verschiedenen Auslegungsmethoden zuzuordnen, die zur Interpretation eines unbestimmten Rechtsbegriffs herangezogen werden.
@@ -77,12 +79,9 @@ Ordne jeden Chunk einer oder mehreren der folgenden fünf Kategorien zu. Prüfe 
 
 **Anwendung**
 Klassifiziere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}
-Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}
-Juristischer Satz: {satz_text}
-Entscheidungen: {entscheidungen}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen."""
+""" + closing_block(
+    "Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}",
+    "Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}",
+    "Juristischer Satz: {satz_text}",
+    "Entscheidungen: {entscheidungen}",
+)

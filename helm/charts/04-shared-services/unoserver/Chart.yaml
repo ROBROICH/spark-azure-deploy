@@ -1,0 +1,13 @@
+apiVersion: v2
+name: unoserver
+description: >
+  Helm chart for the unoserver document-conversion service (LibreOffice/UNO):
+  Deployment + Service. DMS-family services reach it via
+  UNO_HOST = {release}-unoserver[-stage] on port 2003.
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

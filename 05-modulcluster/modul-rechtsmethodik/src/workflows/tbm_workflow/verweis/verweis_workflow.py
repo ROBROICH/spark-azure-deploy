@@ -3,7 +3,7 @@
 import asyncio
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import Verweise
+from temporal.contracts import Verweise
 from temporalio import workflow
 
 from src.workflows.tbm_workflow.tbm_types import VerweisWorkflowInput

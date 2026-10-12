@@ -22,7 +22,7 @@ export type ProjectsTableRouteState = {
   committedSearch: string;
   onCommittedSearchChange: (value: string) => void;
   filters: TableFilters;
-  sortColumn: string;
+  sortColumn: NonNullable<ProjectsTableSearchParams['sortColumn']>;
   sortDirection: 'asc' | 'desc';
   onSortChange: (
     columnId: string | undefined,

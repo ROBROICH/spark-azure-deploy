@@ -4,7 +4,9 @@ Tests for src/tbm_matching/ranking.py — aggregate_to_documents and reciprocal_
 
 from typing import Any
 
-from src.tbm_matching.ranking import aggregate_to_documents, reciprocal_rank_fusion
+import pytest
+
+from src.tbm_matching.ranking import aggregate_to_documents, document_key, reciprocal_rank_fusion
 
 # ---------------------------------------------------------------------------
 # Constants for magic-value comparisons
@@ -15,6 +17,7 @@ EXPECTED_MULTI_CHUNK_MAX_SCORE = 0.9
 EXPECTED_TOP_K_COUNT = 2
 EXPECTED_TOP_K_TOP_SCORE = 4.0
 EXPECTED_RRF_TOP_K_COUNT = 3
+EXPECTED_UNCUT_COUNT = 7
 
 # ---------------------------------------------------------------------------
 # aggregate_to_documents
@@ -107,12 +110,6 @@ class TestAggregateToDocuments:
         result = aggregate_to_documents(chunks)
         assert result[0]["chunk_ids"] == ["c1"]
 
-    def test_none_score_treated_as_zero(self) -> None:
-        """None score is treated as 0.0."""
-        chunks: list[dict[str, str | None]] = [{"document_id": "d1", "title": "A", "score": None}]
-        result = aggregate_to_documents(chunks)
-        assert result[0]["score"] == 0.0
-
     def test_non_int_page_numbers_ignored(self) -> None:
         """Non-integer page numbers are silently ignored."""
         chunks = [{"document_id": "d1", "title": "A", "score": 1.0, "page_numbers": ["a", 1, None]}]
@@ -136,7 +133,7 @@ class TestReciprocalRankFusion:
         result = reciprocal_rank_fusion(ranked, top_k=5, k=60)
         assert len(result) == 1
         assert result[0]["title"] == "A"
-        assert "rrf_score" in result[0]
+        assert "score" in result[0]
 
     def test_two_lists_overlap(self) -> None:
         """Document appearing in both lists gets higher RRF score."""
@@ -158,16 +155,106 @@ class TestReciprocalRankFusion:
         result = reciprocal_rank_fusion(ranked, top_k=EXPECTED_RRF_TOP_K_COUNT, k=60)
         assert len(result) == EXPECTED_RRF_TOP_K_COUNT
 
-    def test_sorted_by_rrf_score_descending(self) -> None:
+    def test_sorted_by_score_descending(self) -> None:
         list1 = [
             {"title": "A", "document_id": "d1", "project_id": "p1"},
             {"title": "B", "document_id": "d2", "project_id": "p1"},
         ]
         result = reciprocal_rank_fusion([list1], top_k=10, k=60)
-        scores = [r["rrf_score"] for r in result]
+        scores = [r["score"] for r in result]
         assert scores == sorted(scores, reverse=True)
 
     def test_page_numbers_preserved(self) -> None:
         ranked = [[{"title": "A", "document_id": "d1", "project_id": "p1", "page_numbers": [1, 2, 3]}]]
         result = reciprocal_rank_fusion(ranked, top_k=5, k=60)
         assert result[0]["page_numbers"] == [1, 2, 3]
+
+
+class TestFusionDocumentIdentity:
+    """reciprocal_rank_fusion must key documents by the same identity as aggregate_to_documents."""
+
+    def test_same_title_different_document_id_stay_separate(self) -> None:
+        """Two distinct documents that happen to share a title must not collapse into one."""
+        ranked = [
+            [
+                {"title": "Lageplan", "document_id": "d1", "project_id": "p1"},
+                {"title": "Lageplan", "document_id": "d2", "project_id": "p1"},
+            ]
+        ]
+        result = reciprocal_rank_fusion(ranked, top_k=10, k=60)
+        assert {r["document_id"] for r in result} == {"d1", "d2"}
+
+    def test_same_document_id_different_title_merge(self) -> None:
+        """The same document reached under two titles is one document."""
+        ranked = [
+            [{"title": "Lageplan", "document_id": "d1", "project_id": "p1"}],
+            [{"title": "Lageplan (Kopie)", "document_id": "d1", "project_id": "p1"}],
+        ]
+        result = reciprocal_rank_fusion(ranked, top_k=10, k=60)
+        assert len(result) == 1
+        assert result[0]["document_id"] == "d1"
+
+    def test_document_without_identity_is_skipped(self) -> None:
+        """Chunks missing every identity field are skipped, as in aggregate_to_documents."""
+        ranked: list[list[dict[str, Any]]] = [
+            [{"project_id": "p1"}, {"title": "A", "document_id": "d1", "project_id": "p1"}]
+        ]
+        result = reciprocal_rank_fusion(ranked, top_k=10, k=60)
+        assert len(result) == 1
+        assert result[0]["document_id"] == "d1"
+
+
+class TestFusionScoreFieldContract:
+    """The fusion score must survive into any stage that consumes a ranked list."""
+
+    def test_fused_score_is_readable_by_aggregate_to_documents(self) -> None:
+        """reciprocal_rank_fusion writes the field aggregate_to_documents reads."""
+        ranked = [[{"title": "A", "document_id": "d1", "project_id": "p1"}]]
+        fused = reciprocal_rank_fusion(ranked, top_k=5, k=60)
+        regrouped = aggregate_to_documents(fused)
+        assert regrouped[0]["score"] > 0.0
+
+    def test_top_k_none_returns_all(self) -> None:
+        """Without a cut, every fused document is returned."""
+        ranked = [[{"title": f"T{i}", "document_id": f"d{i}", "project_id": "p1"} for i in range(EXPECTED_UNCUT_COUNT)]]
+        result = reciprocal_rank_fusion(ranked, top_k=None, k=60)
+        assert len(result) == EXPECTED_UNCUT_COUNT
+
+
+class TestScoreIsRequired:
+    """A retrieval result without a usable score is a contract violation, not a zero."""
+
+    def test_missing_score_raises(self) -> None:
+        """A chunk without a score field must fail loudly instead of ranking last."""
+        with pytest.raises(ValueError, match="score"):
+            aggregate_to_documents([{"document_id": "d1", "title": "A"}])
+
+    def test_none_score_raises(self) -> None:
+        """An explicit null score must fail loudly instead of being coerced to 0.0."""
+        with pytest.raises(ValueError, match="score"):
+            aggregate_to_documents([{"document_id": "d1", "title": "A", "score": None}])
+
+    def test_zero_score_is_kept(self) -> None:
+        """A genuine 0.0 is a valid score and must not be confused with a missing one."""
+        result = aggregate_to_documents([{"document_id": "d1", "title": "A", "score": 0.0}])
+        assert result[0]["score"] == 0.0
+
+
+class TestDocumentKey:
+    """The shared identity contract: document_id → document_name → title."""
+
+    def test_document_id_takes_priority_over_document_name_and_title(self) -> None:
+        """The first rung wins even when every rung is present."""
+        assert document_key({"document_id": "d1", "document_name": "n1", "title": "t1"}) == "d1"
+
+    def test_document_name_takes_priority_over_title(self) -> None:
+        """The second rung wins when document_id is absent."""
+        assert document_key({"document_name": "n1", "title": "t1"}) == "n1"
+
+    def test_title_is_the_last_rung(self) -> None:
+        """Title still identifies a document when neither id nor name is present."""
+        assert document_key({"title": "t1"}) == "t1"
+
+    def test_document_without_any_identity_has_no_key(self) -> None:
+        """A document with no identity field at all cannot be keyed."""
+        assert document_key({"score": 0.5}) is None

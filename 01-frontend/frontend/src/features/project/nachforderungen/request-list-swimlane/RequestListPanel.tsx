@@ -1,6 +1,6 @@
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ChevronDown, Plus } from 'lucide-react';
-import { useDeferredValue, useRef, useState } from 'react';
+import { useDeferredValue, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DeleteDialog } from '@/features/project/nachforderungen/sidebar-panel/DeleteDialog';
@@ -9,11 +9,12 @@ import { RequestListItemCard } from '@/features/project/nachforderungen/sidebar-
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { Checkbox } from '@/features/ui/checkbox/Checkbox';
 import { Button } from '@/features/ui/button/Button';
-import { createSearchMatcher } from '@/features/shared/search/createSearchMatcher';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { eq, useLiveInfiniteQuery } from '@tanstack/react-db';
 import { toggleIncludedInLetter } from '../data/actions/requestItemActions';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import { sortByCreatedAtAsc } from '../data/requestItemPresentation';
+import {
+  REQUEST_ITEMS_PAGE_SIZE,
+  createRequestItemsCollection,
+} from '@/features/project/nachforderungen/data/collections/requestItems.collection';
 import type { RequestItem } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
 
 const route = getRouteApi('/verfahren/$verfahrenId/nachforderungen/');
@@ -29,12 +30,27 @@ export const RequestListPanel = () => {
   const { verfahrenId } = route.useParams();
   const { search = '' } = route.useSearch();
   const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
-  const { data: requestItemsData } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, verfahrenId)),
+  const deferredSearch = useDeferredValue(search);
+  // eslint-disable-next-line no-restricted-syntax -- each server-side search needs a stable native collection identity; inactive collections use TanStack DB's built-in GC.
+  const collection = useMemo(
+    () => createRequestItemsCollection(deferredSearch.trim() || undefined),
+    [deferredSearch],
   );
-  const requestItems = [...requestItemsData].sort(sortByCreatedAtAsc);
+  const {
+    data: requestItems,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useLiveInfiniteQuery(
+    (q) =>
+      q
+        .from({ items: collection })
+        .where(({ items }) => eq(items.projectId, verfahrenId))
+        .orderBy(({ items }) => items.createdAt, 'asc')
+        .orderBy(({ items }) => items.id, 'asc'),
+    { pageSize: REQUEST_ITEMS_PAGE_SIZE },
+    [verfahrenId, deferredSearch],
+  );
 
   // eslint-disable-next-line no-restricted-syntax -- ephemeral UI state for manual add form
   const [showManualForm, setShowManualForm] = useState(false);
@@ -68,14 +84,6 @@ export const RequestListPanel = () => {
     restoreAddButtonFocusRef.current = true;
     setShowManualForm(false);
   };
-  const deferredSearch = useDeferredValue(search);
-  const matchesSearch = createSearchMatcher(deferredSearch);
-
-  const filteredItems = deferredSearch
-    ? requestItems.filter(
-        (item) => matchesSearch(item.title) || matchesSearch(item.reason),
-      )
-    : requestItems;
 
   const openDeleteDialog = (itemId: string) => {
     if (!canMutateProject) {
@@ -91,15 +99,15 @@ export const RequestListPanel = () => {
   };
 
   return (
-    <div className="flex h-0 min-h-0 flex-1 flex-col gap-4 overflow-y-auto overscroll-contain">
+    <div className="flex h-0 min-h-0 flex-1 flex-col gap-4 overflow-x-hidden overflow-y-auto">
       <div className="flex flex-col gap-3">
-        {filteredItems.length === 0 && !showManualForm && (
+        {requestItems.length === 0 && !showManualForm && (
           <p className="py-2 text-sm text-text-secondary">
             {t('RequestListPanel.emptyState')}
           </p>
         )}
 
-        {filteredItems.map((item) => (
+        {requestItems.map((item) => (
           <div key={item.id} className="flex items-start gap-2">
             <div className="mt-1">
               <Checkbox
@@ -110,7 +118,7 @@ export const RequestListPanel = () => {
                     return;
                   }
 
-                  toggleIncludedInLetter(item.id);
+                  toggleIncludedInLetter(item.id, collection);
                 }}
                 ariaLabel={t('RequestListPanel.checkboxAriaLabel', {
                   title: item.title,
@@ -120,6 +128,7 @@ export const RequestListPanel = () => {
             <div className="min-w-0 flex-1">
               <RequestListItemCard
                 item={item}
+                collection={collection}
                 isEditing={editingItem?.id === item.id}
                 canMutateProject={canMutateProject}
                 onStartEditing={(i) => {
@@ -141,6 +150,19 @@ export const RequestListPanel = () => {
             </div>
           </div>
         ))}
+
+        {hasNextPage && (
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="self-start"
+            disabled={isFetchingNextPage}
+            onClick={fetchNextPage}
+          >
+            {t('RequestListPanel.loadMore')}
+          </Button>
+        )}
       </div>
 
       {showManualForm ? (
@@ -187,7 +209,7 @@ export const RequestListPanel = () => {
         </div>
       )}
 
-      <DeleteDialog canMutateProject={canMutateProject} />
+      <DeleteDialog canMutateProject={canMutateProject} items={requestItems} />
     </div>
   );
 };

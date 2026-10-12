@@ -1,0 +1,20 @@
+{{- /*
+Istio ServiceEntries (mesh.serviceEntries), independent of mesh.enabled —
+for meshes whose outbound traffic policy is REGISTRY_ONLY: workloads with a
+sidecar reach a destination outside the mesh (e.g. a managed database's
+private IP) only once it is registered. Keyed by object name; the value is
+the ServiceEntry spec (restrict its visibility with exportTo). Nothing renders
+by default, so clusters without Istio never see the CRD.
+*/ -}}
+{{- range $name, $spec := .Values.mesh.serviceEntries }}
+---
+apiVersion: networking.istio.io/v1
+kind: ServiceEntry
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "environment-config.namespace" $ }}
+  labels:
+    {{- include "environment-config.labels" $ | nindent 4 }}
+spec:
+  {{- toYaml $spec | nindent 2 }}
+{{- end }}

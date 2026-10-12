@@ -10,15 +10,15 @@ const toOutlineStructuralNode = (
   vaeNode: NodePayloadByType<'vae_node'>,
 ): RpbOutlineStructuralNode => {
   return {
-    checked_by_assignee: vaeNode.checked_by_assignee,
-    checked_by_leader: vaeNode.checked_by_leader,
+    checkedByAssignee: vaeNode.checkedByAssignee,
+    checkedByLeader: vaeNode.checkedByLeader,
     id: vaeNode.id,
-    is_deleted: vaeNode.is_deleted,
-    is_hidden: vaeNode.is_hidden,
+    isDeleted: vaeNode.isDeleted,
+    isHidden: vaeNode.isHidden,
     order: vaeNode.order,
-    parent_vae_node_id: vaeNode.parent_vae_node_id,
+    parentVaeNodeId: vaeNode.parentVaeNodeId,
     title: vaeNode.title,
-    topic_id: vaeNode.topic_id ?? undefined,
+    topicId: vaeNode.topicId ?? undefined,
   };
 };
 
@@ -42,15 +42,15 @@ const serializeOutlineStructuralNodes = (
       const outlineNode = toOutlineStructuralNode(vaeNode);
 
       return [
-        outlineNode.checked_by_assignee,
-        outlineNode.checked_by_leader,
+        outlineNode.checkedByAssignee,
+        outlineNode.checkedByLeader,
         outlineNode.id,
-        outlineNode.is_deleted,
-        outlineNode.is_hidden,
+        outlineNode.isDeleted,
+        outlineNode.isHidden,
         outlineNode.order,
-        outlineNode.parent_vae_node_id,
+        outlineNode.parentVaeNodeId,
         outlineNode.title,
-        outlineNode.topic_id ?? null,
+        outlineNode.topicId ?? null,
       ];
     }),
   );
@@ -64,25 +64,25 @@ const parseOutlineStructuralNodes = (
 
   return serializedOutlineNodes.map(
     ([
-      checked_by_assignee,
-      checked_by_leader,
+      checkedByAssignee,
+      checkedByLeader,
       id,
-      is_deleted,
-      is_hidden,
+      isDeleted,
+      isHidden,
       order,
-      parent_vae_node_id,
+      parentVaeNodeId,
       title,
-      topic_id,
+      topicId,
     ]) => ({
-      checked_by_assignee,
-      checked_by_leader,
+      checkedByAssignee,
+      checkedByLeader,
       id,
-      is_deleted,
-      is_hidden,
+      isDeleted,
+      isHidden,
       order,
-      parent_vae_node_id,
+      parentVaeNodeId,
       title,
-      topic_id: topic_id ?? undefined,
+      topicId: topicId ?? undefined,
     }),
   );
 };

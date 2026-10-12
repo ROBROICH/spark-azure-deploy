@@ -1,0 +1,232 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id} HTTP read contract snapshots complete, incomplete, grouped, and ordered current results 1`] = `
+{
+  "body": {
+    "matchedDocumentTypes": [
+      {
+        "assignedDocuments": [
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000001",
+            "confidence": 0.96,
+            "contentExtractionId": "71000000-0000-4000-8000-000000000001",
+            "documentId": "61000000-0000-4000-8000-000000000001",
+            "documentName": "antrag.pdf",
+            "humanRequiredDocumentTypeId": null,
+            "reasoning": "Eindeutig als Antrag erkannt",
+          },
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000001",
+            "confidence": 0,
+            "contentExtractionId": null,
+            "documentId": "61000000-0000-4000-8000-000000000002",
+            "documentName": "korrigierte-zuordnung.pdf",
+            "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000002",
+            "reasoning": "",
+          },
+        ],
+        "confidence": 0.95,
+        "requiredDocumentType": {
+          "category": "A Allgemeine Unterlagen",
+          "documentTypeDescription": "Vollständiger förmlicher Antrag",
+          "documentTypeName": "Antrag",
+        },
+      },
+      {
+        "assignedDocuments": [
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000002",
+            "confidence": 0.83,
+            "contentExtractionId": "71000000-0000-4000-8000-000000000003",
+            "documentId": "61000000-0000-4000-8000-000000000003",
+            "documentName": "umweltbericht.pdf",
+            "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000003",
+            "reasoning": "Inhaltlich ein Umweltbericht",
+          },
+        ],
+        "confidence": 0.8,
+        "requiredDocumentType": {
+          "category": "B Umweltunterlagen",
+          "documentTypeDescription": "Beschreibung der Umweltauswirkungen",
+          "documentTypeName": "Umweltbericht",
+        },
+      },
+      {
+        "assignedDocuments": [],
+        "confidence": 0.6,
+        "requiredDocumentType": {
+          "category": "Benutzerdefiniert",
+          "documentTypeDescription": "Manuell ergänzte projektspezifische Anlage",
+          "documentTypeName": "Eigene Anlage",
+        },
+      },
+    ],
+    "unassignedDocuments": [
+      {
+        "aiSuggestedRequiredDocumentTypeId": null,
+        "confidence": 0.2,
+        "contentExtractionId": null,
+        "documentId": "61000000-0000-4000-8000-000000000004",
+        "documentName": "nicht-zugeordnet.pdf",
+        "humanRequiredDocumentTypeId": null,
+        "reasoning": "Keine passende Unterlagenart",
+      },
+      {
+        "aiSuggestedRequiredDocumentTypeId": null,
+        "confidence": 0.35,
+        "contentExtractionId": "71000000-0000-4000-8000-000000000005",
+        "documentId": "61000000-0000-4000-8000-000000000005",
+        "documentName": "manuell-zugeordnet.pdf",
+        "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000003",
+        "reasoning": "KI ließ die Unterlage offen",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id} HTTP read contract snapshots an explicit historical version 1`] = `
+{
+  "body": {
+    "matchedDocumentTypes": [
+      {
+        "assignedDocuments": [
+          {
+            "aiSuggestedRequiredDocumentTypeId": "42000000-0000-4000-8000-000000000001",
+            "confidence": 0.72,
+            "contentExtractionId": "72000000-0000-4000-8000-000000000001",
+            "documentId": "62000000-0000-4000-8000-000000000001",
+            "documentName": "historischer-antrag.pdf",
+            "humanRequiredDocumentTypeId": null,
+            "reasoning": "Historische eindeutige Zuordnung",
+          },
+        ],
+        "confidence": 0.7,
+        "requiredDocumentType": {
+          "category": "Historische Unterlagen",
+          "documentTypeDescription": "Antrag aus der vorherigen Projektversion",
+          "documentTypeName": "Historischer Antrag",
+        },
+      },
+    ],
+    "unassignedDocuments": [
+      {
+        "aiSuggestedRequiredDocumentTypeId": null,
+        "confidence": 0,
+        "contentExtractionId": null,
+        "documentId": "62000000-0000-4000-8000-000000000002",
+        "documentName": "historisch-unbekannt.pdf",
+        "humanRequiredDocumentTypeId": null,
+        "reasoning": "",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id} HTTP read contract omitted version resolves to the same current payload 1`] = `
+{
+  "body": {
+    "matchedDocumentTypes": [
+      {
+        "assignedDocuments": [
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000001",
+            "confidence": 0.96,
+            "contentExtractionId": "71000000-0000-4000-8000-000000000001",
+            "documentId": "61000000-0000-4000-8000-000000000001",
+            "documentName": "antrag.pdf",
+            "humanRequiredDocumentTypeId": null,
+            "reasoning": "Eindeutig als Antrag erkannt",
+          },
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000001",
+            "confidence": 0,
+            "contentExtractionId": null,
+            "documentId": "61000000-0000-4000-8000-000000000002",
+            "documentName": "korrigierte-zuordnung.pdf",
+            "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000002",
+            "reasoning": "",
+          },
+        ],
+        "confidence": 0.95,
+        "requiredDocumentType": {
+          "category": "A Allgemeine Unterlagen",
+          "documentTypeDescription": "Vollständiger förmlicher Antrag",
+          "documentTypeName": "Antrag",
+        },
+      },
+      {
+        "assignedDocuments": [
+          {
+            "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000002",
+            "confidence": 0.83,
+            "contentExtractionId": "71000000-0000-4000-8000-000000000003",
+            "documentId": "61000000-0000-4000-8000-000000000003",
+            "documentName": "umweltbericht.pdf",
+            "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000003",
+            "reasoning": "Inhaltlich ein Umweltbericht",
+          },
+        ],
+        "confidence": 0.8,
+        "requiredDocumentType": {
+          "category": "B Umweltunterlagen",
+          "documentTypeDescription": "Beschreibung der Umweltauswirkungen",
+          "documentTypeName": "Umweltbericht",
+        },
+      },
+      {
+        "assignedDocuments": [],
+        "confidence": 0.6,
+        "requiredDocumentType": {
+          "category": "Benutzerdefiniert",
+          "documentTypeDescription": "Manuell ergänzte projektspezifische Anlage",
+          "documentTypeName": "Eigene Anlage",
+        },
+      },
+    ],
+    "unassignedDocuments": [
+      {
+        "aiSuggestedRequiredDocumentTypeId": null,
+        "confidence": 0.2,
+        "contentExtractionId": null,
+        "documentId": "61000000-0000-4000-8000-000000000004",
+        "documentName": "nicht-zugeordnet.pdf",
+        "humanRequiredDocumentTypeId": null,
+        "reasoning": "Keine passende Unterlagenart",
+      },
+      {
+        "aiSuggestedRequiredDocumentTypeId": null,
+        "confidence": 0.35,
+        "contentExtractionId": "71000000-0000-4000-8000-000000000005",
+        "documentId": "61000000-0000-4000-8000-000000000005",
+        "documentName": "manuell-zugeordnet.pdf",
+        "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000003",
+        "reasoning": "KI ließ die Unterlage offen",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id} HTTP read contract snapshots a project with no stored results 1`] = `
+{
+  "body": {
+    "matchedDocumentTypes": [],
+    "unassignedDocuments": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id} HTTP read contract snapshots the unknown project response 1`] = `
+{
+  "body": {
+    "detail": "Project 10000000-0000-4000-8000-000000000004 not found",
+  },
+  "status": 404,
+}
+`;

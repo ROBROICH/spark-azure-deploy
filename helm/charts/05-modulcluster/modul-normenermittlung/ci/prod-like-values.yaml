@@ -1,0 +1,25 @@
+# ci: production-shaped — replicas, resources, probes, HPA, Service.
+image:
+  repository: registry.example.com/spark/app
+  tag: "1.0.0@sha256:0000000000000000000000000000000000000000000000000000000000000000"
+  pullPolicy: IfNotPresent
+replicaCount: 3
+containerPorts:
+  - {containerPort: 8000, name: http}
+service:
+  enabled: true
+  ports:
+    - {port: 80, targetPort: http, name: http}
+resources:
+  requests: {cpu: 250m, memory: 512Mi}
+  limits: {memory: 1Gi}
+livenessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 10}
+readinessProbe: {httpGet: {path: /health, port: http}, periodSeconds: 5}
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 2

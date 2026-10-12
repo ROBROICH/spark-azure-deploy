@@ -1,4 +1,4 @@
-import type { IdentityResponse } from '@/api-clients/identity-management-module';
+import type { IdentityResponse } from '@/api-clients/backend';
 import { getOrganizationUserDisplayName } from '@/features/access-control/organization-users/organizationUser.utils';
 import type { TeamMember, TeamMemberRole } from './team-member.types';
 

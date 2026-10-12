@@ -244,12 +244,12 @@ describe('createTanstackErrorTelemetry', () => {
         'query',
         [
           {
-            _id: 'getProjectProjectsProjectIdGet',
+            _id: 'getProject',
             _infinite: true,
             baseUrl: 'https://dashboard.example.test/api',
             body: { title: 'User-entered project title' },
             headers: { authorization: 'Bearer token' },
-            path: { project_id: 'cf16e372-f7fc-402d-b5cb-c28733c3410a' },
+            path: { projectId: 'cf16e372-f7fc-402d-b5cb-c28733c3410a' },
             query: { search: 'User-entered search text' },
             tags: ['Projects', 'unsafe tag with spaces'],
           },
@@ -260,7 +260,7 @@ describe('createTanstackErrorTelemetry', () => {
       ),
     ).toEqual({
       kind: 'query',
-      operationId: 'getProjectProjectsProjectIdGet',
+      operationId: 'getProject',
       infinite: true,
       errorName: 'TypeError',
       httpStatus: 403,
@@ -271,10 +271,7 @@ describe('createTanstackErrorTelemetry', () => {
     expect(
       createTanstackErrorTelemetry(
         'mutation',
-        [
-          'updateProjectProjectsProjectIdPatch',
-          'cf16e372-f7fc-402d-b5cb-c28733c3410a',
-        ],
+        ['updateProject', 'cf16e372-f7fc-402d-b5cb-c28733c3410a'],
         { statusCode: 409, detail: 'User-entered project title' },
       ),
     ).toEqual({
@@ -303,7 +300,7 @@ describe('queryClient error reporting', () => {
       queryClient.fetchQuery({
         queryKey: [
           {
-            _id: 'getRequiredDocumentTypesProjectIdRequiredDocumentTypesGet',
+            _id: 'getRequiredDocumentTypes',
           },
         ],
         queryFn: () => {
@@ -331,8 +328,7 @@ describe('queryClient error reporting', () => {
       },
       extra: {
         kind: 'query',
-        operationId:
-          'getRequiredDocumentTypesProjectIdRequiredDocumentTypesGet',
+        operationId: 'getRequiredDocumentTypes',
         nonErrorThrownType: 'empty-object',
       },
     });

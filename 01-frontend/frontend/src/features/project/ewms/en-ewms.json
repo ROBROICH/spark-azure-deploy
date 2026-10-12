@@ -90,6 +90,7 @@
       "duplicate": "Duplicate",
       "fileNotFound": "File not found",
       "invalidFilename": "Invalid filename",
+      "noProcessableFiles": "No processable files",
       "renameFailed": "Rename failed",
       "unsupportedFiletype": "Unsupported file type",
       "uploadFailed": "Upload failed",
@@ -124,7 +125,8 @@
     "exportStarted": "The export has started.",
     "exportError": "The export could not be started. Please try again.",
     "submitAdditionally": "Import participation entries",
-    "export": "Export"
+    "export": "Export",
+    "moreActionsAriaLabel": "More actions"
   },
   "objections": {
     "title": "Participation entries",
@@ -218,6 +220,9 @@
     "checkAll": "Check all",
     "checked": "Checked",
     "classificationFailed": "The arguments could not be classified.",
+    "classificationUncertainBoth": "Topic and subtopic assignment uncertain",
+    "classificationUncertainSubtopic": "Subtopic assignment uncertain",
+    "classificationUncertainTopic": "Topic assignment uncertain",
     "deleteArgumentLabel": "Delete argument {{referenceId}}",
     "deleteDialog": {
       "cancel": "Cancel",
@@ -227,6 +232,7 @@
     },
     "toggleLabel": "Check all arguments",
     "approve": "Check",
+    "unapprove": "Uncheck",
     "acceptClassificationLabel": "Accept topic suggestion for argument {{referenceId}}",
     "approved": "Checked",
     "topicGroupLabel": "Select category for argument {{referenceId}}",

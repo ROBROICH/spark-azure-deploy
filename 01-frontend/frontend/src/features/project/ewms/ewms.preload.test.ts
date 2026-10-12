@@ -7,9 +7,9 @@ import {
 } from './ewms.preload';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -17,47 +17,47 @@ const createSummary = (
 describe('collectEwmsPreloadRefs', () => {
   it('preloads the node payload types needed by the EWMS workspace', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'subtopic-1',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'subtopic-2',
-        node_type: 'subtopic',
-        parents: [{ id: 'topic-1', node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: 'topic-1', nodeType: 'topic' }],
       }),
       createSummary({
         id: 'argument-1',
-        node_type: 'argument',
-        parents: [{ id: 'subtopic-1', node_type: 'subtopic' }],
+        nodeType: 'argument',
+        parents: [{ id: 'subtopic-1', nodeType: 'subtopic' }],
       }),
       createSummary({
         id: 'entry-1',
-        node_type: 'beteiligungs_eingang',
+        nodeType: 'beteiligungs_eingang',
       }),
       createSummary({
         id: 'document-1',
-        node_type: 'dokument',
+        nodeType: 'dokument',
       }),
     ]);
 
     expect(collectEwmsPreloadRefs(index)).toEqual([
-      { id: 'topic-1', node_type: 'topic' },
-      { id: 'subtopic-1', node_type: 'subtopic' },
-      { id: 'subtopic-2', node_type: 'subtopic' },
-      { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-      { id: 'argument-1', node_type: 'argument' },
+      { id: 'topic-1', nodeType: 'topic' },
+      { id: 'subtopic-1', nodeType: 'subtopic' },
+      { id: 'subtopic-2', nodeType: 'subtopic' },
+      { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+      { id: 'argument-1', nodeType: 'argument' },
     ]);
   });
 
   it('adds cold-load URL selection refs that may not be present in graph summaries', () => {
     const index = buildProjectNodeIndex([
-      createSummary({ id: 'topic-1', node_type: 'topic' }),
+      createSummary({ id: 'topic-1', nodeType: 'topic' }),
       createSummary({
         id: 'entry-1',
-        node_type: 'beteiligungs_eingang',
+        nodeType: 'beteiligungs_eingang',
       }),
     ]);
 
@@ -72,12 +72,12 @@ describe('collectEwmsPreloadRefs', () => {
         expandedTopicGroupId: 'expanded-topic-deep-link',
       }),
     ).toEqual([
-      { id: 'topic-1', node_type: 'topic' },
-      { id: 'entry-1', node_type: 'beteiligungs_eingang' },
-      { id: 'argument-deep-link', node_type: 'argument' },
-      { id: 'topic-deep-link', node_type: 'topic' },
-      { id: 'subtopic-deep-link', node_type: 'subtopic' },
-      { id: 'expanded-topic-deep-link', node_type: 'topic' },
+      { id: 'topic-1', nodeType: 'topic' },
+      { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
+      { id: 'argument-deep-link', nodeType: 'argument' },
+      { id: 'topic-deep-link', nodeType: 'topic' },
+      { id: 'subtopic-deep-link', nodeType: 'subtopic' },
+      { id: 'expanded-topic-deep-link', nodeType: 'topic' },
     ]);
   });
 });

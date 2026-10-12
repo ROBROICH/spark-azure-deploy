@@ -1,0 +1,241 @@
+{
+  "title": "Administration",
+  "actions": {
+    "confirmDelete": "Confirm?"
+  },
+  "projectTypes": {
+    "title": "Project types",
+    "tableAriaLabel": "Project types",
+    "createButton": "Create project type",
+    "empty": "No project types have been added yet.",
+    "loadError": "Project types could not be loaded.",
+    "loading": "Project types are loading.",
+    "retry": "Try again",
+    "inactiveBadge": "inactive",
+    "actions": {
+      "menu": "Actions for {{name}}",
+      "edit": "Edit",
+      "rename": "Rename",
+      "duplicate": "Duplicate",
+      "deactivate": "Deactivate",
+      "reactivate": "Reactivate",
+      "delete": "Delete"
+    },
+    "tableHeaders": {
+      "name": "Name",
+      "status": "Status",
+      "action": "Actions"
+    },
+    "createDialog": {
+      "title": "Create project type",
+      "name": "Name",
+      "save": "Create",
+      "cancel": "Cancel"
+    },
+    "renameDialog": {
+      "title": "Rename project type",
+      "name": "Name",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "duplicateName": "{{name}} Copy",
+    "duplicateDialog": {
+      "title": "Duplicate project type",
+      "name": "Name",
+      "save": "Duplicate",
+      "cancel": "Cancel"
+    },
+    "duplicate": {
+      "rollbackFailed": "The project type “{{name}}” was created, but its configuration could not be copied. Removing the incomplete copy failed.",
+      "openPartial": "Open incomplete copy"
+    },
+    "detail": {
+      "heading": "Project type: {{name}}",
+      "back": "Back to project type selection"
+    },
+    "deleteDialog": {
+      "title": "Delete project type?",
+      "description": "Do you really want to delete “{{name}}”? This action cannot be undone.",
+      "confirm": "Delete",
+      "cancel": "Cancel",
+      "conflictTitle": "Deletion not possible",
+      "conflictDescription": "The project type “{{name}}” is used by a procedure. Deletion is not allowed. Deactivate it instead.",
+      "deactivateInstead": "Deactivate instead"
+    },
+    "form": {
+      "nameRequired": "Name is required."
+    },
+    "toasts": {
+      "createSuccess": "Project type was created.",
+      "renameSuccess": "Project type was renamed.",
+      "deactivateSuccess": "Project type was deactivated.",
+      "reactivateSuccess": "Project type was reactivated.",
+      "deleteSuccess": "Project type was deleted.",
+      "duplicateSuccess": "Project type was duplicated.",
+      "duplicateError": "Project type could not be duplicated.",
+      "duplicateDocumentsError": "The project type configuration could not be copied.",
+      "duplicateRollbackFailed": "The project type “{{name}}” was only created in part.",
+      "createError": "Project type could not be created.",
+      "updateError": "Project type could not be saved.",
+      "deleteError": "Project type could not be deleted."
+    }
+  },
+  "dirtyNavigation": {
+    "title": "Unsaved changes",
+    "description": "Do you want to save your changes before switching?",
+    "saveAndSwitch": "Save and switch",
+    "discardAndSwitch": "Switch without saving",
+    "cancel": "Cancel"
+  },
+  "catalog": {
+    "title": "Topic catalog",
+    "selectProjectType": "Select a project type to edit its catalog.",
+    "loading": "Catalog is loading.",
+    "loadError": "The catalog could not be loaded.",
+    "retry": "Try again",
+    "save": "Save",
+    "discard": "Discard",
+    "dirty": "Unsaved changes.",
+    "init": {
+      "title": "No catalog yet",
+      "description": "The project type “{{name}}” does not have a catalog yet.",
+      "createButton": "Create catalog"
+    },
+    "fields": {
+      "name": "Name",
+      "description": "Description",
+      "showInMvp": "Show in material completeness review",
+      "showInEwm": "Use in authority and public participation",
+      "showInBeschluss": "Show in the decision"
+    },
+    "form": {
+      "nameRequired": "Name is required."
+    },
+    "actions": {
+      "remove": "Remove"
+    },
+    "legalBasis": {
+      "federalAction": "Federal laws · {{count}} norms",
+      "stateAction": "State laws · {{count}} norms",
+      "federalActionAria": "Federal laws for “{{name}}” · {{count}} norms",
+      "stateActionAria": "State laws for “{{name}}” · {{count}} norms",
+      "federalTitle": "Select federal laws",
+      "federalDescription": "Select the federal norms for this topic.",
+      "stateTitle": "Select state laws",
+      "stateDescription": "First select a German state, then its state norms.",
+      "loadError": "The law's norms could not be loaded.",
+      "apply": "Apply",
+      "cancel": "Cancel"
+    },
+    "topics": {
+      "title": "Topics",
+      "add": "Add topic",
+      "empty": "No topics have been added yet.",
+      "remove": "Remove topic “{{name}}”"
+    },
+    "subtopics": {
+      "title": "Subtopics",
+      "add": "Add subtopic",
+      "empty": "No subtopics have been added yet.",
+      "remove": "Remove subtopic “{{name}}”"
+    },
+    "dialogs": {
+      "addTopic": {
+        "title": "Add topic"
+      },
+      "addSubtopic": {
+        "title": "Add subtopic"
+      },
+      "add": "Add",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "duplicateTopicName": "The topic name “{{name}}” is already used.",
+      "duplicateSubtopicName": "The subtopic name “{{name}}” is already used in this topic.",
+      "missingJurabk": "Legal basis is required.",
+      "duplicateNorm": "The norm “{{jurabk}}” {{paragraphNr}} already exists in this list.",
+      "topicReferenced": "The topic “{{name}}” is referenced by the decision template chapters {{nodes}} and cannot be removed."
+    },
+    "toasts": {
+      "saveError": "The catalog could not be saved.",
+      "saveConflict": "The catalog changed in the meantime and was reloaded. Review your changes and try again.",
+      "createError": "The catalog could not be created.",
+      "createConflict": "A catalog already exists for this project type.",
+      "invalidCatalog": "The catalog is invalid."
+    }
+  },
+  "requiredDocuments": {
+    "title": "Required documents",
+    "missing": "This project type does not have a catalog yet.",
+    "empty": "No groups have been added yet.",
+    "addCategory": "Add group",
+    "renameCategory": "Rename group",
+    "renameCategoryAria": "Rename group “{{name}}”",
+    "removeCategory": "Remove group “{{name}}”",
+    "documentTypes": "Document types",
+    "emptyDocumentTypes": "No document types have been added yet.",
+    "addDocumentType": "Add document type",
+    "removeDocumentType": "Remove document type “{{name}}”",
+    "fields": {
+      "categoryName": "Group name",
+      "expectedCount": "Expected count"
+    },
+    "errors": {
+      "duplicateDocumentTypeName": "The document type “{{name}}” is already used in this group.",
+      "invalidExpectedCount": "Expected count must be a positive integer.",
+      "emptyDocumentTypeName": "Name is required."
+    },
+    "dialogs": {
+      "addCategoryTitle": "Add group",
+      "renameCategoryTitle": "Rename group",
+      "addDocumentTypeTitle": "Add document type",
+      "cancel": "Cancel",
+      "add": "Add",
+      "save": "Save"
+    }
+  },
+  "decisionTemplate": {
+    "title": "Decision template",
+    "missing": "This project type does not have a catalog yet.",
+    "empty": "No chapters have been added yet.",
+    "addChild": "Add subchapter",
+    "addChildAria": "Add a subchapter under “{{title}}”",
+    "addRoot": "Add chapter",
+    "removeNode": "Remove chapter “{{title}}”",
+    "moveUp": "Move “{{title}}” up",
+    "moveDown": "Move “{{title}}” down",
+    "expand": "Expand “{{title}}”",
+    "collapse": "Collapse “{{title}}”",
+    "unknownTopicMarker": "Unknown topic",
+    "fields": {
+      "title": "Title",
+      "text": "Text",
+      "topic": "Topic",
+      "isHidden": "Hidden",
+      "canAddChild": "Allow subchapters"
+    },
+    "topic": {
+      "none": "No topic",
+      "unknown": "The topic “{{name}}” is not in the catalog."
+    },
+    "errors": {
+      "titleRequired": "Title is required.",
+      "unknownTopic": "The chapter “{{title}}” references the unknown topic “{{name}}”.",
+      "cannotAddChild": "Subchapters cannot be created under this chapter."
+    },
+    "dialogs": {
+      "addChildTitle": "Add subchapter",
+      "addRootTitle": "Add chapter",
+      "add": "Add",
+      "cancel": "Cancel"
+    }
+  },
+  "export": {
+    "title": "Catalog export",
+    "missing": "This project type does not have a catalog yet.",
+    "button": "Export catalog",
+    "filename": "{{name}}-catalog.yaml",
+    "success": "The catalog was exported.",
+    "error": "The catalog could not be exported."
+  }
+}

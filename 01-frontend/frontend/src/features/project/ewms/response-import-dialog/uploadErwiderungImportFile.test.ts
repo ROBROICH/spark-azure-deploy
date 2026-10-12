@@ -10,18 +10,12 @@ const mocks = vi.hoisted(() => ({
   uploadFileToStorage: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  confirmUploadV2FilesConfirmUploadPost: mocks.confirmUpload,
-  generateUploadUrlV2FilesGenerateUploadUrlPost: mocks.generateUploadUrl,
-  startFileProcessingV2FilesStartFileProcessingPost: mocks.startFileProcessing,
-}));
-
-vi.mock('@/api-clients/oms-module', () => ({
-  importArgumentsProjectIdArgumentsImportPost: mocks.importArguments,
-}));
-
-vi.mock('@/api-clients/temporal-jobs-module', () => ({
-  getWorkflowTemporalWorkflowsWorkflowIdGet: mocks.getWorkflow,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementConfirmFileUpload: mocks.confirmUpload,
+  v1DocumentManagementGenerateFileUploadUrl: mocks.generateUploadUrl,
+  v1DocumentManagementStartFileProcessing: mocks.startFileProcessing,
+  v1ObjectionsManagementImportObjectionsArguments: mocks.importArguments,
+  v1TemporalJobsGetTemporalWorkflow: mocks.getWorkflow,
 }));
 
 vi.mock('@/features/shared/remote-files/uploadFileToStorage', () => ({
@@ -90,16 +84,16 @@ describe('uploadErwiderungImportFile', () => {
         data: {
           result: null,
           status: 'running',
-          workflow_id: 'workflow-1',
-          workflow_type: 'SingleFileProcessingWorkflow',
+          workflowId: 'workflow-1',
+          workflowType: 'SingleFileProcessingWorkflow',
         },
       })
       .mockResolvedValueOnce({
         data: {
           result: null,
           status: 'completed',
-          workflow_id: 'workflow-1',
-          workflow_type: 'SingleFileProcessingWorkflow',
+          workflowId: 'workflow-1',
+          workflowType: 'SingleFileProcessingWorkflow',
         },
       });
 
@@ -117,10 +111,10 @@ describe('uploadErwiderungImportFile', () => {
     expect(mocks.getWorkflow).toHaveBeenCalledTimes(2);
     expect(mocks.importArguments).toHaveBeenCalledWith({
       body: {
-        file_id: 'file-1',
+        fileId: 'file-1',
       },
       path: {
-        project_id: 'project-1',
+        projectId: 'project-1',
       },
     });
   });
@@ -150,10 +144,10 @@ describe('uploadErwiderungImportFile', () => {
     });
     expect(mocks.importArguments).toHaveBeenCalledWith({
       body: {
-        file_id: 'file-1',
+        fileId: 'file-1',
       },
       path: {
-        project_id: 'project-1',
+        projectId: 'project-1',
       },
     });
   });
@@ -163,8 +157,8 @@ describe('uploadErwiderungImportFile', () => {
       data: {
         result: null,
         status: 'failed',
-        workflow_id: 'workflow-1',
-        workflow_type: 'SingleFileProcessingWorkflow',
+        workflowId: 'workflow-1',
+        workflowType: 'SingleFileProcessingWorkflow',
       },
     });
 

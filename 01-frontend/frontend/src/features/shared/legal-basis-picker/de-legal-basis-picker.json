@@ -1,0 +1,10 @@
+{
+  "selectedCount": "{{count}} ausgewählt",
+  "groupCheckboxSelectHint": "Aktivierung wählt auch {{count}} zugehörige Normen aus.",
+  "groupCheckboxDeselectHint": "Deaktivierung hebt die Auswahl von {{count}} zugehörigen Normen auf.",
+  "unavailable": "Nicht mehr in der Gesetzesdatenbank vorhanden.",
+  "loading": "Gesetze und Normen werden geladen.",
+  "empty": "Keine Gesetze oder Normen gefunden.",
+  "error": "Gesetze und Normen konnten nicht geladen werden.",
+  "retry": "Erneut versuchen"
+}

@@ -1,3 +1,7 @@
+---
+ruleId: nodes/use-loading-states-only-for-real-node-dependencies
+---
+
 # Use Loading States Only for Real Node Dependencies
 
 - Model loading state from the actual node hook contract instead of inventing defensive UI around data that is already guaranteed by the graph layer.

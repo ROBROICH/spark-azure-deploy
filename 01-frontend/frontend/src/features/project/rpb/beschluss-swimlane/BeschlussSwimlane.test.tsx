@@ -41,7 +41,7 @@ vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
   useLiveNode: (ref: { id: string } | null) => {
     const topics = mocks.useNodesByTypeMock('topic').data as {
       id: string;
-      mvp_assignees: string[];
+      mvpAssignees: string[];
     }[];
 
     return {
@@ -145,29 +145,28 @@ const createVaeNode = (
 
   return {
     assignee: null,
-    can_add_child: false,
-    checked_by_assignee: false,
-    checked_by_leader: false,
-    checked_at_assignee: null,
-    checked_at_leader: null,
-    compositeKey: toCompositeKey({ id, node_type: 'vae_node' }),
-    created_at: '2026-01-01T00:00:00Z',
-    frontend_parent_ids: [],
+    canAddChild: false,
+    checkedByAssignee: false,
+    checkedByLeader: false,
+    checkedAtAssignee: null,
+    checkedAtLeader: null,
+    compositeKey: toCompositeKey({ id, nodeType: 'vae_node' }),
+    createdAt: '2026-01-01T00:00:00Z',
+    frontendParentIds: [],
     id,
-    is_deleted: false,
-    is_hidden: false,
-    node_type: 'vae_node',
+    isDeleted: false,
+    isHidden: false,
+    nodeType: 'vae_node',
     order: 0,
-    parent_vae_node_id: null,
-    project_id: 'project-1',
-    subtopic_id: null,
-    sys_period: null,
-    template_id: null,
+    parentVaeNodeId: null,
+    projectId: 'project-1',
+    subtopicId: null,
+    templateId: null,
     text: 'original text',
     title,
-    topic_id: null,
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00Z',
+    topicId: null,
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00Z',
     ...rest,
   } satisfies NodePayloadByType<'vae_node'>;
 };
@@ -192,7 +191,7 @@ describe('BeschlussSwimlane', () => {
           data: [
             {
               id: 'topic-1',
-              mvp_assignees: ['member-id'],
+              mvpAssignees: ['member-id'],
             },
           ],
         };
@@ -203,11 +202,11 @@ describe('BeschlussSwimlane', () => {
           createVaeNode({
             id: 'root',
             title: 'Root',
-            topic_id: 'topic-1',
+            topicId: 'topic-1',
           }),
           createVaeNode({
             id: 'child',
-            parent_vae_node_id: 'root',
+            parentVaeNodeId: 'root',
             title: 'Child',
           }),
         ],
@@ -245,7 +244,7 @@ describe('BeschlussSwimlane', () => {
           createVaeNode({
             id: 'root',
             title: 'Root',
-            topic_id: null,
+            topicId: null,
           }),
         ],
       };
@@ -275,7 +274,7 @@ describe('BeschlussSwimlane', () => {
       id: 'root',
       text: 'original text',
       title: 'Root',
-      topic_id: null,
+      topicId: null,
     });
 
     recipe(draft);
@@ -298,7 +297,7 @@ describe('BeschlussSwimlane', () => {
             id: 'root',
             text: 'edited text',
             title: 'Root',
-            topic_id: null,
+            topicId: null,
           }),
         ],
       };
@@ -333,7 +332,7 @@ describe('BeschlussSwimlane', () => {
           createVaeNode({
             id: 'root',
             title: 'Root',
-            topic_id: null,
+            topicId: null,
           }),
         ],
       };

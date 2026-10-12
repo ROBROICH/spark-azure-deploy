@@ -1,5 +1,5 @@
-import type { UserOidcRole } from '@/api-clients/identity-management-module/types.gen';
-import type { ProjectResponse } from '@/api-clients/pls-module';
+import type { UserOidcRole } from '@/api-clients/backend/types.gen';
+import type { ProjectResponse } from '@/api-clients/backend';
 
 type ProjectTeam = Pick<ProjectResponse, 'members' | 'owners'>;
 
@@ -18,8 +18,5 @@ export function isProjectOwnerOrMember(
     return true;
   }
 
-  return (
-    (project.owners ?? []).includes(userId) ||
-    (project.members ?? []).includes(userId)
-  );
+  return project.owners.includes(userId) || project.members.includes(userId);
 }

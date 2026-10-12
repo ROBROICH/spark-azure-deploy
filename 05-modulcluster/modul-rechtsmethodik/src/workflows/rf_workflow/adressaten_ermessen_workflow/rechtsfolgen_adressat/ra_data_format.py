@@ -1,7 +1,7 @@
 """Data models for Rechtsfolgen-Adressat identification."""
 
 from pydantic import BaseModel, ConfigDict, Field
-from temporal.workflows.rechtsmethodik.types import RechtsfolgenAdressat
+from temporal.contracts import RechtsfolgenAdressat
 
 
 class RechtsfolgenAdressatenAgentOutputFormat(BaseModel):

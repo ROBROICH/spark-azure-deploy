@@ -57,10 +57,13 @@
       "saveSuccess": "Application details were saved.",
       "submitError": "Failed to save changes. Please try again.",
       "fieldRequired": "This field is required.",
+      "internalProjectNumberDuplicate": "This file reference number is already in use.",
+      "internalProjectNumberCheckError": "The file reference number could not be checked. Please try again.",
       "emojiNotAllowed": "Emoji are not allowed in the project name.",
       "projectNameTooLong": "The project name must be 125 characters or fewer.",
       "selectType": "Select type",
-      "selectState": "Select federal state"
+      "selectState": "Select federal state",
+      "inactiveType": "{{name}} (inactive)"
     }
   },
   "ApplicantDetails": {
@@ -100,6 +103,11 @@
   },
   "Deadlines": {
     "title": "Deadlines and Appointments",
+    "loading": "Loading deadlines …",
+    "loadMore": "Load more deadlines",
+    "loadError": "Deadlines could not be loaded.",
+    "retry": "Try again",
+    "tableAriaLabel": "Deadlines and Appointments",
     "tableHeaders": {
       "deadlineType": "Description",
       "startAt": "Start",
@@ -115,8 +123,11 @@
     "addButton": "Add deadline",
     "emptyState": "No deadlines available.",
     "createSuccess": "Deadline was added.",
+    "createError": "Deadline could not be added.",
     "updateSuccess": "Deadline was saved.",
+    "updateError": "Deadline could not be saved.",
     "deleteSuccess": "Deadline was deleted.",
+    "deleteError": "Deadline could not be deleted.",
     "createDialog": {
       "title": "Create entry",
       "save": "Save",
@@ -143,6 +154,7 @@
     }
   },
   "Documents": {
+    "loadMore": "Load more",
     "uploadButton": "Upload application documents",
     "emptyState": "No application documents have been uploaded yet. Please upload the application documents now.",
     "tableAriaLabel": "Documents",
@@ -181,6 +193,25 @@
       "description": "The uploaded files could not be fully processed. Please upload the files again or try again later.",
       "dismissAriaLabel": "Dismiss error message"
     },
+    "processingFailureReasons": {
+      "ZIP_INVALID": "The ZIP file could not be read. Please check that it is a valid ZIP archive and upload it again.",
+      "ZIP_AMBIGUOUS": "The ZIP file contains ambiguous or additional content. Please remove appended data and upload the ZIP file again.",
+      "ZIP_ENCRYPTED": "The ZIP file is encrypted and cannot be processed. Please upload an unencrypted ZIP file.",
+      "ZIP_UNSUPPORTED_COMPRESSION": "The ZIP file uses unsupported compression. Please recreate the archive with supported compression.",
+      "ZIP_SPLIT": "Split ZIP files are not supported. Please upload a complete ZIP archive.",
+      "ZIP_NOT_FOUND": "The uploaded ZIP file was not found in storage. Please upload the file again.",
+      "NO_PROCESSABLE_FILES": "No processable PDF files were found in the ZIP file. Please upload a ZIP archive that contains PDF files.",
+      "UNSUPPORTED_FILETYPE": "The ZIP file contains files that cannot be processed. Please upload a ZIP archive with PDF files.",
+      "INVALID_FILENAME": "At least one filename in the ZIP file does not match the required format. Please check the filenames and upload the ZIP file again.",
+      "VIRUS_DETECTED": "The ZIP file could not be processed for security reasons. Please check the file and upload a cleaned version.",
+      "PROCESSING_FAILED": "The ZIP file could not be processed. Please upload the file again or try again later.",
+      "PROCESSING_CANCELED": "ZIP processing was canceled. Upload the file again if needed.",
+      "PROCESSING_TIMED_OUT": "ZIP processing took too long. Please try again later or upload a smaller ZIP file.",
+      "ANALYSIS_FAILED": "Processing failed. Please try again later.",
+      "ANALYSIS_CANCELED": "Processing was canceled. Please start it again if needed.",
+      "ANALYSIS_TIMED_OUT": "Processing took too long. Please try again later.",
+      "NO_DOCUMENTS": "No documents were found for the project. Please add documents and start processing again."
+    },
     "readOnlyEmptyState": {
       "title": "No documents added yet",
       "description": "Add documents for the project to start processing."
@@ -200,6 +231,7 @@
         "formatHint": "Supported format: ZIP containing PDF files",
         "uploadedListTitle": "Uploaded documents",
         "errors": {
+          "singleZipRequired": "Please select exactly one ZIP file.",
           "unsupportedFormat": "File format not supported",
           "uploadFailed": "Upload failed",
           "processingFailed": "Processing failed. Please try again."
@@ -216,12 +248,11 @@
       },
       "uploading": {
         "title": "Uploading documents …",
-        "description": "The documents are being processed. This may take a few minutes.",
-        "cancel": "Cancel"
+        "description": "The documents are being processed. This may take a few minutes."
       },
       "diff": {
         "title": "Update documents",
-        "description": "Select the documents you want to add or replace. In the next step you can choose which AI processes to re-run.",
+        "description": "New documents are always added. Select which documents should be replaced or deleted. In the next step you can choose which AI processes to re-run.",
         "previousDocuments": "Previous application documents",
         "newDocuments": "New application documents",
         "toggleAll": "Select all",
@@ -284,6 +315,7 @@
       "empty": "No comments",
       "countLabel_one": "{{count}} comment",
       "countLabel_other": "{{count}} comments",
+      "loadMore": "Load more",
       "actions": {
         "editAria": "Edit comment",
         "removeAria": "Delete comment"
@@ -341,9 +373,18 @@
       "unknownWorkflowType": "Processing",
       "openTemporal": "Open in Temporal",
       "openTemporalAria": "Open {{name}} in Temporal",
+      "partialHistory": "Showing the loaded runs. More runs are available.",
+      "loadMoreRuns": "Load more runs",
+      "showRunDetails": "Show child workflows and activities",
+      "loadingHistory": "Loading history …",
+      "loadMoreEvents": "Load more events",
+      "partialRunHistory": "Part of the history is loaded. Further events may update the displayed status.",
+      "historySnapshotComplete": "Current history loaded. Child workflows can be opened individually.",
+      "openContinuedRun": "Open continued run",
       "status": {
         "pending": "Pending",
         "success": "Success",
+        "continued": "Continued",
         "failed": "Failed"
       },
       "workflowNames": {
@@ -368,13 +409,13 @@
         "finishedAt": "Finished at",
         "elapsedTime": "Elapsed time",
         "runTime": "Run time",
-        "childWorkflowCount": "Child workflows",
         "workflowRuns": "Runs ({{count}})"
       }
     }
   },
   "Team": {
     "title": "Team",
+    "tableAriaLabel": "Team",
     "tableHeaders": {
       "name": "Name",
       "role": "Role",
@@ -438,5 +479,19 @@
   },
   "ProjectMasterDataSection": {
     "title": "Project Master Data and Applicants"
+  },
+  "processingFailure": {
+    "areas": {
+      "tableOfContents": "Table-of-contents matching failed",
+      "requiredDocuments": "Required-documents matching failed",
+      "plausibility": "Plausibility check failed",
+      "mvpNorm": "AI analysis of the norm failed",
+      "rpbRating": "AI rating failed",
+      "rpbRiskWarnings": "Risk analysis failed"
+    },
+    "badge": {
+      "label": "Failed",
+      "ariaLabelWithSubject": "{{area}}: {{subject}}"
+    }
   }
 }

@@ -4,7 +4,8 @@ import json
 from datetime import timedelta
 from uuid import UUID
 
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata, ProcessedFileInfo, SummaryData
+from pydantic import ValidationError
+from temporal.contracts import BaseMetadata, ProcessedFileInfo, SummaryData
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
@@ -13,14 +14,12 @@ from src.activities.postprocessing.schemas import (
     SummaryResult,
 )
 from src.config import get_config
-from src.utils.dms_utils import (
-    DmsUploadInput,
-    FileObject,
-    ListFilesInput,
-    delete_file,
-    download_file,
-    list_files,
-    upload_file,
+from src.utils.dms_utils import download_file, list_all_files
+from src.utils.summary_file import (
+    SUMMARY_FILENAME,
+    list_summary_files,
+    replace_summary_file,
+    serialize_summary,
 )
 
 __all__ = [
@@ -28,56 +27,32 @@ __all__ = [
     "create_summary_from_results",
 ]
 
-SUMMARY_FILENAME = "summary.json"
-
-
-_PAGE_SIZE = 500
-
-
-async def _list_all_files(project_id: UUID, file_type: str) -> list[FileObject]:
-    """Fetch all pages from DMS list_files endpoint."""
-    page = 1
-    all_files: list[FileObject] = []
-    while True:
-        batch = await list_files(
-            ListFilesInput(project_id=project_id, file_type=file_type, page=page, page_size=_PAGE_SIZE)
-        )
-        all_files.extend(batch)
-        if len(batch) < _PAGE_SIZE:
-            break
-        page += 1
-    return all_files
-
-
-async def _find_existing_summary_id(
-    project_id: UUID,
-) -> UUID | None:
-    """Find existing summary.json row in DMS, if any."""
-    files = await _list_all_files(project_id, "content_extraction")
-    for file_obj in files:
-        if file_obj.filename == SUMMARY_FILENAME:
-            return file_obj.id
-    return None
-
 
 async def _load_existing_summary_entries(
     existing_file_id: UUID | None,
 ) -> list[ProcessedFileInfo]:
     """Download and parse the existing summary.json so its entries can be merged.
 
-    Returns an empty list when there is no existing summary or when the
-    existing payload cannot be parsed. Failures are non-fatal so a corrupted
-    legacy summary never blocks a fresh upload.
+    Returns an empty list when there is no existing summary, when its file is
+    missing from storage, or when the existing payload cannot be parsed or
+    validated, so a corrupted legacy summary never blocks a fresh upload.
+    Other download errors propagate so the Temporal retry policy applies
+    instead of silently dropping all entries of earlier runs.
     """
     if existing_file_id is None:
         return []
     try:
         payload = await download_file(existing_file_id)
-        existing = SummaryData.model_validate(json.loads(payload))
-    except Exception as exc:
+    except FileNotFoundError:
         activity.logger.warning(
-            f"Could not read existing summary.json ({existing_file_id}); "
-            f"proceeding without merge: {exc}"
+            f"Existing summary.json ({existing_file_id}) not found in storage; proceeding without merge"
+        )
+        return []
+    try:
+        existing = SummaryData.model_validate(json.loads(payload))
+    except (json.JSONDecodeError, UnicodeDecodeError, ValidationError):
+        activity.logger.exception(
+            f"Could not parse existing summary.json ({existing_file_id}); proceeding without merge"
         )
         return []
     return list(existing.processed_files)
@@ -91,7 +66,7 @@ async def _active_documents(project_id: UUID) -> dict[UUID, str]:
     source: an entry survives reconcile iff its source_file_id is still in
     this map; its document_path/name is refreshed from the current filename.
     """
-    files = await _list_all_files(project_id, "document")
+    files = await list_all_files(project_id, "document")
     return {f.id: f.filename for f in files}
 
 
@@ -140,7 +115,8 @@ async def _create_summary_from_results(
         for result in input.results
     ]
 
-    existing_file_id = await _find_existing_summary_id(input.project_id)
+    existing_summary_files = await list_summary_files(input.project_id)
+    existing_file_id = existing_summary_files[0].id if existing_summary_files else None
     existing_entries = await _load_existing_summary_entries(existing_file_id)
 
     active_id_to_path = await _active_documents(input.project_id)
@@ -185,33 +161,11 @@ async def _create_summary_from_results(
         input.total_duration_seconds,
     )
 
-    # Exclude processed_document from serialization (too large for summary.json).
-    # The field is still available in the in-memory summary_data returned to callers.
-    summary_json_str = summary_data.model_dump_json(
-        indent=2,
-        exclude={"processed_files": {"__all__": {"processed_document"}}},
+    file_obj = await replace_summary_file(
+        input.project_id,
+        serialize_summary(summary_data),
+        existing_summary_files,
     )
-    summary_file_bytes = summary_json_str.encode("utf-8")
-
-    # Upload new summary to DMS first, then delete old one.
-    # If the upload fails, consumers still have the previous summary row.
-    file_obj = await upload_file(
-        DmsUploadInput(
-            data=summary_file_bytes,
-            filename=SUMMARY_FILENAME,
-            project_id=input.project_id,
-            file_type="content_extraction",
-            content_type="application/json",
-        )
-    )
-
-    # Delete old summary.json after successful upload.
-    if existing_file_id:
-        try:
-            await delete_file(existing_file_id)
-            activity.logger.info(f"Deleted old summary.json: {existing_file_id}")
-        except Exception as e:
-            activity.logger.warning(f"Failed to delete old summary.json: {e}")
 
     return SummaryResult(
         summary_file_id=str(file_obj.id),

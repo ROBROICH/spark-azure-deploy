@@ -89,9 +89,9 @@ export function GraphDataView(props: GraphDataViewProps) {
   const typeLayout = useMemo(
     () =>
       buildTypeLevelGraphLayout(scopedGraph, viewport, {
-        rootNodeType: selectedFilterNode?.node_type,
+        rootNodeType: selectedFilterNode?.nodeType,
       }),
-    [scopedGraph, selectedFilterNode?.node_type, viewport],
+    [scopedGraph, selectedFilterNode?.nodeType, viewport],
   );
   // eslint-disable-next-line no-restricted-syntax -- actual node packing is computed once per graph snapshot; zooming only interpolates the cached positions
   const graphDataLayout = useMemo(
@@ -248,7 +248,7 @@ export function GraphDataView(props: GraphDataViewProps) {
         ...prev,
         selectedGraphNodeId: nodeId,
         selectedNodeId: nodeId,
-        selectedNodeType: selectedNode?.node_type ?? prev.selectedNodeType,
+        selectedNodeType: selectedNode?.nodeType ?? prev.selectedNodeType,
       }),
       replace: true,
       resetScroll: false,
@@ -335,7 +335,7 @@ export function GraphDataView(props: GraphDataViewProps) {
             anchor={hoverAnchor}
             nodeRef={{
               id: activeNode.id,
-              node_type: activeNode.nodeType,
+              nodeType: activeNode.nodeType,
             }}
             viewport={viewport}
           />

@@ -35,7 +35,7 @@ class TestSlidingWindow:
         results = await sliding_window(items, track_order, concurrency=1)
 
         assert sorted(results) == [1, 2, 3]
-        assert len(call_order) == 3
+        assert len(call_order) == 3  # noqa: PLR2004
 
     @pytest.mark.asyncio
     async def test_concurrency_exceeds_items(self) -> None:
@@ -49,7 +49,7 @@ class TestSlidingWindow:
         """Output length matches input length."""
         items = list(range(20))
         results = await sliding_window(items, self._double, concurrency=5)
-        assert len(results) == 20
+        assert len(results) == 20  # noqa: PLR2004
 
     @pytest.mark.asyncio
     async def test_single_item(self) -> None:

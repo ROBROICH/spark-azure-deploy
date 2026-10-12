@@ -1,4 +1,8 @@
-import { PROJECT_STEP_OPTIONS } from '@/features/project/route/routeStepMapping';
+import {
+  getProductStepOptions,
+  PROJECT_STEP_OPTIONS,
+} from '@/features/project/route/routeStepMapping';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import { cn } from '@/features/ui/style/cn';
 import { Link } from '@tanstack/react-router';
 import { CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
@@ -38,6 +42,7 @@ export function NavProjectCard(props: NavProjectCardProps) {
 
   const { t } = useTranslation('shared');
   const upcomingDeadline = useUpcomingDeadline(projectId, true);
+  const effectiveMode = getConfiguredProductMode();
 
   const handleChevronClick = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -145,8 +150,11 @@ export function NavProjectCard(props: NavProjectCardProps) {
             className="flex flex-col gap-1 p-1"
             aria-label={t('sidebar.processSteps')}
           >
-            {PROJECT_STEP_OPTIONS.map((step, i) => {
-              const isActive = i === activeStepIndex;
+            {getProductStepOptions(effectiveMode).map((step) => {
+              const isActive =
+                activeStepIndex !== null &&
+                activeStepIndex !== undefined &&
+                PROJECT_STEP_OPTIONS[activeStepIndex]?.value === step.value;
               return (
                 <li
                   key={step.value}

@@ -1,3 +1,7 @@
+---
+ruleId: a11y/no-manual-aria-on-radix-primitives
+---
+
 # Verify ARIA Issues at Runtime Before Flagging on Shadcn Components
 
 - If you find missing ARIA attributes on a shadcn/Radix component, research what Radix injects at runtime for that specific component before flagging it. Radix injects ARIA via refs — the attributes are not visible in source code.

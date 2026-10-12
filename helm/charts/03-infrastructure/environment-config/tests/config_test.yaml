@@ -1,0 +1,162 @@
+suite: environment-config
+release: {name: rel, namespace: ci}
+values: [../ci/minimal-values.yaml]
+tests:
+  - it: refuses ExternalSecrets without a path prefix
+    template: templates/external-secrets.yaml
+    set:
+      externalSecrets.pathPrefix: ''
+    asserts:
+      - failedTemplate: {errorPattern: is externalSecrets.pathPrefix set}
+
+  - it: creates the shared ServiceAccount
+    template: templates/serviceaccount.yaml
+    asserts:
+      - isKind: {of: ServiceAccount}
+
+  - it: binds the shared ServiceAccount to a GCP service account only on request
+    template: templates/serviceaccount.yaml
+    asserts:
+      - notExists: {path: 'metadata.annotations["iam.gke.io/gcp-service-account"]'}
+
+  - it: renders no Namespace unless asked
+    template: templates/namespace.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: renders the Namespace with its labels
+    template: templates/namespace.yaml
+    set:
+      namespace: {create: true, labels: {istio-injection: enabled}}
+    asserts:
+      - isKind: {of: Namespace}
+      - equal: {path: metadata.labels.istio-injection, value: enabled}
+
+  - it: exports to the debug exporter without GCP by default
+    template: templates/otel-collector-configmap.yaml
+    asserts:
+      - matchRegex: {path: 'data["config.yaml"]', pattern: 'exporters: \["debug"\]'}
+      - matchRegex: {path: 'data["config.yaml"]', pattern: 'detectors: \["env"\]'}
+      - notMatchRegex: {path: 'data["config.yaml"]', pattern: googlecloud}
+
+  - it: replaces the default with the configured exporters
+    template: templates/otel-collector-configmap.yaml
+    set:
+      otel.exporters: {otlp: {endpoint: "tempo:4317"}}
+    asserts:
+      - matchRegex: {path: 'data["config.yaml"]', pattern: 'exporters: \["otlp"\]'}
+      - notMatchRegex: {path: 'data["config.yaml"]', pattern: debug}
+
+  - it: fills the googlecloud project from gcp.projectId
+    template: templates/otel-collector-configmap.yaml
+    set:
+      gcp.projectId: example-project
+      otel.exporters: {googlecloud: {}}
+      otel.resourceDetectors: [env, gcp]
+    asserts:
+      - matchRegex: {path: 'data["config.yaml"]', pattern: 'project: example-project'}
+      - matchRegex: {path: 'data["config.yaml"]', pattern: 'detectors: \["env","gcp"\]'}
+
+  - it: allows no metadata-server egress by default
+    template: templates/networkpolicies.yaml
+    asserts:
+      - notContains:
+          path: spec.egress
+          content: {to: [{ipBlock: {cidr: 169.254.169.254/32}}], ports: [{protocol: TCP, port: 80}]}
+        documentSelector: {path: metadata.name, value: allow-egress}
+
+  - it: allows the metadata server on request
+    template: templates/networkpolicies.yaml
+    set:
+      networkPolicy.metadataServer: true
+    asserts:
+      - contains:
+          path: spec.egress
+          content: {to: [{ipBlock: {cidr: 169.254.169.254/32}}], ports: [{protocol: TCP, port: 80}]}
+        documentSelector: {path: metadata.name, value: allow-egress}
+
+  - it: renders extra rules in an additive policy
+    template: templates/networkpolicies.yaml
+    set:
+      networkPolicy.extraEgress:
+        - to: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: api}}}]
+          ports: [{protocol: TCP, port: 8080}]
+    asserts:
+      - equal: {path: spec.policyTypes, value: [Egress]}
+        documentSelector: {path: metadata.name, value: allow-extra}
+
+  - it: renders additional PeerAuthentications
+    template: templates/peerauthentications.yaml
+    set:
+      mesh.peerAuthentications:
+        allow-gateway: {mtls: {mode: STRICT}, portLevelMtls: {"80": {mode: PERMISSIVE}}}
+    asserts:
+      - isKind: {of: PeerAuthentication}
+      - equal: {path: metadata.name, value: allow-gateway}
+      - equal: {path: 'spec.portLevelMtls["80"].mode', value: PERMISSIVE}
+
+  - it: annotates the Namespace
+    template: templates/namespace.yaml
+    set:
+      namespaceOverride: env1
+      namespace: {create: true, annotations: {argocd.argoproj.io/sync-wave: "-10"}}
+    asserts:
+      - equal: {path: metadata.name, value: env1}
+      - equal: {path: 'metadata.annotations["argocd.argoproj.io/sync-wave"]', value: "-10"}
+
+  - it: renders no ExternalSecret by default
+    template: templates/external-secrets.yaml
+    set:
+      externalSecrets.secrets: null
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: requires a secret store once a secret renders
+    template: templates/external-secrets.yaml
+    set:
+      externalSecrets.secretStore.name: ''
+    asserts:
+      - failedTemplate: {errorPattern: no secret store}
+
+  - it: renders no ServiceEntry by default
+    template: templates/serviceentries.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: renders ServiceEntries
+    template: templates/serviceentries.yaml
+    set:
+      mesh.serviceEntries:
+        egress-postgres:
+          hosts: [postgres.internal]
+          addresses: [10.0.0.5/32]
+          ports: [{number: 5432, name: tcp-postgres, protocol: TCP}]
+          location: MESH_EXTERNAL
+          resolution: NONE
+          exportTo: [temporal]
+    asserts:
+      - isKind: {of: ServiceEntry}
+      - equal: {path: metadata.name, value: egress-postgres}
+      - equal: {path: metadata.namespace, value: ci}
+      - equal: {path: spec.exportTo, value: [temporal]}
+
+  - it: renders the SpiceDBCluster into its own namespace with patches
+    template: templates/spicedbcluster.yaml
+    set:
+      spicedb:
+        enabled: true
+        namespace: spicedb
+        patches:
+          - kind: Deployment
+            patch: {spec: {template: {metadata: {annotations: {a: b}}}}}
+    asserts:
+      - equal: {path: metadata.namespace, value: spicedb}
+      - equal: {path: 'spec.patches[0].kind', value: Deployment}
+
+  - it: renders the SpiceDBCluster into the chart namespace without patches by default
+    template: templates/spicedbcluster.yaml
+    set:
+      spicedb.enabled: true
+    asserts:
+      - equal: {path: metadata.namespace, value: ci}
+      - notExists: {path: spec.patches}

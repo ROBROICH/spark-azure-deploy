@@ -1,0 +1,19 @@
+{{- if .Values.serviceMonitor.enabled }}
+{{- /* Prometheus Operator scrape config — the alternative to podMonitoring (GMP). */ -}}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "modul-plausibilitaet-pruefung.fullname" . }}
+  namespace: {{ include "modul-plausibilitaet-pruefung.namespace" . }}
+  labels:
+    {{- include "modul-plausibilitaet-pruefung.labels" . | nindent 4 }}
+    {{- with .Values.serviceMonitor.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "modul-plausibilitaet-pruefung.selectorLabels" . | nindent 6 }}
+  endpoints:
+    {{- toYaml .Values.serviceMonitor.endpoints | nindent 4 }}
+{{- end }}

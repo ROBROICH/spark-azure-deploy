@@ -1,4 +1,4 @@
-# Native runtime services for local development.
+# Native application runtimes for local development.
 # Start shared infrastructure first with:
 #   docker compose --env-file .env up --wait
 version: "0.5"
@@ -7,422 +7,405 @@ environment:
   - ENV=dev
   - AUTH_MODE=disabled
   - PYTHONUNBUFFERED=1
-  - DB_USER=postgres
+  - BUN_RUNTIME_TRANSPILER_CACHE_PATH=0
+  - HOST=127.0.0.1
+  - DB_USER=application_runtime
   - DB_PASSWORD=${DB_PASSWORD}
   - DB_HOST=localhost
-  - DB_PORT=5432
-  - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
+  - DB_MIGRATE_HOST=localhost
+  - DB_MIGRATE_USER=application_migrator
+  - DB_MIGRATE_PASSWORD=${DB_PASSWORD}
+  - DB_PORT=5433
+  - DB_NAME=application
+  - PROJECT_LOGIC_SERVICE_CORS_ORIGINS=
+  - LAW_DATABASE_BASE_URL=http://localhost:18020
   - TEMPORAL_HOST=localhost:7233
-  - TEMPORAL_SERVER_URL=localhost:7233
-  - TEMPORAL_ADDRESS=localhost:7233
   - TEMPORAL_NAMESPACE=default
+  - TEMPORAL_ENABLE_APPROVAL=false
+  - TEMPORAL_MAX_CONCURRENT_ACTIVITIES=2
+  - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015/api
   - TEMPORAL_S3_BUCKET_NAME=temporal-payloads
+  - TEMPORAL_S3_ARCHIVAL_BUCKET_NAME=temporal-payloads
   - TEMPORAL_S3_ENDPOINT_URL=http://localhost:9000
   - TEMPORAL_S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
   - TEMPORAL_S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
   - TEMPORAL_S3_REGION=eu-west-1
+  - ARCHIVAL_ENABLED=false
+  - ARCHIVAL_WORKFLOW_ID=WeeklyHistoryArchivalWorkflow
+  - ARCHIVAL_CRON=0 0 * * 0
+  - ARCHIVAL_BATCH_SIZE=100
+  - ARCHIVAL_S3_PREFIX=temporal-history
+  - DEFAULT_WORKFLOW_COMPLEXITY_WEIGHT=3
+  - MAX_SYSTEM_COMPLEXITY=20000
+  - WORKFLOW_COMPLEXITY={}
+  - BUCKET_NAME=dms-local
+  - S3_ENDPOINT_URL=http://localhost:9000
+  - S3_EXTERNAL_URL=http://localhost:9000
+  - S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
+  - S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
+  - S3_REGION=eu-west-1
+  - DOC_STORE_PATH=dms_data
+  - CLAMAV_ENABLED=false
+  - CLAMAV_BASE_URL=http://localhost:3310
+  - CHECKPOINT_RETENTION_PERIOD_DAYS=60
+  - MAX_ZIP_ENTRIES=5000
+  - MAX_SINGLE_ENTRY_SIZE_MB=1024
+  - MAX_ZIP_EXTRACTION_SIZE_GB=10
+  - MAX_COMPRESSION_RATIO=100
+  - MAX_ZIP_APPENDED_DATA_BYTES=65536
+  - MAX_OBJECT_SIZE_MB=1024
   - QUARANTINE_S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
   - QUARANTINE_S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-
-  # ----- LLM model routing (single source of truth) ------------------------
-  # Each module hard-codes provider-specific model names in its own .env.local
-  # (self-hosted/gpt-oss-120b, Qwen/..., bge-m3, gemma-...). The local LiteLLM
-  # proxy only serves the models the operator actually configured, so force
-  # every module's model variable to one of the three names from the root .env
-  # (written by scripts/create_secrets.sh). Module variable names differ, so
-  # each is set explicitly; a process ignores variables it does not read, and
-  # OS env set here overrides the value in the module's .env.local.
-  #   LITELLM_TEXT_MODEL     -> chat / completion
-  #   LITELLM_EMBEDDING_MODEL -> text embeddings
-  #   LITELLM_VISUAL_MODEL   -> vision / multimodal (image + PDF-page input)
-  # Chat:
-  - LLM_MODEL=${LITELLM_TEXT_MODEL}
-  - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
-  - LITELLM_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  - MODELS_LARGE_LLM=${LITELLM_TEXT_MODEL}
-  - MODELS_MEDIUM_LLM=${LITELLM_TEXT_MODEL}
-  - MODELS_SMALL_LLM=${LITELLM_TEXT_MODEL}
-  - LLM_DB_RESEARCH_MODEL=${LITELLM_TEXT_MODEL}
-  - LLM_PAGEINDEX_SVM_MODEL_STAGE1=${LITELLM_TEXT_MODEL}
-  - LLM_PAGEINDEX_SVM_MODEL_STAGE2=${LITELLM_TEXT_MODEL}
-  - METADATA_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  - STRUCTURE_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  - SCHWERPUNKTTHEMA_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  - SUMMARIZATION_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  # VLM_SUMMARY_MODEL_NAME summarises the *text* output of a prior VLM run -> chat.
-  - VLM_SUMMARY_MODEL_NAME=${LITELLM_TEXT_MODEL}
-  - LLM_CATEGORISATION_MODEL=${LITELLM_TEXT_MODEL}
-  - LLM_SUMMARISATION_MODEL=${LITELLM_TEXT_MODEL}
-  - LLM_ENRICHMENT_MODEL=${LITELLM_TEXT_MODEL}
-  # Embeddings (plausibilitaet reads LITELLM_EMBEDDING_MODEL directly from .env):
-  - EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
-  - LLM_EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
-  - CHUNKING_MODEL=${LITELLM_EMBEDDING_MODEL}
-  # Vision / multimodal (modul-inhaltsextraktion: VLM enhancement + LightOnOCR):
-  - VLLM_MODEL=${LITELLM_VISUAL_MODEL}
-  - LIGHT_ON_OCR_MODEL=${LITELLM_VISUAL_MODEL}
+  - UNO_HOST=localhost
+  - UNO_PORT=2003
+  - UNO_PROTOCOL=http
+  - UNO_TIMEOUT_MS=120000
+  - UNO_PREFLIGHT_TIMEOUT_MS=10000
+  - DEFAULT_PROJECT_TYPE_ID=00000000-0000-0000-0000-000000000000
+  - SYSTEM_USER_ID=${LOCAL_USER_ID}
+  - FPP_ALLOWED_DOMAINS=fpp.url
+  - FPP_BLOCK_PRIVATE_IPS=true
+  - AUTH_BASE_URL=http://localhost:9090
+  - AUTH_REALM=local
+  - AUTH_CLIENT_ID=local-client
+  - AUTH_CLIENT_SECRET=${LOCAL_OIDC_CLIENT_SECRET:-${LOCAL_KEYCLOAK_CLIENT_SECRET:-}}
+  - AUTH_PRIVILEGED_REALM=local
+  - AUTH_PRIVILEGED_CLIENT_ID=local-client
+  - AUTH_PRIVILEGED_CLIENT_SECRET=${LOCAL_OIDC_CLIENT_SECRET:-${LOCAL_KEYCLOAK_CLIENT_SECRET:-}}
+  - AUTH_SPICE_DB_ENDPOINT=localhost:50051
+  - AUTH_SPICE_DB_TOKEN=${AUTH_SPICE_DB_TOKEN}
+  - AUTH_SPICE_DB_INSECURE=true
+  - AUTH_SPICE_DB_BULK_CHUNK_SIZE=1000
+  - EXTERNAL_SERVICE_TIMEOUT_MS=10000
 
 processes:
+  docling:
+    command: $${DOCLING_COMMAND:-docker run --rm --name spark-docling-serve -p 127.0.0.1:5001:5001 quay.io/docling-project/docling-serve-cpu:v1.14.3}
+    readiness_probe:
+      http_get:
+        host: localhost
+        port: 5001
+        path: /health
+      initial_delay_seconds: 1
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 5
+    availability:
+      restart: on_failure
+      backoff_seconds: 3
+
   project-logic:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18000 --reload
-    working_dir: ./02-backend/project_logic_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=project_logic
-      - TEMPORAL__HOST=localhost:7233
-      - TEMPORAL__TASK_QUEUE=project-logic-service
-      - TEMPORAL__NAMESPACE=default
-      - TEMPORAL__S3_BUCKET_NAME=temporal-payloads
-      - TEMPORAL__S3_ENDPOINT_URL=http://localhost:9000
-      - TEMPORAL__S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - TEMPORAL__S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - TEMPORAL__S3_REGION=eu-west-1
-      - API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL=http://localhost:18010
+      - PORT=18000
+      - ACTIVE_FEATURE_WORKER=project-logic
     readiness_probe:
       http_get:
         host: localhost
         port: 18000
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
-
-  project-logic-seed:
-    command: uv run --locked --all-packages python -m src.scripts.seed_data
-    working_dir: ./02-backend/project_logic_service
-    environment:
-      - TEMPORAL__S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - TEMPORAL__S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-    depends_on:
-      project-logic:
-        condition: process_healthy
+      restart: always
+      backoff_seconds: 21
 
   document-management:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18001 --reload
-    working_dir: ./02-backend/document_management_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=dms
-      # Origin embedded in presigned upload/download URLs handed to the browser. Overrides the
-      # service's .env.local. Same-origin as the frontend behind a reverse proxy; localhost otherwise.
-      - S3_EXTERNAL_URL=${S3_PUBLIC_URL}
-      - TEMPORAL__HOST=localhost:7233
-      - TEMPORAL__TASK_QUEUE=dms
-      - TEMPORAL__PLS_TASK_QUEUE=project-logic-service
-      - TEMPORAL__NAMESPACE=default
-      - TEMPORAL__S3_BUCKET_NAME=temporal-payloads
-      - TEMPORAL__S3_ENDPOINT_URL=http://localhost:9000
-      - TEMPORAL__S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - TEMPORAL__S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - TEMPORAL__S3_REGION=eu-west-1
-      - TEMPORAL__ENABLE_APPROVAL=false
+      - PORT=18001
+      - ACTIVE_FEATURE_WORKER=document-management
     readiness_probe:
       http_get:
         host: localhost
         port: 18001
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   formal-completeness:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18002 --reload
-    working_dir: ./02-backend/formal_completeness_check
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=formal_completeness_check
-      - DOCUMENT_MANAGEMENT_SERVICE_URL=http://localhost:18001
-      - PROJECT_LOGIC_SERVICE_URL=http://localhost:18000
+      - PORT=18002
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18002
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
-
-  formal-completeness-seed:
-    command: uv run --locked --all-packages python -m src.scripts.seed_data
-    working_dir: ./02-backend/formal_completeness_check
-    depends_on:
-      project-logic-seed:
-        condition: process_completed_successfully
-      formal-completeness:
-        condition: process_healthy
+      restart: always
+      backoff_seconds: 21
 
   agent-orchestration:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18003 --reload
-    working_dir: ./02-backend/agent_orchestration_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - TEMPORAL__HOST=localhost:7233
-      - TEMPORAL__TASK_QUEUE=fvp-task-queue
-      - TEMPORAL__NAMESPACE=default
-      - TEMPORAL__S3_BUCKET_NAME=temporal-payloads
-      - TEMPORAL__S3_ENDPOINT_URL=http://localhost:9000
-      - TEMPORAL__S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - TEMPORAL__S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - TEMPORAL__S3_REGION=eu-west-1
-      - API__PLS_BASE_URL=http://localhost:18000
-      - API__DMS_BASE_URL=http://localhost:18001
-      - API__FVP_BASE_URL=http://localhost:18002
-      - API__DIPLAN_BASE_URL=http://localhost:18004
-      - API__PLAUSIBILITY_NOTES_BASE_URL=http://localhost:18005
-      - API__OBJECTIONS_SERVICE_BASE_URL=http://localhost:18006
-      - API__FPP_BASE_URL=http://localhost:18007
-      - API__EXAMINATION_SERVICE_BASE_URL=http://localhost:18009
-      - API__ADMINISTRATIVE_FILE_DRAFT_BASE_URL=http://localhost:18010
+      - PORT=18003
+      - ACTIVE_FEATURE_WORKER=agent-orchestration
     readiness_probe:
       http_get:
         host: localhost
         port: 18003
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   plausibility-notes:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18005 --reload
-    working_dir: ./02-backend/plausibility_notes
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=plausibility_notes
-      - DOCUMENT_MANAGEMENT_SERVICE_URL=http://localhost:18001
+      - PORT=18005
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18005
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   objections-management:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18006 --reload
-    working_dir: ./02-backend/objections_management_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=objections_db
+      - PORT=18006
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18006
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   fpp:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18007 --reload
-    working_dir: ./02-backend/fpp_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=fpp
-      - PROJECT_LOGIC_SERVICE_URL=http://localhost:18000
-      - AGENT_ORCHESTRATION_BASE_URL=http://localhost:18003
+      - PORT=18007
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18007
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   comment:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18008 --reload
-    working_dir: ./02-backend/comment_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=comment_service_db
+      - PORT=18008
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18008
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   examination:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18009 --reload
-    working_dir: ./02-backend/examination_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=examination_service_db
+      - PORT=18009
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18009
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   administrative-file-draft:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18010 --reload
-    working_dir: ./02-backend/administrative_file_draft
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=administrative_file_draft
+      - PORT=18010
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18010
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
-
-  administrative-file-draft-seed:
-    command: uv run --locked --all-packages python -m src.scripts.seed_data
-    working_dir: ./02-backend/administrative_file_draft
-    depends_on:
-      administrative-file-draft:
-        condition: process_healthy
+      restart: always
+      backoff_seconds: 21
 
   feedback:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18011 --reload
-    working_dir: ./02-backend/feedback_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=feedback_db
+      - PORT=18011
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18011
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   supplementary-requests:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18012 --reload
-    working_dir: ./02-backend/supplementary_requests_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=supplementary_requests
+      - PORT=18012
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18012
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   identity-management:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18013 --reload
-    working_dir: ./02-backend/identity_management_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB_NAME=identity_management_db
-      # /identity/users lists real users from the local Keycloak realm through
-      # the local-client service account (view-users).
-      - AUTH_BASE_URL=http://localhost:9090
-      - AUTH_REALM=local
-      - AUTH_CLIENT_ID=local-client
-      - AUTH_CLIENT_SECRET=${LOCAL_KEYCLOAK_CLIENT_SECRET}
-      - AUTH_PRIVILEGED_REALM=local
-      - AUTH_PRIVILEGED_CLIENT_ID=local-client
-      - AUTH_PRIVILEGED_CLIENT_SECRET=${LOCAL_KEYCLOAK_CLIENT_SECRET}
+      - PORT=18013
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18013
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
-
-  temporal-codec:
-    command: uv run --locked --all-packages uvicorn main:app --host 0.0.0.0 --port 18014 --reload
-    working_dir: ./02-backend/temporal_codec_service
-    readiness_probe:
-      http_get:
-        host: localhost
-        port: 18014
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
-    availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   temporal-job:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18015 --reload
-    working_dir: ./02-backend/temporal_job_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - DB__USER=postgres
-      - DB__PASSWORD=${DB_PASSWORD}
-      - DB__HOST=localhost
-      - DB__PORT=5432
-      - DB__NAME=temporal_job_service_db
-      - TEMPORAL__HOST=localhost:7233
-      - TEMPORAL__TASK_QUEUE=temporal-job-service
-      - TEMPORAL__NAMESPACE=default
-      - TEMPORAL__S3_BUCKET_NAME=temporal-payloads
-      - TEMPORAL__S3_ENDPOINT_URL=http://localhost:9000
-      - TEMPORAL__S3_ACCESS_KEY_ID=${S3_ACCESS_KEY_ID}
-      - TEMPORAL__S3_SECRET_ACCESS_KEY=${S3_SECRET_ACCESS_KEY}
-      - TEMPORAL__S3_REGION=eu-west-1
-      - TEMPORAL__S3_ARCHIVAL_BUCKET_NAME=temporal-payloads
+      - PORT=18015
+      - ACTIVE_FEATURE_WORKER=temporal-job
     readiness_probe:
       http_get:
         host: localhost
         port: 18015
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   protocol:
-    command: uv run --locked --all-packages uvicorn src.main:app --host 0.0.0.0 --port 18016 --reload
-    working_dir: ./02-backend/protocol_service
+    command: corepack pnpm --filter @spark-workflow/spark-backend start
     environment:
-      - PROJECT_LOGIC_DB_PASSWORD=${DB_PASSWORD}
-      - FORMAL_COMPLETENESS_DB_PASSWORD=${DB_PASSWORD}
-      - COMMENT_DB_PASSWORD=${DB_PASSWORD}
-      - SUPPLEMENTARY_DB_PASSWORD=${DB_PASSWORD}
-      - PLAUSIBILITY_DB_PASSWORD=${DB_PASSWORD}
-      - DOCUMENT_MANAGEMENT_DB_PASSWORD=${DB_PASSWORD}
-      - ADMINISTRATIVE_DRAFT_DB_PASSWORD=${DB_PASSWORD}
-      - EXAMINATION_DB_PASSWORD=${DB_PASSWORD}
-      - OBJECTIONS_MANAGEMENT_DB_PASSWORD=${DB_PASSWORD}
+      - PORT=18016
+      - ACTIVE_FEATURE_WORKER=none
     readiness_probe:
       http_get:
         host: localhost
         port: 18016
-        path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+        path: /ready
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   gesetze-normen-db:
-    command: uv run --locked --all-packages uvicorn db_pipelines.service:app --host 0.0.0.0 --port 18020 --reload
+    command: uv run --locked --all-packages uvicorn db_pipelines.service:app --host 127.0.0.1 --port 18020 --reload
     working_dir: ./04-shared-services/db-services/gesetze-normen-db-service
     environment:
       - DB_HOST=localhost
       - DB_PORT=5432
       - DB_NAME=gesetze-normen
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - LOG_LEVEL=DEBUG
       - TEMPORAL_HOST=localhost:7233
     readiness_probe:
@@ -430,22 +413,28 @@ processes:
         host: localhost
         port: 18020
         path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   gesetzesbegruendung-db:
-    command: uv run --locked --all-packages uvicorn begruendungen_db.service:app --host 0.0.0.0 --port 18021 --reload
+    command: uv run --locked --all-packages uvicorn begruendungen_db.service:app --host 127.0.0.1 --port 18021 --reload
     working_dir: ./04-shared-services/db-services/gesetzesbegruendung-db-service
     environment:
       - DB_HOST=localhost
       - DB_PORT=5432
       - DB_NAME=begruendungen-db
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - LOG_LEVEL=DEBUG
-      - TEMPORAL_HOST=http://localhost:7233
       - CHUNKING_PROVIDER=litellm
       - CHUNKING_MODEL=${LITELLM_EMBEDDING_MODEL}
       - CHUNKING_URL=${LITELLM_BASE_URL}
@@ -455,25 +444,31 @@ processes:
         host: localhost
         port: 18021
         path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
     depends_on:
       gesetze-normen-db:
         condition: process_healthy
 
   jura-db:
-    command: uv run --locked --all-packages uvicorn jura_db.service:app --host 0.0.0.0 --port 18022 --reload
+    command: uv run --locked --all-packages uvicorn jura_db.service:app --host 127.0.0.1 --port 18022 --reload
     working_dir: ./04-shared-services/db-services/jura-db-service
     environment:
       - DB_HOST=localhost
       - DB_PORT=5432
       - DB_NAME=jura-db
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - LOG_LEVEL=INFO
-      - TEMPORAL_HOST=http://localhost:7233
       - CHUNKING_PROVIDER=litellm
       - CHUNKING_MODEL=${LITELLM_EMBEDDING_MODEL}
       - CHUNKING_URL=${LITELLM_BASE_URL}
@@ -483,22 +478,29 @@ processes:
         host: localhost
         port: 18022
         path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
     depends_on:
       gesetze-normen-db:
         condition: process_healthy
 
   rechtsaenderungs-monitoring:
-    command: uv run --locked --all-packages uvicorn rechtsaenderungsmonitoring.service:app --host 0.0.0.0 --port 18024 --reload
+    command: uv run --locked --all-packages uvicorn rechtsaenderungsmonitoring.service:app --host 127.0.0.1 --port 18024 --reload
     working_dir: ./04-shared-services/basiskomponenten/rechtsaenderungs-monitoring
     environment:
       - DB_HOST=localhost
       - DB_PORT=5432
       - DB_NAME=rechtsaenderungsmonitoring-db
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - LOG_LEVEL=INFO
       - TEMPORAL_HOST=localhost:7233
@@ -507,11 +509,15 @@ processes:
         host: localhost
         port: 18024
         path: /docs
-      initial_delay_seconds: 20
-      period_seconds: 5
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21
 
   llm-client:
     command: uv run --locked --all-packages python -m llm_client.worker
@@ -526,9 +532,12 @@ processes:
     command: uv run --locked --all-packages python -m db_pipelines.worker
     working_dir: ./04-shared-services/db-services/gesetze-normen-db-service
     environment:
+      - DB_NAME=gesetze-normen
       - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - OTEL_SERVICE_NAME=gesetze-normen-db-worker
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -537,11 +546,14 @@ processes:
     command: uv run --locked --all-packages python rechtsaenderungsmonitoring/worker.py
     working_dir: ./04-shared-services/basiskomponenten/rechtsaenderungs-monitoring
     environment:
+      - DB_NAME=rechtsaenderungsmonitoring-db
       - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - OTEL_SERVICE_NAME=rechtsaenderungsmonitoring-worker
       - OTEL_ENDPOINT=http://localhost:4317
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
       - LLM_CATEGORISATION_MODEL=${LITELLM_TEXT_MODEL}
       - LLM_SUMMARISATION_MODEL=${LITELLM_TEXT_MODEL}
       - LLM_ENRICHMENT_MODEL=${LITELLM_TEXT_MODEL}
@@ -556,6 +568,9 @@ processes:
       - DB_HOST=localhost
       - DB_PORT=5432
       - DB_NAME=jura-db
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - LOG_LEVEL=INFO
       - CHUNKING_PROVIDER=litellm
@@ -563,21 +578,25 @@ processes:
       - CHUNKING_URL=${LITELLM_BASE_URL}
       - CHUNKING_APIKEY=${LITELLM_MASTER_KEY}
       - OTEL_SERVICE_NAME=jura-db-worker
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
     availability:
       restart: on_failure
       backoff_seconds: 3
 
   worker-begruendungen-db:
-    command: uv run --locked --all-packages python -m begruendungen_db.worker
+    command: DOCLING_HOST="${DOCLING_BASE_URL}" uv run --locked --all-packages python -m begruendungen_db.worker
     working_dir: ./04-shared-services/db-services/gesetzesbegruendung-db-service
+    depends_on:
+      docling:
+        condition: process_healthy
     environment:
+      - DB_NAME=begruendungen-db
       - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_POOLSIZE=2
+      - DB_MAXOVERFLOW=0
       - GESETZE_NORMEN_URL=http://localhost:18020
       - OTEL_SERVICE_NAME=begruendungen-db-worker
       - OTEL_ENDPOINT=http://localhost:4317
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
-      - DOCLING_HOST=${DOCLING_BASE_URL}
       - DOCLING_TIMEOUT=600
     availability:
       restart: on_failure
@@ -587,8 +606,7 @@ processes:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-formale-pruefung
     environment:
-      - DMS_BASE_URL=http://localhost:18001
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
+      - DMS_BASE_URL=http://localhost:18001/api/dms/v1
       - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
       - OTEL_SERVICE_NAME=formale-pruefung-worker
     availability:
@@ -601,7 +619,6 @@ processes:
     environment:
       - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
       - OTEL_SERVICE_NAME=risikohinweiser
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
       - TEMPORAL_LLM_MAX_PER_SECOND=3
     availability:
       restart: on_failure
@@ -610,15 +627,22 @@ processes:
   worker-inhaltsextraktion:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-inhaltsextraktion
+    depends_on:
+      docling:
+        condition: process_healthy
     environment:
-      - DMS_BASE_URL=http://localhost:18001
+      - DMS_BASE_URL=http://localhost:18001/api/dms/v1
       - QDRANT_BASE_URL=http://localhost:6333
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
-      - INJECTION_LLM_SCAN_ENABLED=false
-      - INJECTION_MODEL_URL=http://localhost:18001
-      - KEYCLOAK_CLIENT_ID=${DOCLING_CLIENT_ID}
-      - KEYCLOAK_CLIENT_SECRET=${DOCLING_CLIENT_SECRET}
-      - KEYCLOAK_TOKEN_URL=${DOCLING_TOKEN_URL}
+      - VLLM_MODEL=${LITELLM_VLM_MODEL}
+      - METADATA_MODEL_NAME=${LITELLM_TEXT_MODEL}
+      - STRUCTURE_MODEL_NAME=${LITELLM_TEXT_MODEL}
+      - SCHWERPUNKTTHEMA_MODEL_NAME=${LITELLM_TEXT_MODEL}
+      - SUMMARIZATION_MODEL_NAME=${LITELLM_TEXT_MODEL}
+      - VLM_SUMMARY_MODEL_NAME=${LITELLM_TEXT_MODEL}
+      - EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
+      - INJECTION_LLM_MODEL=${LITELLM_TEXT_MODEL}
+      - INJECTION_LLM_SCAN_ENABLED=true
+      - INJECTION_MODEL_SCAN_ENABLED=false
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -639,6 +663,10 @@ processes:
       - LAW_DATABASE_QUERY_TOP_K_DR_URL=http://localhost:18021/query_top_k
       - LAW_DATABASE_QUERY_K_RESULTS_UT_URL=http://localhost:18022/query_k_results
       - LAW_DATABASE_QUERY_CHUNKS_UT_URL=http://localhost:18022/chunks
+      - MODELS_LARGE_LLM=${LITELLM_TEXT_MODEL}
+      - WIKTIONARY_ENABLED=false
+      - MODELS_MEDIUM_LLM=${LITELLM_TEXT_MODEL}
+      - MODELS_SMALL_LLM=${LITELLM_TEXT_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -646,6 +674,8 @@ processes:
   worker-bewertung:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-bewertung
+    environment:
+      - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -654,8 +684,8 @@ processes:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-einwendungsmanagement
     environment:
-      - DMS_BASE_URL=http://localhost:18001
-      - TEMPORAL_JOB_SERVICE_URL=http://localhost:18015
+      - DMS_BASE_URL=http://localhost:18001/api/dms/v1
+      - LITELLM_MODEL_NAME=${LITELLM_TEXT_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -664,13 +694,15 @@ processes:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-suche-und-zuordnung
     environment:
-      - DMS_BASE_URL=http://localhost:18001
-      - DMS_FVP_URL=http://localhost:18002
-      - FCS_BASE_URL=http://localhost:18002
+      - FCS_BASE_URL=http://localhost:18002/api/fcs/v1
       - LAW_DATABASE_DKE_BASE_URL=http://localhost:18021
       - LAW_DATABASE_UT_BASE_URL=http://localhost:18022
       - QDRANT_HOST=localhost
       - QDRANT_PORT=6333
+      - LLM_EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
+      - LLM_PAGEINDEX_SVM_MODEL_STAGE1=${LITELLM_TEXT_MODEL}
+      - LLM_PAGEINDEX_SVM_MODEL_STAGE2=${LITELLM_TEXT_MODEL}
+      - LLM_DB_RESEARCH_MODEL=${LITELLM_TEXT_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -679,8 +711,10 @@ processes:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-plausibilitaet-pruefung
     environment:
-      - DMS_BASE_URL=http://localhost:18001
+      - DMS_BASE_URL=http://localhost:18001/api/dms/v1
       - QDRANT_CLUSTER_ENDPOINT=http://localhost:6333
+      - LITELLM_MODEL=${LITELLM_TEXT_MODEL}
+      - LITELLM_EMBEDDING_MODEL=${LITELLM_EMBEDDING_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -688,6 +722,8 @@ processes:
   worker-anonymisierung:
     command: uv run --locked --all-packages python main.py
     working_dir: ./05-modulcluster/modul-anonymisierung
+    environment:
+      - LLM_MODEL=${LITELLM_TEXT_MODEL}
     availability:
       restart: on_failure
       backoff_seconds: 3
@@ -699,29 +735,27 @@ processes:
     working_dir: ./01-frontend/frontend
     environment:
       - VITE_DEV_API_MODE=port-forwarding
-      # Browser-facing URLs: localhost, or the public https://<port>-$WEB_HOST values that
-      # create_secrets.sh wrote to .env. The S3 origins must equal the origin of the presigned
-      # URLs (S3_EXTERNAL_URL on the document-management service below).
-      - VITE_API_BASE_URL=${FRONTEND_PUBLIC_URL}
+      - VITE_API_BASE_URL=http://localhost:3000
       - VITE_APP_BASE_PATH=/app
-      - VITE_TEMPORAL_UI_BASE_URL=${TEMPORAL_UI_PUBLIC_URL}
-      - VITE_ALLOWED_DOWNLOAD_ORIGINS=${S3_PUBLIC_URL}
-      - VITE_ALLOWED_UPLOAD_ORIGINS=${S3_PUBLIC_URL}
-      - VITE_PLS_OPENAPI_URL=http://localhost:18000/openapi.json
-      - VITE_DMS_OPENAPI_URL=http://localhost:18001/openapi.json
-      - VITE_FCS_OPENAPI_URL=http://localhost:18002/openapi.json
-      - VITE_AOM_OPENAPI_URL=http://localhost:18003/openapi.json
-      - VITE_TEMPORAL_JOBS_OPENAPI_URL=http://localhost:18015/openapi.json
-      - VITE_PNS_OPENAPI_URL=http://localhost:18005/openapi.json
-      - VITE_OMS_OPENAPI_URL=http://localhost:18006/openapi.json
-      - VITE_SUPPLEMENTARY_REQUESTS_OPENAPI_URL=http://localhost:18012/openapi.json
-      - VITE_COMMENTS_OPENAPI_URL=http://localhost:18008/openapi.json
-      - VITE_EXAMINATION_OPENAPI_URL=http://localhost:18009/openapi.json
-      - VITE_VAE_OPENAPI_URL=http://localhost:18010/openapi.json
+      - VITE_TEMPORAL_UI_BASE_URL=http://localhost:8233/namespaces/default/workflows
+      - VITE_ALLOWED_DOWNLOAD_ORIGINS=http://localhost:9000
+      - VITE_ALLOWED_UPLOAD_ORIGINS=http://localhost:9000
+      - VITE_API_URL=http://localhost:18000
+      - API_DMS_ORIGIN=http://localhost:18001
+      - API_FCS_ORIGIN=http://localhost:18002
+      - API_AOM_ORIGIN=http://localhost:18003
+      - API_PNS_ORIGIN=http://localhost:18005
+      - API_OMS_ORIGIN=http://localhost:18006
+      - API_FPP_ORIGIN=http://localhost:18007
+      - API_COMMENTS_ORIGIN=http://localhost:18008
+      - API_EXAMINATION_ORIGIN=http://localhost:18009
+      - API_VAE_ORIGIN=http://localhost:18010
+      - API_FEEDBACK_ORIGIN=http://localhost:18011
+      - API_SUPPLEMENTARY_REQUESTS_ORIGIN=http://localhost:18012
+      - API_IDENTITY_MANAGEMENT_ORIGIN=http://localhost:18013
+      - API_TEMPORAL_JOBS_ORIGIN=http://localhost:18015
+      - API_PROTOCOL_ORIGIN=http://localhost:18016
       - VITE_LAW_CHANGES_OPENAPI_URL=http://localhost:18024/openapi.json
-      - VITE_IDENTITY_MANAGEMENT_OPENAPI_URL=http://localhost:18013/openapi.json
-      - VITE_FEEDBACK_OPENAPI_URL=http://localhost:18011/openapi.json
-      - VITE_PROTOCOL_OPENAPI_URL=http://localhost:18016/openapi.json
       - VITE_LOCAL_USER_ID=${LOCAL_USER_ID}
       - VITE_LOCAL_USER_EMAIL=${LOCAL_USER_EMAIL}
       - VITE_LOCAL_USER_FIRST_NAME=${LOCAL_USER_FIRST_NAME}
@@ -736,24 +770,24 @@ processes:
         host: localhost
         port: 3002
         path: /app/
-      initial_delay_seconds: 10
-      period_seconds: 5
+      initial_delay_seconds: 2
+      period_seconds: 20
+      timeout_seconds: 5
+      failure_threshold: 6
     depends_on:
       project-logic:
         condition: process_healthy
-      project-logic-seed:
-        condition: process_completed_successfully
       document-management:
         condition: process_healthy
       formal-completeness:
         condition: process_healthy
-      formal-completeness-seed:
-        condition: process_completed_successfully
       agent-orchestration:
         condition: process_healthy
       plausibility-notes:
         condition: process_healthy
       objections-management:
+        condition: process_healthy
+      fpp:
         condition: process_healthy
       comment:
         condition: process_healthy
@@ -761,8 +795,6 @@ processes:
         condition: process_healthy
       administrative-file-draft:
         condition: process_healthy
-      administrative-file-draft-seed:
-        condition: process_completed_successfully
       feedback:
         condition: process_healthy
       supplementary-requests:
@@ -773,6 +805,8 @@ processes:
         condition: process_healthy
       protocol:
         condition: process_healthy
+    shutdown:
+      timeout_seconds: 20
     availability:
-      restart: on_failure
-      backoff_seconds: 3
+      restart: always
+      backoff_seconds: 21

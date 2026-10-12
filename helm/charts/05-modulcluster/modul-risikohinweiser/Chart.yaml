@@ -1,0 +1,13 @@
+apiVersion: v2
+name: modul-risikohinweiser
+description: >
+  AI module — risk-indicator analysis for planning procedures.
+  Temporal worker that evaluates regulatory risk hints for submitted documents.
+  Part of the SPARK Workflow agent layer (05-modulcluster).
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

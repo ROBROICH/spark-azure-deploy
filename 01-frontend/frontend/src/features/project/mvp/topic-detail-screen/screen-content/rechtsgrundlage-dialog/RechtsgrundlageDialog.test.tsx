@@ -41,13 +41,13 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
     selectionKey: BNATSCHG_44_SELECTION_KEY,
     legalBasis: {
       jurabk: 'BNatSchG',
-      paragraph_nr: '44',
+      paragraphNr: '44',
     },
     norm: {
       id: BNATSCHG_44_SELECTION_KEY,
-      gesetz_id: 'law-bnatschg',
-      paragraph_nr: '44',
-      paragraph_titel:
+      gesetzId: 'law-bnatschg',
+      paragraphNr: '44',
+      paragraphTitel:
         'Vorschriften fuer besonders geschuetzte und bestimmte andere Tier- und Pflanzenarten',
       text: 'Normtext 44',
     },
@@ -57,36 +57,36 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
     },
     projectNorm: {
       id: 'norm-bnatschg-44',
-      frontend_parent_ids: ['topic_norm:topic-norm-bnatschg-44'],
+      frontendParentIds: ['topic_norm:topic-norm-bnatschg-44'],
     },
     topicNorms: [
       {
         id: 'topic-norm-bnatschg-44',
-        node_type: 'topic_norm',
+        nodeType: 'topic_norm',
         jurabk: 'BNatSchG',
-        paragraph_nr: '44',
-        update_type: 'automated',
+        paragraphNr: '44',
+        updateType: 'automated',
       },
     ],
     topicNorm: {
       id: 'topic-norm-bnatschg-44',
-      node_type: 'topic_norm',
+      nodeType: 'topic_norm',
       jurabk: 'BNatSchG',
-      paragraph_nr: '44',
-      update_type: 'automated',
+      paragraphNr: '44',
+      updateType: 'automated',
     },
     topicNormLinks: [
       {
         norm: {
           id: 'norm-bnatschg-44',
-          frontend_parent_ids: ['topic_norm:topic-norm-bnatschg-44'],
+          frontendParentIds: ['topic_norm:topic-norm-bnatschg-44'],
         },
         topicNorm: {
           id: 'topic-norm-bnatschg-44',
-          node_type: 'topic_norm',
+          nodeType: 'topic_norm',
           jurabk: 'BNatSchG',
-          paragraph_nr: '44',
-          update_type: 'automated',
+          paragraphNr: '44',
+          updateType: 'automated',
         },
       },
     ],
@@ -95,13 +95,13 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
     selectionKey: BNATSCHG_45_SELECTION_KEY,
     legalBasis: {
       jurabk: 'BNatSchG',
-      paragraph_nr: '45',
+      paragraphNr: '45',
     },
     norm: {
       id: BNATSCHG_45_SELECTION_KEY,
-      gesetz_id: 'law-bnatschg',
-      paragraph_nr: '45',
-      paragraph_titel:
+      gesetzId: 'law-bnatschg',
+      paragraphNr: '45',
+      paragraphTitel:
         'Ausnahmen; Ermaechtigung zum Erlass von Rechtsverordnungen',
       text: 'Normtext 45',
     },
@@ -118,13 +118,13 @@ const MOCK_AVAILABLE_NORM_ENTRIES = [
     selectionKey: ENWG_17_SELECTION_KEY,
     legalBasis: {
       jurabk: 'EnWG',
-      paragraph_nr: '17',
+      paragraphNr: '17',
     },
     norm: {
       id: ENWG_17_SELECTION_KEY,
-      gesetz_id: 'law-enwg',
-      paragraph_nr: '17',
-      paragraph_titel:
+      gesetzId: 'law-enwg',
+      paragraphNr: '17',
+      paragraphTitel:
         'Verfahren; Ermaechtigung zum Erlass von Rechtsverordnungen',
       text: 'Normtext 17',
     },
@@ -161,7 +161,7 @@ const MOCK_AVAILABLE_LAW_GROUPS = [
 const getNormLabel = (
   normEntry: (typeof MOCK_AVAILABLE_NORM_ENTRIES)[number],
 ) => {
-  return `§ ${normEntry.norm.paragraph_nr} ${normEntry.norm.paragraph_titel}`;
+  return `§ ${normEntry.norm.paragraphNr} ${normEntry.norm.paragraphTitel}`;
 };
 
 const getSelectNormCheckboxLabel = (
@@ -185,8 +185,8 @@ vi.mock('../../screen-data/useRechtsgrundlageData', () => ({
   useAvailableRechtsgrundlageData: () => useAvailableRechtsgrundlageDataMock(),
 }));
 
-vi.mock('@/api-clients/examination-module', () => ({
-  addLegalBasisNormsToProject: addLegalBasisNormsToProjectMock,
+vi.mock('@/api-clients/backend', () => ({
+  v1ExaminationAddLegalBasisNormsToProject: addLegalBasisNormsToProjectMock,
 }));
 
 vi.mock('@/features/project/versioning/projectVersioning', () => ({
@@ -270,13 +270,22 @@ vi.mock('react-i18next', () => ({
         'RechtsgrundlageDialog.errors.saveFailed':
           'Änderungen konnten nicht gespeichert werden.',
       } satisfies Record<string, string>;
-      if (key === 'RechtsgrundlageDialog.selectedCount') {
+      if (
+        key === 'selectedCount' ||
+        key === 'RechtsgrundlageDialog.selectedCount'
+      ) {
         return `${String(params?.count ?? 0)} ausgewaehlt`;
       }
-      if (key === 'RechtsgrundlageDialog.groupCheckboxSelectHint') {
+      if (
+        key === 'groupCheckboxSelectHint' ||
+        key === 'RechtsgrundlageDialog.groupCheckboxSelectHint'
+      ) {
         return `Aktivierung waehlt auch ${String(params?.count ?? 0)} zugehoerige Normen aus.`;
       }
-      if (key === 'RechtsgrundlageDialog.groupCheckboxDeselectHint') {
+      if (
+        key === 'groupCheckboxDeselectHint' ||
+        key === 'RechtsgrundlageDialog.groupCheckboxDeselectHint'
+      ) {
         return `Deaktivierung hebt die Auswahl von ${String(params?.count ?? 0)} zugehoerigen Normen auf.`;
       }
       if (key in translations) {
@@ -546,12 +555,12 @@ describe('RechtsgrundlageDialog', () => {
 
     expect(addLegalBasisNormsToProjectMock).toHaveBeenCalledWith({
       body: {
-        topic_id: 'topic-1',
+        topicId: 'topic-1',
         type: 'pruefung',
-        norms: [{ jurabk: 'BNatSchG', paragraph_nr: '45' }],
+        norms: [{ jurabk: 'BNatSchG', paragraphNr: '45' }],
       },
-      path: { project_id: 'verfahren-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'verfahren-1' },
+      query: { projectVersion: 7 },
       throwOnError: true,
     });
   });
@@ -650,11 +659,11 @@ describe('RechtsgrundlageDialog', () => {
             MOCK_AVAILABLE_NORM_ENTRIES[0].topicNorm,
             {
               id: 'topic-norm-bnatschg-44-duplicate',
-              node_type: 'topic_norm',
+              nodeType: 'topic_norm',
               jurabk: 'BNatSchG',
-              paragraph_nr: '44',
-              update_type: 'manual',
-              frontend_parent_ids: ['topic:topic-1'],
+              paragraphNr: '44',
+              updateType: 'manual',
+              frontendParentIds: ['topic:topic-1'],
             },
           ],
           topicNormLinks: [
@@ -666,11 +675,11 @@ describe('RechtsgrundlageDialog', () => {
               norm: MOCK_AVAILABLE_NORM_ENTRIES[0].projectNorm,
               topicNorm: {
                 id: 'topic-norm-bnatschg-44-duplicate',
-                node_type: 'topic_norm',
+                nodeType: 'topic_norm',
                 jurabk: 'BNatSchG',
-                paragraph_nr: '44',
-                update_type: 'manual',
-                frontend_parent_ids: ['topic:topic-1'],
+                paragraphNr: '44',
+                updateType: 'manual',
+                frontendParentIds: ['topic:topic-1'],
               },
             },
           ],

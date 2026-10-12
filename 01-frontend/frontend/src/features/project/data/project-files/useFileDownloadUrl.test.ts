@@ -19,13 +19,11 @@ vi.mock('@/features/project/versioning/projectVersioning', () => ({
   useProjectRouteVersion: () => 7,
 }));
 
-vi.mock('@/api-clients/dms-module/@tanstack/react-query.gen', () => ({
-  generateDownloadUrlV2FilesFileIdGenerateDownloadUrlGetOptions: vi.fn(
-    (params) => ({
-      queryKey: ['download-url', params],
-      queryFn: vi.fn(),
-    }),
-  ),
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1DocumentManagementGenerateFileDownloadUrlOptions: vi.fn((params) => ({
+    queryKey: ['download-url', params],
+    queryFn: vi.fn(),
+  })),
 }));
 
 beforeEach(() => {

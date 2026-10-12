@@ -26,7 +26,10 @@ export const OutlineSwimlane = () => {
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
       <SwimlaneHeaderPortal>
-        <span aria-hidden="true" className="rounded-lg bg-bg-quaternary p-2">
+        <span
+          aria-hidden="true"
+          className="hidden rounded-lg bg-bg-quaternary p-2 lg:inline-flex"
+        >
           <ListOrdered className="size-4" />
         </span>
         <span className="flex-1 text-left">{t('gliederung.title')}</span>

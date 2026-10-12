@@ -8,16 +8,18 @@ from datetime import timedelta
 from typing import Any
 from uuid import UUID
 
+import pypdfium2 as pdfium
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
-from src.config import get_config, get_docling_url
+from src.config import get_config, get_docling_activity_timeout_minutes, get_docling_url
 from src.processors.header_footer_filter import HeaderFooterFilter
 from src.providers.base import ContentItemDict
 from src.providers.docling.api_client import DoclingApiClient, DoclingTaskLostError
 from src.providers.docling.content_builder import ContentBuilder
 from src.providers.docling.image_extractor import ImageExtractor
 from src.providers.docling.markdown_builder import MarkdownBuilder
+from src.providers.docling.page_renderer import PageRenderer
 from src.providers.docling.table_extractor import TableExtractor
 from src.providers.docling.transforms import sanitize_output_prefix
 from src.services.docling.schemas import (
@@ -35,6 +37,7 @@ from src.services.docling.schemas import (
 from src.utils.dms_utils import DmsUploadInput
 from src.utils.dms_utils import upload_file_overwrite as dms_upload_file
 from src.utils.path_utils import get_output_dir
+from src.utils.pdfium_lock import _pdfium_lock
 
 __all__ = [
     "_combine_docling_chunks",
@@ -50,6 +53,9 @@ __all__ = [
 ]
 
 logger = logging.getLogger(__name__)
+
+# Heartbeat cadence while the crops run; the activity allows two minutes.
+_CROP_HEARTBEAT_SECONDS = 20
 
 
 async def _upload_chunk_images(
@@ -106,8 +112,8 @@ async def _extract_images_and_tables(
     output_prefix: str,
     chunk_bytes: bytes,
     cfg: Any,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, bytes]]:
-    """Extract images and tables from docling JSON, with PDF table cropping fallback."""
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, bytes], set[str]]:
+    """Extract images and tables from docling JSON, cropping from the PDF what docling did not embed."""
     images_meta, images_bytes = await asyncio.to_thread(ImageExtractor.extract_from_json, doc_json, output_prefix)
 
     if not images_bytes and original_md:
@@ -116,19 +122,102 @@ async def _extract_images_and_tables(
             ImageExtractor.extract_from_markdown, original_md, doc_json, output_prefix
         )
 
+    # Decided before the table extraction, which writes its own images into
+    # images_bytes -- otherwise a document with embedded table images but no
+    # picture images would leave its pictures without pixels.
+    crop_pictures = not images_bytes and bool(doc_json.get("pictures"))
+
     tables_meta = await asyncio.to_thread(TableExtractor.extract_from_json, doc_json, output_prefix, images_bytes)
 
-    if cfg.DOCLING_TABLE_AS_IMAGE:
-        await asyncio.to_thread(
-            TableExtractor.crop_table_images,
-            pdf_bytes=chunk_bytes,
-            doc_json=doc_json,
-            tables_meta=tables_meta,
-            images_bytes=images_bytes,
-            output_prefix=output_prefix,
+    # One pass over the PDF for everything that still needs pixels. Pictures and
+    # tables often sit on the same page, so they share one set of page renders.
+    skipped_picture_refs: set[str] = set()
+    if crop_pictures or cfg.DOCLING_TABLE_AS_IMAGE:
+        picture_meta, picture_bytes, skipped_picture_refs = await _crop_with_heartbeat(
+            chunk_bytes,
+            doc_json,
+            tables_meta,
+            images_bytes,
+            output_prefix,
+            crop_pictures=crop_pictures,
+            crop_tables=cfg.DOCLING_TABLE_AS_IMAGE,
         )
+        if picture_meta:
+            images_meta = list(images_meta) + picture_meta
+            images_bytes.update(picture_bytes)
 
-    return images_meta, tables_meta, images_bytes
+    return images_meta, tables_meta, images_bytes, skipped_picture_refs
+
+
+async def _crop_with_heartbeat(
+    chunk_bytes: bytes,
+    doc_json: dict[str, Any],
+    tables_meta: list[dict[str, Any]],
+    images_bytes: dict[str, bytes],
+    output_prefix: str,
+    crop_pictures: bool,
+    crop_tables: bool,
+) -> tuple[list[dict[str, Any]], dict[str, bytes], set[str]]:
+    """Run the crops in a worker thread, reporting liveness from this loop.
+
+    activity.heartbeat needs the activity's event loop, so it cannot be called
+    from the thread itself: it raises "no running event loop", and with the
+    crop guarded by a broad except the chunk silently loses every image.
+    """
+    task = asyncio.create_task(
+        asyncio.to_thread(
+            _crop_from_pdf,
+            chunk_bytes,
+            doc_json,
+            tables_meta,
+            images_bytes,
+            output_prefix,
+            crop_pictures=crop_pictures,
+            crop_tables=crop_tables,
+        )
+    )
+    while not task.done():
+        activity.heartbeat("Cropping images from PDF")
+        await asyncio.wait([task], timeout=_CROP_HEARTBEAT_SECONDS)
+    return await task
+
+
+def _crop_from_pdf(
+    chunk_bytes: bytes,
+    doc_json: dict[str, Any],
+    tables_meta: list[dict[str, Any]],
+    images_bytes: dict[str, bytes],
+    output_prefix: str,
+    crop_pictures: bool,
+    crop_tables: bool,
+) -> tuple[list[dict[str, Any]], dict[str, bytes], set[str]]:
+    """Crop pictures and tables from one PDF, sharing a single set of page renders.
+
+    CPU-bound; call through _crop_with_heartbeat, which keeps the activity
+    alive while this holds the process-global pdfium lock. ``tables_meta`` and
+    ``images_bytes`` are modified in place for tables, matching the existing
+    table behaviour.
+    """
+    picture_meta: list[dict[str, Any]] = []
+    picture_bytes: dict[str, bytes] = {}
+    skipped: set[str] = set()
+    try:
+        with _pdfium_lock:
+            pdf_doc = pdfium.PdfDocument(chunk_bytes)
+            renderer = PageRenderer.for_document(pdf_doc)
+            try:
+                if crop_pictures:
+                    picture_meta, picture_bytes, skipped = ImageExtractor.crop_pictures(
+                        renderer, doc_json, output_prefix
+                    )
+                if crop_tables:
+                    TableExtractor.crop_tables(renderer, tables_meta, images_bytes, output_prefix)
+            finally:
+                renderer.close()
+                pdf_doc.close()
+    except Exception as e:  # extraction continues without the crops
+        logger.error(f"Failed to crop images from PDF: {e}")
+    return picture_meta, picture_bytes, skipped
 
 
 def replace_images_with_page_markers(content: str, base_page_number: int | None = None) -> str:
@@ -194,7 +283,7 @@ async def _postprocess_docling_result(
     )
 
     activity.heartbeat("Extracting images and tables")
-    images_meta, tables_meta, images_bytes = await _extract_images_and_tables(
+    images_meta, tables_meta, images_bytes, skipped_picture_refs = await _extract_images_and_tables(
         doc_json,
         original_md,
         output_prefix,
@@ -209,6 +298,7 @@ async def _postprocess_docling_result(
         doc_json=doc_json,
         images_meta=images_meta,
         tables_meta=tables_meta,
+        skip_picture_refs=skipped_picture_refs,
     )
 
     # Build content list from JSON
@@ -231,6 +321,7 @@ async def _postprocess_docling_result(
             content_list=content_list,
             markdown=custom_md,
             output_prefix=output_prefix,
+            pdf_bytes=chunk_bytes,
         )
 
     activity.logger.info(
@@ -280,7 +371,7 @@ async def _extract_chunk_with_docling(input: ExtractChunkInput) -> DoclingChunkR
         )
 
     cfg = get_config()
-    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT)
+    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT, cfg.DOCLING_QUEUE_WAIT_TIMEOUT)
     result = await api_client.convert_document(
         input.chunk_bytes,
         input.filename,
@@ -317,7 +408,7 @@ async def _submit_chunk_to_docling(input: SubmitChunkInput) -> SubmitChunkOutput
         )
 
     cfg = get_config()
-    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT)
+    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT, cfg.DOCLING_QUEUE_WAIT_TIMEOUT)
 
     task_id = await api_client.submit_document(
         input.chunk_bytes,
@@ -345,7 +436,7 @@ async def _wait_for_docling_result(input: WaitForChunkInput) -> WaitForChunkOutp
         )
 
     cfg = get_config()
-    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT)
+    api_client = DoclingApiClient(docling_url, cfg.DOCLING_TIMEOUT, cfg.DOCLING_QUEUE_WAIT_TIMEOUT)
     try:
         api_result = await api_client.poll_and_fetch_result(
             input.task_id,
@@ -504,7 +595,7 @@ async def extract_chunk_with_docling(
             filename=filename,
             project_id=project_id,
         ),
-        start_to_close_timeout=timedelta(minutes=65),
+        start_to_close_timeout=timedelta(minutes=get_docling_activity_timeout_minutes()),
         heartbeat_timeout=timedelta(minutes=2),
         retry_policy=RetryPolicy(
             maximum_attempts=get_config().TEMPORAL_EXTRACTION_ACTIVITY_MAX_ATTEMPTS,
@@ -566,7 +657,7 @@ async def wait_for_docling_result(
             project_id=project_id,
             skip_dms=skip_dms,
         ),
-        start_to_close_timeout=timedelta(minutes=65),
+        start_to_close_timeout=timedelta(minutes=get_docling_activity_timeout_minutes()),
         heartbeat_timeout=timedelta(minutes=2),
         retry_policy=RetryPolicy(
             maximum_attempts=get_config().TEMPORAL_EXTRACTION_ACTIVITY_MAX_ATTEMPTS,
@@ -594,6 +685,7 @@ async def combine_docling_chunks(
         heartbeat_timeout=timedelta(minutes=2),
         retry_policy=RetryPolicy(maximum_attempts=get_config().TEMPORAL_PROCESSING_ACTIVITY_MAX_ATTEMPTS),
     )
+
 
 async def deduplicate_images(
     content_list: list[ContentItemDict],

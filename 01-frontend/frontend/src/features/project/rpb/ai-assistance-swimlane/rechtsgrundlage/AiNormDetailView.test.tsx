@@ -12,6 +12,10 @@ type WorkflowStatusMatcher = {
 };
 
 const mocks = vi.hoisted(() => ({
+  latestWorkflowFailure: null as {
+    errorCode: 'ANALYSIS_FAILED';
+    branches: never[];
+  } | null,
   mutateMock: vi.fn(),
   navigateMock: vi.fn(),
   observeStartedWorkflowMock: vi.fn(() => Promise.resolve()),
@@ -126,6 +130,10 @@ vi.mock(
   }),
 );
 
+vi.mock('@/features/workflow-runtime/workflow-status/useWorkflow', () => ({
+  useWorkflow: () => ({ latestFailure: mocks.latestWorkflowFailure }),
+}));
+
 vi.mock(
   '@/features/workflow-runtime/workflow-status/useRunningWorkflow',
   () => ({
@@ -147,12 +155,9 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    startBewertungWorkflowWorkflowsBewertungPostMutation: () => ({}),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartBewertungWorkflowMutation: () => ({}),
+}));
 
 vi.mock('@/db/nodes/hooks/useAction', () => ({
   useAction: () => ({
@@ -164,14 +169,14 @@ vi.mock('@/db/nodes/hooks/useAction', () => ({
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (nodeType: string) => {
     if (nodeType === 'norm') {
-      return [{ id: 'norm-1', node_type: 'norm' }];
+      return [{ id: 'norm-1', nodeType: 'norm' }];
     }
 
     if (nodeType === 'absatz') {
       return [
-        { id: 'absatz-10', node_type: 'absatz' },
-        { id: 'absatz-2', node_type: 'absatz' },
-        { id: 'absatz-1', node_type: 'absatz' },
+        { id: 'absatz-10', nodeType: 'absatz' },
+        { id: 'absatz-2', nodeType: 'absatz' },
+        { id: 'absatz-1', nodeType: 'absatz' },
       ];
     }
 
@@ -180,8 +185,8 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
         ? [
             {
               id: 'bewertung-1',
-              is_outdated: testState.hasOutdatedBewertung,
-              node_type: 'bewertung',
+              isOutdated: testState.hasOutdatedBewertung,
+              nodeType: 'bewertung',
             },
           ]
         : [];
@@ -189,7 +194,7 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
 
     if (nodeType === 'atomares_tbm') {
       return testState.hasAtomareTbm
-        ? [{ id: 'tbm-1', node_type: 'atomares_tbm' }]
+        ? [{ id: 'tbm-1', nodeType: 'atomares_tbm' }]
         : [];
     }
 
@@ -198,44 +203,44 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNodes: (nodeRefs: { id: string; node_type: string }[]) => ({
+  useNodes: (nodeRefs: { id: string; nodeType: string }[]) => ({
     data: nodeRefs.flatMap((nodeRef) => {
-      if (nodeRef.node_type !== 'absatz') {
+      if (nodeRef.nodeType !== 'absatz') {
         return [];
       }
 
-      const absatzById = new Map<string, { absatz_nr: string; id: string }>([
-        ['absatz-1', { absatz_nr: '1', id: 'absatz-1' }],
-        ['absatz-2', { absatz_nr: '2', id: 'absatz-2' }],
-        ['absatz-10', { absatz_nr: '10', id: 'absatz-10' }],
+      const absatzById = new Map<string, { absatzNr: string; id: string }>([
+        ['absatz-1', { absatzNr: '1', id: 'absatz-1' }],
+        ['absatz-2', { absatzNr: '2', id: 'absatz-2' }],
+        ['absatz-10', { absatzNr: '10', id: 'absatz-10' }],
       ]);
       const absatz = absatzById.get(nodeRef.id);
 
       return absatz ? [absatz] : [];
     }),
   }),
-  useNode: (nodeRef: { id: string; node_type: string }) => {
-    if (nodeRef.node_type === 'topic_norm') {
+  useNode: (nodeRef: { id: string; nodeType: string }) => {
+    if (nodeRef.nodeType === 'topic_norm') {
       return {
         data: {
-          satz_statuses: {},
+          satzStatuses: {},
           id: nodeRef.id,
           jurabk: 'BNatSchG',
-          node_type: 'topic_norm',
-          paragraph_nr: '44',
-          topic_id: 'topic-1',
+          nodeType: 'topic_norm',
+          paragraphNr: '44',
+          topicId: 'topic-1',
           type: testState.topicNormType,
         },
       };
     }
 
-    if (nodeRef.node_type === 'norm') {
+    if (nodeRef.nodeType === 'norm') {
       return {
         data: {
           id: nodeRef.id,
-          node_type: 'norm',
-          paragraph_nr: '44',
-          paragraph_titel: 'Besonderer Artenschutz',
+          nodeType: 'norm',
+          paragraphNr: '44',
+          paragraphTitel: 'Besonderer Artenschutz',
         },
       };
     }
@@ -248,7 +253,7 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
 
 vi.mock('./AiAbsatzSection', () => ({
   AiAbsatzSection: (props: {
-    absatzRef: { id: string; node_type: string };
+    absatzRef: { id: string; nodeType: string };
     showMissingAssessmentTooltip?: boolean;
   }) => {
     mocks.aiAbsatzSectionMock(props);
@@ -356,6 +361,7 @@ vi.mock('@/features/ui/button/SplitButton', () => ({
 describe('AiNormDetailView', () => {
   afterEach(() => {
     vi.useRealTimers();
+    mocks.latestWorkflowFailure = null;
     cleanup();
   });
 
@@ -429,6 +435,19 @@ describe('AiNormDetailView', () => {
       }),
     );
     expect(screen.queryByText('Materiell-rechtlich')).toBeNull();
+  });
+
+  it('marks a failed latest AI rating next to the norm title', () => {
+    mocks.latestWorkflowFailure = {
+      errorCode: 'ANALYSIS_FAILED',
+      branches: [],
+    };
+
+    render(<AiNormDetailView />);
+
+    expect(
+      screen.getByRole('button', { name: 'processingFailure.areas.rpbRating' }),
+    ).toBeInTheDocument();
   });
 
   it('shows a procedural norm notice instead of the AI start action', () => {

@@ -47,12 +47,14 @@ export const StarButton = (props: StarButtonProps) => {
     >
       <Star
         className={cn(
-          'mx-0 transition-all duration-200 group-active:scale-110',
+          // Windows Contrast Mode doesn't remap the brand-blue fill/stroke, so it
+          // vanishes on dark themes; pin the icon to system colors. (A11y 399)
+          'mx-0 transition-all duration-200 group-active:scale-110 forced-colors:text-[color:CanvasText]',
           isFavorite
-            ? 'fill-brand-950 text-brand-950'
+            ? 'fill-brand-950 text-brand-950 forced-colors:fill-[CanvasText]'
             : showLimitTooltip
               ? 'text-brand-950 opacity-40'
-              : 'text-brand-950 group-hover:fill-brand-950 group-hover:text-brand-950',
+              : 'text-brand-950 group-hover:fill-brand-950 group-hover:text-brand-950 forced-colors:group-hover:fill-[CanvasText]',
           className,
         )}
       />

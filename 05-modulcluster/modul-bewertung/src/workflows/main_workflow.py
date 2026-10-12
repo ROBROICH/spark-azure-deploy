@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from temporal.workflows.bewertung.bewertung import bewertungs_workflow_id
-from temporal.workflows.bewertung.types import (
+from temporal.contracts import (
     BewertungsWorkflowInput,
     BewertungsWorkflowOutput,
     KapitelOutput,
     Originaltext,
     Quelle,
 )
+from temporal.registry import BEWERTUNG_WORKFLOW
 from temporalio import workflow
 
 from src.config import CHILD_WORKFLOW_RETRY_POLICY, config
@@ -52,7 +52,7 @@ def _assign_simple_ids(
     return rewritten, id_mapping
 
 
-@workflow.defn(name=bewertungs_workflow_id)
+@workflow.defn(name=BEWERTUNG_WORKFLOW.name)
 class BewertungsWorkflow:
     """Main orchestration workflow for the legal assessment pipeline."""
     @workflow.run

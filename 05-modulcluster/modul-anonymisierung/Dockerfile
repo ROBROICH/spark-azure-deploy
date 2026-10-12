@@ -1,6 +1,7 @@
 ARG INCLUDE_DEPENDENCIES=prod
-ARG BASE_IMAGE_DEV=python:3.13-slim
-ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal
+ARG BASE_IMAGE_DEV=python:3.13.14-slim-trixie
+# Internal mirror of the ZendIS Python image.
+ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal@sha256:6d5c42992913b6918097e3ab7df635134da62e7dcd41247a7066ffe367191ca6
 
 FROM ${BASE_IMAGE_DEV} AS builder
 
@@ -9,31 +10,11 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && apt-get install -y git curl gcc libpq-dev
 
-# --- minimal-base compatibility snippet (1/3) ---------------------------------
-# Stage the C++/OpenMP runtime libs needed by compiled wheels (e.g. grpcio's
-# cygrpc, numpy/scikit/spaCy). Standard bases (e.g. python:3.13-slim) already
-# ship these, so this is a harmless no-op there; on a minimal/nix-based final
-# image it provides libs that image omits. Arch is detected at build time so it
-# works under both Kaniko (CI) and BuildKit on amd64 and arm64, without the
-# TARGETARCH build-arg (which Kaniko does not populate). Missing libs are skipped.
-RUN set -eux; \
-    mkdir -p /extra-libs; \
-    ARCHDIR="$(dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || echo "$(uname -m)-linux-gnu")"; \
-    for lib in libstdc++.so.6 libgcc_s.so.1 libgomp.so.1; do \
-      src="$(readlink -f "/usr/lib/$ARCHDIR/$lib" 2>/dev/null || true)"; \
-      [ -n "$src" ] && [ -e "$src" ] || continue; \
-      cp -a "$src" /extra-libs/; \
-      if [ "$(basename "$src")" != "$lib" ]; then \
-        ln -sf "$(basename "$src")" "/extra-libs/$lib"; \
-      fi; \
-    done
-# ------------------------------------------------------------------------------
-
-# Upgrade pip to a specific version
-RUN python -m pip install --upgrade pip==25.3
-
-# install uv via pip
-RUN pip install uv==0.9.6
+# Shared Python image build steps, see docker/python-build/README.md: stage the
+# runtime libs the minimal final image omits and install the pinned uv.
+COPY docker/python-build/ /opt/python-build/
+RUN sh /opt/python-build/stage-runtime-libs.sh
+RUN sh /opt/python-build/install-uv.sh
 
 # UV_PROJECT_ENVIRONMENT configures the environment for the uv project interface
 # UV_PYTHON configures the python executable for the uv pip interface
@@ -70,20 +51,9 @@ COPY . .
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --all-extras --inexact --package anonymisierung
 
-# --- minimal-base compatibility snippet (2/3) ---------------------------------
-# The venv is built here (interpreter at /usr/local/bin/python3.13) but runs in
-# the final base image. On minimal/nix-based bases that exact path is absent, so
-# repoint the venv interpreter to /usr/local/bin/python3, which exists in both.
-# Guarded so it is a harmless no-op on standard (e.g. python:3.13-slim) bases.
-# The import check is a build-time smoke test for the interpreter and native deps.
-RUN set -eux; \
-    if [ -e /usr/local/bin/python3 ]; then \
-      ln -sf /usr/local/bin/python3 /app/.venv/bin/python; \
-      ln -sf /usr/local/bin/python3 /app/.venv/bin/python3; \
-      ln -sf /usr/local/bin/python3 /app/.venv/bin/python3.13; \
-    fi; \
-    /app/.venv/bin/python -c "import spacy, presidio_analyzer, pikepdf; print('venv OK')"
-# ------------------------------------------------------------------------------
+# Repoint the venv interpreter for the minimal final image and smoke-test the
+# native dependencies.
+RUN sh /opt/python-build/repoint-venv-python.sh spacy presidio_analyzer pikepdf
 
 FROM ${BASE_IMAGE_DEV} AS ocr-tools
 
@@ -97,11 +67,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     qpdf \
     && rm -rf /var/lib/apt/lists/*
 
-# Curate a clean /ocr-root staging tree so a minimal final image is NOT
-# clobbered by Debian's full /usr/lib. Copy only: the OCR binaries, their
+# Curate a clean /ocr-root staging tree so the nix-based final image is NOT
+# clobbered by Debian's full /usr/lib (which contains ssl/apt/dpkg/systemd dirs
+# that conflict with the minimal base). We copy only: the OCR binaries, their
 # ldd-resolved shared libraries (with soname symlinks), and the runtime data
 # dirs (tessdata, ghostscript, poppler, color, fonts). This tree is overlaid
-# onto / in the final stage. Safe on full bases too.
+# onto / in the final stage.
 RUN set -eux; \
     mkdir -p /ocr-root/usr/bin /ocr-root/usr/share /ocr-root/etc/fonts; \
     for b in gs pdfinfo pdftoppm qpdf tesseract; do \
@@ -131,15 +102,13 @@ ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:/usr/local/bin:/usr/bin:/bin:$PATH" \
     SKIP_DOTENV=true
 
-# Overlay the curated OCR toolchain (binaries + only their needed libs + data).
+# Overlay the curated OCR toolchain (binaries + only their needed libs + data),
+# avoiding a wholesale /usr/lib copy that would clobber the minimal base.
 COPY --from=ocr-tools /ocr-root/ /
 COPY --from=selected-deps /app/.venv /app/.venv
-# --- minimal-base compatibility snippet (3/3) ---------------------------------
-# Provide the runtime libs staged in the builder. /usr/lib is on the loader path
-# in both full and minimal bases, so this is arch-agnostic. On full bases it
-# overlays compatible libs already present (harmless).
+# Runtime libs staged in the builder. Placed AFTER the OCR lib overlay so our
+# known-good libstdc++/libgcc_s/libgomp land last.
 COPY --from=builder /extra-libs/ /usr/lib/
-# ------------------------------------------------------------------------------
 COPY . .
 
 CMD ["python", "05-modulcluster/modul-anonymisierung/main.py"]

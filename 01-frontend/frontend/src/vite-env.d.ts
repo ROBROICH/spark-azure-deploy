@@ -21,6 +21,8 @@ interface ImportMetaEnv {
   readonly VITE_ENABLE_DOCUMENT_VERSIONING_FEATURE?: string;
   readonly VITE_DANGEROUS_ENABLE_ROLE_SWITCHER?: string;
   readonly ALLOW_DEV_MODE?: string;
+  readonly VITE_PRODUCT_MODE?: string;
+  readonly VITE_PRODUCT_DOMAIN?: string;
 }
 
 interface ImportMeta {
@@ -43,5 +45,7 @@ interface Window {
     VITE_ENABLE_DOCUMENT_VERSIONING_FEATURE?: string;
     VITE_DANGEROUS_ENABLE_ROLE_SWITCHER?: string;
     ALLOW_DEV_MODE?: string;
+    VITE_PRODUCT_MODE?: string;
+    VITE_PRODUCT_DOMAIN?: string;
   };
 }

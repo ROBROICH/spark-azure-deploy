@@ -57,27 +57,27 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
     data: [
       {
         id: 'quelle-1',
-        node_type: 'bewertung_quelle',
-        dokument_id: 'dokument-1',
+        nodeType: 'bewertung_quelle',
+        dokumentId: 'dokument-1',
         title: 'Quelle 1A',
-        chunk_ids: ['chunk-1'],
-        page_numbers: [7],
+        chunkIds: ['chunk-1'],
+        pageNumbers: [7],
       },
       {
         id: 'quelle-2',
-        node_type: 'bewertung_quelle',
-        dokument_id: 'dokument-2',
+        nodeType: 'bewertung_quelle',
+        dokumentId: 'dokument-2',
         title: 'Quelle 2A',
-        chunk_ids: ['chunk-2'],
-        page_numbers: [11],
+        chunkIds: ['chunk-2'],
+        pageNumbers: [11],
       },
       {
         id: 'quelle-3',
-        node_type: 'bewertung_quelle',
-        dokument_id: 'dokument-1',
+        nodeType: 'bewertung_quelle',
+        dokumentId: 'dokument-1',
         title: 'Quelle 1B',
-        chunk_ids: ['chunk-3'],
-        page_numbers: [5],
+        chunkIds: ['chunk-3'],
+        pageNumbers: [5],
       },
     ],
   }),
@@ -88,15 +88,15 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
     data: [
       {
         id: 'dokument-1',
-        node_type: 'dokument',
+        nodeType: 'dokument',
         filename: 'Dokument A.pdf',
-        dms_file_id: 'project-file-1',
+        dmsFileId: 'project-file-1',
       },
       {
         id: 'dokument-2',
-        node_type: 'dokument',
+        nodeType: 'dokument',
         filename: 'Dokument B.pdf',
-        dms_file_id: 'project-file-2',
+        dmsFileId: 'project-file-2',
       },
     ],
   }),
@@ -118,7 +118,7 @@ describe('AiBewertungReferencesCard', () => {
 
     render(
       <AiBewertungReferencesCard
-        bewertungRef={{ id: 'bewertung-1', node_type: 'bewertung' }}
+        bewertungRef={{ id: 'bewertung-1', nodeType: 'bewertung' }}
       />,
     );
 

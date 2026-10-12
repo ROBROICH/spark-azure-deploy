@@ -1,9 +1,17 @@
 import { AccordionTrigger } from '@/features/ui/accordion/Accordion';
+import {
+  ActionMenu,
+  ActionMenuCheckboxItem,
+  ActionMenuContent,
+  ActionMenuTrigger,
+} from '@/features/ui/action-menu/ActionMenu';
+import { Button } from '@/features/ui/button/Button';
 import { SplitButton } from '@/features/ui/button/SplitButton';
+import { useBelowLg } from '@/features/ui/responsive/useMobile';
 import { cn } from '@/features/ui/style/cn';
 import { TooltipProvider } from '@/features/ui/tooltip/Tooltip';
 import { TooltipWrapper } from '@/features/ui/tooltip/TooltipWrapper';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, MoreVertical } from 'lucide-react';
 
 export type OutlineCheckSlotProps = {
   isChecked: boolean;
@@ -11,13 +19,14 @@ export type OutlineCheckSlotProps = {
   canToggleChecked: boolean;
   markLabel: string;
   markedLabel: string;
+  unmarkLabel: string;
+  actionsMenuAriaLabel: string;
   tooltipCopy: string;
   disabledTooltipCopy?: string;
   assigneeCompletedIndicator?: {
     ariaLabel: string;
     tooltip: string;
   };
-  label: string;
   onCheckedChange: (nextChecked: boolean) => void;
 };
 
@@ -39,59 +48,122 @@ const OutlineCheckSlot = (props: OutlineCheckSlotProps) => {
     canToggleChecked,
     markLabel,
     markedLabel,
+    unmarkLabel,
+    actionsMenuAriaLabel,
     tooltipCopy,
     disabledTooltipCopy,
     assigneeCompletedIndicator,
-    label,
     onCheckedChange,
   } = props;
+  const isCompact = useBelowLg();
 
   if (!shouldRenderCheckSlot) {
     return null;
   }
 
   const resolvedTooltipCopy = disabledTooltipCopy ?? tooltipCopy;
-  const button = (
-    <span className="inline-flex" title={disabledTooltipCopy}>
-      <SplitButton
-        size="sm"
-        checked={isChecked}
-        disabled={!canToggleChecked}
-        uncheckedLabel={markLabel}
-        checkedLabel={markedLabel}
-        onCheckedChange={onCheckedChange}
-        onPointerDown={(event) => event.stopPropagation()}
-        aria-label={`${label} — ${resolvedTooltipCopy}`}
-        title={resolvedTooltipCopy}
-      />
-    </span>
-  );
+  const itemLabel = isChecked ? unmarkLabel : markLabel;
+  const triggerAriaLabel = `${actionsMenuAriaLabel} \u2014 ${resolvedTooltipCopy}`;
 
-  return (
-    <div className="pointer-events-auto relative z-10 ml-auto flex shrink-0 items-center gap-2">
-      {assigneeCompletedIndicator ? (
+  const assigneeIndicator = assigneeCompletedIndicator ? (
+    <TooltipProvider delayDuration={200}>
+      <TooltipWrapper
+        content={assigneeCompletedIndicator.tooltip}
+        side="top"
+        className="whitespace-pre-line"
+      >
+        <span
+          className="inline-flex size-6 items-center justify-center rounded-[4px] bg-green-800 text-white shadow-elevated"
+          role="img"
+          aria-label={assigneeCompletedIndicator.ariaLabel}
+          title={assigneeCompletedIndicator.tooltip}
+        >
+          <Check className="size-4 shrink-0" aria-hidden="true" />
+        </span>
+      </TooltipWrapper>
+    </TooltipProvider>
+  ) : null;
+
+  if (!isCompact) {
+    return (
+      <div className="pointer-events-auto relative z-10 ml-auto flex shrink-0 items-center gap-2">
+        {assigneeIndicator}
         <TooltipProvider delayDuration={200}>
-          <TooltipWrapper
-            content={assigneeCompletedIndicator.tooltip}
-            side="top"
-            className="whitespace-pre-line"
-          >
-            <span
-              className="inline-flex size-6 items-center justify-center rounded-[4px] bg-green-800 text-white shadow-elevated"
-              role="img"
-              aria-label={assigneeCompletedIndicator.ariaLabel}
-              title={assigneeCompletedIndicator.tooltip}
-            >
-              <Check className="size-4 shrink-0" aria-hidden="true" />
+          <TooltipWrapper content={disabledTooltipCopy} side="top">
+            <span className="inline-flex" title={disabledTooltipCopy}>
+              <SplitButton
+                size="sm"
+                checked={isChecked}
+                disabled={!canToggleChecked}
+                uncheckedLabel={markLabel}
+                checkedLabel={markedLabel}
+                onCheckedChange={onCheckedChange}
+                onPointerDown={(event) => event.stopPropagation()}
+                aria-label={triggerAriaLabel}
+                title={resolvedTooltipCopy}
+              />
             </span>
           </TooltipWrapper>
         </TooltipProvider>
-      ) : null}
-      <TooltipProvider delayDuration={200}>
-        <TooltipWrapper content={disabledTooltipCopy} side="top">
-          {button}
-        </TooltipWrapper>
-      </TooltipProvider>
+      </div>
+    );
+  }
+
+  const iconButton = (isEnabled: boolean) => (
+    <Button
+      variant="ghost-light"
+      size="xs"
+      iconOnly
+      disabled={!isEnabled}
+      onPointerDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+      aria-label={triggerAriaLabel}
+      title={resolvedTooltipCopy}
+    >
+      <MoreVertical aria-hidden="true" />
+    </Button>
+  );
+
+  const checkedIndicator = isChecked ? (
+    <Check
+      className="size-4 shrink-0 text-green-900"
+      data-testid="outline-checked-indicator"
+      aria-hidden="true"
+    />
+  ) : null;
+
+  if (!canToggleChecked) {
+    return (
+      <div className="pointer-events-auto relative z-10 ml-auto flex shrink-0 items-center gap-2">
+        {assigneeIndicator}
+        {checkedIndicator}
+        <TooltipProvider delayDuration={200}>
+          <TooltipWrapper content={disabledTooltipCopy} side="top">
+            <span className="inline-flex" title={disabledTooltipCopy}>
+              {iconButton(false)}
+            </span>
+          </TooltipWrapper>
+        </TooltipProvider>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pointer-events-auto relative z-10 ml-auto flex shrink-0 items-center gap-2">
+      {assigneeIndicator}
+      {checkedIndicator}
+      <ActionMenu>
+        <ActionMenuTrigger asChild>{iconButton(true)}</ActionMenuTrigger>
+        <ActionMenuContent align="end">
+          <ActionMenuCheckboxItem
+            checked={isChecked}
+            onSelect={(event) => event.preventDefault()}
+            onCheckedChange={onCheckedChange}
+          >
+            {itemLabel}
+          </ActionMenuCheckboxItem>
+        </ActionMenuContent>
+      </ActionMenu>
     </div>
   );
 };

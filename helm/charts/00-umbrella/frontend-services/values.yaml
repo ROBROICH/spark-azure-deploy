@@ -1,0 +1,86 @@
+# =============================================================================
+# frontend-services — base values
+# =============================================================================
+#
+# Bundles the SPARK Workflow frontend workloads.
+#
+# =============================================================================
+# global — baseline shared across all subcharts
+# =============================================================================
+#
+# global.stage.name
+#   Stage identifier. When non-empty it is appended to generated resource
+#   names as a suffix (e.g. "frontend-dev"). Leave empty for no suffix.
+#
+# global.labels.environment
+#   Value applied to the "environment" pod label on all workloads.
+#   Typically matches the stage name.
+#
+# global.env
+#   Static environment variables injected into every container as a list of
+#   Kubernetes EnvVar objects. A subchart's own env takes precedence on
+#   name collisions.
+#
+# global.extraEnv
+#   Additional environment variables merged after global.env. A subchart's
+#   own extraEnv takes precedence on name collisions.
+#
+# =============================================================================
+# namespaceOverride
+# =============================================================================
+#
+# Each subchart places its workloads in the namespace set by its own
+# namespaceOverride, falling back to global.namespaceOverride, then to the
+# release namespace (helm install --namespace).
+#
+# The layer default below (global.namespaceOverride) places all subcharts in
+# the same namespace. A parent umbrella's global.namespaceOverride overrides
+# it (helm parent globals win over subchart globals). Override individual
+# subcharts when a dedicated namespace is required:
+#
+#   frontend:
+#     namespaceOverride: ui-ns
+#
+# Namespace objects are not created by this chart.
+#
+# =============================================================================
+
+global:
+
+  # Stage suffix appended to resource names. Leave empty for no suffix.
+  stage:
+    name: ''
+
+  # "environment" pod label applied to all workloads.
+  labels:
+    environment: ''
+
+  # Shared environment variables for every container in this layer.
+  env: []
+
+  # Additional shared environment variables merged after env.
+  extraEnv: []
+
+  # Default namespace for every subchart in this layer. A subchart's own
+  # namespaceOverride takes precedence; a parent umbrella's
+  # global.namespaceOverride overrides this layer default.
+  namespaceOverride: frontend-services
+
+# ---------------------------------------------------------------------------
+# Frontend workloads (01-frontend)
+# ---------------------------------------------------------------------------
+
+frontend:
+  # Include this subchart in the release.
+  enabled: true
+
+prototype-demo:
+  enabled: true
+
+# Aliases of 01-frontend/frontend, off by default. Set image, env and ports
+# per environment when enabling them.
+frontend-ewms:
+  enabled: false
+
+handbuch:
+  enabled: false

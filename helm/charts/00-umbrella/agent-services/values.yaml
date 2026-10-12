@@ -1,0 +1,139 @@
+# =============================================================================
+# agent-services — base values
+# =============================================================================
+#
+# Bundles all agent-layer workloads: AI processing modules (modulcluster) and
+# the shared infrastructure services they depend on.
+#
+# =============================================================================
+# global — baseline shared across all subcharts
+# =============================================================================
+#
+# global.stage.name
+#   Stage identifier. When non-empty it is appended to generated resource
+#   names as a suffix (e.g. "modul-bewertung-dev"). Leave empty for no suffix.
+#
+# global.labels.environment
+#   Value applied to the "environment" pod label on all workloads.
+#   Typically matches the stage name.
+#
+# global.env
+#   Static environment variables injected into every container as a list of
+#   Kubernetes EnvVar objects. A subchart's own env takes precedence on
+#   name collisions.
+#
+# global.extraEnv
+#   Additional environment variables merged after global.env. A subchart's
+#   own extraEnv takes precedence on name collisions. Use for shared secrets
+#   or infrastructure endpoints (auth, tracing, …).
+#
+# =============================================================================
+# namespaceOverride
+# =============================================================================
+#
+# Each subchart places its workloads in the namespace set by its own
+# namespaceOverride, falling back to global.namespaceOverride, then to the
+# release namespace (helm install --namespace).
+#
+# The layer default below (global.namespaceOverride) places all subcharts in
+# the same namespace. A parent umbrella's global.namespaceOverride overrides
+# it (helm parent globals win over subchart globals). Override individual
+# subcharts when a dedicated namespace is required:
+#
+#   llm-client:
+#     namespaceOverride: llm-infra
+#
+# Namespace objects are not created by this chart.
+#
+# =============================================================================
+
+global:
+
+  # Stage suffix appended to resource names. Leave empty for no suffix.
+  stage:
+    name: ''
+
+  # "environment" pod label applied to all workloads.
+  labels:
+    environment: ''
+
+  # Shared environment variables for every container in this layer.
+  env: []
+
+  # Additional shared environment variables merged after env.
+  extraEnv: []
+
+  # Default namespace for every subchart in this layer. A subchart's own
+  # namespaceOverride takes precedence; a parent umbrella's
+  # global.namespaceOverride overrides this layer default.
+  namespaceOverride: agent-services
+
+# ---------------------------------------------------------------------------
+# AI modules (05-modulcluster)
+# ---------------------------------------------------------------------------
+
+modul-anonymisierung:
+  # Include this subchart in the release.
+  enabled: true
+
+modul-bewertung:
+  enabled: true
+
+modul-einwendungsmanagement:
+  enabled: true
+
+modul-formale-pruefung:
+  enabled: true
+
+modul-inhaltsextraktion-sachverhalt:
+  enabled: true
+
+modul-plausibilitaet-pruefung:
+  enabled: true
+
+modul-rechtsmethodik:
+  enabled: true
+
+modul-suche-und-zuordnung:
+  enabled: true
+
+# ---------------------------------------------------------------------------
+# Shared agent infrastructure (04-shared-services)
+# ---------------------------------------------------------------------------
+
+gesetze-normen-db-service:
+  enabled: true
+
+gesetzesbegruendung-db-service:
+  enabled: true
+
+jura-db-service:
+  enabled: true
+
+llm-client:
+  enabled: true
+
+rechtsaenderungs-monitoring:
+  enabled: true
+
+# Temporal workers (aliases of the service charts above), off by default.
+# Enable with the worker command, no Service and no HTTP probes, e.g.
+#   gesetze-normen-db-worker:
+#     enabled: true
+#     command: [python, -m, db_pipelines.worker]
+#     service: {enabled: false}
+#     containerPorts: []
+#     startupProbe: null
+#     livenessProbe: null
+#     readinessProbe: null
+gesetze-normen-db-worker:
+  enabled: false
+
+gesetzesbegruendung-db-worker:
+  enabled: false
+
+jura-db-worker:
+  enabled: false
+
+rechtsaenderungs-monitoring-worker:
+  enabled: false

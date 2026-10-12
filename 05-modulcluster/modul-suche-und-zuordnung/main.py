@@ -1,5 +1,6 @@
 # ruff: noqa: E402
 import asyncio
+from contextlib import suppress
 
 from temporal.observability import (
     ObservabilityConfig,
@@ -16,11 +17,9 @@ setup_observability(
     )
 )
 
+from temporal.registry import SUCHE_ZUORDNUNG_SATZ_ORCHESTRATOR_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.modul_suche_und_zuordnung.satz_orchestrator_workflow import (
-    TASK_QUEUE as MODUL_SUCHE_UND_ZUORDNUNG_TASK_QUEUE,
-)
 
 from src.Activities.law_db_activities import (
     _query_k_results_ut,
@@ -63,7 +62,7 @@ async def main() -> None:
                 _query_top_k_dr,
                 _query_k_results_ut,
             ],
-            task_queue=MODUL_SUCHE_UND_ZUORDNUNG_TASK_QUEUE,
+            task_queue=SUCHE_ZUORDNUNG_SATZ_ORCHESTRATOR_WORKFLOW.task_queue,
             storage=storage,
         )
     finally:
@@ -71,7 +70,5 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    try:
+    with suppress(KeyboardInterrupt):
         asyncio.run(main())
-    except KeyboardInterrupt:
-        pass

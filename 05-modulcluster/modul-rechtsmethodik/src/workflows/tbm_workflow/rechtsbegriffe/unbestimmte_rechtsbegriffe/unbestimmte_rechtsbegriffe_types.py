@@ -1,7 +1,7 @@
 """Type definitions for unbestimmte Rechtsbegriffe workflows."""
 
 from pydantic import BaseModel
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     UnbestimmterRechtsbegriff,
 )
 

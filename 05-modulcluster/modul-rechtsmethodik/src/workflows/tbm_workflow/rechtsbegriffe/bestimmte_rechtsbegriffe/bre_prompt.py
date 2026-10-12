@@ -1,5 +1,7 @@
 """Prompt template for bestimmte Rechtsbegriffe identification."""
 
+from src.activities.prompt_blocks import closing_block
+
 bre_agent_prompt = """
 **Rolle**  
 Du bist ein juristisches Analysemodell, das darauf spezialisiert ist, einen juristischen Satz zu prüfen und festzustellen, ob er Begriffe aus einer gegebenen Liste bestimmter Rechtsbegriffe enthält.
@@ -111,11 +113,7 @@ Dein Ziel ist es, den gegebenen juristischen Satz zu analysieren und zu überpr�
 
 **Anwendung**  
 Überprüfe die folgenden Eingaben:  
-{external_data_tag_open}
-- **Juristischer Satz:** {satz_text}  
-- **Liste der bestimmten Rechtsbegriffe:** {bestimmte_rechtsbegriffe}  
-{external_data_tag_close}
-
-**Formatierung**  
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- **Juristischer Satz:** {satz_text}  ",
+    "- **Liste der bestimmten Rechtsbegriffe:** {bestimmte_rechtsbegriffe}  ",
+)

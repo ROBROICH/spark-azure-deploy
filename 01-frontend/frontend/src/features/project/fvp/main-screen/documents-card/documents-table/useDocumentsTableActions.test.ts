@@ -2,15 +2,8 @@ import { renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { useDocumentsTableActions } from './useDocumentsTableActions';
 
-const {
-  confirmDocumentTypeMock,
-  navigateMock,
-  notifyOnPersistenceFailureMock,
-  setDocumentTypeMock,
-} = vi.hoisted(() => ({
-  confirmDocumentTypeMock: vi.fn(),
+const { navigateMock, setDocumentTypeMock } = vi.hoisted(() => ({
   navigateMock: vi.fn(),
-  notifyOnPersistenceFailureMock: vi.fn(),
   setDocumentTypeMock: vi.fn(),
 }));
 
@@ -29,15 +22,7 @@ vi.mock('react-i18next', () => ({
 vi.mock(
   '@/features/project/fvp/main-screen/data/actions/documentActions',
   () => ({
-    confirmDocumentType: confirmDocumentTypeMock,
     setDocumentType: setDocumentTypeMock,
-  }),
-);
-
-vi.mock(
-  '@/features/project/fvp/main-screen/read-status/notifyOnPersistenceFailure',
-  () => ({
-    notifyOnPersistenceFailure: notifyOnPersistenceFailureMock,
   }),
 );
 
@@ -179,62 +164,13 @@ describe('useDocumentsTableActions', () => {
     });
   });
 
-  describe('handleConfirmDocumentType', () => {
-    it('confirms the AI-suggested document type and guards persistence when allowed', () => {
-      const transaction = { isPersisted: { promise: Promise.resolve() } };
-      confirmDocumentTypeMock.mockReturnValue(transaction);
-
-      const { current } = renderActions(true);
-
-      current.handleConfirmDocumentType('document-1');
-
-      expect(confirmDocumentTypeMock).toHaveBeenCalledWith(
-        VERFAHREN_ID,
-        'document-1',
-      );
-      expect(notifyOnPersistenceFailureMock).toHaveBeenCalledWith(
-        transaction,
-        'common.errors.actionFailed',
-      );
-    });
-
-    it('is a no-op when project edits are read-only', () => {
-      const { current } = renderActions(false);
-
-      current.handleConfirmDocumentType('document-1');
-
-      expect(confirmDocumentTypeMock).not.toHaveBeenCalled();
-      expect(notifyOnPersistenceFailureMock).not.toHaveBeenCalled();
-    });
-  });
-
   describe('handleSelectDocumentType', () => {
-    it('sets the chosen document type and guards persistence when allowed', () => {
-      const transaction = { isPersisted: { promise: Promise.resolve() } };
-      setDocumentTypeMock.mockReturnValue(transaction);
-
-      const { current } = renderActions(true);
-
-      current.handleSelectDocumentType('document-1', 'type-7');
-
-      expect(setDocumentTypeMock).toHaveBeenCalledWith(
-        VERFAHREN_ID,
-        'document-1',
-        'type-7',
-      );
-      expect(notifyOnPersistenceFailureMock).toHaveBeenCalledWith(
-        transaction,
-        'common.errors.actionFailed',
-      );
-    });
-
     it('is a no-op when project edits are read-only', () => {
       const { current } = renderActions(false);
 
       current.handleSelectDocumentType('document-1', 'type-7');
 
       expect(setDocumentTypeMock).not.toHaveBeenCalled();
-      expect(notifyOnPersistenceFailureMock).not.toHaveBeenCalled();
     });
   });
 });

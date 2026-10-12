@@ -1,0 +1,67 @@
+{{- if .Values.listenerSet.enabled }}
+{{- /*
+The environment's own listeners on the shared Gateway (Gateway API
+ListenerSet, v1 since Gateway API v1.5): https (and http for the redirect)
+for the environment's wildcard hostname, so adding an environment needs no
+change to the Gateway. The Gateway must admit ListenerSets from this
+namespace (spec.allowedListeners), and the TLS Secret lives in this
+namespace — from listenerSet.tls.certificate (cert-manager) or provided.
+*/ -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: ListenerSet
+metadata:
+  name: {{ include "gateway-routes.listenerSetName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  parentRef:
+    group: gateway.networking.k8s.io
+    kind: Gateway
+    name: {{ .Values.gateway.name }}
+    namespace: {{ .Values.gateway.namespace }}
+  listeners:
+    - name: https
+      hostname: {{ include "gateway-routes.listenerSetHostname" . | quote }}
+      port: {{ .Values.listenerSet.httpsPort }}
+      protocol: HTTPS
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: {{ include "gateway-routes.listenerSetSecretName" . }}
+      allowedRoutes:
+        namespaces:
+          from: Same
+    {{- if .Values.routes.redirect.enabled }}
+    - name: http
+      hostname: {{ include "gateway-routes.listenerSetHostname" . | quote }}
+      port: {{ .Values.listenerSet.httpPort }}
+      protocol: HTTP
+      allowedRoutes:
+        namespaces:
+          from: Same
+    {{- end }}
+{{- with .Values.listenerSet.tls.certificate }}
+{{- if .enabled }}
+---
+# TLS certificate of the ListenerSet's hostname (cert-manager; a wildcard
+# needs a DNS-01 issuer).
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "gateway-routes.listenerSetName" $ }}
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  secretName: {{ include "gateway-routes.listenerSetSecretName" $ }}
+  dnsNames:
+    - {{ include "gateway-routes.listenerSetHostname" $ | quote }}
+  issuerRef:
+    name: {{ required "gateway-routes: listenerSet.tls.certificate.issuerRef.name is required" .issuerRef.name }}
+    kind: {{ .issuerRef.kind | default "ClusterIssuer" }}
+    group: cert-manager.io
+{{- end }}
+{{- end }}
+{{- end }}

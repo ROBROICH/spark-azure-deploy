@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a03-avoid-injection-and-unsafe-html-rendering
+---
+
 # OWASP A03: Avoid Injection and Unsafe HTML Rendering
 
 - Covers OWASP A03 Injection.

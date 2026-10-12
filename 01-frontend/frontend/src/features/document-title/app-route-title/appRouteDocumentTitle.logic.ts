@@ -28,6 +28,11 @@ const PAGE_ROUTE_DESCRIPTORS = [
     type: 'page',
   },
   {
+    routeId: '/administration/',
+    titleKey: 'pages.administration',
+    type: 'page',
+  },
+  {
     routeId: '/changelog/',
     titleKey: 'pages.changelog',
     type: 'page',
@@ -57,6 +62,7 @@ const NOT_FOUND_DESCRIPTOR = {
 } as const satisfies AppRouteDocumentTitleDescriptor;
 
 const PROJECT_ROUTE_ID = '/verfahren/$verfahrenId';
+const ADMINISTRATION_DETAIL_ROUTE_ID = '/administration/$projectTypeId';
 
 const ROUTE_TITLE_DESCRIPTORS_BY_ID = new Map<
   string,
@@ -74,6 +80,16 @@ export function isProjectRouteMounted(
   routeMatches: ReadonlyArray<DocumentTitleRouteMatch>,
 ) {
   return routeMatches.some(isProjectRouteMatch);
+}
+
+function isAdministrationDetailRouteMatch(routeMatch: DocumentTitleRouteMatch) {
+  return routeMatch.routeId === ADMINISTRATION_DETAIL_ROUTE_ID;
+}
+
+export function isAdministrationDetailRouteMounted(
+  routeMatches: ReadonlyArray<DocumentTitleRouteMatch>,
+) {
+  return routeMatches.some(isAdministrationDetailRouteMatch);
 }
 
 export function getAppRouteDocumentTitleDescriptor(

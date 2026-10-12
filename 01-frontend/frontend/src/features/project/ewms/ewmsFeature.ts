@@ -1,3 +1,5 @@
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
+
 const ENABLED_VALUES = new Set(['1', 'true', 'yes']);
 
 function resolveFeatureFlagValue(value?: string): string | undefined {
@@ -14,6 +16,10 @@ function normalizeFeatureFlag(value?: string): boolean {
 }
 
 export function isEwmsFeatureEnabled(): boolean {
+  if (getConfiguredProductMode() === 'ewms') {
+    return true;
+  }
+
   const runtimeValue = window.__APP_CONFIG__?.VITE_ENABLE_EWMS_FEATURE;
   const envValue = import.meta.env.VITE_ENABLE_EWMS_FEATURE;
   return normalizeFeatureFlag(

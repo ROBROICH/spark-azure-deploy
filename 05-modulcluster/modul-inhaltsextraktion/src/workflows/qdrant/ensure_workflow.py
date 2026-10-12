@@ -2,12 +2,20 @@
 
 from datetime import timedelta
 
-from temporal.workflows.inhaltsextraktion.types import (
+from temporal.contracts import (
     EnsureQdrantInput,
     EnsureQdrantOutput,
     ProcessedFileInfo,
     QdrantSourceFileCleanupInput,
     QdrantSourceFileCleanupOutput,
+)
+from temporal.registry import (
+    AGENT_ORCHESTRATION_INSERT_EXTRACTION_RESULTS_WORKFLOW,
+    INHALTSEXTRAKTION_BUILD_QDRANT_FROM_GRAPH_WORKFLOW,
+    INHALTSEXTRAKTION_CHECK_QDRANT_INDEXED_WORKFLOW,
+    INHALTSEXTRAKTION_ENSURE_QDRANT_WORKFLOW,
+    INHALTSEXTRAKTION_QDRANT_SOURCE_FILE_CLEANUP_COMPENSATION_WORKFLOW,
+    INHALTSEXTRAKTION_QDRANT_SOURCE_FILE_CLEANUP_WORKFLOW,
 )
 from temporalio import workflow
 from temporalio.common import RetryPolicy, WorkflowIDReusePolicy
@@ -20,15 +28,8 @@ from src.workflows.qdrant.workflow import (
     QdrantBuilderWorkflowInput,
 )
 
-ENSURE_QDRANT_WORKFLOW_ID_STR = "ensure-qdrant-workflow"
-CHECK_QDRANT_INDEXED_WORKFLOW_ID_STR = "check-qdrant-indexed-workflow"
-BUILD_QDRANT_FROM_GRAPH_WORKFLOW_ID_STR = "build-qdrant-from-graph-workflow"
-QDRANT_SOURCE_FILE_CLEANUP_WORKFLOW_ID_STR = "qdrant-source-file-cleanup-workflow"
-QDRANT_SOURCE_FILE_CLEANUP_COMPENSATION_WORKFLOW_ID_STR = "qdrant-source-file-cleanup-compensation-workflow"
-ORCHESTRATION_TASK_QUEUE = "orchestration"
 
-
-@workflow.defn(name=ENSURE_QDRANT_WORKFLOW_ID_STR)
+@workflow.defn(name=INHALTSEXTRAKTION_ENSURE_QDRANT_WORKFLOW.name)
 class EnsureQdrantWorkflow:
     """Check if Qdrant is populated for a project; index if not.
 
@@ -62,7 +63,7 @@ class EnsureQdrantWorkflow:
             processed_files = await workflow.execute_activity(
                 "fetch_processed_documents_from_graph",
                 input.project_id,
-                task_queue=ORCHESTRATION_TASK_QUEUE,
+                task_queue=AGENT_ORCHESTRATION_INSERT_EXTRACTION_RESULTS_WORKFLOW.task_queue,
                 start_to_close_timeout=timedelta(minutes=5),
                 retry_policy=RetryPolicy(
                     maximum_attempts=30,
@@ -118,7 +119,7 @@ class EnsureQdrantWorkflow:
         )
 
 
-@workflow.defn(name=CHECK_QDRANT_INDEXED_WORKFLOW_ID_STR)
+@workflow.defn(name=INHALTSEXTRAKTION_CHECK_QDRANT_INDEXED_WORKFLOW.name)
 class CheckQdrantIndexedWorkflow:
     """Lightweight check: is Qdrant populated for a project? Returns bool."""
 
@@ -128,7 +129,7 @@ class CheckQdrantIndexedWorkflow:
         return count > 0
 
 
-@workflow.defn(name=QDRANT_SOURCE_FILE_CLEANUP_WORKFLOW_ID_STR)
+@workflow.defn(name=INHALTSEXTRAKTION_QDRANT_SOURCE_FILE_CLEANUP_WORKFLOW.name)
 class QdrantSourceFileCleanupWorkflow:
     @workflow.run
     async def run(self, input: QdrantSourceFileCleanupInput) -> QdrantSourceFileCleanupOutput:
@@ -141,7 +142,7 @@ class QdrantSourceFileCleanupWorkflow:
         )
 
 
-@workflow.defn(name=QDRANT_SOURCE_FILE_CLEANUP_COMPENSATION_WORKFLOW_ID_STR)
+@workflow.defn(name=INHALTSEXTRAKTION_QDRANT_SOURCE_FILE_CLEANUP_COMPENSATION_WORKFLOW.name)
 class QdrantSourceFileCleanupCompensationWorkflow:
     @workflow.run
     async def run(self, input: QdrantSourceFileCleanupInput) -> QdrantSourceFileCleanupOutput:
@@ -154,7 +155,7 @@ class QdrantSourceFileCleanupCompensationWorkflow:
         )
 
 
-@workflow.defn(name=BUILD_QDRANT_FROM_GRAPH_WORKFLOW_ID_STR)
+@workflow.defn(name=INHALTSEXTRAKTION_BUILD_QDRANT_FROM_GRAPH_WORKFLOW.name)
 class BuildQdrantFromGraphWorkflow:
     """Fetch data from examination service and index into Qdrant. Always indexes, no check."""
 
@@ -166,7 +167,7 @@ class BuildQdrantFromGraphWorkflow:
         processed_files: list[ProcessedFileInfo] = await workflow.execute_activity(
             "fetch_processed_documents_from_graph",
             project_id,
-            task_queue=ORCHESTRATION_TASK_QUEUE,
+            task_queue=AGENT_ORCHESTRATION_INSERT_EXTRACTION_RESULTS_WORKFLOW.task_queue,
             start_to_close_timeout=timedelta(minutes=5),
             retry_policy=RetryPolicy(
                 maximum_attempts=30,

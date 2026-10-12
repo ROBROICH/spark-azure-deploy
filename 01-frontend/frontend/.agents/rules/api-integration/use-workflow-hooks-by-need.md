@@ -1,3 +1,11 @@
+---
+ruleId: api-integration/use-workflow-hooks-by-need
+paths:
+  - "src/features/workflow-runtime/**"
+  - "src/features/**/*.ts"
+  - "src/features/**/*.tsx"
+---
+
 # Use Workflow Hooks By Need
 
 - Use `useRunningWorkflow` when a feature only needs an active-job signal, the current matching running workflow, optimistic running state after `start(...)`, or button/progress visibility. Do not read workflow history just to answer “is something running?”.

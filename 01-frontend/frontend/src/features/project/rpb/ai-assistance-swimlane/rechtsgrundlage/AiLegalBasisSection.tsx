@@ -34,8 +34,8 @@ export const sortTopicNormRefsByParagraphNumber = (
     }
 
     const paragraphComparison = paragraphNumberCollator.compare(
-      normalizeParagraphNumber(leftTopicNorm.paragraph_nr),
-      normalizeParagraphNumber(rightTopicNorm.paragraph_nr),
+      normalizeParagraphNumber(leftTopicNorm.paragraphNr),
+      normalizeParagraphNumber(rightTopicNorm.paragraphNr),
     );
 
     if (paragraphComparison !== 0) {
@@ -61,7 +61,7 @@ export const AiLegalBasisSection = () => {
   const topicRef = topicId
     ? ({
         id: topicId,
-        node_type: 'topic',
+        nodeType: 'topic',
       } satisfies NodeRefByType<'topic'>)
     : null;
   const { data: topicNorms } = useDescendantNodes('topic_norm', topicRef);
@@ -73,7 +73,7 @@ export const AiLegalBasisSection = () => {
       topicNorm.id,
       {
         id: topicNorm.id,
-        node_type: 'topic_norm',
+        nodeType: 'topic_norm',
       } satisfies NodeRefByType<'topic_norm'>,
     ]),
   );

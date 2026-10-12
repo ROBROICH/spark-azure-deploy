@@ -21,6 +21,14 @@ Die screening_note kann fehlerhaft oder irreführend sein. Sie gibt die Suchrich
 # Sprache
 Nur Deutsch.
 
+title und explanation werden direkt juristischen Sachbearbeiterinnen und Sachbearbeitern angezeigt,
+die nicht wissen, was ein Chunk ist.
+- Verwende in title und explanation niemals „chunk_a", „chunk_b", „Chunk", „Passage A/B", „Stelle A/B"
+  oder andere technische Feldnamen.
+- Benenne die Textstellen über ihr Dokument und ihre Seite (document_name, page_numbers), z. B.
+  „Im Erläuterungsbericht (S. 159) …", oder neutral „die eine Textstelle … die andere Textstelle …".
+- Sprich vom Widerspruch bzw. von der Unstimmigkeit, nicht von Chunks.
+
 # Quellen
 Verbindlich (Beleg für Ergebnis):
 - chunk_a: chunk_text, preceding_text, following_text
@@ -163,4 +171,4 @@ Gib ausschließlich valides JSON aus:
   "chunk_b_excerpt": "",
   "audit_explanation": ""
 }}
-"""
+"""  # noqa: RUF001

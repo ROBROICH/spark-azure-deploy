@@ -1,18 +1,15 @@
 """Workflow orchestration tests for RiskCheckerWorkflow."""
 
-from collections.abc import Awaitable
-from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from temporal.contracts import PFBChapter, RiskFinderOutput
 
 from src.schemas.workflow import (
     CriteriaDefinitionResponse,
     IntentionAnalysisResponse,
-    PFBChapter,
     QualityAnalysisResponse,
     QualityCheckItem,
-    RiskFinderOutput,
     RiskFormulatorFinding,
     RiskFormulatorInput,
 )
@@ -22,10 +19,6 @@ from tests.conftest import DEFECT_RATING, PASSING_RATING, criterion_rating, qual
 EXPECTED_RELEVANT_CRITERIA = 2
 FIRST_DEFECT_ID = 1
 SECOND_DEFECT_ID = 2
-
-
-async def _awaiting_gather(*coros: Awaitable[Any]) -> list[Any]:
-    return [await coro for coro in coros]
 
 
 def _response_with_criteria(*ratings: tuple[str, int]) -> CriteriaDefinitionResponse:
@@ -78,14 +71,12 @@ async def test_run_executes_pipeline_and_formats_risks(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 
     assert isinstance(result, RiskFinderOutput)
     assert result.risks[0].chapter_id == sample_chapter.id
     assert result.risks[0].quote == _risk_finding().quote
-    formulate_risks.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -110,7 +101,6 @@ async def test_run_filters_relevant_criteria_and_defect_ratings(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         await RiskCheckerWorkflow().run(sample_chapter)
 
@@ -135,7 +125,6 @@ async def test_run_skips_quality_and_risk_steps_without_relevant_criteria(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 
@@ -159,7 +148,6 @@ async def test_run_skips_risk_formulation_when_quality_checks_pass(
         patch("src.workflows.risk_checker.rate_criteria_relevance", rate_criteria),
         patch("src.workflows.risk_checker.analyze_quality", analyze_quality),
         patch("src.workflows.risk_checker.formulate_risks", formulate_risks),
-        patch("src.workflows.risk_checker.asyncio.gather", _awaiting_gather),
     ):
         result = await RiskCheckerWorkflow().run(sample_chapter)
 

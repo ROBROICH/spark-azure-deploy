@@ -1,4 +1,4 @@
-import { type ProjectResponse } from '@/api-clients/pls-module';
+import { type ProjectResponse } from '@/api-clients/backend';
 import { type EditApplicantValues } from '@/features/project/overview-screen/schemas';
 
 type ApplicantDetailsProject = Pick<

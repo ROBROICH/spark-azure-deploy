@@ -17,7 +17,7 @@ export const getStoredParentRefByType = <T extends NodeTypeLiteral>(
     return null;
   }
 
-  if (parentRef.node_type !== nodeType) {
+  if (parentRef.nodeType !== nodeType) {
     return null;
   }
 

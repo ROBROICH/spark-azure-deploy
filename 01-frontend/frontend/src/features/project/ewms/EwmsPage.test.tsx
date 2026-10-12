@@ -44,8 +44,8 @@ vi.mock('./response-import-dialog/ErwiderungImportDialogController', () => ({
 }));
 
 vi.mock('./workspace/EwmsLoadingPage', () => ({
-  EwmsLoadingPage: (props: { workflow?: { workflow_id?: string } }) => (
-    <div>loading-page:{props.workflow?.workflow_id ?? 'fallback'}</div>
+  EwmsLoadingPage: (props: { workflow?: { workflowId?: string } }) => (
+    <div>loading-page:{props.workflow?.workflowId ?? 'fallback'}</div>
   ),
 }));
 
@@ -83,7 +83,7 @@ describe('EwmsPage', () => {
       isEwmsWorkflowRunning: true,
       latestRunningWorkflow: {
         status: 'running',
-        workflow_id: '8dfec4e0-3669-487d-9ce0-a25b5abaccb0',
+        workflowId: '8dfec4e0-3669-487d-9ce0-a25b5abaccb0',
       },
     });
     mocks.useEwmsWorkflowDataRefresh.mockReset();
@@ -139,7 +139,7 @@ describe('EwmsPage', () => {
   it('keeps the workspace visible when additional EWMS data is being processed', () => {
     mocks.useGraph.mockReturnValue({
       getNodesByType: () => [
-        { id: 'entry-1', node_type: 'beteiligungs_eingang' },
+        { id: 'entry-1', nodeType: 'beteiligungs_eingang' },
       ],
     });
     mocks.useEwmsImportJobState.mockReturnValue({
@@ -149,9 +149,9 @@ describe('EwmsPage', () => {
       isLoading: false,
       isEwmsWorkflowRunning: true,
       latestRunningWorkflow: {
-        run_id: 'run-additional',
+        runId: 'run-additional',
         status: 'running',
-        workflow_id: '8dfec4e0-3669-487d-9ce0-a25b5abaccb0',
+        workflowId: '8dfec4e0-3669-487d-9ce0-a25b5abaccb0',
       },
     });
 

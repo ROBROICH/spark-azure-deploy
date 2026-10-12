@@ -2,11 +2,11 @@ import { Fragment } from 'react';
 import { ReferenceMarkdown } from './ReferenceMarkdown';
 
 export type InjectReference = {
-  document_id: string;
+  documentId: string;
   node_id: string;
   title: string;
-  chunk_ids: string[];
-  page_numbers: number[];
+  chunkIds: string[];
+  pageNumbers: number[];
 };
 
 export type InjectReferenceMap = Partial<Record<string, InjectReference>>;

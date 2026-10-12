@@ -1,6 +1,6 @@
 """Agent for recognizing unbestimmte Rechtsbegriffe in TBMs."""
 
-from temporal.workflows.rechtsmethodik.types import UnbestimmterRechtsbegriff
+from temporal.contracts import UnbestimmterRechtsbegriff
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

@@ -1,0 +1,333 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots the explicit current version 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [
+          {
+            "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots the explicit historical version 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [
+          {
+            "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract omitted version resolves to the same current payload 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+        "isOutdated": false,
+        "nodeType": "risks",
+        "parents": [
+          {
+            "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [
+          {
+            "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+            "nodeType": "vae_node",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots an empty project 1`] = `
+{
+  "body": {
+    "nodes": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an empty request 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract parses every full payload field and preserves mixed node-type input grouping 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-05-28T19:04:52.817Z",
+        "frontendParentIds": [],
+        "id": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+        "implication": "Ein Kläger könnte die Aussage als nicht nachvollziehbar anfechten und fordern, dass die Beschreibung durch Dokumentation oder kartografische Nachweise untermauert wird.",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "risks",
+        "problem": "Die Beschreibung der geplanten Erweiterung enthält keine Verweise auf den UVP‑Bericht oder andere Nachweise, die die Darstellung belegen würden.",
+        "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+        "projectVersion": 2,
+        "quote": "Die geplante Erweiterung erfolgt in östlicher Richtung im Bereich der an die Rastanlage angrenzenden intensiv genutzten Ackerfläche sowie der angrenzenden Wiese und Gehölzstreifen bis hin zum bestehenden Waldmantel.",
+        "recommendation": "Es könnte geprüft werden, ob die Beschreibung der Erweiterungsfläche durch Verweise auf den UVP‑Bericht oder geeignete Nachweise unterstützt wird.",
+        "severity": 1,
+        "status": "corrected",
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T19:04:52.817Z",
+        "vaeNodeId": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+      },
+      {
+        "assignee": null,
+        "canAddChild": false,
+        "checkedAtAssignee": null,
+        "checkedAtLeader": null,
+        "checkedByAssignee": false,
+        "checkedByLeader": false,
+        "createdAt": "2026-05-28T19:04:52.817Z",
+        "frontendParentIds": [],
+        "id": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+        "isDeleted": false,
+        "isHidden": false,
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "order": 1,
+        "parentVaeNodeId": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+        "projectVersion": 2,
+        "subtopicId": null,
+        "templateId": null,
+        "text": "Für das plangegenständliche Vorhaben ist eine UVP durchzuführen.",
+        "title": "Feststellung des Plans",
+        "topicId": null,
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T19:04:52.817Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omits unknown IDs 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an explicit historical lookup 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "assignee": null,
+        "canAddChild": false,
+        "checkedAtAssignee": null,
+        "checkedAtLeader": null,
+        "checkedByAssignee": false,
+        "checkedByLeader": false,
+        "createdAt": "2026-05-27T10:56:10.056Z",
+        "frontendParentIds": [],
+        "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "isDeleted": false,
+        "isHidden": false,
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "order": 0,
+        "parentVaeNodeId": null,
+        "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+        "projectVersion": 1,
+        "subtopicId": null,
+        "templateId": null,
+        "text": "",
+        "title": "Entscheidung",
+        "topicId": null,
+        "updateType": "automated",
+        "updatedAt": "2026-05-27T10:56:10.056Z",
+      },
+      {
+        "createdAt": "2026-05-27T12:25:07.883Z",
+        "frontendParentIds": [],
+        "id": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+        "implication": "Ein Kläger könnte argumentieren, dass die Entwässerungsmaßnahmen nicht auf einer gesetzlichen Grundlage beruhen und die Fachbegriffe unklar bleiben, wodurch die Planung in diesem Punkt angreifbar ist.",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "risks",
+        "problem": "Der Absatz beschreibt notwendige Änderungen der Entwässerung und nennt konkrete Maßnahmen, liefert jedoch weder einen rechtlichen Verweis (z. B. Wasserhaushaltsgesetz) noch eine präzise Definition der genannten Entwässerungsbegriffe.",
+        "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+        "projectVersion": 1,
+        "quote": "Weiterhin muss aufgrund der Umgestaltung bzw. Erweiterung der Rastanlage die Entwässerung angepasst werden. So ist vorgesehen, dass die Bestandsanlage weiterhin über die bestehenden Entwässerungsanlagen entwässert wird und für das Areal der Erweiterungsflächen ein neues Versickerungsbecken mit vorgeschalteter Sedimentationsanlage und Leichtstoffrückhaltung geschaffen werden soll.",
+        "recommendation": "Es könnte geprüft werden, ob die Entwässerungsmaßnahmen mit den Vorgaben des Wasserhaushaltsgesetzes verknüpft und die technischen Begriffe eindeutig definiert werden.",
+        "severity": 3,
+        "status": "open",
+        "updateType": "automated",
+        "updatedAt": "2026-05-27T12:45:38.734Z",
+        "vaeNodeId": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omitted version resolves to the current lookup 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "assignee": null,
+        "canAddChild": false,
+        "checkedAtAssignee": null,
+        "checkedAtLeader": null,
+        "checkedByAssignee": false,
+        "checkedByLeader": false,
+        "createdAt": "2026-05-28T19:04:52.817Z",
+        "frontendParentIds": [],
+        "id": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+        "isDeleted": false,
+        "isHidden": false,
+        "isOutdated": false,
+        "nodeType": "vae_node",
+        "order": 0,
+        "parentVaeNodeId": null,
+        "projectId": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+        "projectVersion": 2,
+        "subtopicId": null,
+        "templateId": null,
+        "text": "",
+        "title": "Entscheidung",
+        "topicId": null,
+        "updateType": "automated",
+        "updatedAt": "2026-05-28T19:04:52.817Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

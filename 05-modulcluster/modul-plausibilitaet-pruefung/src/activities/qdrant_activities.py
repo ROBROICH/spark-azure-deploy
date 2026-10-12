@@ -3,6 +3,8 @@
 from qdrant_client.models import PointStruct
 from temporalio import activity
 
+from src.activities.extraction_evidence import annotate_chunks
+from src.activities.mojibake import is_mojibake
 from src.config.config import Config, config
 from src.qdrant.schemas import ChunkPayload
 from src.workflows.clients import qdrant_client
@@ -26,18 +28,7 @@ async def delete_document_from_qdrant(inp: DocumentActivityInput) -> None:
 
 @activity.defn
 async def fetch_and_prepare_chunks(inp: DocumentActivityInput) -> list[ChunkPayload]:
-    """Retrieves and prepares chunk metadata from Qdrant for a list of point IDs.
-
-    Fetches raw chunk data from the project's 'chunks' collection using
-    provided point IDs. Filters out invalid chunks (short content or image type)
-    and maps the results to a structured metadata format.
-
-    Args:
-        inp: DocumentActivityInput containing project_id and document_id.
-
-    Returns:
-        List of valid ChunkPayloads.
-    """
+    """Usable chunks of a document (no short, image or glyph-shifted chunks), annotated with identifiers."""
     chunk_ids = await qdrant_client.get_chunk_ids_by_document_id(project_id=inp.project_id, document_id=inp.document_id)
 
     chunk_payloads = await qdrant_client.get_chunk_payloads(project_id=inp.project_id, chunk_ids=chunk_ids)
@@ -45,20 +36,18 @@ async def fetch_and_prepare_chunks(inp: DocumentActivityInput) -> list[ChunkPayl
     valid_chunks = [
         c
         for c in chunk_payloads
-        if len(c.chunk_content) >= Config.QDRANT_BUILDER.CHUNK_MIN_LENGTH and c.chunk_type != "image"
+        if len(c.chunk_content) >= Config.QDRANT_BUILDER.CHUNK_MIN_LENGTH
+        and c.chunk_type != "image"
+        and not is_mojibake(c.chunk_content)  # glyph-shifted text yields no usable claim
     ]
 
-    return valid_chunks
+    # Page-level identifiers come from the full chunk set: the distinguishing header lives outside the claim's chunk.
+    return annotate_chunks(valid_chunks)
 
 
 @activity.defn
 async def upload_claims_to_qdrant(inp: UploadClaimsInput) -> None:
-    """Upload pre-embedded claims to Qdrant.
-
-    The workflow is responsible for computing embeddings via the shared
-    ``embedding_invoke`` activity and populating ``claim.vector`` before
-    handing the claims to this activity.
-    """
+    """Upload claims to Qdrant; the workflow sets ``claim.vector`` beforehand."""
     if not inp.claims:
         return
 
@@ -77,6 +66,10 @@ async def upload_claims_to_qdrant(inp: UploadClaimsInput) -> None:
                 "title": c.title,
                 "chunk_id": c.chunk_id,
                 "erlauterungsbericht": c.erlauterungsbericht,
+                "instance_identifiers": c.instance_identifiers,
+                "object_ids": c.object_ids,
+                "objekt": c.objekt,
+                "superseded": c.superseded,
                 "claim_metadata": {
                     "claim_id": c.claim_id,
                     "claim_content": c.claim_text,

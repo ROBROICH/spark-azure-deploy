@@ -1,5 +1,6 @@
 {
   "DocumentsCard": {
+    "loadMore": "Load more",
     "processing": {
       "description": "The data is currently being provided. The documents table updates once processing has finished.",
       "title": "The data is being provided"
@@ -71,7 +72,8 @@
     "customCategoryLabel": "Custom",
     "manageLabel": "+ Create or manage document type",
     "emptyCustomTypes": "No custom document types available",
-    "emptyTypes": "No document types available"
+    "emptyTypes": "No document types available",
+    "assignmentUncertain": "Assignment uncertain"
   },
   "EditRequiredDocumentsDialog": {
     "title": "Edit required documents",
@@ -218,9 +220,11 @@
       "startDisabledFilesErrorTooltip": "The documents could not be loaded. Please refresh the page and try again.",
       "startDisabledSystemLoadErrorTooltip": "The system load could not be determined. Please refresh the page and try again.",
       "indicator": "AI analysis running …",
+      "incomplete": "The AI analysis is incomplete. At least one check area failed.",
       "announcer": {
         "started": "AI analysis started.",
-        "completed": "AI analysis completed."
+        "completed": "AI analysis completed.",
+        "incomplete": "AI analysis finished but is incomplete."
       },
       "cards": {
         "tableOfContents": {

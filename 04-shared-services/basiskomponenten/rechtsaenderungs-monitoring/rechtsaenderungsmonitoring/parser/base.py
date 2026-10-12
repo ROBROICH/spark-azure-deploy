@@ -46,14 +46,14 @@ class RSSParser(ABC):
     _rss_feed: FeedParserDict = FeedParserDict()
 
     _http_client = Client(follow_redirects=True)
-    cache_dir: Path = Path("cached/")
+    cache_dir: Path
 
     def __init__(
         self,
-        cache_dir: Path = app_config.cache_dir,
+        cache_dir: Path,
         logger: EventLogger | None = None,
     ) -> None:
-        self.cache_dir = cache_dir or self.cache_dir
+        self.cache_dir = cache_dir
         self.logger = logger or self.logger
 
     def _fetch_feed(self) -> FeedParserDict:

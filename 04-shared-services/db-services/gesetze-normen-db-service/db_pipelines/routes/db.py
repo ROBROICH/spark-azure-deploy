@@ -340,7 +340,9 @@ def create_norm_result(query_result, paragraph_nr: str | None = None) -> list[No
     result = []
 
     if paragraph_nr:
-        if len(query_result) == 2:
+        if len(query_result) == 1:
+            entry = query_result[0]
+        elif len(query_result) == 2:
             main = filter(
                 lambda x: x.paragraph_nr == paragraph_nr,
                 query_result,

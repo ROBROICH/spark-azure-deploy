@@ -1,0 +1,349 @@
+# =============================================================================
+# environment-config — base values
+# =============================================================================
+#
+# Per-environment namespace plumbing for one SPARK environment: the shared
+# (optionally Workload-Identity-bound) ServiceAccount, the
+# ExternalSecrets the workloads consume, GMP PodMonitoring, otel-collector,
+# NetworkPolicies or mesh policies, and the SpiceDBCluster CR. Every component
+# can be switched off for environments that get it from elsewhere.
+#
+# Deployed as a subchart of the spark-platform umbrella; the environment's
+# values file sets global.stage.name, externalSecrets.pathPrefix and
+# gcp.serviceAccountEmail.
+# =============================================================================
+
+
+# Global values shared with the sibling subcharts when deployed under the
+# spark-platform umbrella.
+#
+# global.stage.name — the environment name (e.g. test, my-env, pr-123). Drives
+#                     the environment label; the Vault paths come from
+#                     externalSecrets.pathPrefix.
+
+global:
+  stage:
+    name: ''
+
+# Chart-local stage override (same semantics as the sibling charts): takes
+# precedence over global.stage.name for standalone installs.
+
+stage:
+  name: ''
+
+# Override chart name used in labels.
+# Example: my-short-name
+
+nameOverride: ''
+
+# Override fully qualified resource name used in labels.
+# Example: my-envconfig-prod
+
+fullnameOverride: ''
+
+# Target Kubernetes namespace for the namespaced resources of this chart. When
+# empty, the release namespace is used — the value supplied via
+# helm install --namespace. An ExternalSecret can list its own namespaces
+# (externalSecrets.secrets.<name>.namespaces).
+
+namespaceOverride: ''
+
+# Shared per-namespace ServiceAccount. Every workload pod in
+# the environment runs as this KSA. The name falls back to
+# global.serviceAccount.name — the key every leaf chart reads — so setting that
+# global once in the umbrella keeps all pods on the same KSA.
+#
+# create           — render the ServiceAccount (disable when it is managed
+#                    elsewhere or the environment uses per-chart KSAs).
+# name             — KSA name; empty = global.serviceAccount.name, else
+#                    spark-workflow. The Workload Identity binding on the GCP
+#                    side is <project>.svc.id.goog[<namespace>/<name>].
+# automount        — whether pods using this ServiceAccount get its API token
+#                    by default (false: only workloads that call the
+#                    Kubernetes API need it; GKE Workload Identity works
+#                    without it).
+# annotations      — extra annotations merged after the WI annotation from
+#                    gcp.serviceAccountEmail.
+# imagePullSecrets — attached at the SA level so every pod using the shared
+#                    KSA can pull from a private registry, regardless of
+#                    per-chart imagePullSecrets defaults.
+
+serviceAccount:
+  create: true
+  name: ''
+  automount: false
+  annotations: {}
+  imagePullSecrets: []
+
+# GCP wiring for Workload Identity.
+#
+# serviceAccountEmail — FULL email of the environment's GSA, set verbatim (no
+#                       string assembly), e.g.:
+#                         spark-env1@example-project.iam.gserviceaccount.com
+#                       Rendered as the iam.gke.io/gcp-service-account
+#                       annotation on the KSA. Empty (default) renders the KSA
+#                       without the annotation and NOTES.txt prints a warning.
+# projectId           — GCP project filled into the otel googlecloud exporter
+#                       when otel.exporters has one without a project
+#                       (metadata-based project detection is unreliable on
+#                       Autopilot). Also used by NOTES.txt.
+
+gcp:
+  serviceAccountEmail: ''
+  projectId: ''
+
+# ExternalSecrets.
+#
+# secretStore.name / .kind — default secret store (the ClusterSecretStore of
+#                            the cluster's ESO install); a secret can override
+#                            it with its own secretStore.
+# refreshInterval          — default ESO refresh interval.
+# pathPrefix               — Vault path prefix of the environment-specific
+#                            entries, e.g. envs/my-env. Remote keys
+#                            reference it as
+#                              '{{ .Values.externalSecrets.pathPrefix }}/…'
+#                            A data remote key that uses it fails the render
+#                            while it is empty.
+# secrets                  — one entry per Kubernetes Secret, keyed by the
+#                            target Secret name. Maps (not lists) so an
+#                            environment overrides a single remote key without
+#                            restating the rest. Per entry:
+#   enabled          — false skips the secret (default true).
+#   targetName       — Secret name when it differs from the map key.
+#   name             — ExternalSecret object name (default: target name).
+#   namespaces       — namespaces to render the ExternalSecret into (default:
+#                      the chart namespace). Environments that spread
+#                      workloads over several namespaces list each consumer
+#                      namespace here.
+#   creationPolicy   — ESO target.creationPolicy (default Owner).
+#   deletionPolicy   — ESO target.deletionPolicy (default: ESO default).
+#   refreshInterval  — per-secret override of the default.
+#   secretStore      — per-secret override of the default store (name/kind).
+#   dockerConfigJson — {registry: <host>}: render a kubernetes.io/dockerconfigjson
+#                      Secret from the data keys username and password.
+#   template         — raw ESO target.template. Mutually exclusive with
+#                      dockerConfigJson: set dockerConfigJson: null when
+#                      replacing a default that uses it.
+#   tpl              — true: render `template` with Helm tpl first (e.g. to
+#                      put the stage into a connection string); write the
+#                      ESO expressions escaped then: {{`{{ .password }}`}}.
+#   data             — map secretKey -> {remoteKey, property}; remoteKey is
+#                      rendered with tpl against this chart.
+#   dataFrom         — ESO dataFrom list, rendered with tpl like remoteKey.
+#
+# No secret is rendered by default: an environment lists the Secrets its
+# workloads reference (secretKeyRef names in its values) and where they live
+# in its store.
+
+externalSecrets:
+  # Default store of every ExternalSecret (required once a secret renders).
+  secretStore:
+    name: ''
+    kind: ClusterSecretStore
+  refreshInterval: 1h
+  pathPrefix: ''
+  # Example — a registry pull credential and a database login:
+  #   secrets:
+  #     registry-credentials:
+  #       dockerConfigJson: {registry: registry.example.com}
+  #       data:
+  #         username: {remoteKey: shared/registry, property: username}
+  #         password: {remoteKey: shared/registry, property: password}
+  #     postgres-credentials:
+  #       data:
+  #         username: {remoteKey: '{{ .Values.externalSecrets.pathPrefix }}/database', property: username}
+  #         password: {remoteKey: '{{ .Values.externalSecrets.pathPrefix }}/database', property: password}
+  secrets: {}
+
+# Namespace object management.
+#
+# create      — when true, render the environment namespace (namespaceOverride,
+#               else the release namespace) with the labels below (chart
+#               labels such as environment take precedence). Default false
+#               because `helm --create-namespace` / ArgoCD CreateNamespace=true
+#               usually own the Namespace object; in that case apply the
+#               labels out-of-band or via ArgoCD managedNamespaceMetadata
+#               (see NOTES.txt).
+# labels      — labels the environment namespace carries, e.g. the selector
+#               label of shared-service NetworkPolicies (central Qdrant,
+#               Gateway) or istio-injection.
+# annotations — annotations of the Namespace object (e.g. an ArgoCD sync
+#               wave that creates it before its content).
+
+namespace:
+  create: false
+  labels: {}
+  annotations: {}
+
+# Google Managed Prometheus scrape config. One namespace-wide
+# PodMonitoring selects every pod; each endpoints[] entry is passed through
+# verbatim (GMP schema: port required; path/interval/scheme… optional).
+# Pods without a matching port are not scraped.
+
+monitoring:
+  # GKE Google Managed Prometheus only (PodMonitoring CRD): off unless the
+  # cluster runs GMP.
+  enabled: false
+  # The app fleet exposes /metrics on ports NAMED `http` (FastAPI services
+  # incl. the ENABLE_METRICS db-services); `metrics` covers the Temporal
+  # server components. Pods without /metrics on :http show up as unhealthy
+  # targets — visible noise is preferred over silent gaps.
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+    - port: http
+      path: /metrics
+      interval: 30s
+
+# Per-namespace OpenTelemetry collector: receives OTLP from the workloads
+# (gRPC :4317 / HTTP :4318) and sends it to every exporter in `exporters`.
+# Deployment + Service are both named "otel-collector" so apps use
+#   OTEL_ENDPOINT=otel-collector.<namespace>.svc.cluster.local:4317
+#
+# enabled           — false when the cluster provides a shared collector.
+# image             — collector image (the contrib build carries the
+#                     resourcedetection, transform and vendor exporters).
+# replicas          — single replica is sufficient for non-production traffic.
+# imagePullSecrets  — list of pull secrets (pod-level).
+# resources         — requests/limits.
+# exporters         — collector exporters (map, rendered verbatim into the
+#                     collector config); every pipeline uses all of them.
+#                     Empty: the debug exporter (logs a summary of received
+#                     telemetry).
+#                     Examples:
+#                       otlp: {endpoint: tempo.observability:4317, tls: {insecure: true}}
+#                       googlecloud: {}   # Cloud Trace; needs GCP credentials
+#                                         # (e.g. GKE Workload Identity) —
+#                                         # gcp.projectId fills in its project
+# resourceDetectors — resourcedetection detectors; add gcp on Google Cloud.
+# pipelines         — traces are always exported; metrics/logs are opt-in.
+
+otel:
+  enabled: true
+  image: otel/opentelemetry-collector-contrib:0.145.0
+  replicas: 1
+  imagePullSecrets: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  exporters: {}
+  resourceDetectors: [env]
+  pipelines:
+    metrics: false
+    logs: false
+
+# Mesh switch.
+#
+# enabled=false — no mesh: render Dataplane V2 NetworkPolicies
+#                 (templates/networkpolicies.yaml) when networkPolicy.enabled.
+# enabled=true  — managed Cloud Service Mesh: render STRICT PeerAuthentication
+#                 + AuthorizationPolicies (templates/authorizationpolicies.yaml).
+#                 A minimal baseline; see the limitations in that template.
+
+mesh:
+  enabled: false
+  # Additional PeerAuthentications, rendered whether or not enabled is set
+  # (map: object name -> PeerAuthentication spec). Example — accept plaintext
+  # from a sidecar-less gateway on port 80 while the mesh default is STRICT:
+  #   allow-envoy-gateway:
+  #     selector: {matchLabels: {security.istio.io/tlsMode: istio}}
+  #     mtls: {mode: STRICT}
+  #     portLevelMtls: {"80": {mode: PERMISSIVE}}
+  peerAuthentications: {}
+  # Istio ServiceEntries, rendered whether or not enabled is set (map: object
+  # name -> ServiceEntry spec). Only needed with an Istio mesh whose outbound
+  # traffic policy is REGISTRY_ONLY. Example — let the sidecars of two
+  # namespaces reach a managed PostgreSQL on its private IP:
+  #   egress-postgres:
+  #     hosts: [postgres.internal]
+  #     addresses: [10.0.0.5/32]
+  #     ports: [{number: 5432, name: tcp-postgres, protocol: TCP}]
+  #     location: MESH_EXTERNAL
+  #     resolution: NONE
+  #     exportTo: [temporal, spicedb]
+  serviceEntries: {}
+
+# Namespace of the shared Envoy Gateway controller/proxies. Used by both policy
+# variants for the gateway -> services ingress allow.
+
+gateway:
+  namespace: envoy-gateway-system
+
+# Parameters of the no-mesh NetworkPolicy variant.
+#
+# enabled         — false renders no NetworkPolicies (e.g. clusters whose
+#                   isolation is handled by a mesh managed outside the chart).
+# qdrantNamespace — namespace of a central Qdrant (egress :6333/:6334). Empty
+#                   omits the rule (Qdrant in-namespace or not used).
+# gmpNamespaces   — namespaces of the GMP managed collectors (ingress allow for
+#                   /metrics scrapes). Both GKE modes: Standard uses
+#                   gmp-system, Autopilot uses gke-gmp-system.
+# cloudsqlCidr    — CIDR of the PostgreSQL server (e.g. a Cloud SQL private
+#                   IP) for egress :5432. The default covers 10.0.0.0/8;
+#                   tighten it to the instance's /32.
+# metadataServer  — allow egress to the cloud metadata server
+#                   169.254.169.254:80 (GKE Workload Identity token exchange,
+#                   gcp resource detection). Off unless the environment uses
+#                   them.
+# extraIngress    — additional ingress rules (list of NetworkPolicyIngressRule,
+#                   tpl-rendered), e.g. a cluster's monitoring namespace.
+# extraEgress     — additional egress rules (list of NetworkPolicyEgressRule,
+#                   tpl-rendered), e.g. an internal API.
+
+networkPolicy:
+  enabled: true
+  qdrantNamespace: ''
+  gmpNamespaces:
+    - gmp-system
+    - gke-gmp-system
+  cloudsqlCidr: 10.0.0.0/8
+  metadataServer: false
+  extraIngress: []
+  extraEgress: []
+
+# SpiceDBCluster CR, reconciled by the cluster-wide
+# spicedb-operator (a cluster prerequisite, not part of this chart).
+#
+# enabled    — set false to skip the CR (e.g. bring-up before the operator CRD
+#              exists, or environments using a shared SpiceDB).
+# name       — SpiceDBCluster resource name.
+# namespace  — namespace of the CR (and so of the SpiceDB pods); '' = the
+#              chart namespace. Environments spread over several namespaces
+#              run SpiceDB in its own (the spicedb-config Secret must exist
+#              there: list it in that secret's namespaces).
+# channel    — operator update channel; "stable" lets the operator manage
+#              SpiceDB upgrades. Set to '' and pin config.image instead to fix
+#              a version.
+# secretName — Secret consumed by the SpiceDB pods. MUST contain the keys
+#              preshared_key and datastore_uri — exactly what the
+#              spicedb-config ExternalSecret materializes.
+# config     — SpiceDBCluster.spec.config passthrough:
+#   datastoreEngine  — datastore engine (default postgres).
+#   logLevel         — SpiceDB log level.
+#   replicas         — data-plane replicas.
+#   image            — pinned image reference ('' = managed via channel).
+#   imagePullSecrets — list of pull secret NAMES (plain strings).
+#   extraConfig      — any additional SpiceDB config keys (map, passed
+#                      through verbatim).
+# patches    — SpiceDBCluster.spec.patches passthrough (list of {kind, patch}),
+#              e.g. annotations or Service ports the operator does not set.
+
+spicedb:
+  enabled: true
+  name: spicedb
+  namespace: ''
+  channel: stable
+  secretName: spicedb-config
+  config:
+    datastoreEngine: postgres
+    logLevel: info
+    replicas: 1
+    image: ''
+    imagePullSecrets: []
+    extraConfig: {}
+  patches: []

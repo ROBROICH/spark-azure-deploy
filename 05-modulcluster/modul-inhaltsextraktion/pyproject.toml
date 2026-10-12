@@ -6,6 +6,7 @@ authors = []
 requires-python = ">=3.13,<3.14"
 readme = "README.md"
 dependencies = [
+    "authentification",
     "temporal",
     "tiktoken>=0.12.0",
     "unoserver==3.5",
@@ -21,6 +22,7 @@ dependencies = [
 ]
 
 [tool.uv.sources]
+authentification = { workspace = true }
 temporal = { workspace = true }
 prompt-injection = { workspace = true }
 

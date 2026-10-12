@@ -5,7 +5,7 @@ from typing import Any
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import ExplicitVerweiseInfo, Untergliederung
+from temporal.contracts import ExplicitVerweiseInfo, Untergliederung
 
 from src.workflows.tbm_workflow.tbm_types import VerweisWorkflowInput
 from src.workflows.tbm_workflow.verweis.utils import (

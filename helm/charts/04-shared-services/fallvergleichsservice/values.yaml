@@ -1,0 +1,383 @@
+# =============================================================================
+# fallvergleichsservice — Helm values (base layer, 04-shared-services)
+# =============================================================================
+# Category: agent (labels.type). Chart: 04-shared-services/fallvergleichsservice/
+#
+# Override per environment with a values file of your own:
+#   helm upgrade --install <release> . -f my-values.yaml
+#
+# All Helm template keys are listed below. Unused keys use "" for strings,
+# [] for lists, {} for maps.
+# Environment variables must not use empty value: omit unused vars or use
+# placeholders (<litellm-api-url>, …).
+# Environment-specific settings belong in that file.
+# =============================================================================
+
+
+# Desired pod replicas when autoscaling.enabled is false.
+replicaCount: 2
+
+# Container image. If tag is empty, Chart.appVersion is used.
+#
+# Base: short image name (no registry prefix). The full registry path is
+# supplied by the deploying environment, e.g. via the spark-environment or
+# agent-services umbrella's image.repository override.
+#
+# Full image: registry.example.com/mirror/fallvergleichsservice (pin a
+# digest per environment).
+
+image:
+  # Registry prefixed to repository (empty: global.imageRegistry, used only
+  # when repository names no registry itself).
+  registry: ""
+  repository: fallvergleichsservice
+  tag: latest
+  pullPolicy: Always
+  # false: keep this chart's own tag when global.imageTag is set (images
+  # a branch environment's pipeline does not build)
+  followGlobalTag: true
+  # Digest pinned next to the tag (e.g. sha256:…); not applied to a
+  # global.imageTag.
+  digest: ""
+
+# Container command. The image's baked CMD is ["sh", ".../start.sh"], but the
+# distroless final stage ships no shell, so the pod would fail with
+# "sh: executable file not found". This is start.sh's exec line, shell-free;
+# the log level is fixed to "info" because ${VAR:-default} expansion was
+# shell-only.
+command:
+  - gunicorn
+  # package = false in the service pyproject (never venv-installed): import
+  # is cwd-relative; the --chdir path is the source location baked into the
+  # image (an image contract, not a path in this tree)
+  - --chdir
+  - /src/04-shared-services/basiskomponenten/fallvergleichs-service
+  - fallvergleichsservice.service:app
+  - -w
+  - "1"
+  - -k
+  - uvicorn.workers.UvicornWorker
+  - --bind
+  - 0.0.0.0:8000
+  - --log-level
+  - info
+
+# Pull secrets for private registries (list).
+imagePullSecrets: []
+
+# Override chart name used in labels.
+nameOverride: ''
+
+# Override fully qualified resource name.
+fullnameOverride: ''
+
+# Target Kubernetes namespace for all resources of this chart.
+#
+# When non-empty, every resource (Deployment, Service, ServiceAccount, HPA)
+# is placed in the named namespace. When empty, the release namespace is used
+# — the value supplied via helm install --namespace.
+#
+# When this chart is deployed as part of an umbrella, the parent chart sets
+# this value in its own values.yaml. Override it per chart in your install
+# values when a dedicated namespace is required.
+#
+# The namespace must exist in the cluster before installation; this chart does
+# not create namespace objects.
+namespaceOverride: ''
+
+# Stage name appended to generated resource names as a suffix (e.g. "-dev").
+# When this chart is deployed inside an umbrella, the stage is propagated via
+# global.stage.name. Set it here only for standalone installs.
+# Leave empty to omit the suffix.
+stage:
+  name: ''
+
+# Service classification labels applied to Deployment, Service, ServiceAccount, and HPA.
+#
+# labels.type        — workload category: frontend | backend | agent
+# labels.environment — environment tag on pods. When deployed inside an
+#                      umbrella, this is provided via global.labels.environment.
+#                      Set it here for standalone installs.
+labels:
+  type: agent
+  environment: ''
+
+# Container ports (list).
+# HTTP API on :8000 (port name http).
+containerPorts:
+  - containerPort: 8000
+    name: http
+    protocol: TCP
+
+# ServiceAccount for the pod (map).
+serviceAccount:
+  create: true
+  automount: null
+  annotations: {}
+  name: ''
+
+# Extra annotations on the pod template (map).
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). The chart's own labels win on
+# key collisions, so the selector cannot be overridden here. Selector labels:
+# app.kubernetes.io/name + app.kubernetes.io/instance by default; with
+# global.legacyAppSelector (umbrella-wide switch for migration from a
+# Kustomize-based deployment, adopting its Deployments) app: <fullname>. The selector is
+# immutable: switching the flag on an existing Helm release makes the upgrade
+# fail — the Deployments have to be recreated.
+podLabels: {}
+
+# Selector labels used verbatim instead of the chart's (map), for adopting a
+# Deployment whose existing (immutable) selector follows neither the
+# standard nor the legacy scheme. The labels are added to every resource.
+# Example: {app: queue-worker, queue: llm-custom}
+
+selectorLabelsOverride: {}
+
+# Pod-level securityContext.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+
+# Container-level securityContext.
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+# Service exposure (map): HTTP API, port 80 -> container 8000 (peer-URL
+# convention shared with the other backend services).
+# service.ports is authoritative; service.port is DEPRECATED (read only when
+# ports is empty) and service.selector is DEPRECATED and ignored.
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  ports:
+    - port: 80
+      targetPort: 8000
+      protocol: TCP
+
+# Ingress — disabled by default (the API is reached in-cluster only).
+ingress:
+  enabled: false
+  className: ''
+  annotations: {}
+  hosts: []
+  tls: []
+
+# CPU/memory requests and limits.
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "60m"
+  limits:
+    memory: "768Mi"
+    cpu: "200m"
+
+# Base environment variables injected into the container (list of EnvVar objects).
+# These apply in every stage. Secret refs are read from cluster Secrets; do not
+# set those to empty strings — omit or leave as secretKeyRef.
+# Variables from global.env are merged before this list; this list takes
+# precedence on name collisions.
+#
+# Placeholder used for environment-specific endpoints:
+#   <postgresdb-host> — PostgreSQL host (or connection pooler) of the environment
+#
+# Env contract: DB_* + LOG_LEVEL + ENABLE_METRICS.
+
+env:
+  # Database (stage values override host/name/credentials via extraEnv)
+  - name: DB_HOST
+    value: <postgresdb-host>
+  - name: DB_PORT
+    value: '5432'
+  - name: DB_NAME
+    value: fallvergleichsservice-db
+  - name: DB_USER
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: username
+  - name: DB_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: postgres-credentials
+        key: password
+
+  # General
+  - name: LOG_LEVEL
+    value: "info"
+  - name: ENABLE_METRICS
+    value: "true"
+  # gunicorn's control server writes under $HOME; root FS is read-only and
+  # /tmp is the pod's emptyDir
+  - name: HOME
+    value: "/tmp"
+
+# Additional environment variables merged after env (list of EnvVar objects).
+# Use for stage-specific values or to override single base variables.
+# This list takes precedence over global.extraEnv on name collisions.
+extraEnv: []
+
+# Probes: the service exposes the standardized endpoints /startup, /healthz
+# and /ready on :8000.
+startupProbe:
+  failureThreshold: 6
+  httpGet:
+    path: /startup
+    port: 8000
+  periodSeconds: 10
+
+livenessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /healthz
+    port: 8000
+  periodSeconds: 10
+
+readinessProbe:
+  failureThreshold: 3
+  httpGet:
+    path: /ready
+    port: 8000
+  periodSeconds: 10
+
+# HorizontalPodAutoscaler (map).
+# Example: {enabled: true, minReplicas: 2, maxReplicas: 10, targetCPUUtilizationPercentage: 80}
+# name: '' = the fullname. behavior: HPA scaling behavior (map). metrics:
+# raw HPA metrics list; replaces the target*UtilizationPercentage shortcuts.
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Container name (string). Empty = the chart (alias) name.
+
+containerName: ''
+
+# Container arguments (list; the entrypoint override `command` is set near
+# the top of this file). Empty = the image defaults.
+
+args: []
+
+# KEDA ScaledObject (map; requires KEDA in the cluster). Mutually exclusive
+# with autoscaling — KEDA manages its own HPA and owns the replica count.
+# name: '' = the fullname. triggers: KEDA trigger list (required); trigger
+# metadata values must be strings (quote numbers).
+# Example: {enabled: true, minReplicaCount: 2, maxReplicaCount: 8,
+#           triggers: [{type: temporal, metadata: {...}}]}
+
+keda:
+  enabled: false
+  name: ''
+  minReplicaCount: 1
+  maxReplicaCount: 4
+  pollingInterval: 30
+  cooldownPeriod: 300
+  advanced: {}
+  triggers: []
+
+# GMP PodMonitoring for this workload (map; requires Google Managed
+# Prometheus). name: '' = the fullname; selector: {} = the workload's
+# selector labels. Endpoints need a NAMED container port.
+
+podMonitoring:
+  enabled: false
+  name: ''
+  selector: {}
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s
+
+# Pod volumes (list).
+# gunicorn needs a writable tmp dir (heartbeat) while the container runs with
+# readOnlyRootFilesystem — without it startup fails (FileNotFoundError: no
+# usable temporary directory).
+volumes:
+  - name: tmp
+    emptyDir: {}
+
+# Container volume mounts (list).
+volumeMounts:
+  - name: tmp
+    mountPath: /tmp
+
+# Node selector (map).
+nodeSelector: {}
+
+# Pod tolerations (list).
+tolerations: []
+
+# Pod affinity rules (map).
+affinity: {}
+
+# ---------------------------------------------------------------------------
+# Escape hatches (empty by default). Lists of the Kubernetes types named;
+# initContainers, extraContainers, extraEnvFrom, topologySpreadConstraints
+# and extraObjects are rendered with tpl.
+# ---------------------------------------------------------------------------
+
+# EnvFromSource entries of the main container, e.g. [{secretRef: {name: app-env}}].
+extraEnvFrom: []
+
+# Init containers, e.g. a migration run before the app starts.
+initContainers: []
+
+# Sidecar containers next to the main one.
+extraContainers: []
+
+# Pod volumes / main-container mounts appended to volumes / volumeMounts.
+extraVolumes: []
+extraVolumeMounts: []
+
+# Pod scheduling: spread over zones or nodes, scheduling priority.
+topologySpreadConstraints: []
+priorityClassName: ""
+
+# Seconds a pod gets to shut down (null: Kubernetes default, 30) and the main
+# container's lifecycle hooks (e.g. a preStop sleep for graceful drains).
+terminationGracePeriodSeconds: null
+lifecycle: {}
+
+# Additional manifests released with the chart (maps or YAML strings).
+extraObjects: []
+
+# PodDisruptionBudget (map). minAvailable (default 1) or maxUnavailable.
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: null
+
+# NetworkPolicy isolating the workload's ingress (map): allowSameNamespace
+# admits the namespace's pods; ingress / egress add NetworkPolicy rules
+# (tpl-rendered; egress empty = unrestricted).
+networkPolicy:
+  enabled: false
+  allowSameNamespace: true
+  ingress: []
+  egress: []
+
+# Prometheus Operator ServiceMonitor (map) — needs the Service and a named
+# port; labels select the Prometheus instance.
+serviceMonitor:
+  enabled: false
+  labels: {}
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+
+# Restricted Pod Security Standard defaults (map): non-root uid/gid 65532,
+# RuntimeDefault seccomp, no privilege escalation, all capabilities dropped,
+# read-only root filesystem with an emptyDir on /tmp. podSecurityContext and
+# securityContext override single keys. restricted: null follows
+# global.podSecurity.restricted (default true); false applies none of them.
+podSecurity:
+  restricted: null

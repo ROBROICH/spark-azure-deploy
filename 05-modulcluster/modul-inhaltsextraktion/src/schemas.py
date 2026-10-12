@@ -8,15 +8,15 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 from temporal import Base64Bytes
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata as BaseMetadata
-from temporal.workflows.inhaltsextraktion.types import Chunk as Chunk
-from temporal.workflows.inhaltsextraktion.types import ChunkEWMS as ChunkEWMS
-from temporal.workflows.inhaltsextraktion.types import DocumentTopic as DocumentTopic
-from temporal.workflows.inhaltsextraktion.types import DocumentTypeInfo as DocumentTypeInfo
-from temporal.workflows.inhaltsextraktion.types import Metadata as Metadata
-from temporal.workflows.inhaltsextraktion.types import PageIndexNode as PageIndexNode
-from temporal.workflows.inhaltsextraktion.types import ProcessedDocument as ProcessedDocument
-from temporal.workflows.inhaltsextraktion.types import SubChunk as SubChunk
+from temporal.contracts import BaseMetadata as BaseMetadata
+from temporal.contracts import Chunk as Chunk
+from temporal.contracts import ChunkEWMS as ChunkEWMS
+from temporal.contracts import DocumentTopic as DocumentTopic
+from temporal.contracts import DocumentTypeInfo as DocumentTypeInfo
+from temporal.contracts import Metadata as Metadata
+from temporal.contracts import PageIndexNode as PageIndexNode
+from temporal.contracts import ProcessedDocument as ProcessedDocument
+from temporal.contracts import SubChunk as SubChunk
 
 from src.providers.base import ContentItemDict
 

@@ -1,10 +1,6 @@
 import { eq, useLiveQuery } from '@tanstack/react-db';
 
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import {
-  getRequestItemSourceItemId,
-  getRequestItemSourceType,
-} from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
+import { useRequestSources } from '@/features/project/nachforderungen/data/requestQueries';
 import { contradictionsCollection } from './contradictions.collection';
 import type { StoredContradiction } from './contradiction.schema';
 
@@ -23,20 +19,15 @@ export const usePlausibilityContradictions = (projectId: string) => {
       .where(({ contradictions }) => eq(contradictions.projectId, projectId)),
   );
   const {
-    data: requestItemsData,
+    data: requestSources = [],
     isLoading: requestItemsLoading,
     isError: requestItemsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, projectId)),
-  );
+  } = useRequestSources(projectId);
 
   const contradictionIdsOnRequestList = new Set(
-    requestItemsData
-      .filter((item) => getRequestItemSourceType(item) === 'contradiction')
-      .map((item) => getRequestItemSourceItemId(item))
-      .filter((id): id is string => typeof id === 'string' && id.length > 0),
+    requestSources.flatMap((ref) =>
+      ref.type === 'contradiction' ? [ref.itemId] : [],
+    ),
   );
 
   const contradictions: PlausibilityContradictionListItem[] =

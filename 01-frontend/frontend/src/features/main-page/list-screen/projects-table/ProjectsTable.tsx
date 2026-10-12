@@ -1,3 +1,4 @@
+import { Button } from '@/features/ui/button/Button';
 import { useOrganizationUsers } from '@/features/access-control/organization-users/organizationUsers.collection';
 import { getDateLocale } from '@/i18n/dateLocale';
 import {
@@ -5,28 +6,18 @@ import {
   type Updater,
   flexRender,
   getCoreRowModel,
-  getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
 import { useNavigate } from '@tanstack/react-router';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DashboardErrorState } from '../../dashboard-screen/DashboardErrorState';
-import type { Project } from '../../data/schemas/project.schema';
 import {
   buildFavoriteColumnMeta,
   createProjectsTableColumns,
 } from './ProjectsTable.columns';
 import { ProjectsTableRow } from './ProjectsTableRow';
 import { useProjectsTableFeatureContext } from './ProjectsTableFeatureContext';
-
-const SORTABLE_COLUMNS: ReadonlySet<keyof Project> = new Set([
-  'name',
-  'internalProjectNumber',
-  'projectTypeName',
-  'statusName',
-  'originalCreatedAt',
-]);
 
 const ARIA_SORT_BY_DIRECTION = {
   asc: 'ascending',
@@ -61,6 +52,9 @@ export const ProjectsTable = () => {
     isLoading,
     isError,
     retry,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   } = useProjectsTableFeatureContext();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation('Dashboard');
@@ -98,21 +92,6 @@ export const ProjectsTable = () => {
     [t, locale, organizationUsers, isOrganizationUsersError],
   );
 
-  // eslint-disable-next-line no-restricted-syntax -- this "use no memo" table reuses the sorted row input for TanStack Table and should only recompute when the projects or URL-backed sorting actually change.
-  const sortedData = useMemo(() => {
-    if (!SORTABLE_COLUMNS.has(sortColumn as keyof Project)) {
-      return projects;
-    }
-    const key = sortColumn as keyof Project;
-    const asc = sortDirection === 'asc';
-    return [...projects].sort((a, b) => {
-      const aStr = String(a[key] ?? '').toLowerCase();
-      const bStr = String(b[key] ?? '').toLowerCase();
-      const cmp = aStr.localeCompare(bStr, undefined, { numeric: true });
-      return asc ? cmp : -cmp;
-    });
-  }, [projects, sortColumn, sortDirection]);
-
   // eslint-disable-next-line no-restricted-syntax -- this "use no memo" table gives TanStack Table a stable sorting callback so header interactions do not rebuild the full table wiring on every render.
   const handleSortingChange = useCallback(
     (updater: Updater<SortingState>) => {
@@ -124,7 +103,7 @@ export const ProjectsTable = () => {
   );
 
   const table = useReactTable({
-    data: sortedData,
+    data: projects,
     columns,
     state: {
       sorting: sortingState,
@@ -133,7 +112,6 @@ export const ProjectsTable = () => {
     enableSortingRemoval: false,
     onSortingChange: handleSortingChange,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.id,
   });
 
@@ -202,8 +180,13 @@ export const ProjectsTable = () => {
 
   if (rows.length === 0) {
     return (
-      <div className="overflow-clip rounded-lg border border-border-primary">
-        <table className="w-full table-fixed border-spacing-0">
+      <div
+        className="min-w-0 overflow-x-auto overflow-y-clip rounded-lg border border-border-primary"
+        role="region"
+        aria-label={t('ProjectsTable.tableAriaLabel')}
+        tabIndex={0}
+      >
+        <table className="w-full min-w-[58rem] table-fixed border-spacing-0">
           {tableHead()}
           <tbody>
             <tr>
@@ -221,8 +204,13 @@ export const ProjectsTable = () => {
   }
 
   return (
-    <div className="overflow-clip rounded-lg border border-border-primary">
-      <table className="w-full table-fixed border-spacing-0">
+    <div
+      className="min-w-0 overflow-x-auto overflow-y-clip rounded-lg border border-border-primary"
+      role="region"
+      aria-label={t('ProjectsTable.tableAriaLabel')}
+      tabIndex={0}
+    >
+      <table className="w-full min-w-[58rem] table-fixed border-spacing-0">
         {tableHead()}
         <tbody>
           {rows.map((row) => (
@@ -235,6 +223,20 @@ export const ProjectsTable = () => {
           ))}
         </tbody>
       </table>
+      {hasNextPage && (
+        <div className="flex justify-center border-t border-border-primary p-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={isFetchingNextPage}
+            onClick={() => void fetchNextPage()}
+          >
+            {isFetchingNextPage
+              ? t('ProjectsTable.loadingProjects')
+              : t('ProjectsTable.loadMore')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

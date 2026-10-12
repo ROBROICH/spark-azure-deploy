@@ -1,4 +1,5 @@
 import { useRouterState } from '@tanstack/react-router';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { buildDocumentTitle } from '../document-title.logic';
@@ -23,8 +24,9 @@ export function ProjectRouteDocumentTitle(
   const routeMatches = useRouterState({ select: selectProjectRouteMatches });
   const descriptor = getProjectRouteDocumentTitleDescriptor(routeMatches);
   const { t } = useTranslation('DocumentTitle');
+  const effectiveMode = getConfiguredProductMode();
   const title = buildDocumentTitle({
-    appTitle: t('app.title'),
+    appTitle: t(effectiveMode === 'ewms' ? 'app.titleEwms' : 'app.title'),
     featureTitle: t(descriptor.titleKey),
     projectTitle: projectName,
     titleType: 'project',

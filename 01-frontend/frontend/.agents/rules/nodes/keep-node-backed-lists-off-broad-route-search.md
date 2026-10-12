@@ -1,3 +1,7 @@
+---
+ruleId: nodes/keep-node-backed-lists-off-broad-route-search
+---
+
 # Keep Node-Backed Lists Off Broad Route Search
 
 - In unvirtualized node-backed rows, cards, tree items, or accordion items, do not call `route.useSearch()` without `select` inside each visible leaf.

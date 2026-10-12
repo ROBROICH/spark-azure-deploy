@@ -17,7 +17,7 @@ const EWMS_WORKSPACE_PRELOAD_NODE_TYPES = [
   'subtopic',
   'beteiligungs_eingang',
   'argument',
-] satisfies NodeSummary['node_type'][];
+] satisfies NodeSummary['nodeType'][];
 
 const dedupeNodeRefs = (nodeRefs: ReadonlyArray<NodeRef>) => {
   const refsByCompositeKey = new Map<string, NodeRef>();
@@ -53,7 +53,7 @@ export const collectEwmsPreloadRefs = (index: ProjectNodeIndex) =>
     ...EWMS_WORKSPACE_PRELOAD_NODE_TYPES.flatMap((nodeType) =>
       getNodesByType(index, nodeType).map((summary) => ({
         id: summary.id,
-        node_type: summary.node_type,
+        nodeType: summary.nodeType,
       })),
     ),
   ]);
@@ -71,14 +71,14 @@ const getSearchScopedEwmsRefs = (
   if (search.selectedArgumentId) {
     refs.push({
       id: search.selectedArgumentId,
-      node_type: 'argument',
+      nodeType: 'argument',
     });
   }
 
   if (search.selectedTopicId) {
     refs.push({
       id: search.selectedTopicId,
-      node_type: 'topic',
+      nodeType: 'topic',
     });
   }
 
@@ -88,24 +88,24 @@ const getSearchScopedEwmsRefs = (
   ) {
     refs.push({
       id: search.selectedSubtopicId,
-      node_type: 'subtopic',
+      nodeType: 'subtopic',
     });
   }
 
   if (search.expandedTopicGroupId) {
     refs.push({
       id: search.expandedTopicGroupId,
-      node_type: 'topic',
+      nodeType: 'topic',
     });
   }
 
   if (search.selectedObjectionId) {
     const selectedNode = getNode(index, search.selectedObjectionId);
 
-    if (selectedNode?.node_type === 'beteiligungs_eingang') {
+    if (selectedNode?.nodeType === 'beteiligungs_eingang') {
       refs.push({
         id: selectedNode.id,
-        node_type: selectedNode.node_type,
+        nodeType: selectedNode.nodeType,
       });
     }
   }

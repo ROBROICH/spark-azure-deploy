@@ -23,16 +23,16 @@ const groupBewertungQuellenByDokument = (
   const groupsByDokumentId = new Map<string, BewertungReferenceGroup>();
 
   for (const bewertungQuelle of bewertungQuellen) {
-    const existingGroup = groupsByDokumentId.get(bewertungQuelle.dokument_id);
+    const existingGroup = groupsByDokumentId.get(bewertungQuelle.dokumentId);
 
     if (existingGroup) {
       existingGroup.quellen.push(bewertungQuelle);
       continue;
     }
 
-    groupsByDokumentId.set(bewertungQuelle.dokument_id, {
-      dokument: dokumentById.get(bewertungQuelle.dokument_id) ?? null,
-      dokumentId: bewertungQuelle.dokument_id,
+    groupsByDokumentId.set(bewertungQuelle.dokumentId, {
+      dokument: dokumentById.get(bewertungQuelle.dokumentId) ?? null,
+      dokumentId: bewertungQuelle.dokumentId,
       quellen: [bewertungQuelle],
     });
   }
@@ -41,10 +41,10 @@ const groupBewertungQuellenByDokument = (
     ...group,
     quellen: [...group.quellen].sort((left, right) => {
       const leftFirstPage =
-        getSmallestReferencePageNumber(left.page_numbers) ??
+        getSmallestReferencePageNumber(left.pageNumbers) ??
         Number.POSITIVE_INFINITY;
       const rightFirstPage =
-        getSmallestReferencePageNumber(right.page_numbers) ??
+        getSmallestReferencePageNumber(right.pageNumbers) ??
         Number.POSITIVE_INFINITY;
 
       if (leftFirstPage !== rightFirstPage) {

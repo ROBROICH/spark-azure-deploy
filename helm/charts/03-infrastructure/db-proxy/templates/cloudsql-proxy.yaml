@@ -1,0 +1,80 @@
+{{- with .Values.cloudSqlProxy }}
+{{- if .enabled }}
+{{- $name := include "db-proxy.cloudSqlProxyName" $ }}
+{{- $component := "cloudsql-proxy" }}
+{{- $instance := required "db-proxy: cloudSqlProxy.instanceConnectionName is required (<project>:<region>:<instance>)" .instanceConnectionName }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "db-proxy.namespace" $ }}
+  labels:
+    {{- include "db-proxy.labels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  replicas: {{ .replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "db-proxy.selectorLabels" (dict "root" $ "component" $component) | nindent 6 }}
+  template:
+    metadata:
+      {{- include "db-proxy.podMetadata" (dict "root" $ "component" $component) | nindent 6 }}
+    spec:
+      {{- include "db-proxy.podCommon" (dict "root" $ "component" $component "values" .) | nindent 6 }}
+      terminationGracePeriodSeconds: {{ add (int .maxSigtermDelaySeconds) 30 }}
+      containers:
+        - name: cloud-sql-proxy
+          image: {{ include "db-proxy.image" (dict "root" $ "image" .image) | quote }}
+          imagePullPolicy: {{ .image.pullPolicy }}
+          args:
+            {{- if .privateIp }}
+            - --private-ip
+            {{- end }}
+            - --address=0.0.0.0
+            - --port={{ .port }}
+            - --health-check
+            - --http-address=0.0.0.0
+            - --http-port={{ .httpPort }}
+            - --prometheus
+            - --structured-logs
+            - --max-sigterm-delay={{ .maxSigtermDelaySeconds }}s
+            {{- range .extraArgs }}
+            - {{ . | quote }}
+            {{- end }}
+            - {{ $instance | quote }}
+          ports:
+            - {name: postgres, containerPort: {{ .port }}}
+            - {name: http, containerPort: {{ .httpPort }}}
+          startupProbe:
+            httpGet: {path: /startup, port: http}
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:
+            httpGet: {path: /liveness, port: http}
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            httpGet: {path: /readiness, port: http}
+            periodSeconds: 5
+            failureThreshold: 3
+          {{- with .resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          securityContext:
+            {{- include "db-proxy.containerSecurity" (dict "root" $ "values" .) | nindent 12 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $name }}
+  namespace: {{ include "db-proxy.namespace" $ }}
+  labels:
+    {{- include "db-proxy.labels" (dict "root" $ "component" $component) | nindent 4 }}
+spec:
+  selector:
+    {{- include "db-proxy.selectorLabels" (dict "root" $ "component" $component) | nindent 4 }}
+  ports:
+    - {name: tcp-postgres, port: {{ .port }}, targetPort: postgres}
+{{- include "db-proxy.pdb" (dict "root" $ "component" $component "name" $name "values" .) }}
+{{- end }}
+{{- end }}

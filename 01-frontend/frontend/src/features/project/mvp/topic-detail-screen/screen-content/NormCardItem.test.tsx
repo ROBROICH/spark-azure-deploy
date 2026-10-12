@@ -42,45 +42,43 @@ let routeSearch: {
 
 const topicNorm = {
   id: 'topic-norm-1',
-  node_type: 'topic_norm',
+  nodeType: 'topic_norm',
   compositeKey: 'topic_norm:topic-norm-1' as CompositeKey,
-  project_id: 'verfahren-1',
-  is_deleted: false,
-  is_outdated: false,
-  frontend_parent_ids: ['topic:topic-1'],
-  project_version: 1,
-  update_type: 'manual',
-  created_at: '2026-04-09T00:00:00.000Z',
-  updated_at: '2026-04-09T00:00:00.000Z',
+  projectId: 'verfahren-1',
+  isDeleted: false,
+  isOutdated: false,
+  frontendParentIds: ['topic:topic-1'],
+  projectVersion: 1,
+  updateType: 'manual',
+  createdAt: '2026-04-09T00:00:00.000Z',
+  updatedAt: '2026-04-09T00:00:00.000Z',
   jurabk: 'BNatSchG',
-  paragraph_nr: '44',
+  paragraphNr: '44',
   satz: null,
   absatz: null,
   nummer: null,
-  mvp_status: 'unchecked',
-  satz_statuses: {},
-  sys_period: null,
-  topic_id: 'topic-1',
+  mvpStatus: 'unchecked',
+  satzStatuses: {},
+  topicId: 'topic-1',
   type: 'pruefung',
 } satisfies NodePayloadByType<'topic_norm'>;
 
 const normNode = {
   id: 'norm-1',
-  node_type: 'norm',
+  nodeType: 'norm',
   compositeKey: 'norm:norm-1' as CompositeKey,
-  project_id: 'verfahren-1',
-  is_deleted: false,
-  is_outdated: false,
-  frontend_parent_ids: ['topic_norm:topic-norm-1'],
-  project_version: 1,
-  update_type: 'manual',
-  created_at: '2026-04-09T00:00:00.000Z',
-  updated_at: '2026-04-09T00:00:00.000Z',
-  gesetz_id: 'gesetz-1',
-  paragraph_nr: '44',
-  paragraph_titel: 'Besonderer Artenschutz',
+  projectId: 'verfahren-1',
+  isDeleted: false,
+  isOutdated: false,
+  frontendParentIds: ['topic_norm:topic-norm-1'],
+  projectVersion: 1,
+  updateType: 'manual',
+  createdAt: '2026-04-09T00:00:00.000Z',
+  updatedAt: '2026-04-09T00:00:00.000Z',
+  gesetzId: 'gesetz-1',
+  paragraphNr: '44',
+  paragraphTitel: 'Besonderer Artenschutz',
   regelungsgegenstand: null,
-  sys_period: null,
   text: 'Norm text',
 } satisfies NodePayloadByType<'norm'>;
 
@@ -126,12 +124,9 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    startSuzNormWorkflowWorkflowsSuzNormIdPostMutation: () => ({}),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartSuzNormWorkflowMutation: () => ({}),
+}));
 
 vi.mock('@tanstack/react-router', () => ({
   getRouteApi: () => ({
@@ -219,6 +214,7 @@ vi.mock('@/features/ui/cards/ai-norm-card/AiNormCard', () => ({
     className?: string;
     headerIcons?: ReactNode;
     menu?: ReactNode;
+    notice?: ReactNode;
     reviewAction: {
       checkedLabel: string;
       disabled?: boolean;
@@ -291,6 +287,7 @@ vi.mock('@/features/ui/cards/ai-norm-card/AiNormCard', () => ({
           </button>
         ) : null}
         <div>{props.title}</div>
+        {props.notice}
         {props.headerIcons}
         {props.menu}
         <button
@@ -368,6 +365,7 @@ const renderNormCardItem = (
 ) => {
   const defaultProps = {
     canMutateTopic: true,
+    aiAnalysisFailureCode: null,
     lawChanges: [],
     normIdsWithFundstellen: new Set<string>(),
     removingNormId: null,
@@ -437,7 +435,7 @@ describe('NormCardItem', () => {
     useDescendantNodesMock.mockReset();
     useDescendantsMock.mockReset();
     useDescendantsMock.mockReturnValue([
-      { id: 'tbm-1', node_type: 'atomares_tbm' },
+      { id: 'tbm-1', nodeType: 'atomares_tbm' },
     ]);
     useRunningWorkflowMock.mockReset();
     useRunningWorkflowMock.mockImplementation(() => ({
@@ -445,6 +443,28 @@ describe('NormCardItem', () => {
       observeStarted: observeStartedWorkflowMock,
     }));
     toastMock.error.mockReset();
+  });
+
+  it('shows the failure of the latest AI analysis run inside the card', () => {
+    renderNormCardItem({ aiAnalysisFailureCode: 'ANALYSIS_FAILED' });
+
+    expect(
+      screen.getByRole('button', {
+        name: 'processingFailure.badge.ariaLabelWithSubject',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('hides the previous failure while a new AI analysis run is running', () => {
+    isWorkflowRunning = true;
+
+    renderNormCardItem({ aiAnalysisFailureCode: 'ANALYSIS_FAILED' });
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'processingFailure.badge.ariaLabelWithSubject',
+      }),
+    ).toBeNull();
   });
 
   it('shows the square AI icon when current fundstellen already exist', () => {
@@ -511,11 +531,11 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         norm: {
           ...normNode,
-          paragraph_nr: '45',
+          paragraphNr: '45',
         },
         topicNorm: {
           ...topicNorm,
-          paragraph_nr: '44',
+          paragraphNr: '44',
         },
       },
     });
@@ -566,7 +586,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          update_type: 'automated',
+          updateType: 'automated',
         },
       },
     });
@@ -580,7 +600,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          update_type: null,
+          updateType: null,
         },
       },
     });
@@ -591,8 +611,8 @@ describe('NormCardItem', () => {
   it('shows the update action when fundstellen exist but are outdated', async () => {
     useDescendantsMock.mockImplementation((nodeType) =>
       nodeType === 'fundstelle'
-        ? [{ id: 'fundstelle-1', node_type: 'fundstelle', is_outdated: true }]
-        : [{ id: 'tbm-1', node_type: 'atomares_tbm' }],
+        ? [{ id: 'fundstelle-1', nodeType: 'fundstelle', isOutdated: true }]
+        : [{ id: 'tbm-1', nodeType: 'atomares_tbm' }],
     );
     mutateMock.mockImplementation((_variables, callbacks) => {
       callbacks?.onSuccess?.({ parentJobId: 'suz-workflow-norm-1' });
@@ -629,7 +649,7 @@ describe('NormCardItem', () => {
     });
     expect(useDescendantsMock).toHaveBeenCalledWith('atomares_tbm', {
       id: 'norm-1',
-      node_type: 'norm',
+      nodeType: 'norm',
     });
     expect(button.getAttribute('data-disabled-tooltip')).toBe(
       'This norm has no legal criteria.',
@@ -678,12 +698,28 @@ describe('NormCardItem', () => {
     expectNoAiActionButtons('Start AI', 'Update');
   });
 
+  it('does not show the AI as running while the workflow status is still loading', () => {
+    useRunningWorkflowMock.mockImplementation(() => ({
+      isLoading: true,
+      isRunning: false,
+      observeStarted: observeStartedWorkflowMock,
+    }));
+
+    renderNormCardItem();
+
+    expectAiActionButtonState('Start AI', {
+      ariaBusy: 'false',
+      disabled: true,
+    });
+    expectNoAiActionButtons('AI running');
+  });
+
   it('shows a loading action instead of update while outdated fundstellen refresh', () => {
     isWorkflowRunning = true;
     useDescendantsMock.mockImplementation((nodeType) =>
       nodeType === 'fundstelle'
-        ? [{ id: 'fundstelle-1', node_type: 'fundstelle', is_outdated: true }]
-        : [{ id: 'tbm-1', node_type: 'atomares_tbm' }],
+        ? [{ id: 'fundstelle-1', nodeType: 'fundstelle', isOutdated: true }]
+        : [{ id: 'tbm-1', nodeType: 'atomares_tbm' }],
     );
 
     renderNormCardItem({
@@ -757,7 +793,7 @@ describe('NormCardItem', () => {
           projectId: 'verfahren-1',
         },
         path: {
-          norm_id: 'norm-1',
+          normId: 'norm-1',
         },
       },
       expect.objectContaining({
@@ -857,7 +893,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          mvp_status: 'checked',
+          mvpStatus: 'checked',
         },
       },
     });
@@ -874,7 +910,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          mvp_status: 'needs_revision',
+          mvpStatus: 'needs_revision',
         },
       },
       selectedNormId: 'norm-1',
@@ -892,7 +928,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          mvp_status: 'checked',
+          mvpStatus: 'checked',
         },
       },
     });
@@ -907,7 +943,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          mvp_status: 'checked',
+          mvpStatus: 'checked',
         },
       },
       normIdsWithFundstellen: new Set([normNode.id]),
@@ -920,8 +956,8 @@ describe('NormCardItem', () => {
   it('uses the default card styling while showing the AI update action for outdated results that need revision', () => {
     useDescendantsMock.mockImplementation((nodeType) =>
       nodeType === 'fundstelle'
-        ? [{ id: 'fundstelle-1', node_type: 'fundstelle', is_outdated: true }]
-        : [{ id: 'tbm-1', node_type: 'atomares_tbm' }],
+        ? [{ id: 'fundstelle-1', nodeType: 'fundstelle', isOutdated: true }]
+        : [{ id: 'tbm-1', nodeType: 'atomares_tbm' }],
     );
 
     renderNormCardItem({
@@ -929,7 +965,7 @@ describe('NormCardItem', () => {
         ...resolvedTopicNormEntry,
         topicNorm: {
           ...topicNorm,
-          mvp_status: 'needs_revision',
+          mvpStatus: 'needs_revision',
         },
       },
       normIdsWithFundstellen: new Set([normNode.id]),

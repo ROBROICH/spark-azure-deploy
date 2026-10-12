@@ -1,4 +1,4 @@
-import { listProcessStepsProcessStepsGet } from '@/api-clients/pls-module';
+import { v1ProjectLogicListProcessSteps as listProcessSteps } from '@/api-clients/backend';
 import { useProject } from '@/features/project/data/collections/projects.collection';
 import {
   SidebarGroup,
@@ -44,7 +44,7 @@ export function CurrentProjectCard(props: CurrentProjectCardProps) {
   const { data: processSteps } = useQuery({
     queryKey: ['process-steps'],
     queryFn: async () => {
-      const { data } = await listProcessStepsProcessStepsGet();
+      const { data } = await listProcessSteps();
       return data ?? [];
     },
     staleTime: Infinity,

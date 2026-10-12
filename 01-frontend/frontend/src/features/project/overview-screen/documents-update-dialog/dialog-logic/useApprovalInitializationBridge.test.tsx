@@ -1,7 +1,4 @@
-import type {
-  ZipApprovalStatus,
-  ZipFileResponse,
-} from '@/api-clients/dms-module';
+import type { ZipApprovalStatus, ZipFileResponse } from '@/api-clients/backend';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
 import React from 'react';
@@ -52,10 +49,11 @@ const makeParams = (
   ...overrides,
 });
 
-const makeZipFile = (
-  approvalStatus: ZipApprovalStatus | null | undefined,
-): ZipFileResponse => ({
+const makeZipFile = (approvalStatus: ZipApprovalStatus): ZipFileResponse => ({
   approvalStatus,
+  approvalError: null,
+  workflowFailureCode: null,
+  sourceProjectVersion: null,
   bucketPath: 'zip-1.zip',
   createdAt: '2026-06-03T10:00:00.000Z',
   filename: 'zip-1.zip',

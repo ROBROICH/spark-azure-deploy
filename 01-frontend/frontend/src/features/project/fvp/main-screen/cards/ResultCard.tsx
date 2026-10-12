@@ -72,6 +72,8 @@ type ResultCardProps = {
   hintsListClassName?: string;
   footerStart?: ReactNode;
   footerEnd?: ReactNode;
+  /** Marker at the end of the status row, such as a failed latest run. */
+  statusAddon?: ReactNode;
 };
 
 export const ResultCard = (props: ResultCardProps) => {
@@ -91,6 +93,7 @@ export const ResultCard = (props: ResultCardProps) => {
     hintsListClassName,
     footerStart,
     footerEnd,
+    statusAddon,
   } = props;
   const { t } = useTranslation('FormalCompletenessCheck');
   const statusText = t(statusTextKey, statusTextOptions);
@@ -102,6 +105,9 @@ export const ResultCard = (props: ResultCardProps) => {
         <span className="text-xs leading-4 font-medium tracking-[0.02em] text-green-900">
           {statusText}
         </span>
+        {statusAddon ? (
+          <span className="ml-auto flex shrink-0">{statusAddon}</span>
+        ) : null}
       </div>
 
       <div className="flex flex-1 flex-col gap-4 p-4">
