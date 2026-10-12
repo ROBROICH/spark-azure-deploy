@@ -16,6 +16,27 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.2.3] - 2026-10-12
+
+### Changed
+
+* Python services now use ZenDiS hardened runtime images
+* DevGuard CI templates upgraded to version 1.14.0
+* Helm charts now reference the 0.2.3 service images
+* Community documentation and templates now use GitLab merge-request terminology
+
+### Fixed
+
+* Document management signs internal upload URLs with the internal storage endpoint
+* Formal completeness check prompt fields now match their output schemas
+
+### Security
+
+* PDF redaction no longer leaks content through page objects that remain referenced outside the page tree ([#40](https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/spark-workflow/-/issues/40))
+* Dependency versions were updated to close known CVEs, including anyio 4.14.2
+
+---
+
 ## [0.2.2] - 2026-08-10
 
 ### Added
