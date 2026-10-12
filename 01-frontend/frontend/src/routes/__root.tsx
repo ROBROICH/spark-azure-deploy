@@ -36,7 +36,7 @@ const MobileSidebarTrigger = () => {
   const { t } = useTranslation('shared');
 
   return (
-    <div className="flex items-center justify-end border-b border-border-primary bg-neutral-white px-4 py-2 md:hidden">
+    <div className="flex items-center justify-end border-b border-border-primary bg-neutral-white px-2 py-0 md:hidden">
       <Button
         iconOnly
         variant="ghost"
@@ -80,7 +80,7 @@ const AppShell = () => {
             <SiteNavbar />
             <SidebarInset
               ref={sidebarInsetRef}
-              className="overflow-auto bg-bg-secondary"
+              className="overflow-x-hidden overflow-y-auto bg-bg-secondary"
             >
               <MobileSidebarTrigger />
               <Outlet />

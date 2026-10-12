@@ -22,7 +22,7 @@ os.environ.setdefault("TEMPORAL_JOB_SERVICE_URL", "http://localhost:18011")
 os.environ.setdefault("OTEL_SERVICE_NAME", "bewertung-test")
 os.environ.setdefault("OTEL_ENDPOINT", "http://localhost:4317")
 
-from temporal.workflows.bewertung.types import Originaltext
+from temporal.contracts import Originaltext
 
 from src.models.types import MicroSummary
 

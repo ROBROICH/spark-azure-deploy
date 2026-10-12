@@ -59,31 +59,33 @@ const createArgument = (
   const id = overrides.id ?? 'argument-1';
 
   return {
-    argument_id: 'A1',
-    beteiligungs_eingang_id: 'entry-1',
-    compositeKey: toCompositeKey({ id, node_type: 'argument' }),
+    argumentId: 'A1',
+    beteiligungsEingangId: 'entry-1',
+    extractionPayload: null,
+    compositeKey: toCompositeKey({ id, nodeType: 'argument' }),
     context: null,
-    context_end_idx: null,
-    context_start_idx: null,
-    created_at: '2026-01-01T00:00:00.000Z',
+    contextEndIdx: null,
+    contextStartIdx: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
     einordnung: null,
-    end_idx: null,
+    endIdx: null,
     erwiderung: null,
-    frontend_parent_ids: [],
+    frontendParentIds: [],
     id,
-    in_vae: false,
-    is_deleted: false,
-    is_valid_argument: true,
-    node_type: 'argument',
-    project_id: 'project-1',
-    start_idx: null,
+    inVae: false,
+    isDeleted: false,
+    isValidArgument: true,
+    nodeType: 'argument',
+    projectId: 'project-1',
+    startIdx: null,
     status: 'open',
-    sub_topic_id: null,
-    sys_period: null,
+    topicConfidence: null,
+    subTopicConfidence: null,
+    subTopicId: null,
     text: 'Argument text',
-    topic_id: 'topic-1',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00.000Z',
+    topicId: 'topic-1',
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   } satisfies RpbArgumentNode;
 };
@@ -100,7 +102,7 @@ describe('AiParticipationArgumentVirtualList', () => {
     const user = userEvent.setup();
     const argument = createArgument({
       id: 'argument-1',
-      in_vae: false,
+      inVae: false,
     });
 
     render(
@@ -123,12 +125,12 @@ describe('AiParticipationArgumentVirtualList', () => {
     ) => void;
     const draft = createArgument({
       id: 'argument-1',
-      in_vae: false,
+      inVae: false,
     });
 
     recipe(draft);
 
-    expect(draft.in_vae).toBe(true);
+    expect(draft.inVae).toBe(true);
   });
 
   it('does not mutate invalid arguments even when the card invokes the toggle', async () => {
@@ -139,7 +141,7 @@ describe('AiParticipationArgumentVirtualList', () => {
         argumentsList={[
           createArgument({
             id: 'argument-1',
-            is_valid_argument: false,
+            isValidArgument: false,
           }),
         ]}
         canMutate

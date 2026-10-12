@@ -1,14 +1,14 @@
 import type { MvpLaneOrderPreference, MvpLeftPanelTab } from './mvp.search';
 
 export const findConnectedProjectDocumentId = (
-  topicDocuments: { dms_file_id: string; id: string }[],
+  topicDocuments: { dmsFileId: string; id: string }[],
   previewDocumentId: string | undefined,
 ) => {
   const topicDocument = topicDocuments.find(
     (document) => document.id === previewDocumentId,
   );
   if (topicDocument) {
-    return topicDocument.dms_file_id;
+    return topicDocument.dmsFileId;
   }
 
   return undefined;

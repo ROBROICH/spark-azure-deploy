@@ -1,9 +1,8 @@
-import { type DeadlineResponse } from '@/api-clients/pls-module';
-import { deadlinesCollection } from '@/features/project/overview-screen/data/collections/deadlines.collection';
 import {
-  createDeadlineSchema,
-  type DeadlineFormValues,
-} from '@/features/project/overview-screen/schemas';
+  v1ProjectLogicUpdateDeadline,
+  type DeadlineResponse,
+} from '@/api-clients/backend';
+import { invalidateDeadlineReads } from '@/features/project/overview-screen/data/collections/deadlines.collection';
 import { toast } from '@/features/ui/toast/Toast';
 import {
   Dialog,
@@ -11,10 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/features/ui/dialog/Dialog';
-import { useForm } from '@tanstack/react-form';
+import * as Sentry from '@sentry/react';
 import { useTranslation } from 'react-i18next';
 
-import { DeadlineDialogForm } from './DeadlineDialogForm';
+import {
+  DeadlineDialogForm,
+  useDeadlineDialogForm,
+} from './DeadlineDialogForm';
 
 export type EditDeadlineDialogProps = {
   canMutateProject: boolean;
@@ -22,50 +24,45 @@ export type EditDeadlineDialogProps = {
   onOpenChange: (open: boolean) => void;
 };
 
-/** Pre-populates form with existing deadline values and patches the collection on submit. */
+/** Keeps unsaved deadline edits open until the server accepts them. */
 export function EditDeadlineDialog(props: EditDeadlineDialogProps) {
   const { canMutateProject, deadline, onOpenChange } = props;
   const { t } = useTranslation('Project');
-  const schema = createDeadlineSchema(t);
-
-  const form = useForm<
-    DeadlineFormValues,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    typeof schema,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    unknown
-  >({
-    defaultValues: {
+  const form = useDeadlineDialogForm(
+    {
       deadlineType: deadline?.deadlineType ?? '',
       startAt: deadline?.startAt.split('T')[0] ?? '',
       endAt: deadline?.endAt.split('T')[0] ?? '',
       legalBasis: deadline?.legalBasis ?? '',
     },
-    validators: { onSubmit: schema },
-    onSubmit: ({ value }) => {
+    async (value) => {
       if (!deadline || !canMutateProject) {
         onOpenChange(false);
         return;
       }
-      deadlinesCollection.update(deadline.id, (draft) => {
-        Object.assign(draft, {
-          deadlineType: value.deadlineType.trim(),
-          startAt: value.startAt.trim(),
-          endAt: value.endAt.trim(),
-          legalBasis: value.legalBasis.trim() || null,
+      try {
+        await v1ProjectLogicUpdateDeadline({
+          path: { deadlineId: deadline.id },
+          body: {
+            deadlineType: value.deadlineType.trim(),
+            startAt: value.startAt.trim(),
+            endAt: value.endAt.trim(),
+            legalBasis: value.legalBasis.trim() || null,
+          },
+          throwOnError: true,
         });
-      });
+        await invalidateDeadlineReads();
+      } catch (error) {
+        // Keep the dialog open with the unsaved edit so the user can retry.
+        Sentry.captureException(error);
+        toast.error(t('Deadlines.updateError'));
+        return;
+      }
+
       toast.success(t('Deadlines.updateSuccess'));
       onOpenChange(false);
     },
-  });
+  );
 
   const handleOpenChange = (next: boolean) => {
     if (!next) {
@@ -83,14 +80,7 @@ export function EditDeadlineDialog(props: EditDeadlineDialogProps) {
         <DeadlineDialogForm
           form={form}
           formId="edit-deadline-form"
-          labels={{
-            cancel: t('Deadlines.editDialog.cancel'),
-            deadlineType: t('Deadlines.form.deadlineType'),
-            endAt: t('Deadlines.form.endAt'),
-            legalBasis: t('Deadlines.form.legalBasis'),
-            save: t('Deadlines.editDialog.save'),
-            startAt: t('Deadlines.form.startAt'),
-          }}
+          mode="edit"
         />
       </DialogContent>
     </Dialog>

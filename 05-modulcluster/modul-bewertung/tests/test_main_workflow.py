@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.bewertung.types import (
+from temporal.contracts import (
     BewertungsWorkflowInput,
     BewertungsWorkflowOutput,
     Originaltext,
@@ -22,6 +22,8 @@ from src.models.types import (
     SvmMicroList,
 )
 from src.workflows.main_workflow import BewertungsWorkflow, _assign_simple_ids
+
+TEST_UUID = "00000000-0000-4000-8000-000000000001"
 
 
 def _ot(node_id: str, title: str = "Title", text: str = "Text") -> Originaltext:
@@ -130,7 +132,7 @@ class TestInsufficientFundstellenOutput:
         inp = _workflow_input(n_chunks=config.MIN_FUNDSTELLEN - 2)
         wf = BewertungsWorkflow()
 
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = wf._build_insufficient_fundstellen_output(
                 inp, "§ 22 BImSchG - Pflichten",
             )
@@ -146,7 +148,7 @@ class TestInsufficientFundstellenOutput:
         inp = _workflow_input(n_chunks=3)
         wf = BewertungsWorkflow()
 
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = wf._build_insufficient_fundstellen_output(
                 inp, "§ 22 BImSchG - Pflichten",
             )
@@ -187,7 +189,7 @@ class TestPrecheckSkipOutput:
         )
 
         wf = BewertungsWorkflow()
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = wf._build_precheck_skip_output(
                 inp, "§ 22 BImSchG", applicability, preprocessed, id_mapping,
             )
@@ -217,7 +219,7 @@ class TestPrecheckSkipOutput:
         )
 
         wf = BewertungsWorkflow()
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = wf._build_precheck_skip_output(
                 inp, "§ 22 BImSchG", applicability, preprocessed, id_mapping,
             )
@@ -246,7 +248,7 @@ class TestPrecheckSkipOutput:
         )
 
         wf = BewertungsWorkflow()
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = wf._build_precheck_skip_output(
                 inp, "§ 22 BImSchG", applicability, preprocessed, id_mapping,
             )
@@ -270,7 +272,7 @@ class TestBewertungsWorkflowRun:
         inp = _workflow_input(n_chunks=config.MIN_FUNDSTELLEN - 2)
 
         wf = BewertungsWorkflow()
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = await wf.run(inp)
 
         assert isinstance(result, BewertungsWorkflowOutput)
@@ -298,7 +300,7 @@ class TestBewertungsWorkflowRun:
         wf = BewertungsWorkflow()
         with (
             patch("temporalio.workflow.execute_child_workflow", mock_child_wf),
-            patch("temporalio.workflow.uuid4", return_value="test-uuid"),
+            patch("temporalio.workflow.uuid4", return_value=TEST_UUID),
         ):
             result = await wf.run(inp)
 
@@ -329,7 +331,7 @@ class TestBewertungsWorkflowRun:
         wf = BewertungsWorkflow()
         with (
             patch("temporalio.workflow.execute_child_workflow", mock_child_wf),
-            patch("temporalio.workflow.uuid4", return_value="test-uuid"),
+            patch("temporalio.workflow.uuid4", return_value=TEST_UUID),
         ):
             result = await wf.run(inp)
 
@@ -359,7 +361,7 @@ class TestBewertungsWorkflowRun:
         wf = BewertungsWorkflow()
         with (
             patch("temporalio.workflow.execute_child_workflow", mock_child_wf),
-            patch("temporalio.workflow.uuid4", return_value="test-uuid"),
+            patch("temporalio.workflow.uuid4", return_value=TEST_UUID),
         ):
             result = await wf.run(inp)
 
@@ -373,7 +375,7 @@ class TestBewertungsWorkflowRun:
         inp = _workflow_input(n_chunks=3)
 
         wf = BewertungsWorkflow()
-        with patch("temporalio.workflow.uuid4", return_value="test-uuid"):
+        with patch("temporalio.workflow.uuid4", return_value=TEST_UUID):
             result = await wf.run(inp)
 
         assert result.norm == "§ 22 BImSchG - Pflichten der Betreiber nicht genehmigungsbedürftiger Anlagen"
@@ -395,7 +397,7 @@ class TestBewertungsWorkflowRun:
         wf = BewertungsWorkflow()
         with (
             patch("temporalio.workflow.execute_child_workflow", mock_child_wf),
-            patch("temporalio.workflow.uuid4", return_value="test-uuid"),
+            patch("temporalio.workflow.uuid4", return_value=TEST_UUID),
         ):
             result = await wf.run(inp)
 

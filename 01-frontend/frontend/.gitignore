@@ -3,9 +3,12 @@ node_modules
 dist
 dist-ssr
 *.local
+openapi.local/
 count.txt
 .env
 !.env.local.example
+!.env.local-backend.example
+!.env.port-forwarding.example
 .nitro
 .tanstack
 .wrangler

@@ -1,4 +1,4 @@
-import { Accordion } from '@/features/ui/accordion/Accordion';
+import { LawNormPicker } from '@/features/shared/legal-basis-picker/LawNormPicker';
 import { Skeleton, skeletonListProps } from '@/features/ui/skeleton/Skeleton';
 import { toast } from '@/features/ui/toast/Toast';
 import * as Sentry from '@sentry/react';
@@ -17,7 +17,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import { Suspense, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAvailableRechtsgrundlageData } from '../../screen-data/useRechtsgrundlageData';
-import { LawGroupRow } from './LawGroupRow';
+import { getAvailableNormLabel } from '../../screen-data/useRechtsgrundlageData.helpers';
 import {
   saveNormSelectionChanges,
   type NormSelectionDraftModes,
@@ -227,18 +227,28 @@ const ResolvedRechtsgrundlageDialogContent = (
   return (
     <>
       <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <Accordion className="flex flex-col gap-2">
-          {availableLawGroups.map((group) => (
-            <LawGroupRow
-              key={group.id}
-              lawGroup={group}
-              norms={group.norms}
-              isNormSelected={isNormSelected}
-              onToggleNorm={toggleNorm}
-              onToggleGroup={toggleGroup}
-            />
-          ))}
-        </Accordion>
+        <LawNormPicker
+          groups={availableLawGroups.map((group) => ({
+            id: group.id,
+            label: group.gesetz?.jurabk ?? group.id,
+            norms: group.norms.map((norm) => ({
+              id: norm.selectionKey,
+              label: getAvailableNormLabel(norm),
+            })),
+            isComplete: true,
+            isLoadingComplete: false,
+          }))}
+          selectedIds={
+            new Set(
+              availableNormEntries
+                .filter((entry) => isNormSelected(entry.selectionKey))
+                .map((entry) => entry.selectionKey),
+            )
+          }
+          status={availableLawGroups.length === 0 ? 'empty' : 'ready'}
+          onToggleNorm={toggleNorm}
+          onToggleGroup={toggleGroup}
+        />
       </div>
 
       <div className="flex flex-col gap-4 px-4 pb-4">

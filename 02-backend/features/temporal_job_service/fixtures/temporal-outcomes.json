@@ -1,0 +1,1039 @@
+{
+  "fixtures": [
+    {
+      "name": "list-empty",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "all",
+        "projectId": "81000000-0000-4000-8000-000000000001",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 0,
+          "workflows": [],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-mixed",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "all",
+        "projectId": "81000000-0000-4000-8000-000000000002",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 3,
+          "workflows": [
+            {
+              "workflowId": "mixed-running",
+              "runId": "run-mixed-running",
+              "projectId": "81000000-0000-4000-8000-000000000002",
+              "projectVersion": 3,
+              "workflowType": "FVPWorkflow",
+              "status": "running",
+              "workflowStartTime": "2026-07-10T08:00:00Z",
+              "workflowCloseTime": null,
+              "failure": null
+            },
+            {
+              "workflowId": "mixed-completed",
+              "runId": "run-mixed-completed",
+              "projectId": "81000000-0000-4000-8000-000000000002",
+              "projectVersion": 2,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "completed",
+              "workflowStartTime": "2026-07-09T09:00:00Z",
+              "workflowCloseTime": "2026-07-09T09:04:00Z",
+              "failure": null
+            },
+            {
+              "workflowId": "mixed-failed",
+              "runId": "run-mixed-failed",
+              "projectId": "81000000-0000-4000-8000-000000000002",
+              "projectVersion": 1,
+              "workflowType": "LegacyWorkflow",
+              "status": "failed",
+              "workflowStartTime": "2026-07-08T10:00:00Z",
+              "workflowCloseTime": "2026-07-08T10:01:00Z",
+              "failure": { "errorCode": "ANALYSIS_FAILED", "branches": [] }
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-running",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Running",
+        "projectId": "81000000-0000-4000-8000-000000000003",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-running",
+              "runId": "run-list-running",
+              "projectId": "81000000-0000-4000-8000-000000000003",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "running",
+              "workflowStartTime": "2026-07-11T08:00:00Z",
+              "workflowCloseTime": null,
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-completed-current-version",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Completed",
+        "projectId": "81000000-0000-4000-8000-000000000004",
+        "projectVersion": 4,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-completed-current",
+              "runId": "run-list-completed-current",
+              "projectId": "81000000-0000-4000-8000-000000000004",
+              "projectVersion": 4,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "completed",
+              "workflowStartTime": "2026-07-11T09:00:00Z",
+              "workflowCloseTime": "2026-07-11T09:05:00Z",
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-completed-historical-version",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Completed",
+        "projectId": "81000000-0000-4000-8000-000000000005",
+        "projectVersion": 2,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-completed-historical",
+              "runId": "run-list-completed-historical",
+              "projectId": "81000000-0000-4000-8000-000000000005",
+              "projectVersion": 2,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "completed",
+              "workflowStartTime": "2026-06-01T09:00:00Z",
+              "workflowCloseTime": "2026-06-01T09:05:00Z",
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-failed",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Failed",
+        "projectId": "81000000-0000-4000-8000-000000000006",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-failed",
+              "runId": "run-list-failed",
+              "projectId": "81000000-0000-4000-8000-000000000006",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "failed",
+              "workflowStartTime": "2026-07-11T10:00:00Z",
+              "workflowCloseTime": "2026-07-11T10:01:00Z",
+              "failure": { "errorCode": "ANALYSIS_FAILED", "branches": [] }
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-canceled",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Canceled",
+        "projectId": "81000000-0000-4000-8000-000000000007",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-canceled",
+              "runId": "run-list-canceled",
+              "projectId": "81000000-0000-4000-8000-000000000007",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "canceled",
+              "workflowStartTime": "2026-07-11T11:00:00Z",
+              "workflowCloseTime": "2026-07-11T11:01:00Z",
+              "failure": { "errorCode": "ANALYSIS_CANCELED", "branches": [] }
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-terminated",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "Terminated",
+        "projectId": "81000000-0000-4000-8000-000000000008",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-terminated",
+              "runId": "run-list-terminated",
+              "projectId": "81000000-0000-4000-8000-000000000008",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "terminated",
+              "workflowStartTime": "2026-07-11T12:00:00Z",
+              "workflowCloseTime": "2026-07-11T12:01:00Z",
+              "failure": { "errorCode": "ANALYSIS_CANCELED", "branches": [] }
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-timed-out",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "TimedOut",
+        "projectId": "81000000-0000-4000-8000-000000000009",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-timed-out",
+              "runId": "run-list-timed-out",
+              "projectId": "81000000-0000-4000-8000-000000000009",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "timed_out",
+              "workflowStartTime": "2026-07-11T13:00:00Z",
+              "workflowCloseTime": "2026-07-11T13:01:00Z",
+              "failure": { "errorCode": "ANALYSIS_TIMED_OUT", "branches": [] }
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-continued-as-new",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "ContinuedAsNew",
+        "projectId": "81000000-0000-4000-8000-000000000010",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "list-continued-as-new",
+              "runId": "run-list-continued-as-new",
+              "projectId": "81000000-0000-4000-8000-000000000010",
+              "projectVersion": 1,
+              "workflowType": "FVPWorkflow",
+              "status": "continued_as_new",
+              "workflowStartTime": "2026-07-11T14:00:00Z",
+              "workflowCloseTime": "2026-07-11T14:01:00Z",
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "list-boundary-failure",
+      "operation": "temporal-job.workflows.list",
+      "input": {
+        "executionStatus": "all",
+        "projectId": "81000000-0000-4000-8000-000000000011",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "RPC_ERROR",
+          "message": "list boundary unavailable"
+        }
+      }
+    },
+    {
+      "name": "by-type-empty",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000001",
+        "workflowType": "BatchMVPWorkflow",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000001",
+          "workflowType": "BatchMVPWorkflow",
+          "retrievedWorkflows": 0,
+          "workflows": [],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-multiple",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000002",
+        "workflowType": "BatchMVPWorkflow",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000002",
+          "workflowType": "BatchMVPWorkflow",
+          "retrievedWorkflows": 2,
+          "workflows": [
+            {
+              "workflowId": "by-type-newer",
+              "runId": "run-by-type-newer",
+              "projectId": "82000000-0000-4000-8000-000000000002",
+              "projectVersion": 3,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "running",
+              "workflowStartTime": "2026-07-12T09:00:00Z",
+              "workflowCloseTime": null,
+              "failure": null
+            },
+            {
+              "workflowId": "by-type-older",
+              "runId": "run-by-type-older",
+              "projectId": "82000000-0000-4000-8000-000000000002",
+              "projectVersion": 2,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "completed",
+              "workflowStartTime": "2026-07-11T09:00:00Z",
+              "workflowCloseTime": "2026-07-11T09:05:00Z",
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-workflow-ids",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000002",
+        "workflowType": "BatchMVPWorkflow",
+        "workflowIds": ["by-type-older", "by-type-missing"],
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000002",
+          "workflowType": "BatchMVPWorkflow",
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "by-type-older",
+              "runId": "run-by-type-older",
+              "projectId": "82000000-0000-4000-8000-000000000002",
+              "projectVersion": 2,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "completed",
+              "workflowStartTime": "2026-07-11T09:00:00Z",
+              "workflowCloseTime": "2026-07-11T09:05:00Z",
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-single-workflow-id",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000002",
+        "workflowType": "BatchMVPWorkflow",
+        "workflowIds": ["by-type-newer"],
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000002",
+          "workflowType": "BatchMVPWorkflow",
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "by-type-newer",
+              "runId": "run-by-type-newer",
+              "projectId": "82000000-0000-4000-8000-000000000002",
+              "projectVersion": 3,
+              "workflowType": "BatchMVPWorkflow",
+              "status": "running",
+              "workflowStartTime": "2026-07-12T09:00:00Z",
+              "workflowCloseTime": null,
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-hundred-workflow-ids",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000002",
+        "workflowType": "BatchMVPWorkflow",
+        "workflowIds": [
+          "norm-0", "norm-1", "norm-2", "norm-3", "norm-4", "norm-5", "norm-6", "norm-7", "norm-8", "norm-9",
+          "norm-10", "norm-11", "norm-12", "norm-13", "norm-14", "norm-15", "norm-16", "norm-17", "norm-18", "norm-19",
+          "norm-20", "norm-21", "norm-22", "norm-23", "norm-24", "norm-25", "norm-26", "norm-27", "norm-28", "norm-29",
+          "norm-30", "norm-31", "norm-32", "norm-33", "norm-34", "norm-35", "norm-36", "norm-37", "norm-38", "norm-39",
+          "norm-40", "norm-41", "norm-42", "norm-43", "norm-44", "norm-45", "norm-46", "norm-47", "norm-48", "norm-49",
+          "norm-50", "norm-51", "norm-52", "norm-53", "norm-54", "norm-55", "norm-56", "norm-57", "norm-58", "norm-59",
+          "norm-60", "norm-61", "norm-62", "norm-63", "norm-64", "norm-65", "norm-66", "norm-67", "norm-68", "norm-69",
+          "norm-70", "norm-71", "norm-72", "norm-73", "norm-74", "norm-75", "norm-76", "norm-77", "norm-78", "norm-79",
+          "norm-80", "norm-81", "norm-82", "norm-83", "norm-84", "norm-85", "norm-86", "norm-87", "norm-88", "norm-89",
+          "norm-90", "norm-91", "norm-92", "norm-93", "norm-94", "norm-95", "norm-96", "norm-97", "norm-98", "norm-99"
+        ],
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000002",
+          "workflowType": "BatchMVPWorkflow",
+          "retrievedWorkflows": 0,
+          "workflows": [],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-with-children",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000003",
+        "workflowType": "FVPWorkflow",
+        "projectVersion": 7,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "82000000-0000-4000-8000-000000000003",
+          "workflowType": "FVPWorkflow",
+          "retrievedWorkflows": 1,
+          "workflows": [
+            {
+              "workflowId": "by-type-parent",
+              "runId": "run-by-type-parent",
+              "projectId": "82000000-0000-4000-8000-000000000003",
+              "projectVersion": 7,
+              "workflowType": "FVPWorkflow",
+              "status": "running",
+              "workflowStartTime": "2026-07-12T10:00:00Z",
+              "workflowCloseTime": null,
+              "failure": null
+            }
+          ],
+          "nextPageToken": null
+        }
+      }
+    },
+    {
+      "name": "by-type-boundary-failure",
+      "operation": "temporal-job.workflows.by-type",
+      "input": {
+        "projectId": "82000000-0000-4000-8000-000000000004",
+        "workflowType": "BatchMVPWorkflow",
+        "projectVersion": null,
+        "pageSize": 100,
+        "nextPageToken": null,
+        "executionStatus": "all"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "RPC_ERROR",
+          "message": "by-type boundary unavailable"
+        }
+      }
+    },
+    {
+      "name": "workflow-project-completed",
+      "operation": "temporal-job.workflow.project",
+      "input": {
+        "workflowId": "tjs-completed-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "81000000-0000-4000-8000-000000000004",
+          "runId": "run-tjs-completed-workflow"
+        }
+      }
+    },
+    {
+      "name": "workflow-project-tree-nested",
+      "operation": "temporal-job.workflow.project",
+      "input": {
+        "workflowId": "tjs-tree-nested"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": "81000000-0000-4000-8000-000000000004",
+          "runId": "run-tjs-tree-nested"
+        }
+      }
+    },
+    {
+      "name": "workflow-project-absent",
+      "operation": "temporal-job.workflow.project",
+      "input": {
+        "workflowId": "tjs-running-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "projectId": null,
+          "runId": "run-tjs-running-workflow"
+        }
+      }
+    },
+    {
+      "name": "workflow-running",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-running-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "tjs-running-workflow",
+          "workflowType": "FVPWorkflow",
+          "workflowStartTime": "2026-07-13T08:00:00Z",
+          "workflowCloseTime": null,
+          "status": "running",
+          "result": null,
+          "runId": "run-tjs-running-workflow"
+        }
+      }
+    },
+    {
+      "name": "workflow-completed-result",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-completed-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "tjs-completed-workflow",
+          "workflowType": "FVPWorkflow",
+          "workflowStartTime": "2026-07-13T09:00:00Z",
+          "workflowCloseTime": "2026-07-13T09:08:00Z",
+          "status": "completed",
+          "result": {
+            "projectId": "81000000-0000-4000-8000-000000000004",
+            "projectVersion": 4,
+            "documents": [
+              {
+                "documentId": "doc-1",
+                "accepted": true,
+                "score": 0.875
+              }
+            ],
+            "summary": {
+              "warnings": 1,
+              "labels": [
+                "representative",
+                "stable"
+              ]
+            }
+          },
+          "runId": "run-tjs-completed-workflow"
+        }
+      }
+    },
+    {
+      "name": "workflow-failed-result",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-failed-workflow"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "APPLICATION_ERROR",
+          "message": "workflow result failed"
+        }
+      }
+    },
+    {
+      "name": "workflow-canceled-result",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-canceled-workflow"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "APPLICATION_ERROR",
+          "message": "workflow result canceled"
+        }
+      }
+    },
+    {
+      "name": "workflow-not-found",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-missing-workflow"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "workflow not found"
+        }
+      }
+    },
+    {
+      "name": "workflow-rpc-failure",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-rpc-failure"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "RPC_ERROR",
+          "message": "workflow boundary unavailable"
+        }
+      }
+    },
+    {
+      "name": "workflow-generic-failure",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-generic-failure"
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "APPLICATION_ERROR",
+          "message": "workflow result could not be decoded"
+        }
+      }
+    },
+    {
+      "name": "execution-tree-root-only",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-root",
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "type": "workflow",
+          "name": "FVPWorkflow",
+          "id": "tjs-tree-root",
+          "status": "completed",
+          "error": null,
+          "children": [],
+          "runId": "run-tjs-tree-root",
+          "nextPageToken": null,
+          "historyComplete": true,
+          "continuedAsNewRunId": null
+        }
+      }
+    },
+    {
+      "name": "execution-tree-nested",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-nested",
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "type": "workflow",
+          "name": "FVPWorkflow",
+          "id": "tjs-tree-nested",
+          "status": "running",
+          "error": null,
+          "children": [
+            {
+              "type": "activity",
+              "name": "prepare_documents",
+              "id": "activity-1",
+              "status": "completed",
+              "error": null,
+              "eventId": 1,
+              "runId": null,
+              "children": []
+            },
+            {
+              "type": "workflow",
+              "name": "MVPWorkflow",
+              "id": "tree-child",
+              "status": "failed",
+              "error": "representative nested failure",
+              "eventId": 2,
+              "runId": "run-tree-child",
+              "children": null
+            }
+          ],
+          "runId": "run-tjs-tree-nested",
+          "nextPageToken": null,
+          "historyComplete": true,
+          "continuedAsNewRunId": null
+        }
+      }
+    },
+    {
+      "name": "execution-tree-missing",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-missing",
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "NOT_FOUND",
+          "message": "workflow lineage not found"
+        }
+      }
+    },
+    {
+      "name": "execution-tree-boundary-failure",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-boundary-failure",
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "throw",
+        "error": {
+          "code": "RPC_ERROR",
+          "message": "execution tree boundary unavailable"
+        }
+      }
+    },
+    {
+      "name": "system-load-mixed",
+      "operation": "temporal-job.load.get",
+      "input": {
+        "maxComplexity": 1000,
+        "workflowComplexity": {
+          "BatchMVPWorkflow": 20,
+          "FVPWorkflow": 100
+        },
+        "defaultWorkflowComplexityWeight": 3
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "loadPercentage": 14.3,
+          "runningWorkflows": 4,
+          "currentComplexity": 143,
+          "maxComplexity": 1000,
+          "breakdown": [
+            {
+              "workflowType": "BatchMVPWorkflow",
+              "runningCount": 2,
+              "complexityWeight": 20,
+              "totalComplexity": 40
+            },
+            {
+              "workflowType": "FVPWorkflow",
+              "runningCount": 1,
+              "complexityWeight": 100,
+              "totalComplexity": 100
+            },
+            {
+              "workflowType": null,
+              "runningCount": 1,
+              "complexityWeight": 3,
+              "totalComplexity": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "execution-tree-child",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tree-child",
+        "runId": "run-tree-child",
+        "pageSize": 100,
+        "nextPageToken": null
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "type": "workflow",
+          "name": "MVPWorkflow",
+          "id": "tree-child",
+          "runId": "run-tree-child",
+          "status": "failed",
+          "error": "representative nested failure",
+          "children": [
+            {
+              "type": "activity",
+              "name": "extract",
+              "id": "activity-2",
+              "status": "completed",
+              "error": null,
+              "children": [],
+              "eventId": 1,
+              "runId": null
+            }
+          ],
+          "nextPageToken": null,
+          "historyComplete": true,
+          "continuedAsNewRunId": null
+        }
+      }
+    },
+    {
+      "name": "workflow-running-exact-run",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-running-workflow",
+        "runId": "run-tjs-running-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "tjs-running-workflow",
+          "workflowType": "FVPWorkflow",
+          "workflowStartTime": "2026-07-13T08:00:00Z",
+          "workflowCloseTime": null,
+          "status": "running",
+          "result": null,
+          "runId": "run-tjs-running-workflow"
+        }
+      }
+    },
+    {
+      "name": "workflow-completed-result-exact-run",
+      "operation": "temporal-job.workflow.get",
+      "input": {
+        "workflowId": "tjs-completed-workflow",
+        "runId": "run-tjs-completed-workflow"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "workflowId": "tjs-completed-workflow",
+          "workflowType": "FVPWorkflow",
+          "workflowStartTime": "2026-07-13T09:00:00Z",
+          "workflowCloseTime": "2026-07-13T09:08:00Z",
+          "status": "completed",
+          "result": {
+            "projectId": "81000000-0000-4000-8000-000000000004",
+            "projectVersion": 4,
+            "documents": [
+              {
+                "documentId": "doc-1",
+                "accepted": true,
+                "score": 0.875
+              }
+            ],
+            "summary": {
+              "warnings": 1,
+              "labels": [
+                "representative",
+                "stable"
+              ]
+            }
+          },
+          "runId": "run-tjs-completed-workflow"
+        }
+      }
+    },
+    {
+      "name": "execution-tree-root-only-exact-run",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-root",
+        "pageSize": 100,
+        "nextPageToken": null,
+        "runId": "run-tjs-tree-root"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "type": "workflow",
+          "name": "FVPWorkflow",
+          "id": "tjs-tree-root",
+          "status": "completed",
+          "error": null,
+          "children": [],
+          "runId": "run-tjs-tree-root",
+          "nextPageToken": null,
+          "historyComplete": true,
+          "continuedAsNewRunId": null
+        }
+      }
+    },
+    {
+      "name": "execution-tree-nested-exact-run",
+      "operation": "temporal-job.workflow.execution-tree",
+      "input": {
+        "workflowId": "tjs-tree-nested",
+        "pageSize": 100,
+        "nextPageToken": null,
+        "runId": "run-tjs-tree-nested"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "type": "workflow",
+          "name": "FVPWorkflow",
+          "id": "tjs-tree-nested",
+          "status": "running",
+          "error": null,
+          "children": [
+            {
+              "type": "activity",
+              "name": "prepare_documents",
+              "id": "activity-1",
+              "status": "completed",
+              "error": null,
+              "eventId": 1,
+              "runId": null,
+              "children": []
+            },
+            {
+              "type": "workflow",
+              "name": "MVPWorkflow",
+              "id": "tree-child",
+              "status": "failed",
+              "error": "representative nested failure",
+              "eventId": 2,
+              "runId": "run-tree-child",
+              "children": null
+            }
+          ],
+          "runId": "run-tjs-tree-nested",
+          "nextPageToken": null,
+          "historyComplete": true,
+          "continuedAsNewRunId": null
+        }
+      }
+    }
+  ]
+}

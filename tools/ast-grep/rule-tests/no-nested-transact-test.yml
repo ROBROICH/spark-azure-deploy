@@ -1,0 +1,24 @@
+id: no-nested-transact
+
+invalid:
+  - |
+    await database.transact(async () => {
+      await database.transact(async () => work());
+    });
+
+  - |
+    return transact(async () => {
+      await query(async (database) => database.select());
+      return transact(async () => persist());
+    });
+
+valid:
+  - |
+    await database.transact(async () => {
+      await query(async (client) => client.select());
+      await resourceCall();
+    });
+
+  - |
+    await first.transact(async () => writeFirst());
+    await second.transact(async () => writeSecond());

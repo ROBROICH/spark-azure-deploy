@@ -5,19 +5,19 @@ export const findConnectedProjectDocumentId = (
   previewDocumentId: string | undefined,
   resolvedPreviewDocument?: Pick<
     NodePayloadByType<'dokument'>,
-    'id' | 'dms_file_id'
+    'id' | 'dmsFileId'
   > | null,
 ) => {
   const topicDocument = topicDocuments.find(
     (document) => document.id === previewDocumentId,
   );
   if (topicDocument) {
-    return topicDocument.dms_file_id;
+    return topicDocument.dmsFileId;
   }
 
   const previewDocument = resolvedPreviewDocument;
   if (previewDocument && previewDocument.id === previewDocumentId) {
-    return previewDocument.dms_file_id;
+    return previewDocument.dmsFileId;
   }
 
   return undefined;
@@ -28,9 +28,9 @@ export const findTopicDocumentIdByProjectDocumentId = (
   projectDocumentId: string,
 ) =>
   topicDocuments.find(
-    (topicDocument) => topicDocument.dms_file_id === projectDocumentId,
+    (topicDocument) => topicDocument.dmsFileId === projectDocumentId,
   )?.id;
 
 export const collectTopicProjectDocumentIds = (
   topicDocuments: NodePayloadByType<'dokument'>[],
-) => new Set(topicDocuments.map((topicDocument) => topicDocument.dms_file_id));
+) => new Set(topicDocuments.map((topicDocument) => topicDocument.dmsFileId));

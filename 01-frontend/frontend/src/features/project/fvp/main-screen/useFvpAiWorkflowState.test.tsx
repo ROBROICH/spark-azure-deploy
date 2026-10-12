@@ -4,7 +4,7 @@ import type { FvpCategoryState } from '@/features/project/fvp/data/useFvpCategor
 import { useFvpAiWorkflowState } from './useFvpAiWorkflowState';
 
 const testWorkflow = {
-  workflow_start_time: undefined,
+  workflowStartTime: null,
 };
 
 const makeCategoryState = (
@@ -19,6 +19,9 @@ const makeCategoryState = (
   return {
     status,
     data: null,
+    failureCode: null,
+    hasResult: isDone,
+    hasReadError: false,
     isDone,
     isLoading,
     isRunning,
@@ -35,7 +38,13 @@ const mocks = vi.hoisted(() => ({
   useTocData: vi.fn(),
   useFcsData: vi.fn(),
   usePpData: vi.fn(),
+  useFvpWorkflowContext: vi.fn(),
 }));
+
+vi.mock(
+  '@/features/workflow-runtime/workflow-status/FvpWorkflowContext',
+  () => ({ useFvpWorkflowContext: mocks.useFvpWorkflowContext }),
+);
 
 vi.mock('@/features/project/data/project-files/useProjectFiles', () => ({
   useProjectFiles: mocks.useProjectFiles,
@@ -81,6 +90,9 @@ describe('useFvpAiWorkflowState', () => {
     mocks.useTocData.mockReturnValue(makeCategoryState());
     mocks.useFcsData.mockReturnValue(makeCategoryState());
     mocks.usePpData.mockReturnValue(makeCategoryState());
+    mocks.useFvpWorkflowContext.mockReturnValue({
+      workflowState: { latestFailure: null },
+    });
   });
 
   it('blocks FVP start while the system-load gate is active', () => {
@@ -211,5 +223,72 @@ describe('useFvpAiWorkflowState', () => {
       fcsReady: true,
       tocReady: true,
     });
+  });
+
+  it('settles a failed upstream category for plausibility and marks the analysis incomplete', () => {
+    mocks.useTocData.mockReturnValue(
+      makeCategoryState({ status: 'failed', failureCode: 'ANALYSIS_FAILED' }),
+    );
+    mocks.useFcsData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+    mocks.usePpData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+
+    const { result } = renderHook(() => useFvpAiWorkflowState('project-1'));
+
+    expect(mocks.usePpData).toHaveBeenCalledWith('project-1', {
+      fcsReady: true,
+      tocReady: true,
+    });
+    expect(result.current.isAiAnalysisIncomplete).toBe(true);
+    expect(result.current.isAiAnalysisComplete).toBe(false);
+  });
+
+  it('marks the analysis incomplete when the run failed outside every category', () => {
+    mocks.useTocData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+    mocks.useFcsData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+    mocks.usePpData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+    mocks.useFvpWorkflowContext.mockReturnValue({
+      workflowState: {
+        latestFailure: {
+          errorCode: 'ANALYSIS_FAILED',
+          branches: [
+            { branch: 'inhaltsextraktion', errorCode: 'ANALYSIS_FAILED' },
+          ],
+        },
+      },
+    });
+
+    const { result } = renderHook(() => useFvpAiWorkflowState('project-1'));
+
+    expect(result.current.isAiAnalysisIncomplete).toBe(true);
+    expect(result.current.isAiAnalysisComplete).toBe(false);
+    expect(result.current.shouldShowStartAction).toBe(true);
+  });
+
+  it('keeps the documents visible when a rerun fails after an earlier result', () => {
+    mocks.useTocData.mockReturnValue(
+      makeCategoryState({
+        status: 'failed',
+        failureCode: 'ANALYSIS_FAILED',
+        hasResult: true,
+      }),
+    );
+    mocks.useFcsData.mockReturnValue(makeCategoryState({ status: 'ready' }));
+
+    const { result, rerender } = renderHook(() =>
+      useFvpAiWorkflowState('project-1'),
+    );
+
+    expect(result.current.canShowDocuments).toBe(true);
+
+    mocks.useTocData.mockReturnValue(
+      makeCategoryState({
+        status: 'failed',
+        failureCode: 'ANALYSIS_FAILED',
+        hasResult: false,
+      }),
+    );
+    rerender();
+
+    expect(result.current.canShowDocuments).toBe(false);
   });
 });

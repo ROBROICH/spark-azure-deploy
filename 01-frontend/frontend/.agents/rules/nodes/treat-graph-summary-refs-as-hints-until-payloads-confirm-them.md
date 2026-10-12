@@ -1,3 +1,7 @@
+---
+ruleId: nodes/treat-graph-summary-refs-as-hints-until-payloads-confirm-them
+---
+
 # Treat Graph Summary Refs as Hints Until Payloads Confirm Them
 
 - Graph summaries and descendant refs can outlive payloads. A ref returned by `getNodesByType(...)` or `useDescendants(...)` does not guarantee that every matching payload still exists.

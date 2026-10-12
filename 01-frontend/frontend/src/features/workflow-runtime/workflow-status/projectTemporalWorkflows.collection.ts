@@ -1,42 +1,50 @@
 /* eslint-disable max-lines -- workflow collection setup keeps related Temporal loaders, collection factories, and the cached project manager in one module. */
 import {
-  getWorkflowTemporalWorkflowsWorkflowIdGet,
-  getWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGet,
-  getWorkflowsTemporalWorkflowsGet,
-} from '@/api-clients/temporal-jobs-module';
+  v1TemporalJobsGetTemporalWorkflow as getTemporalWorkflow,
+  v1TemporalJobsListTemporalWorkflowsByType as listTemporalWorkflowsByType,
+  v1TemporalJobsListTemporalWorkflows as listTemporalWorkflows,
+} from '@/api-clients/backend';
 import type {
-  GetWorkflowResponse,
+  V1TemporalJobsGetTemporalWorkflowResponse,
   WorkflowsBase,
-} from '@/api-clients/temporal-jobs-module/types.gen';
+} from '@/api-clients/backend/types.gen';
 import { createLruCache } from '@/db/nodes/lruCache';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { BasicIndex, createCollection } from '@tanstack/react-db';
+import { getTargetWorkflowId } from './workflowStatus.helpers';
 
 const WORKFLOW_REFETCH_INTERVAL_MS = 30_000;
 const RUNNING_WORKFLOWS_COLLECTION_KEY = '__running__';
-const STARTED_WORKFLOW_DISCOVERY_GRACE_MS = 10_000;
 
 export type WorkflowCollectionRequest = {
-  includeChildren?: boolean;
   workflowType?: string | string[];
+  workflowId?: string;
+  targetId?: string;
+  rootWorkflowId?: string;
+  rootRunId?: string;
+  executionStatus?:
+    | 'all'
+    | 'Running'
+    | 'Completed'
+    | 'Failed'
+    | 'Canceled'
+    | 'Terminated'
+    | 'TimedOut';
 };
 
 type RunningWorkflowObservation = {
-  hasBeenSeenRunning: boolean;
   observedAt: number;
   refetchNodeSummariesOnSuccess: boolean;
   workflowTypes: string[];
 };
 
 type SetRunningWorkflowObservationOptions = {
-  hasBeenSeenRunning?: boolean;
   observedAt?: number;
   refetchNodeSummariesOnSuccess?: boolean;
   workflowType?: string | string[];
 };
 
-const ALL_WORKFLOW_TYPES_KEY = '__all__';
 const WORKFLOW_COLLECTION_QUERY_KEY_PREFIX = 'project-temporal-workflows';
 
 const normalizeValue = (value: string | null | undefined) =>
@@ -114,13 +122,6 @@ const areWorkflowTypesEqual = (
     (leftWorkflowType, index) => leftWorkflowType === rightWorkflowTypes[index],
   );
 
-const getMergedObservationSeenState = (
-  existingObservation: RunningWorkflowObservation | undefined,
-  options: SetRunningWorkflowObservationOptions,
-) =>
-  existingObservation?.hasBeenSeenRunning === true ||
-  options.hasBeenSeenRunning === true;
-
 const getMergedObservationTimestamp = (
   existingObservation: RunningWorkflowObservation | undefined,
   options: SetRunningWorkflowObservationOptions,
@@ -160,10 +161,6 @@ const mergeRunningWorkflowObservation = (
   existingObservation: RunningWorkflowObservation | undefined,
   options: SetRunningWorkflowObservationOptions,
 ): RunningWorkflowObservation => ({
-  hasBeenSeenRunning: getMergedObservationSeenState(
-    existingObservation,
-    options,
-  ),
   observedAt: getMergedObservationTimestamp(existingObservation, options),
   refetchNodeSummariesOnSuccess: getMergedObservationSummaryRefresh(
     existingObservation,
@@ -184,8 +181,6 @@ const areRunningWorkflowObservationsEqual = (
   }
 
   return (
-    existingObservation.hasBeenSeenRunning ===
-      nextObservation.hasBeenSeenRunning &&
     existingObservation.observedAt === nextObservation.observedAt &&
     existingObservation.refetchNodeSummariesOnSuccess ===
       nextObservation.refetchNodeSummariesOnSuccess &&
@@ -197,36 +192,34 @@ const areRunningWorkflowObservationsEqual = (
 };
 
 const createOptimisticWorkflowObservation = (
+  projectId: string,
+  projectVersion: number,
   workflowId: string,
   workflowType: string,
   observedAt: number,
 ): WorkflowsBase => ({
-  run_id: `observed-${workflowId}-${workflowType}`,
+  runId: `observed-${workflowId}-${workflowType}`,
   status: 'running',
-  workflow_id: workflowId,
-  workflow_start_time: new Date(observedAt).toISOString(),
-  workflow_type: workflowType,
+  workflowId: workflowId,
+  workflowStartTime: new Date(observedAt).toISOString(),
+  workflowCloseTime: null,
+  workflowType: workflowType,
+  projectId: projectId,
+  projectVersion: projectVersion,
+  failure: null,
 });
 
 export const getWorkflowCollectionRequestKey = (
   request: WorkflowCollectionRequest = {},
-) => {
-  const workflowTypes = getRequestedWorkflowTypes(request.workflowType);
-
-  if (workflowTypes.length === 0) {
-    return request.includeChildren
-      ? `${ALL_WORKFLOW_TYPES_KEY}:children`
-      : ALL_WORKFLOW_TYPES_KEY;
-  }
-
-  const workflowTypesKey = workflowTypes
-    .map((workflowType) => normalizeValue(workflowType))
-    .join('|');
-
-  return request.includeChildren
-    ? `${workflowTypesKey}:children`
-    : workflowTypesKey;
-};
+) =>
+  JSON.stringify([
+    getRequestedWorkflowTypes(request.workflowType),
+    request.workflowId,
+    request.targetId,
+    request.rootWorkflowId,
+    request.rootRunId,
+    request.executionStatus,
+  ]);
 
 export const getProjectTemporalWorkflowsCollectionQueryKey = (
   projectId: string,
@@ -240,123 +233,86 @@ export const getProjectTemporalWorkflowsCollectionQueryKey = (
     getWorkflowCollectionRequestKey(request),
   ] as const;
 
-const toProjectWorkflow = (
-  projectId: string,
-  workflow: WorkflowsBase,
-  detail?: GetWorkflowResponse,
-): WorkflowsBase => ({
-  ...workflow,
-  project_id: workflow.project_id ?? projectId,
-  workflow_type: detail?.workflow_type ?? workflow.workflow_type,
-  workflow_start_time:
-    detail?.workflow_start_time ?? workflow.workflow_start_time,
-  workflow_close_time:
-    detail?.workflow_close_time ?? workflow.workflow_close_time,
-  status: detail?.status ?? workflow.status,
-  children: detail?.children ?? workflow.children,
-});
-
-const loadWorkflowDetail = async (
-  projectId: string,
-  workflow: WorkflowsBase,
-): Promise<WorkflowsBase> => {
-  try {
-    const { data } = await getWorkflowTemporalWorkflowsWorkflowIdGet({
-      path: {
-        workflow_id: workflow.workflow_id,
-      },
-      throwOnError: true,
-    });
-
-    return toProjectWorkflow(projectId, workflow, data);
-  } catch {
-    return toProjectWorkflow(projectId, workflow);
-  }
-};
-
-const loadProjectTemporalWorkflowsByType = async (
-  projectId: string,
-  projectVersion: number,
-  workflowType: string,
-  includeChildren: boolean,
-) => {
-  const { data } = await getWorkflowsByTypeTemporalWorkflowsProjectIdByTypeGet({
-    path: {
-      project_id: projectId,
-    },
-    query: {
-      workflow_type: workflowType,
-      include_children: includeChildren,
-      project_version: projectVersion,
-    },
-    throwOnError: true,
-  });
-
-  return data.workflows;
-};
-
+/**
+ * Status snapshots use exact targets rather than assuming a global page contains them.
+ * @param projectId - Authorized project scope.
+ * @param projectVersion - Selected project version.
+ * @param request - Target/type/root selectors and optional status restriction.
+ * @returns Distinct latest status snapshots, not a complete workflow history.
+ */
 const loadProjectTemporalWorkflows = async (
   projectId: string,
   projectVersion: number,
   request: WorkflowCollectionRequest = {},
 ): Promise<WorkflowsBase[]> => {
-  const includeChildren = request.includeChildren === true;
-  const requestedWorkflowTypes = getRequestedWorkflowTypes(
-    request.workflowType,
-  );
-  if (requestedWorkflowTypes.length === 0) {
-    const { data } = await getWorkflowsTemporalWorkflowsGet({
-      query: {
-        execution_status: 'all',
-        project_id: projectId,
-        project_version: projectVersion,
-      },
-      throwOnError: true,
-    });
-
-    if (!includeChildren) {
-      return data.workflows.map((workflow) =>
-        toProjectWorkflow(projectId, workflow),
-      );
-    }
-
-    return Promise.all(
-      data.workflows.map((workflow) => loadWorkflowDetail(projectId, workflow)),
-    );
-  }
-
-  const workflows = (
-    await Promise.all(
-      requestedWorkflowTypes.map((workflowType) =>
-        loadProjectTemporalWorkflowsByType(
-          projectId,
+  const requestedTypes = getRequestedWorkflowTypes(request.workflowType);
+  const workflowTypes =
+    requestedTypes.length > 0 ? requestedTypes : [undefined];
+  const statuses =
+    request.executionStatus === undefined
+      ? (['all', 'Running', 'Completed'] as const)
+      : [request.executionStatus];
+  const pages = await Promise.all(
+    workflowTypes.flatMap((workflowType) => {
+      let workflowId = request.workflowId;
+      if (
+        workflowId === undefined &&
+        request.rootWorkflowId === undefined &&
+        workflowType !== undefined
+      ) {
+        if (request.targetId !== undefined) {
+          workflowId = getTargetWorkflowId({
+            projectId,
+            projectVersion,
+            targetId: request.targetId,
+            workflowType,
+          });
+        } else if (workflowType === 'FVPWorkflow') {
+          workflowId = `${workflowType}-${projectId}-v${projectVersion}`;
+        } else if (
+          workflowType === 'FileProcessingWorkflow' ||
+          workflowType === 'BatchMVPWorkflow'
+        ) {
+          workflowId = `${workflowType}-${projectId}`;
+        }
+      }
+      return statuses.map(async (executionStatus) => {
+        const query = {
           projectVersion,
-          workflowType,
-          includeChildren,
-        ),
-      ),
-    )
-  ).flat();
-
-  return workflows.map((workflow) => toProjectWorkflow(projectId, workflow));
-};
-
-const loadProjectRunningTemporalWorkflows = async (
-  projectId: string,
-  projectVersion: number,
-): Promise<WorkflowsBase[]> => {
-  const { data } = await getWorkflowsTemporalWorkflowsGet({
-    query: {
-      execution_status: 'Running',
-      project_id: projectId,
-      project_version: projectVersion,
-    },
-    throwOnError: true,
-  });
-
-  return data.workflows.map((workflow) =>
-    toProjectWorkflow(projectId, workflow),
+          executionStatus,
+          workflowId,
+          pageSize: 1,
+        };
+        const { data } =
+          workflowType === undefined
+            ? await listTemporalWorkflows({
+                query: { ...query, projectId },
+                throwOnError: true,
+              })
+            : await listTemporalWorkflowsByType({
+                path: { projectId },
+                query: {
+                  ...query,
+                  workflowType,
+                  rootWorkflowId: request.rootWorkflowId,
+                  rootRunId: request.rootRunId,
+                },
+                throwOnError: true,
+              });
+        return data.workflows;
+      });
+    }),
   );
+  return [
+    ...new Map(
+      pages
+        .flat()
+        .map((workflow) => [
+          `${workflow.workflowId}:${workflow.runId}`,
+          workflow,
+        ]),
+    ).values(),
+  ];
 };
 
 const createProjectTemporalWorkflowsCollection = (
@@ -378,7 +334,11 @@ const createProjectTemporalWorkflowsCollection = (
     queryFn: async (): Promise<WorkflowsBase[]> =>
       loadProjectTemporalWorkflows(projectId, projectVersion, request),
     queryClient,
-    getKey: (workflow) => `${workflow.workflow_id}:${workflow.run_id}`,
+    getKey: (workflow) => `${workflow.workflowId}:${workflow.runId}`,
+    refetchInterval:
+      request.executionStatus === 'Running'
+        ? WORKFLOW_REFETCH_INTERVAL_MS
+        : false,
     staleTime: 0,
   });
 
@@ -401,25 +361,36 @@ const createProjectTemporalWorkflowsCollection = (
 const createProjectRunningTemporalWorkflowsCollection = (
   projectId: string,
   projectVersion: number,
+  getWorkflowIds: () => string[],
 ) => {
-  const options = queryCollectionOptions<WorkflowsBase>({
-    autoIndex: 'eager',
-    defaultIndexType: BasicIndex,
-    enabled: true,
-    id: `project-running-temporal-workflows-${projectId}-v${projectVersion}`,
-    queryKey: [
-      WORKFLOW_COLLECTION_QUERY_KEY_PREFIX,
-      projectId,
-      projectVersion,
-      RUNNING_WORKFLOWS_COLLECTION_KEY,
-    ],
-    queryFn: async (): Promise<WorkflowsBase[]> =>
-      loadProjectRunningTemporalWorkflows(projectId, projectVersion),
-    queryClient,
-    getKey: (workflow) => `${workflow.workflow_id}:${workflow.run_id}`,
-    refetchInterval: WORKFLOW_REFETCH_INTERVAL_MS,
-    staleTime: 0,
-  });
+  const options =
+    queryCollectionOptions<V1TemporalJobsGetTemporalWorkflowResponse>({
+      autoIndex: 'eager',
+      defaultIndexType: BasicIndex,
+      enabled: true,
+      id: `project-running-temporal-workflows-${projectId}-v${projectVersion}`,
+      queryKey: [
+        WORKFLOW_COLLECTION_QUERY_KEY_PREFIX,
+        projectId,
+        projectVersion,
+        RUNNING_WORKFLOWS_COLLECTION_KEY,
+      ],
+      queryFn: () =>
+        Promise.all(
+          getWorkflowIds().map(async (workflowId) => {
+            const { data } = await getTemporalWorkflow({
+              path: { workflowId },
+              query: { includeResult: false },
+              throwOnError: true,
+            });
+            return data;
+          }),
+        ),
+      queryClient,
+      getKey: (status) => status.workflowId,
+      refetchInterval: WORKFLOW_REFETCH_INTERVAL_MS,
+      staleTime: 0,
+    });
 
   return createCollection(options);
 };
@@ -459,6 +430,8 @@ const createProjectTemporalWorkflowsManager = (
 
       return workflowTypes.map((workflowType) =>
         createOptimisticWorkflowObservation(
+          projectId,
+          projectVersion,
           workflowId,
           workflowType,
           observation.observedAt,
@@ -524,6 +497,7 @@ const createProjectTemporalWorkflowsManager = (
     runningCollection = createProjectRunningTemporalWorkflowsCollection(
       projectId,
       projectVersion,
+      () => [...runningWorkflowObservations.keys()],
     );
     return runningCollection;
   };
@@ -536,7 +510,6 @@ const createProjectTemporalWorkflowsManager = (
     } = {},
   ) => {
     const didChange = setRunningWorkflowObservation(workflowId, {
-      hasBeenSeenRunning: true,
       refetchNodeSummariesOnSuccess: options.refetchNodeSummariesOnSuccess,
       workflowType: options.workflowType,
     });
@@ -564,30 +537,62 @@ const createProjectTemporalWorkflowsManager = (
 
     return Promise.resolve(refetchRunningCollection()).catch(() => undefined);
   };
-  const reconcileRunningWorkflows = (runningWorkflows: WorkflowsBase[]) => {
-    const runningWorkflowIds = new Set(
-      runningWorkflows.map((workflow) => workflow.workflow_id),
+  /**
+   * Only authoritative terminal status can settle a start never seen running.
+   * @param statuses - Native metadata for each explicitly observed workflow ID.
+   * @param newlyClosedWorkflows - Newly discovered project completions for summary refresh.
+   * @returns Whether project summaries need one refresh after this reconciliation.
+   */
+  const reconcileRunningWorkflows = (
+    statuses: V1TemporalJobsGetTemporalWorkflowResponse[],
+    newlyClosedWorkflows?: WorkflowsBase[],
+  ) => {
+    const runningIds = new Set(
+      statuses
+        .filter(
+          (workflow) =>
+            workflow.status === 'running' || workflow.status === 'pending',
+        )
+        .map((workflow) => workflow.workflowId),
     );
-    const now = Date.now();
+    const closedIds = new Set(
+      statuses
+        .filter(
+          (workflow) =>
+            workflow.status !== null &&
+            workflow.status !== 'running' &&
+            workflow.status !== 'pending',
+        )
+        .map((workflow) => workflow.workflowId),
+    );
+    const shouldRefetchClosed =
+      newlyClosedWorkflows?.some(
+        (workflow) =>
+          runningWorkflowObservations.get(workflow.workflowId)
+            ?.refetchNodeSummariesOnSuccess ?? true,
+      ) ?? false;
     let didChange = false;
     const completedObservations = Array.from(
       runningWorkflowObservations.entries(),
-    ).filter(([workflowId, observation]) => {
-      if (runningWorkflowIds.has(workflowId)) {
+    ).filter(([workflowId]) => {
+      if (runningIds.has(workflowId)) {
         return false;
       }
 
       return (
-        observation.hasBeenSeenRunning ||
-        now - observation.observedAt >= STARTED_WORKFLOW_DISCOVERY_GRACE_MS
+        newlyClosedWorkflows?.some(
+          (workflow) => workflow.workflowId === workflowId,
+        ) === true || closedIds.has(workflowId)
       );
     });
 
-    for (const workflow of runningWorkflows) {
+    for (const workflow of statuses) {
+      if (!runningIds.has(workflow.workflowId)) {
+        continue;
+      }
       didChange =
-        setRunningWorkflowObservation(workflow.workflow_id, {
-          hasBeenSeenRunning: true,
-          workflowType: workflow.workflow_type,
+        setRunningWorkflowObservation(workflow.workflowId, {
+          workflowType: workflow.workflowType,
         }) || didChange;
     }
 
@@ -600,8 +605,11 @@ const createProjectTemporalWorkflowsManager = (
       notifyRunningWorkflowObservationListeners();
     }
 
-    return completedObservations.some(
-      ([, observation]) => observation.refetchNodeSummariesOnSuccess,
+    return (
+      shouldRefetchClosed ||
+      completedObservations.some(
+        ([, observation]) => observation.refetchNodeSummariesOnSuccess,
+      )
     );
   };
   const subscribeRunningWorkflowObservations = (listener: () => void) => {

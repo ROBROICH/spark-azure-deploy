@@ -1,0 +1,5 @@
+schemaVersion: 1
+id: legal-review-and-decision-drafting
+title: Rechtliche Prüfung und Bewertung mit Beschlusserstellung
+openSpecCapabilities:
+  - rpb

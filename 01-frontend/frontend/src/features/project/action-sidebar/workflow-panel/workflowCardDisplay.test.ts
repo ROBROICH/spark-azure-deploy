@@ -1,6 +1,8 @@
-import type { WorkflowsBase } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  getLatestWorkflowsByType,
+  getWorkflowBadgeStatus,
   WORKFLOW_TYPE_BEWERTUNG,
   WORKFLOW_TYPE_EWMS,
   WORKFLOW_TYPE_FVP,
@@ -8,21 +10,59 @@ import {
 } from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
 import {
   getTemporalWorkflowTimelineUrl,
+  getWorkflowDurationMs,
   getWorkflowNameLabelKey,
+  isWorkflowRunning,
 } from './workflowCardDisplay';
 
 const UNKNOWN_LABEL_KEY = 'Sidebar.runningWorkflowsPanel.unknownWorkflowType';
 const TEMPORAL_UI_BASE_URL_ENV_KEY = 'VITE_TEMPORAL_UI_BASE_URL';
 
 const makeWorkflow = (workflowType: string): WorkflowsBase => ({
-  workflow_id: 'wf-1',
-  run_id: 'run-1',
-  workflow_type: workflowType,
+  workflowId: 'wf-1',
+  runId: 'run-1',
+  workflowType: workflowType,
+  status: 'running',
+  workflowStartTime: '2026-05-19T00:00:00.000Z',
+  workflowCloseTime: null,
+  projectId: null,
+  projectVersion: null,
+  failure: null,
 });
 
 afterEach(() => {
   window.__APP_CONFIG__ = undefined;
   vi.unstubAllEnvs();
+});
+
+describe('continued workflow executions', () => {
+  it('closes the old run without keeping a completed continuation active', () => {
+    const previousRun: WorkflowsBase = {
+      ...makeWorkflow(WORKFLOW_TYPE_FVP),
+      status: 'continued_as_new',
+      workflowCloseTime: '2026-05-19T00:01:00.000Z',
+    };
+    const completedRun: WorkflowsBase = {
+      ...previousRun,
+      runId: 'run-2',
+      status: 'completed',
+      workflowStartTime: '2026-05-19T00:01:00.000Z',
+      workflowCloseTime: '2026-05-19T00:02:00.000Z',
+    };
+
+    expect(isWorkflowRunning(previousRun)).toBe(false);
+    expect(getWorkflowBadgeStatus(previousRun)).toBe('continued');
+    expect(
+      getWorkflowDurationMs({
+        workflow: previousRun,
+        isRunning: isWorkflowRunning(previousRun),
+        now: Date.parse('2026-05-19T00:10:00.000Z'),
+      }),
+    ).toBe(60_000);
+    expect(getLatestWorkflowsByType([previousRun, completedRun])).toMatchObject(
+      [{ isRunning: false, badgeStatus: 'success' }],
+    );
+  });
 });
 
 describe('getWorkflowNameLabelKey', () => {
@@ -70,8 +110,8 @@ describe('getTemporalWorkflowTimelineUrl', () => {
     expect(
       getTemporalWorkflowTimelineUrl({
         ...makeWorkflow(WORKFLOW_TYPE_FVP),
-        workflow_id: 'workflow/with spaces',
-        run_id: 'run#1',
+        workflowId: 'workflow/with spaces',
+        runId: 'run#1',
       }),
     ).toBe(
       'https://temporal.example.test/namespaces/default/workflows/workflow%2Fwith%20spaces/run%231',

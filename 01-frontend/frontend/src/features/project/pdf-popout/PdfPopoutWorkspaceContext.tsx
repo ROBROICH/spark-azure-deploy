@@ -22,7 +22,6 @@ import {
 import { usePdfPopoutShell } from './PdfPopoutShellContext';
 import { useMaxManualLanes } from './workspace-state/useMaxManualLanes';
 import { usePaneActions } from './workspace-state/usePaneActions';
-import { usePagePositions } from './workspace-state/usePagePositions';
 import { usePanePersistence } from './workspace-state/usePanePersistence';
 import { useProjectPdfFiles } from './workspace-state/useProjectPdfFiles';
 import { useRecentDocuments } from './workspace-state/useRecentDocuments';
@@ -67,7 +66,7 @@ const usePdfPopoutWorkspaceLogic = () => {
     isLoading,
     isError: isFilesError,
     previewById,
-    findFileIdByTitle,
+    filePagination,
   } = useProjectPdfFiles({
     enabled: isFileCatalogRequested || isPoppedOut,
   });
@@ -155,7 +154,6 @@ const usePdfPopoutWorkspaceLogic = () => {
 
   const { recentDocuments: storedRecentDocuments, addRecentDocument } =
     useRecentDocuments(projectId);
-  const { getPagePosition, savePagePosition } = usePagePositions(projectId);
   const documentPreviewById = useMemo(() => {
     if (!connectedFileId || !registeredConnectedFilePreview) {
       return previewById;
@@ -177,6 +175,7 @@ const usePdfPopoutWorkspaceLogic = () => {
   const [connectedPageJump, setConnectedPageJump] =
     // eslint-disable-next-line no-restricted-syntax -- connected-page jumps are transient viewer coordination state, not URL-worthy or persisted workspace state
     useState<ConnectedPageJump | null>(null);
+  const pageJumpRequestKeyRef = useRef(0);
 
   const popupWindow = popupRoot?.ownerDocument.defaultView ?? null;
   const maxManualLanes = useMaxManualLanes(popupWindow);
@@ -207,6 +206,12 @@ const usePdfPopoutWorkspaceLogic = () => {
         return;
       }
 
+      pageJumpRequestKeyRef.current += 1;
+      setConnectedPageJump({
+        documentId: fileId,
+        pageNumber: 1,
+        requestKey: pageJumpRequestKeyRef.current,
+      });
       trackRecentFile(fileId);
       setInlineVisible(true);
       if (!isScopeActive) {
@@ -235,18 +240,6 @@ const usePdfPopoutWorkspaceLogic = () => {
     onConnectedPaneSelect: openConnectedFile,
   });
 
-  const openConnectedFileByTitle = useCallback(
-    (title: string) => {
-      const fileId = findFileIdByTitle(title);
-      if (!fileId) {
-        return;
-      }
-
-      openConnectedFile(fileId);
-    },
-    [findFileIdByTitle, openConnectedFile],
-  );
-
   const jumpToConnectedFilePage = useCallback(
     (pageNumber: number, fileId?: string) => {
       const targetFileId = fileId ?? connectedFileId;
@@ -255,14 +248,14 @@ const usePdfPopoutWorkspaceLogic = () => {
         return;
       }
 
-      savePagePosition(targetFileId, pageNumber);
-      setConnectedPageJump((currentJump) => ({
+      pageJumpRequestKeyRef.current += 1;
+      setConnectedPageJump({
         documentId: targetFileId,
         pageNumber,
-        requestKey: (currentJump?.requestKey ?? 0) + 1,
-      }));
+        requestKey: pageJumpRequestKeyRef.current,
+      });
     },
-    [connectedFileId, savePagePosition],
+    [connectedFileId],
   );
 
   // eslint-disable-next-line no-restricted-syntax -- workspace mount state must be mirrored into the root shell so the reserved popup content can hand off to project-scoped content across route changes.
@@ -317,6 +310,7 @@ const usePdfPopoutWorkspaceLogic = () => {
       allTree: tree,
       isLoadingFiles: isLoading,
       isFilesError,
+      filePagination,
       connectedFileId,
       inlineVisible,
       isPoppedOut,
@@ -332,12 +326,9 @@ const usePdfPopoutWorkspaceLogic = () => {
       topicDocumentCount,
       documentPreviewById,
       connectedPageJump,
-      getPagePosition,
-      savePagePosition,
       registerScope: registerScope,
       clearScope: clearScopeWithInlineReset,
       openConnectedFile,
-      openConnectedFileByTitle,
       jumpToConnectedFilePage,
       requestFileCatalog,
       closeInline: () => setInlineVisible(false),
@@ -361,14 +352,13 @@ const usePdfPopoutWorkspaceLogic = () => {
       setDocumentFilter,
       documentPreviewById,
       filteredTree,
-      getPagePosition,
       inlineVisible,
       isFilesError,
+      filePagination,
       isLoading,
       isPoppedOut,
       maxManualLanes,
       openConnectedFile,
-      openConnectedFileByTitle,
       jumpToConnectedFilePage,
       panes,
       popInWindow,
@@ -378,7 +368,6 @@ const usePdfPopoutWorkspaceLogic = () => {
       recentDocuments,
       registerScope,
       requestFileCatalog,
-      savePagePosition,
       scopeKey,
       paneActions.selectPaneDocument,
       sidebarOpen,

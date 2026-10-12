@@ -4,7 +4,7 @@ These constants are derived from an actual production run and serve as
 ground-truth fixtures for tests that need realistic LLM-mocked outputs.
 """
 
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Auslegungsvorschlag,
     BestimmterRechtsbegriff,
     Legaldefinition,

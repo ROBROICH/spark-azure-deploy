@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "db-init values",
+  "type": "object",
+  "definitions": {
+    "dropMode": {"enum": ["none", "database", "tables"]},
+    "database": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "owner": {"type": ["string", "null"]},
+        "dump": {"type": ["string", "null"]},
+        "create": {"type": ["boolean", "null"]},
+        "drop": {"$ref": "#/definitions/dropMode"},
+        "restore": {"type": ["boolean", "null"]},
+        "extensions": {"type": ["array", "null"], "items": {"type": "string", "pattern": "^[A-Za-z0-9_-]+$"}},
+        "enabled": {"type": ["boolean", "null"]}
+      }
+    }
+  },
+  "properties": {
+    "guard": {
+      "type": "object",
+      "properties": {"namePattern": {"type": "string"}, "dumpPattern": {"type": ["string", "null"]}}
+    },
+    "connection": {
+      "type": "object",
+      "properties": {
+        "host": {"type": ["string", "null"]},
+        "port": {"type": "integer"},
+        "sslmode": {"enum": ["disable", "allow", "prefer", "require", "verify-ca", "verify-full", null]}
+      }
+    },
+    "admin": {
+      "type": "object",
+      "properties": {
+        "existingSecret": {"type": "object", "properties": {"name": {"type": ["string", "null"]}}},
+        "secretStore": {"type": "object", "properties": {"name": {"type": ["string", "null"]}, "kind": {"enum": ["SecretStore", "ClusterSecretStore"]}}},
+        "remoteKey": {"type": ["string", "null"]}
+      }
+    },
+    "defaults": {"$ref": "#/definitions/database"},
+    "databases": {"type": ["object", "null"], "additionalProperties": {"$ref": "#/definitions/database"}},
+    "runId": {"type": ["string", "integer", "null"]},
+    "backoffLimit": {"type": "integer", "minimum": 0},
+    "activeDeadlineSeconds": {"type": "integer", "minimum": 1},
+    "teardown": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "confirm": {"type": ["string", "null"]},
+        "objectPrefixes": {"type": ["array", "null"], "items": {"type": "string", "pattern": "^gs://"}}
+      }
+    },
+    "podSecurity": {"type": ["object", "null"], "properties": {"restricted": {"type": ["boolean", "null"]}}}
+  }
+}

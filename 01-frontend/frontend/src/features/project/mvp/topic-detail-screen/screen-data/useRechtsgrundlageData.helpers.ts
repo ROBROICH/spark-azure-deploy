@@ -41,8 +41,8 @@ export const sortTopicNormsByParagraphNumber = (
 ) => {
   return [...topicNorms].sort((left, right) => {
     const paragraphComparison = compareParagraphNumbers(
-      left.paragraph_nr,
-      right.paragraph_nr,
+      left.paragraphNr,
+      right.paragraphNr,
     );
 
     if (paragraphComparison !== 0) {
@@ -54,11 +54,11 @@ export const sortTopicNormsByParagraphNumber = (
 };
 
 export const getTopicNormParagraphRef = (topicNormEntry: TopicNormEntry) => {
-  return getParagraphRef(topicNormEntry.topicNorm.paragraph_nr);
+  return getParagraphRef(topicNormEntry.topicNorm.paragraphNr);
 };
 
 export const getTopicNormTitle = (topicNormEntry: TopicNormEntry) => {
-  return topicNormEntry.norm?.paragraph_titel ?? '';
+  return topicNormEntry.norm?.paragraphTitel ?? '';
 };
 
 export const getTopicNormLabel = (topicNormEntry: TopicNormEntry) => {
@@ -77,11 +77,11 @@ export const getTopicNormText = (topicNormEntry: TopicNormEntry) => {
 };
 
 const getAvailableNormParagraphRef = (normEntry: AvailableNormEntry) => {
-  return getParagraphRef(normEntry.norm.paragraph_nr);
+  return getParagraphRef(normEntry.norm.paragraphNr);
 };
 
 const getAvailableNormTitle = (normEntry: AvailableNormEntry) => {
-  return normEntry.norm.paragraph_titel ?? '';
+  return normEntry.norm.paragraphTitel ?? '';
 };
 
 export const getAvailableNormLabel = (normEntry: AvailableNormEntry) => {
@@ -102,7 +102,7 @@ export const getAvailableNormText = (normEntry: AvailableNormEntry) => {
 export const isTopicNormChecked = (
   topicNorm: NodePayloadByType<'topic_norm'>,
 ) => {
-  return isReviewCompleted(topicNorm.mvp_status);
+  return isReviewCompleted(topicNorm.mvpStatus);
 };
 
 const createTopicNormLawGroups = (

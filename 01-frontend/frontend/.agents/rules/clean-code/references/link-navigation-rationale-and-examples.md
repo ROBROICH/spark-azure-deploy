@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/references/link-navigation-rationale-and-examples
+---
+
 # Link Navigation Rationale And Examples
 
 ## Why This Is Beneficial

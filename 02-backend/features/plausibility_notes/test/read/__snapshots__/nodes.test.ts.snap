@@ -1,0 +1,198 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots the retained Testing project's current nodes 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots explicit historical and empty versions 1`] = `
+{
+  "empty": {
+    "body": {
+      "nodes": [],
+    },
+    "status": 200,
+  },
+  "historical": {
+    "body": {
+      "nodes": [
+        {
+          "frontendParentIds": [],
+          "id": "067fe440-8907-4906-bc7f-eedf6e63bc85",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "1440451a-5aa4-4fb8-9d3a-cf38689e7513",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "99afbc00-b727-4d40-84f3-7e0fc3d1e95b",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "b3043aab-ea45-4b1f-812c-8641fd631522",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "e06e5225-8b13-4231-923b-e2d88c8c8e88",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "fc11555c-1907-4ec6-b499-45bfbe0aedc3",
+          "isOutdated": false,
+          "nodeType": "plausibility_note_occurrence",
+          "parents": [
+            {
+              "id": "5fdf74aa-3e83-4079-a254-b78835278161",
+              "nodeType": "file",
+            },
+            {
+              "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+              "nodeType": "plausibility_note",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+          "isOutdated": false,
+          "nodeType": "plausibility_note",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+          "isOutdated": false,
+          "nodeType": "plausibility_note",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+          "isOutdated": false,
+          "nodeType": "plausibility_note",
+          "parents": [],
+        },
+      ],
+    },
+    "status": 200,
+  },
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract omitted version resolves to the same current payload through core Projects 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "a8180785-958d-4f09-9d2e-cafeb0aaef80",
+        "isOutdated": false,
+        "nodeType": "plausibility_note",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

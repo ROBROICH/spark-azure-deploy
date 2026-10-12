@@ -25,14 +25,14 @@ export const BeschlussEditorHeader = (props: BeschlussEditorHeaderProps) => {
   } = props;
 
   return (
-    <div className="flex items-center justify-between border-b border-border-primary bg-white p-2">
+    <div className="flex flex-wrap items-center justify-between border-b border-border-primary bg-white p-2">
       <BeschlussEditorToolbar
         editor={editor}
         editorContentId={editorContentId}
         t={t}
       />
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {headerAccessory}
         <BeschlussEditorSavedBadge />
         <SplitButton

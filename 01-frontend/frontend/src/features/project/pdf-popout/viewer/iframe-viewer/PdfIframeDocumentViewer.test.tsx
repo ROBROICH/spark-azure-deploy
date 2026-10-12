@@ -31,6 +31,82 @@ afterEach(() => {
 });
 
 describe('PdfIframeDocumentViewer', () => {
+  it('opens a document at page one after clearing its source-page target', async () => {
+    const { container, rerender } = render(
+      <PdfIframeDocumentViewer
+        fileUrl="https://example.test/one.pdf"
+        documentId="file-1"
+        documentTitle="Document one"
+        requestedPageNumber={20}
+        requestedPageJumpKey={1}
+      />,
+    );
+    expect(
+      await screen.findByTitle('Document view: Document one'),
+    ).toHaveAttribute('src', 'https://example.test/one.pdf#page=20');
+
+    rerender(
+      <PdfIframeDocumentViewer
+        fileUrl="https://example.test/one.pdf"
+        documentId="file-1"
+        documentTitle="Document one"
+      />,
+    );
+    const pendingFrame = container.querySelector('iframe[aria-hidden="true"]');
+    expect(pendingFrame).toHaveAttribute(
+      'src',
+      'https://example.test/one.pdf#page=1',
+    );
+    if (!pendingFrame) {
+      throw new Error('Expected the document to reopen at page one.');
+    }
+    fireEvent.load(pendingFrame);
+    expect(screen.getByTitle('Document view: Document one')).toHaveAttribute(
+      'src',
+      'https://example.test/one.pdf#page=1',
+    );
+
+    rerender(
+      <PdfIframeDocumentViewer
+        fileUrl="https://example.test/one.pdf"
+        documentId="file-1"
+        documentTitle="Document one"
+        requestedPageNumber={7}
+        requestedPageJumpKey={2}
+      />,
+    );
+    expect(
+      container.querySelector('iframe[aria-hidden="true"]'),
+    ).toHaveAttribute('src', 'https://example.test/one.pdf#page=7');
+  });
+
+  it('reopens the target page when the same document is selected again', () => {
+    const { container, rerender } = render(
+      <PdfIframeDocumentViewer
+        fileUrl="https://example.test/one.pdf"
+        documentId="file-1"
+        requestedPageNumber={1}
+        requestedPageJumpKey={1}
+      />,
+    );
+    const initialFrame = container.querySelector('iframe');
+
+    rerender(
+      <PdfIframeDocumentViewer
+        fileUrl="https://example.test/one.pdf"
+        documentId="file-1"
+        requestedPageNumber={1}
+        requestedPageJumpKey={2}
+      />,
+    );
+    const pendingFrame = container.querySelector('iframe[aria-hidden="true"]');
+    expect(pendingFrame).toHaveAttribute(
+      'src',
+      'https://example.test/one.pdf#page=1',
+    );
+    expect(pendingFrame).not.toBe(initialFrame);
+  });
+
   it('clears the active iframe when the selected document is removed', async () => {
     const { rerender } = render(
       <PdfIframeDocumentViewer

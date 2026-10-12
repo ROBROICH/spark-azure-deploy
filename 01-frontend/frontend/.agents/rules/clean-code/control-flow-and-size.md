@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/control-flow-and-size
+---
+
 # Control Flow and Size
 
 Use when code changes branching, loops, conditional rendering, long functions/files, repeated literals, or mapping-style decisions.

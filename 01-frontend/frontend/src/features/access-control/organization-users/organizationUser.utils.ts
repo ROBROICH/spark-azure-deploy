@@ -1,4 +1,4 @@
-import type { IdentityResponse } from '@/api-clients/identity-management-module';
+import type { IdentityResponse } from '@/api-clients/backend';
 
 export const getOrganizationUserDisplayName = (
   user: IdentityResponse | undefined,

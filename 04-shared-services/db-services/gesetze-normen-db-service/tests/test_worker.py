@@ -3,17 +3,14 @@ from db_pipelines.schemas.db import DocType
 from db_pipelines.schemas.temporal import NormSpec, ParseNormInput, ParseNormResult
 from db_pipelines.workflows.update_rechtsgrundlage import UpdateRechtsgrundlageWorkflow
 from db_pipelines.workflows.update_rechtsgrundlage_source import UpdateRechtsgrundlageSourceWorkflow
-from temporal.workflows.gesetze_normen.types import (
+from temporal.contracts import (
     BaseRelevantLaws,
     RelevantLaws,
     StateRelevantLaws,
     UpdateRechtsgrundlageInput,
     UpdateRechtsgrundlageOutput,
 )
-from temporal.workflows.gesetze_normen.update_rechtsgrundlage import (
-    TASK_QUEUE,
-    UPDATE_RECHTSGRUNDLAGE_WORKFLOW_ID,
-)
+from temporal.registry import GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW
 from temporalio import activity
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
@@ -45,32 +42,43 @@ async def test_update_rechtsgrundlage_workflow_expands_config_and_aggregates_res
 
     pipeline_config = RelevantLaws(
         eu=BaseRelevantLaws(parser="XmlProcessor2", base_url="http://test", gesetz=["eu_g"], verordnung=["eu_vo"]),
-        bund=BaseRelevantLaws(parser="XmlProcessor1", base_url="http://test", gesetz=["bund_g"]),
+        bund=BaseRelevantLaws(
+            parser="XmlProcessor1", base_url="http://test", gesetz=["bund_g"], verwaltungsvorschrift=["bund_vv"]
+        ),
         bundeslaender=[
-            StateRelevantLaws(name=Bundesland.BY, parser="XmlProcessor2", base_url="http://test", gesetz=["by_g"], richtlinie=["skip_me"]),
+            StateRelevantLaws(
+                name=Bundesland.BY,
+                parser="XmlProcessor2",
+                base_url="http://test",
+                gesetz=["by_g"],
+                richtlinie=["skip_me"],
+            ),
         ],
     )
 
-    async with await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env:
-        async with Worker(
+    async with (
+        await WorkflowEnvironment.start_local(data_converter=pydantic_data_converter) as env,
+        Worker(
             env.client,
-            task_queue=TASK_QUEUE,
+            task_queue=GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.task_queue,
             workflows=[UpdateRechtsgrundlageWorkflow, UpdateRechtsgrundlageSourceWorkflow],
             activities=[fake_query_existing_norms, fake_parse_norm],
             workflow_runner=UnsandboxedWorkflowRunner(),
-        ):
-            result = await env.client.execute_workflow(
-                UPDATE_RECHTSGRUNDLAGE_WORKFLOW_ID,
-                UpdateRechtsgrundlageInput(pipeline_config=pipeline_config, overwrite=False),
-                id=f"test-{UPDATE_RECHTSGRUNDLAGE_WORKFLOW_ID}",
-                task_queue=TASK_QUEUE,
-                result_type=UpdateRechtsgrundlageOutput,
-            )
+        ),
+    ):
+        result = await env.client.execute_workflow(
+            GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.name,
+            UpdateRechtsgrundlageInput(pipeline_config=pipeline_config, overwrite=False),
+            id=f"test-{GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.name}",
+            task_queue=GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.task_queue,
+            result_type=UpdateRechtsgrundlageOutput,
+        )
 
     expected_specs = {
         ("eu_g", Hierarchy.EU, DocType.GESETZ, None),
         ("eu_vo", Hierarchy.EU, DocType.VERORDNUNG, None),
         ("bund_g", Hierarchy.BUND, DocType.GESETZ, None),
+        ("bund_vv", Hierarchy.BUND, DocType.VERWALTUNGSVORSCHRIFT, None),
         ("by_g", Hierarchy.BUNDESLAND, DocType.GESETZ, Bundesland.BY),
         ("skip_me", Hierarchy.BUNDESLAND, DocType.RICHTLINIE, Bundesland.BY),
     }
@@ -81,5 +89,5 @@ async def test_update_rechtsgrundlage_workflow_expands_config_and_aggregates_res
     # Every parse activity receives the snapshot returned by query_existing_norms.
     assert all(p.overwrite is False for p in parse_inputs)
 
-    assert result.written == 4
+    assert result.written == 5
     assert result.skipped == 1

@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a04-design-security-sensitive-flows-for-abuse-cases
+---
+
 # OWASP A04: Design Security-Sensitive Flows for Abuse Cases
 
 - Covers OWASP A04 Insecure Design.

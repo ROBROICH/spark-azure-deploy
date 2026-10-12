@@ -16,6 +16,65 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.3.0] - 2026-10-12
+
+### Added
+
+* Deployment option to run SPARK Workflow as a standalone objection-management application with navigation limited to objection processing
+* Review hints for AI suggestions: uncertain document assignments in the formal completeness check and uncertain objection classifications are flagged, and the material completeness check marks the findings to review first
+* Administration area for configuring project types, including topic catalogs with legal bases, required documents and decision templates
+* Failed processing runs are shown with their cause in the affected area of a procedure
+* Content extraction rasterizes CAD and GIS plan sheets before conversion
+* German user manual as a searchable website with its own container image
+
+### Changed
+
+* BREAKING: Backend services are consolidated into a single TypeScript backend image, `spark-backend`, that applies its own database migrations at startup
+* BREAKING: Backend data is stored in a new, empty PostgreSQL database `application` that requires ICU support; there is no data migration from 0.2.x
+* BREAKING: Temporal workflows still running from 0.2.x cannot be continued after the update
+* BREAKING: Environment variables changed, including new required variables and the rename of `KEYCLOAK_*` to `OIDC_*`
+* BREAKING: API payloads use camelCase, request bodies reject unknown fields, several lists are paginated and some endpoints moved
+* BREAKING: Helm charts are restructured into an umbrella chart with a shared backend pool chart; values and secret keys changed
+* BREAKING: The local stack requires Bun 1.4.0 and Process Compose 1.76.1 or later and replaces MinIO with VersityGW
+* Plausibility findings are ranked by a new relevance score that combines two independent assessments, and duplicate findings, including document pairs checked in both directions, are merged
+* The plausibility check uses repeated passages, copied sentences and cross-references as additional sources of possible contradictions and skips trivial passage pairs
+* Legal review sentence details show the scope and type of discretion for each legal consequence instead of the addressee
+* Lists of procedures, deadlines, appointments, documents, supplementary requests and comments load page by page
+* Users without the administrator role only see procedures they are a member of; administrators still see all procedures
+* Accessibility statement updated after the BITV 2.0 and EN 301 549 audit by ITZBund (June–September 2026)
+
+### Fixed
+
+* ZIP imports no longer fail on automatic retries because the uploaded archive was deleted too early, and encrypted, split or otherwise unsupported archives receive specific error messages
+* Failed formal completeness checks can restart without uploading the documents again
+* Formal completeness checks no longer fail on procedures with many documents
+* Document matching for legal-norm requirements ranks documents by relevance instead of processing order
+* Legal norm lookups no longer fail when the search returns only one result
+* Inline markup no longer disrupts sentence splitting in legal norm texts
+* The default topic catalog cites Article 28(2) of the Basic Law for "Kommunale Belange"
+* A project number can be reused after the project is deleted
+* Failed attempts to create, edit or delete a deadline are reported as errors instead of success
+* Content extraction no longer fails on documents with many chapters
+* Accessibility improvements for screen readers, Windows Contrast Mode and 400% zoom
+
+### Removed
+
+* Python backend HTTP services, superseded by the TypeScript backend
+* Prometheus `/metrics` endpoints of the backend services, and `/docs` and `/redoc`; telemetry is exported through OpenTelemetry (OTLP) and the API reference is served at `/openapi`
+* Local reverse-proxy setup and the MinIO proxy
+* Quick-start scripts
+
+### Security
+
+* Users can no longer grant themselves the administrator role; role switching for permission testing is available only in development, testing and staging environments and requires the `test-role-switcher` role
+* Permission checks are applied consistently to all project-related API requests, archived workflow histories are always encrypted, logs redact credentials and user data, and error responses are reduced to the information needed
+* PDF anonymization stops with an error if OCR or PII detection fails, instead of returning partly unredacted pages, and removes metadata, annotations, forms, embedded files and orphaned signature widgets
+* Case-law and legal-norm ingestion accepts only expected file types from downloaded archives, no longer loads executable caches, and downloads case law only over HTTPS
+* File uploads and source downloads are size-limited, and planning-portal downloads accept only HTTPS from allow-listed hosts
+* The objection CSV export neutralizes spreadsheet formulas
+
+---
+
 ## [0.2.3] - 2026-10-12
 
 ### Changed
@@ -49,10 +108,20 @@ All notable changes to this project will be documented in this file.
 * DevGuard artifact identifiers now use Package URL (PURL) format for the monorepo and OCI service artifacts
 * Service CI pipelines now accept explicit build and runtime base-image inputs
 * Root README links directly to the user manual and documentation index and simplifies external AI service configuration
+* Helm charts now reference service and infrastructure images in the OpenCoDE container registry
+* Software composition and container scans now fail the pipeline on high and critical findings
 
 ### Fixed
 
 * Restored reverse-proxy setup guidance in the root README
+* Document chunking skips empty chunks
+* Legal methodology handles missing law documents
+
+### Security
+
+* PDF redaction strips digital signatures before redacting
+* Prompt-injection detection normalizes Unicode before matching markers
+* The user list masks administrator roles
 
 ---
 
@@ -81,7 +150,7 @@ All notable changes to this project will be documented in this file.
 * OCR-generated notes are removed more reliably before objections are processed
 * ZIP extraction allows more time for uploads containing many or large files
 * Tagged CI builds now produce the correct Docker image tags
-* DevGuard jobs use the `if-not-present` merge policy to improve pipeline stability
+* DevGuard jobs use the `if-not-present` pull policy to improve pipeline stability
 
 ### Removed
 

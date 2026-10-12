@@ -15,13 +15,13 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
-  useLiveNode: (nodeRef: { id: string; node_type: string } | undefined) => ({
+  useLiveNode: (nodeRef: { id: string; nodeType: string } | undefined) => ({
     data: nodeRef
       ? {
-          compositeKey: `${nodeRef.node_type}:${nodeRef.id}` as CompositeKey,
+          compositeKey: `${nodeRef.nodeType}:${nodeRef.id}` as CompositeKey,
           id: nodeRef.id,
-          node_type: nodeRef.node_type,
-          beteiligungs_eingang_id: 'entry-1',
+          nodeType: nodeRef.nodeType,
+          beteiligungsEingangId: 'entry-1',
           text: mocks.markdownText,
         }
       : null,
@@ -74,22 +74,21 @@ const makeEntry = (
   ({
     compositeKey: 'beteiligungs_eingang:entry-1' as CompositeKey,
     id: 'entry-1',
-    node_type: 'beteiligungs_eingang',
-    beteiligung_typ: 'einwendung',
-    file_id: 'file-1',
+    nodeType: 'beteiligungs_eingang',
+    beteiligungTyp: 'einwendung',
+    fileId: 'file-1',
     filename: 'file-1.pdf',
-    beteiligungs_eingang_markdown_id: 'markdown-1',
-    extraction_status: 'success',
-    classification_status: 'done',
-    project_id: 'project-1',
-    is_deleted: false,
-    is_outdated: false,
-    frontend_parent_ids: [],
-    project_version: 1,
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    markdownId: 'markdown-1',
+    extractionStatus: 'success',
+    classificationStatus: 'done',
+    projectId: 'project-1',
+    isDeleted: false,
+    isOutdated: false,
+    frontendParentIds: [],
+    projectVersion: 1,
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     ...overrides,
   }) satisfies EwmsBeteiligungsEingang;
 
@@ -111,7 +110,7 @@ describe('PreviewLanes', () => {
     render(
       <PreviewLanes
         selectedItem={makeSelectedItem({
-          extraction_status: 'prompt_injection_error',
+          extractionStatus: 'prompt_injection_error',
         })}
       />,
     );

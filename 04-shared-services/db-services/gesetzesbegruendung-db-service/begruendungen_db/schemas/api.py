@@ -1,7 +1,9 @@
 from datetime import date, timedelta
+
 from pydantic import BaseModel, ConfigDict
-from begruendungen_db.schemas.db import BaseChunk, Drucksachetyp, Herausgeber, BaseDocument
-from temporal.workflows.begruendungen.types import UpdateBegruendungenInput
+from temporal.contracts import UpdateBegruendungenInput
+
+from begruendungen_db.schemas.db import BaseChunk, BaseDocument, Drucksachetyp, Herausgeber
 
 
 class ResponseChunk(BaseChunk):
@@ -29,6 +31,7 @@ class SimilarityRequest(BaseModel):
 
 class FullDocument(BaseDocument, table=False):
     """document including full text"""
+
     text: str
 
 

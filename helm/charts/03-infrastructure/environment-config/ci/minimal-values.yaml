@@ -1,0 +1,11 @@
+# ci: the inputs environment-config requires, plus one ExternalSecret.
+global:
+  stage: {name: ci}
+externalSecrets:
+  pathPrefix: ci
+  secretStore: {name: example-store}
+  secrets:
+    postgres-credentials:
+      data:
+        username: {remoteKey: '{{ .Values.externalSecrets.pathPrefix }}/database', property: username}
+        password: {remoteKey: '{{ .Values.externalSecrets.pathPrefix }}/database', property: password}

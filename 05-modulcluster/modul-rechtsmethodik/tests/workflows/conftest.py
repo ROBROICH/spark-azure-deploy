@@ -1,7 +1,7 @@
 """Shared fixtures for all workflow tests."""
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Auslegungsvorschlag,
     UnbestimmterRechtsbegriff,
 )

@@ -16,7 +16,12 @@ from prompt_injection.prompt_defense import wrap_system_prompt
 from pydantic import BaseModel, ValidationError
 from temporal.activities.llm import _DEFAULT_RETRY, llm_invoke
 from temporal.activities.models import ChatModel
-from temporal.workflows.modul_suche_und_zuordnung.types import Document, PageIndexSVMWorkflowOutput
+from temporal.contracts import (
+    SucheZuordnungDocument as Document,
+)
+from temporal.contracts import (
+    SucheZuordnungPageIndexSVMWorkflowOutput as PageIndexSVMWorkflowOutput,
+)
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 from temporalio.exceptions import ActivityError, ApplicationError
@@ -101,9 +106,7 @@ class PageIndexSVMWorkflowInput(BaseModel):
     """Input parameters for a single PageIndex SVM workflow run."""
 
     project_id: str
-    document_id: str
     file_id: str
-    filename: str
     norm: str
     tbm: str
     research_report: str | None
@@ -139,6 +142,8 @@ class PageIndexSVMWorkflow:
                 len(node_map),
             )
             selected_nodes = list(node_map.keys())
+            # No consensus round ran, so no vote ratio exists for these nodes.
+            consensus_ratios = None
         else:
             try:
                 stage1_results = await asyncio.gather(
@@ -157,22 +162,25 @@ class PageIndexSVMWorkflow:
                         for _ in range(CONFIG.PAGEINDEX_SVM.CONSENSUS_RUNS)
                     ]
                 )
-                # consensus_vote returns string indices ("0", "1", ...); map back to real node IDs
-                selected_indices = consensus_vote(list(stage1_results))
+                # consensus_vote keys are string indices ("0", "1", ...); map back to real node IDs
                 selected_nodes = []
-                for idx in selected_indices:
+                consensus_ratios = {}
+                for idx, ratio in consensus_vote(list(stage1_results)).items():
                     try:
                         real_id = index_to_node_id.get(int(idx))
-                        if real_id:
-                            selected_nodes.append(real_id)
                     except ValueError:
-                        pass
+                        continue
+                    if real_id:
+                        selected_nodes.append(real_id)
+                        consensus_ratios[real_id] = ratio
             except (ApplicationError, ActivityError):
                 workflow.logger.warning(
                     "[PAGEINDEX] Stage 1 failed after retries — falling back to all %d nodes",
                     len(node_map),
                 )
                 selected_nodes = list(node_map.keys())
+                # Stage 1 failed, so no vote ratio exists for these nodes.
+                consensus_ratios = None
 
         # Stage 2: Filter sentences in selected nodes
         stage2_prompts, batch_sentence_maps = prepare_stage2(selected_nodes, node_map, input.norm, input.tbm, research)
@@ -198,6 +206,7 @@ class PageIndexSVMWorkflow:
             batch_sentence_maps,
             node_map,
             document_id=input.file_id,
+            consensus_ratios=consensus_ratios,
         )
 
         result.originaltexte = [e for e in result.originaltexte if e.text != "(...)"]

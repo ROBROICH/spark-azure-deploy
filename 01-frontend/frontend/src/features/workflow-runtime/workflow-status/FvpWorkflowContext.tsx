@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useContext, useMemo } from 'react';
-import { getSubWorkflowStateFromWorkflowState } from './useSubWorkflow';
+import { getFvpAnalysisFailureCodes } from './fvpSubWorkflowStates';
+import { useSubWorkflow } from './useSubWorkflow';
 import {
   WORKFLOW_TYPE_CHECK_PLAUSIBILITY,
   WORKFLOW_TYPE_FVP,
@@ -8,36 +9,59 @@ import {
 } from './workflowStatus.helpers';
 import { useWorkflow } from './useWorkflow';
 
+/**
+ * Reads the latest FVPWorkflow run and its three analysis stages once for the
+ * FVP route, and attaches each analysis's failure code.
+ */
 const useFvpWorkflowContextLogic = () => {
   const workflowState = useWorkflow({
     workflowType: WORKFLOW_TYPE_FVP,
-    includeSubWorkflows: true,
     refetchNodeSummariesOnSuccess: false,
   });
-  const tableOfContentsWorkflow = getSubWorkflowStateFromWorkflowState({
+  const tableOfContentsRun = useSubWorkflow({
     workflowState,
     subWorkflowType: WORKFLOW_TYPE_INHALTSVERZEICHNIS_MATCHING,
   });
-  const requiredDocumentsWorkflow = getSubWorkflowStateFromWorkflowState({
+  const requiredDocumentsRun = useSubWorkflow({
     workflowState,
     subWorkflowType: WORKFLOW_TYPE_LLM_MATCHING,
   });
-  const plausibilityWorkflow = getSubWorkflowStateFromWorkflowState({
+  const plausibilityRun = useSubWorkflow({
     workflowState,
     subWorkflowType: WORKFLOW_TYPE_CHECK_PLAUSIBILITY,
+  });
+  const failureCodes = getFvpAnalysisFailureCodes({
+    analyses: {
+      tableOfContents: tableOfContentsRun,
+      requiredDocuments: requiredDocumentsRun,
+      plausibility: plausibilityRun,
+    },
+    parentFailure: workflowState.latestFailure,
   });
 
   return useMemo(
     () => ({
-      tableOfContentsWorkflow,
-      plausibilityWorkflow,
-      requiredDocumentsWorkflow,
+      tableOfContentsWorkflow: {
+        ...tableOfContentsRun,
+        failureCode: failureCodes.tableOfContents,
+      },
+      plausibilityWorkflow: {
+        ...plausibilityRun,
+        failureCode: failureCodes.plausibility,
+      },
+      requiredDocumentsWorkflow: {
+        ...requiredDocumentsRun,
+        failureCode: failureCodes.requiredDocuments,
+      },
       workflowState,
     }),
     [
-      tableOfContentsWorkflow,
-      plausibilityWorkflow,
-      requiredDocumentsWorkflow,
+      tableOfContentsRun,
+      plausibilityRun,
+      requiredDocumentsRun,
+      failureCodes.tableOfContents,
+      failureCodes.plausibility,
+      failureCodes.requiredDocuments,
       workflowState,
     ],
   );

@@ -1,0 +1,24 @@
+# Patterns to ignore when building packages.
+.DS_Store
+.git/
+.gitignore
+.bzr/
+.bzrignore
+.hg/
+.hgignore
+.svn/
+*.swp
+*.bak
+*.tmp
+*.orig
+*~
+.project
+.idea/
+*.tmproj
+.vscode/
+# Internal material never ships in a chart package: operations notes
+# (*-INTERNAL*), concrete environment values, test harnesses and unit tests.
+*-INTERNAL*
+env-values/
+test/
+tests/

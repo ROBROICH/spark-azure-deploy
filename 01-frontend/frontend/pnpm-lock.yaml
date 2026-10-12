@@ -85,7 +85,7 @@ importers:
         specifier: ^5.66.5
         version: 5.90.12(react@19.2.4)
       '@tanstack/react-router':
-        specifier: ^1.132.0
+        specifier: ^1.170.38
         version: 1.170.38(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@tanstack/react-table':
         specifier: ^8.21.3
@@ -254,7 +254,7 @@ importers:
         specifier: ^8.0.16
         version: 8.0.16(@types/node@22.19.3)(esbuild@0.27.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.3)
       vitest:
-        specifier: ^4.1.2
+        specifier: ^4.1.11
         version: 4.1.11(@types/node@22.19.3)(@vitest/coverage-v8@4.1.11)(jsdom@27.3.0(postcss@8.5.23))(vite@8.0.16(@types/node@22.19.3)(esbuild@0.27.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.3))
 
 packages:
@@ -1966,6 +1966,9 @@ packages:
 
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
+
+  '@types/estree@1.0.9':
+    resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
 
   '@types/geojson@7946.0.16':
     resolution: {integrity: sha512-6C8nqWur3j98U6+lXDfTUWIfgvZU+EumvpHKcYjujKH7woYyLj2sUmff0tRhrqM7BohUw7Pz3ZB1jj2gW9Fvmg==}
@@ -6459,6 +6462,8 @@ snapshots:
 
   '@types/estree@1.0.8': {}
 
+  '@types/estree@1.0.9': {}
+
   '@types/geojson@7946.0.16': {}
 
   '@types/hast@3.0.4':
@@ -7592,7 +7597,7 @@ snapshots:
 
   estree-walker@3.0.3:
     dependencies:
-      '@types/estree': 1.0.8
+      '@types/estree': 1.0.9
 
   esutils@2.0.3: {}
 
@@ -9440,7 +9445,7 @@ snapshots:
       std-env: 4.0.0
       tinybench: 2.9.0
       tinyexec: 1.0.2
-      tinyglobby: 0.2.17
+      tinyglobby: 0.2.15
       tinyrainbow: 3.1.0
       vite: 8.0.16(@types/node@22.19.3)(esbuild@0.27.1)(jiti@2.7.0)(tsx@4.21.0)(yaml@2.8.3)
       why-is-node-running: 2.3.0

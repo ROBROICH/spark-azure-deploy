@@ -1,11 +1,8 @@
 import {
-  generateDownloadUrlV2FilesFileIdGenerateDownloadUrlGet,
-  type FileDownloadResponse,
-} from '@/api-clients/dms-module';
-import {
-  exportArgumentsProjectIdArgumentsExportGet,
-  type FileIdResponse,
-} from '@/api-clients/oms-module';
+  v1DocumentManagementGenerateFileDownloadUrl as generateFileDownloadUrl,
+  type DownloadUrlResponse,
+} from '@/api-clients/backend';
+import { v1ObjectionsManagementExportObjectionsArguments as exportObjectionsArguments } from '@/api-clients/backend';
 import { safeDownloadUrl } from '@/features/shared/remote-files/downloadUrlSafety';
 
 type ClientResult<TData> = {
@@ -45,11 +42,11 @@ export const exportErwiderungen = async (
   projectId: string,
   projectVersion: number,
 ): Promise<string> => {
-  const exportResponse = (await exportArgumentsProjectIdArgumentsExportGet({
+  const exportResponse = (await exportObjectionsArguments({
     path: {
-      project_id: projectId,
+      projectId: projectId,
     },
-  })) as ClientResult<FileIdResponse>;
+  })) as ClientResult<{ fileId: string }>;
   const { data: exportedFile, error: exportError } = exportResponse;
 
   if (exportError) {
@@ -62,16 +59,15 @@ export const exportErwiderungen = async (
     throw new Error('Erwiderung export response is empty.');
   }
 
-  const downloadUrlResponse =
-    (await generateDownloadUrlV2FilesFileIdGenerateDownloadUrlGet({
-      path: {
-        file_id: exportedFile.file_id,
-      },
-      query: {
-        project_version: projectVersion,
-        inline: false,
-      },
-    })) as ClientResult<FileDownloadResponse>;
+  const downloadUrlResponse = (await generateFileDownloadUrl({
+    path: {
+      fileId: exportedFile.fileId,
+    },
+    query: {
+      projectVersion: projectVersion,
+      inline: false,
+    },
+  })) as ClientResult<DownloadUrlResponse>;
   const { data: downloadTarget, error: downloadUrlError } = downloadUrlResponse;
 
   if (downloadUrlError) {

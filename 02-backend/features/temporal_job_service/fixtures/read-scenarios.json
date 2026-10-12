@@ -1,0 +1,45 @@
+{
+  "projects": {
+    "empty": "81000000-0000-4000-8000-000000000001",
+    "mixed": "81000000-0000-4000-8000-000000000002",
+    "running": "81000000-0000-4000-8000-000000000003",
+    "completedCurrent": "81000000-0000-4000-8000-000000000004",
+    "completedHistorical": "81000000-0000-4000-8000-000000000005",
+    "failed": "81000000-0000-4000-8000-000000000006",
+    "canceled": "81000000-0000-4000-8000-000000000007",
+    "terminated": "81000000-0000-4000-8000-000000000008",
+    "timedOut": "81000000-0000-4000-8000-000000000009",
+    "continuedAsNew": "81000000-0000-4000-8000-000000000010",
+    "boundaryFailure": "81000000-0000-4000-8000-000000000011",
+    "missingFixture": "81000000-0000-4000-8000-000000000099",
+    "byTypeEmpty": "82000000-0000-4000-8000-000000000001",
+    "byTypeMultiple": "82000000-0000-4000-8000-000000000002",
+    "byTypeChildren": "82000000-0000-4000-8000-000000000003",
+    "byTypeBoundaryFailure": "82000000-0000-4000-8000-000000000004"
+  },
+  "workflows": {
+    "running": "tjs-running-workflow",
+    "completed": "tjs-completed-workflow",
+    "failed": "tjs-failed-workflow",
+    "canceled": "tjs-canceled-workflow",
+    "missing": "tjs-missing-workflow",
+    "rpcFailure": "tjs-rpc-failure",
+    "genericFailure": "tjs-generic-failure",
+    "treeRoot": "tjs-tree-root",
+    "treeNested": "tjs-tree-nested",
+    "treeMissing": "tjs-tree-missing",
+    "treeBoundaryFailure": "tjs-tree-boundary-failure"
+  },
+  "load": {
+    "maxComplexity": 1000,
+    "defaultWeight": 3,
+    "weights": {
+      "BatchMVPWorkflow": 20,
+      "FVPWorkflow": 100
+    },
+    "expectedRunning": 4,
+    "expectedComplexity": 143,
+    "expectedPercentage": 14.3
+  }
+}
+

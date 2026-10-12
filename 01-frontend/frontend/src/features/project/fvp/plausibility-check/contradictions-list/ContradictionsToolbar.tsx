@@ -1,4 +1,4 @@
-import type { PlausibilityNoteStatus } from '@/api-clients/pns-module';
+import type { PlausibilityNoteStatus } from '@/api-clients/backend';
 import { FilterPillMultiSelect } from '@/features/ui/filter-pill-select/FilterPillMultiSelect';
 import { getRouteApi } from '@tanstack/react-router';
 import { ListFilter } from 'lucide-react';

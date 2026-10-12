@@ -10,13 +10,29 @@ Only tests functions that require no I/O (no Qdrant, no HTTP):
 from typing import Any
 
 import pytest
-from temporal.workflows.modul_suche_und_zuordnung.types import (
-    Absatz,
-    AtomaresTBM,
-    NormData,
-    Satz,
+from temporal.contracts import (
+    SucheZuordnungAbsatz as Absatz,
+)
+from temporal.contracts import (
+    SucheZuordnungAtomaresTBM as AtomaresTBM,
+)
+from temporal.contracts import (
+    SucheZuordnungBestimmterRechtsbegriff as BestimmterRechtsbegriff,
+)
+from temporal.contracts import (
+    SucheZuordnungDefinition as Definition,
+)
+from temporal.contracts import (
+    SucheZuordnungNormData as NormData,
+)
+from temporal.contracts import (
+    SucheZuordnungRechtsbegriffe as Rechtsbegriffe,
+)
+from temporal.contracts import (
+    SucheZuordnungSatz as Satz,
 )
 
+from src.tbm_matching.query_building import build_queries
 from src.tbm_matching.retrieval import filter_documents
 from src.tbm_matching.tbm_enrichment import extract_tbms_for_satz, fuse_retrieval_results
 
@@ -118,6 +134,26 @@ class TestExtractTbmsForSatz:
         assert len(result) == 1
         assert result[0]["prueffrage"] == "Q2?"
 
+    def test_extracted_generated_tbm_keeps_selected_definition_for_query(self) -> None:
+        definition = Definition(uuid="definition-1", definition="The selected definition")
+        legal_terms = Rechtsbegriffe(
+            bestimmte_rechtsbegriffe=[
+                BestimmterRechtsbegriff(
+                    begriff="Vorhaben",
+                    selected_definition="definition-1",
+                    definitions=[definition],
+                )
+            ],
+            unbestimmte_rechtsbegriffe=[],
+        )
+        tbm = AtomaresTBM(id=None, prueffrage="Is this allowed?", rechtsbegriffe=legal_terms)
+        norm = _norm_data(absaetze=[_absatz("1", [_satz("1", [tbm], satz_id="satz-1")])])
+
+        queries = build_queries(extract_tbms_for_satz(norm, "satz-1"))
+
+        assert len(queries) == 1
+        assert "The selected definition" in queries[0]
+
 
 # ---------------------------------------------------------------------------
 # filter_documents
@@ -183,10 +219,10 @@ class TestFuseRetrievalResults:
         assert "B" in titles
 
     def test_rule_based_duplicate_not_added(self) -> None:
-        """Rule-based doc with same title as existing fused doc is not duplicated."""
+        """Rule-based doc with the same document_id as an existing fused doc is not duplicated."""
         tbm_list = [{"prueffrage": "Q?"}]
         chunks = [[{"document_id": "d1", "title": "Same", "score": 0.9}]]
-        rules = [[{"document_id": "d2", "title": "Same", "score": 0.5}]]
+        rules = [[{"document_id": "d1", "title": "Same", "score": 0.5}]]
         enriched = fuse_retrieval_results(
             tbm_list,
             source_chunks=chunks,
@@ -194,8 +230,42 @@ class TestFuseRetrievalResults:
             source_questions=[[]],
             source_rules=rules,
         )
-        same_titles = [d for d in enriched[0]["svms"] if d.get("title") == "Same"]
-        assert len(same_titles) == 1
+        same_docs = [d for d in enriched[0]["svms"] if d.get("document_id") == "d1"]
+        assert len(same_docs) == 1
+
+    def test_scoreless_rule_based_document_survives_fusion(self) -> None:
+        """Rule-based docs carry no score at all; they must be ranked, never dropped or rejected.
+
+        aggregate_to_documents requires a score, so this also pins the invariant that rule
+        docs bypass it and are appended to the already-fused list.
+        """
+        tbm_list = [{"prueffrage": "Q?"}]
+        chunks = [[{"document_id": "semantic", "title": "Semantic", "score": 0.9}]]
+        rules = [[{"document_id": "rule", "title": "Rule"}]]
+        enriched = fuse_retrieval_results(
+            tbm_list,
+            source_chunks=chunks,
+            source_summaries=[[]],
+            source_questions=[[]],
+            source_rules=rules,
+        )
+        svms = enriched[0]["svms"]
+        assert [d.get("document_id") for d in svms] == ["semantic", "rule"]
+        assert "score" not in svms[-1]
+
+    def test_rule_based_same_title_different_document_kept(self) -> None:
+        """A rule-based doc that only shares its title with a fused doc is a different document."""
+        tbm_list = [{"prueffrage": "Q?"}]
+        chunks = [[{"document_id": "d1", "title": "Lageplan", "score": 0.9}]]
+        rules = [[{"document_id": "d2", "title": "Lageplan", "score": 0.5}]]
+        enriched = fuse_retrieval_results(
+            tbm_list,
+            source_chunks=chunks,
+            source_summaries=[[]],
+            source_questions=[[]],
+            source_rules=rules,
+        )
+        assert {d.get("document_id") for d in enriched[0]["svms"]} == {"d1", "d2"}
 
     def test_multiple_tbms(self) -> None:
         tbm_list = [{"prueffrage": "Q1?"}, {"prueffrage": "Q2?"}]

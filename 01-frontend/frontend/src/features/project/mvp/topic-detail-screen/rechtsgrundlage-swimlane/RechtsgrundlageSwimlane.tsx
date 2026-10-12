@@ -6,6 +6,7 @@ import { createLawChangeId } from '@/features/project/law-changes/data/lawChange
 import { getNextReviewStatus } from '@/features/project/versioning/revisionStatus';
 import { skeletonListProps } from '@/features/ui/skeleton/Skeleton';
 import { useAction } from '@/db/nodes/hooks/useAction';
+import type { WorkflowFailureCode } from '@/features/workflow-runtime/workflow-status/workflowStatus.types';
 import { useLiveQuery } from '@tanstack/react-db';
 import { getRouteApi } from '@tanstack/react-router';
 import { Suspense, useCallback, useEffect } from 'react';
@@ -24,6 +25,7 @@ import { NormTextView } from '../screen-content/NormTextView';
 import { RechtsgrundlageAccordionView } from '../screen-content/RechtsgrundlageAccordionView';
 import { ResolvedNormTextView } from '../screen-content/ResolvedNormTextView';
 import { useResolvedTopicNormEntries } from '../screen-content/useResolvedTopicNormEntries';
+import { useTopicNormAiAnalysisFailureCodes } from './useTopicNormAiAnalysisFailureCodes';
 
 const route = getRouteApi('/verfahren/$verfahrenId/mvp/$topicName/');
 
@@ -31,7 +33,10 @@ const RechtsgrundlageLawGroupContentSkeleton = (props: {
   lawGroup: TopicNormLawGroup;
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-2 p-1 pb-2" {...skeletonListProps}>
+    <div
+      className="grid grid-cols-1 gap-2 p-1 pb-2 sm:grid-cols-2"
+      {...skeletonListProps}
+    >
       {props.lawGroup.topicNorms.map((topicNorm) => (
         <NormCardItemSkeleton key={topicNorm.id} />
       ))}
@@ -40,6 +45,7 @@ const RechtsgrundlageLawGroupContentSkeleton = (props: {
 };
 
 const RechtsgrundlageLawGroupContent = (props: {
+  aiAnalysisFailureCodeByNormId: ReadonlyMap<string, WorkflowFailureCode>;
   canMutateTopic: boolean;
   lawGroup: TopicNormLawGroup;
   onSelectNorm: (normId: string) => void;
@@ -48,6 +54,7 @@ const RechtsgrundlageLawGroupContent = (props: {
   lawChanges: LawChangeRecord[];
 }) => {
   const {
+    aiAnalysisFailureCodeByNormId,
     canMutateTopic,
     lawGroup,
     onSelectNorm,
@@ -88,10 +95,16 @@ const RechtsgrundlageLawGroupContent = (props: {
   });
 
   return (
-    <div className="grid grid-cols-2 gap-2 p-1 pb-2">
+    <div className="grid grid-cols-1 gap-2 p-1 pb-2 sm:grid-cols-2">
       {resolvedTopicNormEntries.map((topicNormEntry) => (
         <NormCardItem
           key={topicNormEntry.topicNorm.id}
+          aiAnalysisFailureCode={
+            topicNormEntry.norm
+              ? (aiAnalysisFailureCodeByNormId.get(topicNormEntry.norm.id) ??
+                null)
+              : null
+          }
           norm={topicNormEntry}
           normIdsWithFundstellen={normIdsWithFundstellen}
           removingNormId={removingNormId}
@@ -139,11 +152,13 @@ export const RechtsgrundlageSwimlane = (
     q.from({ lawChanges: lawChangesCollection }),
   );
   const { lawGroups, topicNormById } = useLightweightRechtsgrundlageData();
+  const aiAnalysisFailureCodeByNormId =
+    useTopicNormAiAnalysisFailureCodes(lawGroups);
   const selectedLawChangeTopicNorm = lawChangeId
     ? (lawGroups
         .flatMap((group) => group.topicNorms)
         .find((topicNorm) => {
-          const paragraphNr = topicNorm.paragraph_nr;
+          const paragraphNr = topicNorm.paragraphNr;
 
           if (!paragraphNr) {
             return false;
@@ -224,11 +239,11 @@ export const RechtsgrundlageSwimlane = (
         return;
       }
 
-      const nextStatus = getNextReviewStatus(topicNorm.mvp_status);
+      const nextStatus = getNextReviewStatus(topicNorm.mvpStatus);
 
       transact(() => {
         update(topicNorm, (draft) => {
-          draft.mvp_status = nextStatus;
+          draft.mvpStatus = nextStatus;
         });
       });
     },
@@ -290,6 +305,7 @@ export const RechtsgrundlageSwimlane = (
               }
             >
               <RechtsgrundlageLawGroupContent
+                aiAnalysisFailureCodeByNormId={aiAnalysisFailureCodeByNormId}
                 canMutateTopic={canMutateTopic}
                 lawGroup={lawGroup}
                 lawChanges={lawChanges}

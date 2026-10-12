@@ -44,15 +44,15 @@ vi.mock('./useEwmsWorkspace', () => ({
 const createEntry = (classificationStatus: 'loading' | 'done') => ({
   compositeKey: 'beteiligungs_eingang:entry-1' as CompositeKey,
   id: 'entry-1',
-  node_type: 'beteiligungs_eingang' as const,
-  frontend_parent_ids: [],
-  created_at: '2026-05-25T12:00:00.000Z',
-  file_id: 'file-1',
+  nodeType: 'beteiligungs_eingang' as const,
+  frontendParentIds: [],
+  createdAt: '2026-05-25T12:00:00.000Z',
+  fileId: 'file-1',
   filename: 'E1234.pdf',
-  beteiligung_typ: 'einwendung',
-  beteiligungs_eingang_markdown_id: null,
-  extraction_status: 'done',
-  classification_status: classificationStatus,
+  beteiligungTyp: 'einwendung',
+  markdownId: null,
+  extractionStatus: 'done',
+  classificationStatus: classificationStatus,
 });
 
 const useWorkspaceState = (params: {

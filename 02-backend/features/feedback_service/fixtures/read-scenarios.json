@@ -1,0 +1,26 @@
+{
+  "projects": {
+    "populated": {
+      "id": "9d810167-678a-419d-b7be-cb4b0f24b625",
+      "latestVersion": 1
+    },
+    "versionTwo": {
+      "id": "6fdcaf15-bdb7-43ea-a4b7-aaa7fdf6e976",
+      "latestVersion": 2
+    },
+    "empty": {
+      "id": "e7a15afe-19d3-4c74-a679-a54c89ed98ab",
+      "latestVersion": 2
+    },
+    "unknown": {
+      "id": "51000000-0000-4000-8000-000000000006"
+    }
+  },
+  "nodes": {
+    "currentPrimary": "f36a232c-56d2-4141-8366-e5ba8920b311",
+    "currentSecondary": "ec16a2db-28e9-410c-aa9e-4ecc1c3f8c01",
+    "versionTwo": "1c109427-0d6e-476d-ad8c-de4cb40e92c9",
+    "deleted": "bd15170f-5f9f-47c1-afdc-6325c1bb5c9e",
+    "unknown": "adfc14af-250e-4134-8e66-9c65df30758a"
+  }
+}

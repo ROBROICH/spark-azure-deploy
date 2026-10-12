@@ -4,7 +4,7 @@ from contextlib import ExitStack
 from unittest.mock import patch
 
 import pytest
-from temporal.workflows.formale_pruefung import (
+from temporal.contracts import (
     DMSFileResponse,
     LLMMatchingParams,
 )
@@ -128,11 +128,7 @@ async def test_build_output_sorting_logic():
     assert output.unassigned_documents[0].document_id == "doc-002"
 
 
-@pytest.mark.asyncio
-@patch("src.workflows.llm_matching.workflow.logger")
-async def test_load_document_types_without_preprocessing(mock_logger):
-    """Verify document type loading without preprocessing."""
-    wf = LLMMatchingWorkflow()
+def test_parses_canonical_document_types():
     params = LLMMatchingParams(
         project_id="p1",
         document_types=[
@@ -143,44 +139,13 @@ async def test_load_document_types_without_preprocessing(mock_logger):
                 "expected_count": 1,
             }
         ],
-        diplan_preprocessing=False,
         document_ids=[],
     )
 
-    res = await wf._load_document_types(params)
+    res = params.document_types
     assert isinstance(res, list)
     assert len(res) == 1
     assert isinstance(res[0], DocumentTypeDefinition)
     assert res[0].document_type_name == "Kreuzungsverzeichnis"
-
-
-@pytest.mark.asyncio
-@patch("src.workflows.llm_matching.workflow.logger")
-async def test_load_document_types_with_preprocessing(mock_logger):
-    """Verify document type loading with preprocessing."""
-    wf = LLMMatchingWorkflow()
-    params = LLMMatchingParams(
-        project_id="p1",
-        document_types=[
-            {
-                "name": "Teil A: Allgemeiner und Technischer Teil",
-                "children": [
-                    {
-                        "name": "A01 Erläuterungsbericht",
-                        "id": "PF01",
-                        "required": True,
-                        "contentRequirements": "Folgende Angaben werden für diesen Ordner erwartet:\n1.\tEinleitung\n2.\tAnlass und Zweck des Vorhabens\n3.\tRechtliche Grundlagen (§§ 43 ff. EnWG, UVPG)\n4.\tTechnische Beschreibung\n 4.1 Technische Grunddaten (Leitungsdurchmesser, Druckstufe, Werkstoff)\n 4.2 Trassenverlauf und Variantenprüfung\n 4.3 Bauverfahren und Bauphasen\n 4.4 Betrieb und Wartung\n5.\tStandort- und Trassenalternativen\n6.\tUmwelt- und Raumverträglichkeit\n 6.1 Übersicht Schutzgüter\n 6.2 Maßnahmen zur Vermeidung und Kompensation\n7.\tSicherheitskonzept (inkl. KKS, Leckageerkennung, Notfallmanagement)\n8.\tEinbindung in Netzstruktur\n9.\tÖffentlichkeitsbeteiligung / Behördenkontakte\n10.\tZusammenfassung\n",
-                    },
-                ],
-            }
-        ],
-        diplan_preprocessing=True,
-        document_ids=[],
-    )
-
-    res = await wf._load_document_types(params)
-    print(res)
-    assert isinstance(res, list)
-    assert len(res) == 1
-    assert isinstance(res[0], DocumentTypeDefinition)
-    assert res[0].document_type_name == "A01 Erläuterungsbericht"
+    assert res[0].category == "Trassierungs-technischer Teil"
+    assert "expected_count" not in res[0].model_dump()

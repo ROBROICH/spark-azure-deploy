@@ -1,14 +1,14 @@
 from datetime import timedelta
 
-from pydantic import ValidationError
-from temporal.workflows.formale_pruefung.llm_matching import LLM_MATCHING_WORKFLOW_ID
-from temporal.workflows.formale_pruefung.types import (
+from temporal.contracts import (
     DMSFileResponse,
     DocumentOutput,
     LLMMatchingOutput,
     LLMMatchingParams,
     MatchedDocumentTypeOutput,
 )
+from temporal.registry import FORMALE_PRUEFUNG_LLM_MATCHING_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
@@ -26,12 +26,10 @@ from src.schemas.llm_matching_schemas import (
     DocumentTypeDefinition,
     SingleDocumentMatchInput,
 )
-from src.utils.diplan_preprocessing import diplan_document_type_preprocessing
-from src.utils.sliding_window import sliding_window
 from src.workflows.llm_matching_single_document import LLMMatchingSingleDocumentWorkflow
 
 
-@workflow.defn(name=LLM_MATCHING_WORKFLOW_ID)
+@workflow.defn(name=FORMALE_PRUEFUNG_LLM_MATCHING_WORKFLOW.name)
 class LLMMatchingWorkflow:
     """
     Workflow that matches documents from a project against a predefined list of document
@@ -56,7 +54,7 @@ class LLMMatchingWorkflow:
         workflow.logger.info(f"Starting LLM Matching Workflow for project {params.project_id}")
 
         # 1. Load Definitions
-        document_types = await self._load_document_types(params)
+        document_types = params.document_types
         if not document_types:
             workflow.logger.warning("No document definitions loaded.")
             empty_output = LLMMatchingOutput(matched_document_types=[], unassigned_documents=[])
@@ -107,49 +105,6 @@ class LLMMatchingWorkflow:
                 )
             )
         return documents
-
-    async def _load_document_types(
-        self,
-        params: LLMMatchingParams,
-    ) -> list[DocumentTypeDefinition]:
-        """Loads and optionally preprocesses document type definitions.
-
-        If `params.diplan_preprocessing` is True, it assumes the raw data is in diplan
-        format. Finally, it validates the data against the `DocumentTypeDefinition`
-        Pydantic model.
-
-        Args:
-            params: Configuration object containing:
-                - document_types: Optional raw JSON string.
-                - diplan_preprocessing: Boolean flag to trigger structural conversion.
-
-        Returns:
-            List[DocumentTypeDefinition]: A list of validated document type definitions.
-            Returns an empty list if data loading or parsing fails.
-        """
-        if not isinstance(params.document_types, list):
-            workflow.logger.error(
-                f"Validation failed: Expected data to be a List of definitions, got {type(params.document_types)}."
-            )
-            return []
-        if params.diplan_preprocessing:
-            workflow.logger.info("DiPlan Preprocessing enabled")
-            try:
-                params.document_types = diplan_document_type_preprocessing(params.document_types)
-            except Exception as e:
-                workflow.logger.error(f"Error during data preprocessing: {e}")
-                return []
-        validated_definitions = []
-        for item in params.document_types:
-            try:
-                validated_model = DocumentTypeDefinition.model_validate(item)
-                validated_definitions.append(validated_model)
-            except ValidationError as e:
-                workflow.logger.warning(f"Skipping invalid document definition item: {item}. Error: {e}")
-                continue
-
-        workflow.logger.info(f"Successfully loaded {len(validated_definitions)} document definitions.")
-        return validated_definitions
 
     async def _process_matching_batch(
         self,
@@ -300,10 +255,7 @@ class LLMMatchingWorkflow:
                 continue
             doc_id = str(doc.dms_doc.document_id)
             if doc_id in seen_document_ids:
-                workflow.logger.warning(
-                    f"Skipping duplicate document_id={doc_id} "
-                    f"('{doc.dms_doc.document_name}')"
-                )
+                workflow.logger.warning(f"Skipping duplicate document_id={doc_id} ('{doc.dms_doc.document_name}')")
                 continue
             seen_document_ids.add(doc_id)
             if not doc.assigned_document_type:
@@ -361,7 +313,7 @@ class LLMMatchingWorkflow:
                 workflow_id=info.workflow_id,
                 run_id=info.run_id,
                 filename="result.json",
-                payload=output_data.model_dump(mode="json"),
+                payload=output_data.model_dump(mode="json", by_alias=True),
             ),
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.UPLOAD_ACTIVITY_TIMEOUT_SECONDS),
             retry_policy=RetryPolicy(maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES),

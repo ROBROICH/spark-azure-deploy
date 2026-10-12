@@ -1,3 +1,10 @@
+---
+ruleId: i18n/translate-inside-feature-components
+paths:
+  - "src/**/*.tsx"
+  - "src/features/**/*.json"
+---
+
 # Translate Inside Feature Components
 
 - Do not pass translated strings as props to feature components.

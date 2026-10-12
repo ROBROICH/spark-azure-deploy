@@ -6,7 +6,7 @@ const absatzNumberCollator = new Intl.Collator('de', {
 });
 
 type SortableAbsatz = {
-  absatz_nr: string;
+  absatzNr: string;
   id: string;
 };
 
@@ -25,8 +25,8 @@ export const sortAbsatzRefsByNumber = (
 
     if (leftAbsatz && rightAbsatz) {
       const absatzComparison = absatzNumberCollator.compare(
-        leftAbsatz.absatz_nr,
-        rightAbsatz.absatz_nr,
+        leftAbsatz.absatzNr,
+        rightAbsatz.absatzNr,
       );
 
       if (absatzComparison !== 0) {

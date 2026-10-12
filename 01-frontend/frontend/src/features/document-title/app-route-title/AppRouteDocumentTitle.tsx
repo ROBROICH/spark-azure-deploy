@@ -1,9 +1,11 @@
 import { useRouterState } from '@tanstack/react-router';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { buildDocumentTitle } from '../document-title.logic';
 import {
   getAppRouteDocumentTitleDescriptor,
+  isAdministrationDetailRouteMounted,
   isProjectRouteMounted,
   type DocumentTitleRouteMatch,
 } from './appRouteDocumentTitle.logic';
@@ -28,8 +30,9 @@ function AppPageDocumentTitle(props: {
   const { routeMatches } = props;
   const descriptor = getAppRouteDocumentTitleDescriptor(routeMatches);
   const { t } = useTranslation('DocumentTitle');
+  const effectiveMode = getConfiguredProductMode();
   const title = buildDocumentTitle({
-    appTitle: t('app.title'),
+    appTitle: t(effectiveMode === 'ewms' ? 'app.titleEwms' : 'app.title'),
     featureTitle: t(descriptor.titleKey),
     titleType: descriptor.type,
   });
@@ -45,7 +48,10 @@ function AppPageDocumentTitle(props: {
 export function AppRouteDocumentTitle() {
   const routeTitleState = useRouterState({ select: selectRouteTitleState });
 
-  if (isProjectRouteMounted(routeTitleState.routeMatches)) {
+  if (
+    isProjectRouteMounted(routeTitleState.routeMatches) ||
+    isAdministrationDetailRouteMounted(routeTitleState.routeMatches)
+  ) {
     return null;
   }
 

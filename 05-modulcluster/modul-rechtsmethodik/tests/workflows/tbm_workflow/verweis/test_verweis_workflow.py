@@ -3,13 +3,13 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import ExplicitVerweiseInfo
+from temporal.contracts import ExplicitVerweiseInfo
 
 from src.workflows.tbm_workflow.tbm_types import VerweisWorkflowInput
 from src.workflows.tbm_workflow.verweis.verweis_workflow import VerweisWorkflow
 
 _PATCH_CHILD = "temporalio.workflow.execute_child_workflow"
-_PATCH_GATHER = "asyncio.gather"
+_PATCH_GATHER = "src.workflows.tbm_workflow.verweis.verweis_workflow.asyncio.gather"
 _PATCH_POSTPROCESS = "src.workflows.tbm_workflow.verweis.verweis_workflow.postprocess_explizite_verweise"
 _PATCH_FETCH_CONTEXT = "src.workflows.tbm_workflow.verweis.verweis_workflow.fetch_context_for_verweise"
 

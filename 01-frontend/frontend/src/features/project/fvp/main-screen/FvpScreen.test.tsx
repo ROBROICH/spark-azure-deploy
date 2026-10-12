@@ -5,7 +5,7 @@ import { FvpScreen } from './FvpScreen';
 import type { FvpAiWorkflowState } from './useFvpAiWorkflowState';
 
 const testWorkflow = {
-  workflow_start_time: undefined,
+  workflowStartTime: null,
 };
 
 const makeProgress = (
@@ -20,6 +20,9 @@ const makeProgress = (
   return {
     status,
     data: null,
+    failureCode: null,
+    hasResult: isDone,
+    hasReadError: false,
     isDone,
     isLoading,
     isRunning,
@@ -40,6 +43,7 @@ const baseWorkflow = {
   disableThresholdPercentage: 500,
   isAiAnalysisRunning: false,
   isAiAnalysisComplete: false,
+  isAiAnalysisIncomplete: false,
   isAiAnalysisDecisionLoading: false,
   isStartBlockedBySystemLoad: false,
   isStartButtonDisabled: true,

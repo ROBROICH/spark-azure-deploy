@@ -1,0 +1,681 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP read contract snapshots all active current node families and parent references 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "category",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "category",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "category",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "31000000-0000-4000-8000-000000000001",
+        ],
+        "id": "41000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "document_type",
+        "parents": [
+          {
+            "id": "31000000-0000-4000-8000-000000000001",
+            "nodeType": "category",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "31000000-0000-4000-8000-000000000002",
+        ],
+        "id": "41000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "document_type",
+        "parents": [
+          {
+            "id": "31000000-0000-4000-8000-000000000002",
+            "nodeType": "category",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "31000000-0000-4000-8000-000000000003",
+        ],
+        "id": "41000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "document_type",
+        "parents": [
+          {
+            "id": "31000000-0000-4000-8000-000000000003",
+            "nodeType": "category",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000001",
+        ],
+        "id": "51000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "document",
+        "parents": [
+          {
+            "id": "41000000-0000-4000-8000-000000000001",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "61000000-0000-4000-8000-000000000001",
+            "nodeType": "file",
+          },
+          {
+            "id": "71000000-0000-4000-8000-000000000001",
+            "nodeType": "file",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000002",
+        ],
+        "id": "51000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "document",
+        "parents": [
+          {
+            "id": "41000000-0000-4000-8000-000000000001",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "41000000-0000-4000-8000-000000000002",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "61000000-0000-4000-8000-000000000002",
+            "nodeType": "file",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000003",
+        ],
+        "id": "51000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "document",
+        "parents": [
+          {
+            "id": "41000000-0000-4000-8000-000000000002",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "41000000-0000-4000-8000-000000000003",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "61000000-0000-4000-8000-000000000003",
+            "nodeType": "file",
+          },
+          {
+            "id": "71000000-0000-4000-8000-000000000003",
+            "nodeType": "file",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000004",
+        ],
+        "id": "51000000-0000-4000-8000-000000000004",
+        "isOutdated": false,
+        "nodeType": "document",
+        "parents": [
+          {
+            "id": "61000000-0000-4000-8000-000000000004",
+            "nodeType": "file",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000005",
+        ],
+        "id": "51000000-0000-4000-8000-000000000005",
+        "isOutdated": false,
+        "nodeType": "document",
+        "parents": [
+          {
+            "id": "41000000-0000-4000-8000-000000000003",
+            "nodeType": "document_type",
+          },
+          {
+            "id": "61000000-0000-4000-8000-000000000005",
+            "nodeType": "file",
+          },
+          {
+            "id": "71000000-0000-4000-8000-000000000005",
+            "nodeType": "file",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "81000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "project_template_version",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "91000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "table_of_content_notes",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "91000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "table_of_content_notes",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "92000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "toc_job_status",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP read contract snapshots historical, empty, and omitted-version node reads 1`] = `
+[
+  {
+    "body": {
+      "nodes": [
+        {
+          "frontendParentIds": [],
+          "id": "32000000-0000-4000-8000-000000000001",
+          "isOutdated": true,
+          "nodeType": "category",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [
+            "32000000-0000-4000-8000-000000000001",
+          ],
+          "id": "42000000-0000-4000-8000-000000000001",
+          "isOutdated": true,
+          "nodeType": "document_type",
+          "parents": [
+            {
+              "id": "32000000-0000-4000-8000-000000000001",
+              "nodeType": "category",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "62000000-0000-4000-8000-000000000001",
+          ],
+          "id": "52000000-0000-4000-8000-000000000001",
+          "isOutdated": true,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "42000000-0000-4000-8000-000000000001",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "62000000-0000-4000-8000-000000000001",
+              "nodeType": "file",
+            },
+            {
+              "id": "72000000-0000-4000-8000-000000000001",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "62000000-0000-4000-8000-000000000002",
+          ],
+          "id": "52000000-0000-4000-8000-000000000002",
+          "isOutdated": true,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "62000000-0000-4000-8000-000000000002",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "81000000-0000-4000-8000-000000000001",
+          "isOutdated": true,
+          "nodeType": "project_template_version",
+          "parents": [],
+        },
+      ],
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "nodes": [],
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "nodes": [
+        {
+          "frontendParentIds": [],
+          "id": "31000000-0000-4000-8000-000000000001",
+          "isOutdated": false,
+          "nodeType": "category",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "31000000-0000-4000-8000-000000000002",
+          "isOutdated": false,
+          "nodeType": "category",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "31000000-0000-4000-8000-000000000003",
+          "isOutdated": false,
+          "nodeType": "category",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [
+            "31000000-0000-4000-8000-000000000001",
+          ],
+          "id": "41000000-0000-4000-8000-000000000001",
+          "isOutdated": false,
+          "nodeType": "document_type",
+          "parents": [
+            {
+              "id": "31000000-0000-4000-8000-000000000001",
+              "nodeType": "category",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "31000000-0000-4000-8000-000000000002",
+          ],
+          "id": "41000000-0000-4000-8000-000000000002",
+          "isOutdated": false,
+          "nodeType": "document_type",
+          "parents": [
+            {
+              "id": "31000000-0000-4000-8000-000000000002",
+              "nodeType": "category",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "31000000-0000-4000-8000-000000000003",
+          ],
+          "id": "41000000-0000-4000-8000-000000000003",
+          "isOutdated": false,
+          "nodeType": "document_type",
+          "parents": [
+            {
+              "id": "31000000-0000-4000-8000-000000000003",
+              "nodeType": "category",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "61000000-0000-4000-8000-000000000001",
+          ],
+          "id": "51000000-0000-4000-8000-000000000001",
+          "isOutdated": false,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "41000000-0000-4000-8000-000000000001",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "61000000-0000-4000-8000-000000000001",
+              "nodeType": "file",
+            },
+            {
+              "id": "71000000-0000-4000-8000-000000000001",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "61000000-0000-4000-8000-000000000002",
+          ],
+          "id": "51000000-0000-4000-8000-000000000002",
+          "isOutdated": false,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "41000000-0000-4000-8000-000000000001",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "41000000-0000-4000-8000-000000000002",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "61000000-0000-4000-8000-000000000002",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "61000000-0000-4000-8000-000000000003",
+          ],
+          "id": "51000000-0000-4000-8000-000000000003",
+          "isOutdated": false,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "41000000-0000-4000-8000-000000000002",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "41000000-0000-4000-8000-000000000003",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "61000000-0000-4000-8000-000000000003",
+              "nodeType": "file",
+            },
+            {
+              "id": "71000000-0000-4000-8000-000000000003",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "61000000-0000-4000-8000-000000000004",
+          ],
+          "id": "51000000-0000-4000-8000-000000000004",
+          "isOutdated": false,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "61000000-0000-4000-8000-000000000004",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [
+            "61000000-0000-4000-8000-000000000005",
+          ],
+          "id": "51000000-0000-4000-8000-000000000005",
+          "isOutdated": false,
+          "nodeType": "document",
+          "parents": [
+            {
+              "id": "41000000-0000-4000-8000-000000000003",
+              "nodeType": "document_type",
+            },
+            {
+              "id": "61000000-0000-4000-8000-000000000005",
+              "nodeType": "file",
+            },
+            {
+              "id": "71000000-0000-4000-8000-000000000005",
+              "nodeType": "file",
+            },
+          ],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "81000000-0000-4000-8000-000000000002",
+          "isOutdated": false,
+          "nodeType": "project_template_version",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "91000000-0000-4000-8000-000000000001",
+          "isOutdated": false,
+          "nodeType": "table_of_content_notes",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "91000000-0000-4000-8000-000000000002",
+          "isOutdated": false,
+          "nodeType": "table_of_content_notes",
+          "parents": [],
+        },
+        {
+          "frontendParentIds": [],
+          "id": "92000000-0000-4000-8000-000000000001",
+          "isOutdated": false,
+          "nodeType": "toc_job_status",
+          "parents": [],
+        },
+      ],
+    },
+    "status": 200,
+  },
+]
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP read contract snapshots an empty request 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP read contract parses full mixed payloads and omits unknown or soft-deleted IDs 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "aiSuggestedRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000001",
+        "confidence": null,
+        "contentExtractionId": null,
+        "createdAt": "2026-01-02T09:21:00Z",
+        "documentName": "korrigierte-zuordnung.pdf",
+        "fileId": "61000000-0000-4000-8000-000000000002",
+        "frontendParentIds": [
+          "61000000-0000-4000-8000-000000000002",
+        ],
+        "humanRequiredDocumentTypeId": "41000000-0000-4000-8000-000000000002",
+        "id": "51000000-0000-4000-8000-000000000002",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "document",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "reasoning": null,
+        "updateType": "manual",
+        "updatedAt": "2026-01-02T09:21:00Z",
+      },
+      {
+        "createdAt": "2026-01-02T09:00:00Z",
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "name": "A Allgemeine Unterlagen",
+        "nodeType": "category",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "updateType": "automated",
+        "updatedAt": "2026-01-02T09:00:00Z",
+      },
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000002",
+        "confidence": 0.8,
+        "createdAt": "2026-01-02T09:11:00Z",
+        "description": "Beschreibung der Umweltauswirkungen",
+        "frontendParentIds": [
+          "31000000-0000-4000-8000-000000000002",
+        ],
+        "id": "41000000-0000-4000-8000-000000000002",
+        "isDeleted": false,
+        "isOutdated": false,
+        "isResolved": false,
+        "name": "Umweltbericht",
+        "nodeType": "document_type",
+        "origin": "system",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "updateType": "automated",
+        "updatedAt": "2026-01-02T09:11:00Z",
+      },
+      {
+        "createdAt": "2026-01-02T09:30:00Z",
+        "frontendParentIds": [],
+        "id": "81000000-0000-4000-8000-000000000002",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "project_template_version",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectTypeId": "30000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "updateType": "automated",
+        "updatedAt": "2026-01-02T09:30:00Z",
+        "version": 2,
+      },
+      {
+        "content": "Neuere bereits geprüfte Inhaltsverzeichnis-Notiz",
+        "createdAt": "2026-01-02T10:06:00Z",
+        "frontendParentIds": [],
+        "id": "91000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "isResolved": true,
+        "nodeType": "table_of_content_notes",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "updateType": "manual",
+        "updatedAt": "2026-01-02T10:07:00Z",
+      },
+      {
+        "createdAt": "2026-01-02T10:08:00Z",
+        "frontendParentIds": [],
+        "id": "92000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "toc_job_status",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "status": "success",
+        "updateType": "automated",
+        "updatedAt": "2026-01-02T10:08:00Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP read contract snapshots historical and omitted-version lookups 1`] = `
+{
+  "historical": {
+    "body": {
+      "results": [
+        {
+          "createdAt": "2026-01-01T09:00:00Z",
+          "frontendParentIds": [],
+          "id": "32000000-0000-4000-8000-000000000001",
+          "isDeleted": false,
+          "isOutdated": true,
+          "name": "Historische Unterlagen",
+          "nodeType": "category",
+          "projectId": "10000000-0000-4000-8000-000000000001",
+          "projectVersion": 2,
+          "updateType": "automated",
+          "updatedAt": "2026-01-01T09:00:00Z",
+        },
+        {
+          "aiSuggestedRequiredDocumentTypeId": "42000000-0000-4000-8000-000000000001",
+          "confidence": 0.72,
+          "contentExtractionId": "72000000-0000-4000-8000-000000000001",
+          "createdAt": "2026-01-01T09:10:00Z",
+          "documentName": "historischer-antrag.pdf",
+          "fileId": "62000000-0000-4000-8000-000000000001",
+          "frontendParentIds": [
+            "62000000-0000-4000-8000-000000000001",
+          ],
+          "humanRequiredDocumentTypeId": null,
+          "id": "52000000-0000-4000-8000-000000000001",
+          "isDeleted": false,
+          "isOutdated": true,
+          "nodeType": "document",
+          "projectId": "10000000-0000-4000-8000-000000000001",
+          "projectVersion": 2,
+          "reasoning": "Historische eindeutige Zuordnung",
+          "updateType": "automated",
+          "updatedAt": "2026-01-01T09:10:00Z",
+        },
+      ],
+    },
+    "status": 200,
+  },
+  "implicit": {
+    "body": {
+      "results": [
+        {
+          "categoryId": "31000000-0000-4000-8000-000000000001",
+          "confidence": 0.95,
+          "createdAt": "2026-01-02T09:10:00Z",
+          "description": "Vollständiger förmlicher Antrag",
+          "frontendParentIds": [
+            "31000000-0000-4000-8000-000000000001",
+          ],
+          "id": "41000000-0000-4000-8000-000000000001",
+          "isDeleted": false,
+          "isOutdated": false,
+          "isResolved": true,
+          "name": "Antrag",
+          "nodeType": "document_type",
+          "origin": "system",
+          "projectId": "10000000-0000-4000-8000-000000000001",
+          "projectVersion": 3,
+          "updateType": "automated",
+          "updatedAt": "2026-01-02T09:10:00Z",
+        },
+      ],
+    },
+    "status": 200,
+  },
+}
+`;

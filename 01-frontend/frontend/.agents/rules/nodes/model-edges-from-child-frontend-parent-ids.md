@@ -1,3 +1,7 @@
+---
+ruleId: nodes/model-edges-from-child-frontend-parent-ids
+---
+
 # Model Edges from Child `frontend_parent_ids`
 
 - In this nodes model, persisted parent-child relationships live on the child payload via `frontend_parent_ids` and, in some paths, `parents`.

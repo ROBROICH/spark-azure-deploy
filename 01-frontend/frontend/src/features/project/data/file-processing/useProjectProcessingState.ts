@@ -1,7 +1,7 @@
 import {
   type WorkflowStatusEnum,
   type ZipFileResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useProcessingFilesQuery } from './useProcessingFilesQuery';
@@ -77,6 +77,9 @@ export const useProjectProcessingState = (
   const fileProcessingBannerDismissKey = hasFailedFileProcessing
     ? buildFileProcessingDismissKey(firstFailedProcessingFile)
     : null;
+  const fileProcessingFailureCode = hasFailedFileProcessing
+    ? (firstFailedProcessingFile.workflowFailureCode ?? null)
+    : null;
 
   const previousHasActiveRef = useRef(hasActiveFileProcessing);
   // Bridge polling-derived state into the query cache. TanStack Query v5
@@ -97,5 +100,6 @@ export const useProjectProcessingState = (
     hasActiveFileProcessing,
     hasFailedFileProcessing,
     fileProcessingBannerDismissKey,
+    fileProcessingFailureCode,
   };
 };

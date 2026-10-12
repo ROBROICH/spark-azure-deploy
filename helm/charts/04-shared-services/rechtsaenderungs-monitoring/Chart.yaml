@@ -1,0 +1,10 @@
+apiVersion: v2
+name: rechtsaenderungs-monitoring
+description: SPARK Workflow monitoring of changes in law (Rechtsänderungen).
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

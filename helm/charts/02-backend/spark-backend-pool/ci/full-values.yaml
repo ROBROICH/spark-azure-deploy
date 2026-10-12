@@ -1,0 +1,28 @@
+# ci: an API pool with a feature worker, resources, HPA, pod metadata and the
+# per-pool escape hatches.
+global:
+  stage: {name: ci}
+  backend:
+    image:
+      repository: registry.example.com/spark/spark-backend
+      tag: "1.0.0"
+      pullPolicy: IfNotPresent
+pool:
+  worker: document-management
+  apiPool: document-management-service
+replicaCount: 2
+resources:
+  requests: {cpu: 100m, memory: 256Mi}
+  limits: {memory: 512Mi}
+podAnnotations: {example.com/annotated: "true"}
+podLabels: {app.kubernetes.io/name: ignored, team: backend}
+autoscaling:
+  enabled: true
+nodeSelector: {kubernetes.io/os: linux}
+topologySpreadConstraints:
+  - {maxSkew: 1, topologyKey: topology.kubernetes.io/zone, whenUnsatisfiable: ScheduleAnyway, labelSelector: {matchLabels: {app.kubernetes.io/name: spark-backend-pool}}}
+terminationGracePeriodSeconds: 60
+extraContainers:
+  - {name: sidecar, image: registry.example.com/spark/sidecar:1.0.0}
+extraVolumes: [{name: tmp, emptyDir: {}}]
+extraVolumeMounts: [{name: tmp, mountPath: /tmp}]

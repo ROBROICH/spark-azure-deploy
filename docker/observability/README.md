@@ -65,3 +65,16 @@ Scrapes the LiteLLM-Proxy at `litellm-proxy:4000/metrics` every 10 seconds.
 - **Add dashboards**: Place JSON files in `dashboards/`
 - **Add datasources**: Edit `datasources/datasources.yaml`
 - **Modify trace processing**: Edit `otel-collector.yaml` pipeline processors
+
+## Temporal workflow alerts
+
+The Temporal active problems dashboard is at
+<http://localhost:3001/d/temporal-active-problems>. The shared Python observability
+setup and TypeScript worker integration export through the existing OTLP settings.
+Restart workers after updating their shared libraries. No separate monitoring
+service is needed.
+
+Prometheus stores run durations and calculates time limits after at least 30
+observations per workflow type. Configure types that should skip time checks in
+`03-infrastructure-resources/observability/prometheus/k8s/base/temporal-exclusions.yml`.
+Failure and timeout alerts remain enabled.

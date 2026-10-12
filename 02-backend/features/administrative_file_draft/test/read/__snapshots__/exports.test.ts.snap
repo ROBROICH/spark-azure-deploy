@@ -1,0 +1,45 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Administrative File Draft document export read contract POST /{project_id}/export/docx freezes semantic DOCX output 1`] = `
+{
+  "bodyHeadingLevels": [
+    1,
+    2,
+  ],
+  "bodySuffix": [
+    "Entscheidung",
+    "Feststellung des Plans",
+    "Für das plangegenständliche Vorhaben ist eine UVP durchzuführen.",
+  ],
+  "containsBodyAnchor": false,
+  "placeholders": [
+    "[Fernziel 1 – Fernziel 2]",
+    "[verkehrseinheit]",
+    "[Streckenabschnitt]",
+    "[Gemarkungen]",
+    "[landkreis]",
+    "[Ort ,Datum]",
+    "[Abbildung Übersichtslageplan]",
+  ],
+  "remainingSystemPlaceholders": [],
+  "requiredParts": [
+    "[Content_Types].xml",
+    "_rels/.rels",
+    "word/document.xml",
+    "word/settings.xml",
+    "word/styles.xml",
+    "word/numbering.xml",
+    "word/header1.xml",
+    "word/media/image1.png",
+  ],
+  "updateFieldsOnOpen": false,
+}
+`;
+
+exports[`Administrative File Draft document export read contract POST /{project_id}/export/pdf freezes semantic PDF output 1`] = `
+{
+  "pageCount": 5,
+  "pageSize": "595.304 x 841.89 pts (A4)",
+  "text": "Planfeststellungsbeschluss Vorhaben: Musterprojekt [Fernziel 1 – Fernziel 2] [verkehrseinheit] [Streckenabschnitt] Gemarkungen: [Gemarkungen] Landkreis: [landkreis] Vorhabenträger: Die Autobahn GmbH des Bundes [Ort ,Datum] Gz.: MUSTER-2026-001 Seite 2/5 Musterprojekt [Fernziel 1 – Fernziel 2] [Streckenabschnitt] [Abbildung Übersichtslageplan] Seite 3/5 Inhaltsverzeichnis A. Entscheidung....5 I. Feststellung des Plans....5 Seite 4/5 Tabellen- und Abbildungsverzeichnis Seite 5/5 A.Entscheidung I. Feststellung des Plans Für das plangegenständliche Vorhaben ist eine UVP durchzuführen.",
+}
+`;

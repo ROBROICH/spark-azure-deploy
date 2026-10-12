@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a06-audit-vulnerable-and-outdated-components
+---
+
 # OWASP A06: Audit Vulnerable and Outdated Components
 
 - Covers OWASP A06 Vulnerable and Outdated Components.

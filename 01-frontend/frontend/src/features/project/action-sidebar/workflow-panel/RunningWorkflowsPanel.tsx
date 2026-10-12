@@ -8,11 +8,15 @@ import {
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useWorkflow } from '@/features/workflow-runtime/workflow-status/useWorkflow';
+import { getRouteApi } from '@tanstack/react-router';
+import { useWorkflowHistory } from '@/features/workflow-runtime/workflow-status/useWorkflowHistory';
+import { getLatestWorkflowsByType } from '@/features/workflow-runtime/workflow-status/workflowStatus.helpers';
 import { RunningWorkflowCard } from './RunningWorkflowCard';
 import { RunningWorkflowsIcon } from './RunningWorkflowsIcon';
 import { SidebarPanelHeader } from '../SidebarPanelHeader';
 import { SidebarPanelShell } from '../SidebarPanelShell';
+
+const projectRoute = getRouteApi('/verfahren/$verfahrenId');
 
 type RunningWorkflowsPanelProps = {
   open: boolean;
@@ -30,14 +34,25 @@ const WorkflowCardSkeleton = () => {
 };
 
 /**
- * Temporal workflow drawer for the current project.
- * It keeps the list focused on the newest workflow per type and updates
- * displayed durations live while any workflow is still running.
+ * History is loaded only for an open drawer; displayed groups may still be partial.
+ * @param props - Drawer visibility and surrounding sidebar state.
+ * @returns Loaded workflow groups with explicit continuation and error feedback.
  */
 export const RunningWorkflowsPanel = (props: RunningWorkflowsPanelProps) => {
   const { open, onClose, sidebarExpanded } = props;
   const { t, i18n } = useTranslation('Project');
-  const { isError, isLoading, latestWorkflowsByType } = useWorkflow();
+  const { verfahrenId } = projectRoute.useParams();
+  const { projectVersion } = projectRoute.useLoaderData();
+  const history = useWorkflowHistory(verfahrenId, projectVersion, open);
+  const { isError, isPending: isLoading } = history;
+  const workflows = [
+    ...new Map(
+      (history.data?.pages.flatMap((page) => page.workflows) ?? []).map(
+        (workflow) => [`${workflow.workflowId}:${workflow.runId}`, workflow],
+      ),
+    ).values(),
+  ];
+  const latestWorkflowsByType = getLatestWorkflowsByType(workflows);
   // eslint-disable-next-line no-restricted-syntax -- expanded workflow cards are ephemeral drawer UI state.
   const [expandedWorkflowRunKey, setExpandedWorkflowRunKey] = useState<
     string | null
@@ -123,8 +138,13 @@ export const RunningWorkflowsPanel = (props: RunningWorkflowsPanelProps) => {
           </div>
         )}
 
+        {history.hasNextPage && (
+          <p className="text-xs text-text-secondary">
+            {t('Sidebar.runningWorkflowsPanel.partialHistory')}
+          </p>
+        )}
+
         {!showSkeleton &&
-          !isError &&
           latestWorkflowsByType.map((workflowSummary) => {
             const workflowTypeKey = workflowSummary.workflowTypeKey;
 
@@ -141,6 +161,17 @@ export const RunningWorkflowsPanel = (props: RunningWorkflowsPanelProps) => {
               />
             );
           })}
+        {history.hasNextPage && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="default"
+            disabled={history.isFetchingNextPage}
+            onClick={() => void history.fetchNextPage()}
+          >
+            {t('Sidebar.runningWorkflowsPanel.loadMoreRuns')}
+          </Button>
+        )}
       </div>
     </SidebarPanelShell>
   );

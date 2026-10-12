@@ -1,4 +1,4 @@
-import { getSystemLoadTemporalLoadGetOptions } from '@/api-clients/temporal-jobs-module/@tanstack/react-query.gen';
+import { v1TemporalJobsGetTemporalSystemLoadOptions as getTemporalSystemLoadOptions } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { getSystemLoadDisableThresholdPercentage } from '@/features/workflow-runtime/system-load/systemLoadThreshold';
 import { useQuery } from '@tanstack/react-query';
 
@@ -11,10 +11,10 @@ type UseSystemLoadOptions = {
 export function useSystemLoad(options: UseSystemLoadOptions = {}) {
   const { refetchInterval = SYSTEM_LOAD_REFETCH_INTERVAL_MS } = options;
   const systemLoadQuery = useQuery({
-    ...getSystemLoadTemporalLoadGetOptions(),
+    ...getTemporalSystemLoadOptions(),
     refetchInterval,
   });
-  const loadPercentage = systemLoadQuery.data?.load_percentage;
+  const loadPercentage = systemLoadQuery.data?.loadPercentage;
   const disableThresholdPercentage = getSystemLoadDisableThresholdPercentage();
 
   return {

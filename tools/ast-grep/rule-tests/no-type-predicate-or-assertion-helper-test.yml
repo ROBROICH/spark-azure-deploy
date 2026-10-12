@@ -1,0 +1,49 @@
+id: no-type-predicate-or-assertion-helper
+
+invalid:
+  - |
+    function isTask(value: unknown): value is OptimizedPromptTask {
+      if (typeof value !== "string") {
+        return false;
+      }
+
+      return (OPTIMIZED_PROMPT_TASKS as readonly string[]).includes(value);
+    }
+
+  - |
+    const isTask = (value: unknown): value is OptimizedPromptTask =>
+      typeof value === "string";
+
+  - |
+    function assertTask(value: unknown): asserts value is OptimizedPromptTask {
+      if (typeof value !== "string") {
+        throw new Error("Invalid task");
+      }
+    }
+
+  - |
+    const assertPresent = (value: unknown): asserts value => {
+      if (!value) {
+        throw new Error("Missing value");
+      }
+    };
+
+  - |
+    class TaskReader {
+      isTask(value: unknown): value is OptimizedPromptTask {
+        return typeof value === "string";
+      }
+    }
+
+valid:
+  - |
+    function readTaskFromConfig(value: unknown): OptimizedPromptTask {
+      if (
+        typeof value !== "string" ||
+        !(OPTIMIZED_PROMPT_TASKS as readonly string[]).includes(value)
+      ) {
+        throw new Error("Invalid task");
+      }
+
+      return value as OptimizedPromptTask;
+    }

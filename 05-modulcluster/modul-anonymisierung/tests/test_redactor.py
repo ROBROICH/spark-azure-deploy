@@ -2,13 +2,13 @@
 
 import shutil
 from io import BytesIO
-from pathlib import Path
 from unittest.mock import patch
 
 import pikepdf
 import pypdfium2 as pdfium
 import pytest
 
+from src.services.ocr import OcrTimeoutError
 from src.services.redactor import redact_pdf
 
 
@@ -78,6 +78,26 @@ class TestRedactPdf:
 
         assert matches == 2
         assert len(result_bytes) > 0
+
+    @patch(
+        "src.services.redactor.run_ocrmypdf",
+        side_effect=OcrTimeoutError("ocrmypdf exceeded timeout"),
+    )
+    def test_ocr_timeout_keeps_safely_redacted_pdf(self, _mock_ocr) -> None:
+        """OCR timeout must not restore the original unredacted page."""
+        pdf_data = _create_test_pdf_bytes("Max Mustermann wohnt in Berlin.")
+
+        result_bytes, matches = redact_pdf(pdf_data, {0: {"Max Mustermann"}})
+
+        assert matches >= 1
+        doc = pdfium.PdfDocument(result_bytes)
+        page = doc[0]
+        textpage = page.get_textpage()
+        text = textpage.get_text_range()
+        textpage.close()
+        page.close()
+        doc.close()
+        assert "Max Mustermann" not in text
 
     def test_empty_dict_passthrough(self) -> None:
         """Empty page_matched_values should return original PDF unchanged."""

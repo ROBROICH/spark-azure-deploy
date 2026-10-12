@@ -1,8 +1,22 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { CompositeKey } from '@/db/nodes/compositeKey';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { EwmsTopicNode } from '../data/ewms.nodes';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import type { EwmsArgumentNode, EwmsTopicNode } from '../data/ewms.nodes';
 import { TopicClassificationToolbar } from './TopicClassificationToolbar';
+
+// Stub `matchMedia` for `useBelowLg`; tests target the wide code path.
+beforeAll(() => {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+});
 
 const mocks = vi.hoisted(() => ({
   canMutateProject: true,
@@ -30,6 +44,12 @@ vi.mock('../workspace/EwmsSubtopicsContext', () => ({
     getSubtopicItemsForTopic: (topicId: string | null | undefined) =>
       topicId ? (mocks.subtopicItemsByTopicId.get(topicId) ?? []) : [],
   }),
+}));
+
+vi.mock('@/features/ui/info-tooltip/InfoTooltip', () => ({
+  InfoTooltip: (props: { ariaLabel: string }) => (
+    <button type="button" aria-label={props.ariaLabel} />
+  ),
 }));
 
 vi.mock('@/features/ui/select-menu/SelectMenu', () => ({
@@ -71,24 +91,55 @@ const makeTopic = (
   ({
     compositeKey: `topic:${id}` as CompositeKey,
     id,
-    node_type: 'topic',
+    nodeType: 'topic',
     name,
     description: null,
-    parent_topic_id: null,
-    mvp_assignee: null,
-    mvp_assignees: [],
-    show_in_mvp: true,
-    show_in_ewm: true,
-    show_in_beschluss: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    parentTopicId: null,
+    mvpAssignee: null,
+    mvpAssignees: [],
+    showInMvp: true,
+    showInEwm: true,
+    showInBeschluss: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     ...overrides,
   }) as unknown as EwmsTopicNode;
+
+const makeArgument = (overrides: Partial<EwmsArgumentNode> = {}) =>
+  ({
+    compositeKey: 'argument:argument-1' as CompositeKey,
+    id: 'argument-1',
+    nodeType: 'argument',
+    beteiligungsEingangId: 'entry-1',
+    extractionPayload: null,
+    subTopicId: null,
+    topicId: 'topic-1',
+    status: 'open',
+    topicConfidence: null,
+    subTopicConfidence: null,
+    text: 'Argument text',
+    startIdx: null,
+    endIdx: null,
+    erwiderung: null,
+    einordnung: null,
+    context: null,
+    contextStartIdx: null,
+    contextEndIdx: null,
+    argumentId: 'EXAMPLE-ARG-1',
+    inVae: false,
+    isValidArgument: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
+    ...overrides,
+  }) satisfies EwmsArgumentNode;
 
 afterEach(() => {
   mocks.canMutateProject = true;
@@ -106,11 +157,12 @@ describe('TopicClassificationToolbar review actions', () => {
         argumentStatus="open"
         topics={[
           makeTopic('topic-1', 'Topic 1'),
-          makeTopic('topic-hidden', 'Hidden Topic', { show_in_ewm: false }),
+          makeTopic('topic-hidden', 'Hidden Topic', { showInEwm: false }),
           makeTopic('topic-2', 'Topic 2'),
         ]}
         topicId="topic-1"
         subtopicId=""
+        argument={makeArgument()}
         isTopicReviewOpen
         isApproved={false}
         onBack={() => undefined}
@@ -146,6 +198,7 @@ describe('TopicClassificationToolbar review actions', () => {
         topics={[makeTopic('topic-1', 'Topic 1')]}
         topicId="topic-1"
         subtopicId=""
+        argument={makeArgument()}
         isTopicReviewOpen
         isApproved={false}
         onBack={() => undefined}
@@ -209,6 +262,7 @@ describe('TopicClassificationToolbar review actions', () => {
         topics={[makeTopic('topic-1', 'Topic 1')]}
         topicId="topic-1"
         subtopicId="subtopic-2"
+        argument={makeArgument()}
         isTopicReviewOpen
         isApproved={false}
         onBack={() => undefined}
@@ -225,5 +279,105 @@ describe('TopicClassificationToolbar review actions', () => {
         name: 'topicClassification.subtopicNameLabel',
       }).textContent,
     ).toBe('Boden');
+  });
+
+  it('shows the uncertainty warning only while classification review is open', () => {
+    const toolbarProps = {
+      referenceId: 'EXAMPLE-ARG-1',
+      argumentStatus: 'open' as const,
+      topics: [makeTopic('topic-1', 'Topic 1')],
+      topicId: 'topic-1',
+      subtopicId: '',
+      argument: makeArgument(),
+      isApproved: false,
+      onBack: () => undefined,
+      onTopicIdChange: () => undefined,
+      onSubtopicIdChange: () => undefined,
+      onAcceptClassification: () => undefined,
+      onRejectClassification: () => undefined,
+      onToggleApproval: () => undefined,
+    };
+
+    const { rerender } = render(
+      <TopicClassificationToolbar
+        {...toolbarProps}
+        isTopicReviewOpen
+        argument={makeArgument({
+          topicConfidence: 0.4,
+          subTopicConfidence: 0.8,
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainTopic',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <TopicClassificationToolbar
+        {...toolbarProps}
+        isTopicReviewOpen
+        argument={makeArgument({
+          topicConfidence: 0.4,
+          subTopicConfidence: 0.4,
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainBoth',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <TopicClassificationToolbar
+        {...toolbarProps}
+        isTopicReviewOpen
+        argument={makeArgument({
+          topicConfidence: 0.8,
+          subTopicConfidence: 0.4,
+        })}
+      />,
+    );
+    expect(
+      screen.getByRole('button', {
+        name: 'arguments.classificationUncertainSubtopic',
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <TopicClassificationToolbar
+        {...toolbarProps}
+        isTopicReviewOpen
+        argument={makeArgument({
+          topicConfidence: 0.75,
+          subTopicConfidence: null,
+        })}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', {
+        name: 'arguments.classificationUncertainTopic',
+      }),
+    ).toBeNull();
+
+    rerender(
+      <TopicClassificationToolbar
+        {...toolbarProps}
+        argumentStatus="subtopic_reviewed"
+        isTopicReviewOpen={false}
+        argument={makeArgument({
+          status: 'subtopic_reviewed',
+          topicConfidence: 0.4,
+          subTopicConfidence: 0.4,
+        })}
+      />,
+    );
+    expect(
+      screen.queryByRole('button', {
+        name: 'arguments.classificationUncertainBoth',
+      }),
+    ).toBeNull();
   });
 });

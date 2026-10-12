@@ -1,0 +1,12 @@
+dependencies:
+- name: agent-services
+  repository: file://../agent-services
+  version: 0.3.0
+- name: backend-services
+  repository: file://../backend-services
+  version: 0.4.0
+- name: frontend-services
+  repository: file://../frontend-services
+  version: 0.3.0
+digest: sha256:c4433dbb339fc15368c29423df1a071b23dbd6cbd00779a82de0c89cf4484ad6
+generated: "2026-10-09T15:25:31.517021639+02:00"

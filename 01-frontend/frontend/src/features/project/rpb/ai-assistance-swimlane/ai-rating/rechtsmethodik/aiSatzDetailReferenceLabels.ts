@@ -9,7 +9,7 @@ type TranslateFunction = (
 
 export type RechtsmethodikExpliziterVerweisNode = Pick<
   NodePayloadByType<'expliziter_verweis'>,
-  'absatz_nr' | 'gesetz' | 'id' | 'paragraph_nr' | 'satz_nr' | 'untergliederung'
+  'absatzNr' | 'gesetz' | 'id' | 'paragraphNr' | 'satzNr' | 'untergliederung'
 > & {
   verordnung?: string | null;
 };
@@ -36,11 +36,11 @@ const getReferenceAbsatzSatzLabel = (
   return formatAbsatzSatzTitle(
     t,
     {
-      absatzNr: reference.absatz_nr,
-      satzNr: reference.satz_nr,
+      absatzNr: reference.absatzNr,
+      satzNr: reference.satzNr,
     },
     {
-      hasMultipleSaetze: Boolean(reference.satz_nr?.trim()),
+      hasMultipleSaetze: Boolean(reference.satzNr?.trim()),
     },
   );
 };
@@ -80,8 +80,8 @@ const getReferenceCitationParts = (
   t: TranslateFunction,
   reference: RechtsmethodikExpliziterVerweisNode,
 ): string[] => {
-  const paragraphLabel = reference.paragraph_nr?.trim()
-    ? `§ ${reference.paragraph_nr.trim()}`
+  const paragraphLabel = reference.paragraphNr?.trim()
+    ? `§ ${reference.paragraphNr.trim()}`
     : null;
 
   return [

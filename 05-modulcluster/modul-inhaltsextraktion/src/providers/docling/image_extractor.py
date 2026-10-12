@@ -5,8 +5,13 @@ import logging
 import re
 from typing import Any
 
+import pypdfium2 as pdfium
+
 from src.config import get_config
 from src.providers.base import ContentItemDict, ContentItemImage
+from src.providers.docling.page_renderer import PageRenderer
+from src.providers.docling.picture_filter import PictureFilter
+from src.utils.pdfium_lock import _pdfium_lock
 
 __all__ = ["ImageExtractor"]
 
@@ -192,23 +197,170 @@ class ImageExtractor:
         return text_areas_by_page
 
     @staticmethod
+    def _full_page_pixels(
+        page_numbers: list[int],
+        doc_json: dict[str, Any],
+        pdf_bytes: bytes | None,
+    ) -> dict[int, bytes]:
+        """PNG bytes of whole pages, from docling's response or from the PDF.
+
+        docling only embeds page rasters under ``image_export_mode=embedded``.
+        Rendering the handful of pages that need one locally keeps the fallback
+        working without paying for a raster of every page in the document.
+        """
+        if not page_numbers:
+            return {}
+
+        pages = doc_json.get("pages", {})
+        found: dict[int, bytes] = {}
+        missing: list[int] = []
+
+        for page_no in page_numbers:
+            image_data = (pages.get(str(page_no)) or {}).get("image")
+            uri = image_data.get("uri", "") if isinstance(image_data, dict) else ""
+            if not uri.startswith("data:"):
+                missing.append(page_no)
+                continue
+            try:
+                _, b64_data = uri.split(",", 1)
+                found[page_no] = base64.b64decode(b64_data)
+            except Exception as e:  # a broken URI is not fatal
+                logger.warning(f"Failed to decode full-page image for page {page_no}: {e}")
+                missing.append(page_no)
+
+        if not missing:
+            return found
+        if not pdf_bytes:
+            logger.debug(f"No embedded page image and no PDF for pages {missing}; skipping full-page fallback")
+            return found
+
+        try:
+            with _pdfium_lock:
+                pdf_doc = pdfium.PdfDocument(pdf_bytes)
+                renderer = PageRenderer.for_document(pdf_doc)
+                try:
+                    for page_no in missing:
+                        rendered = renderer.page(page_no)
+                        if rendered is None:
+                            continue
+                        png = renderer.crop_png(
+                            page_no,
+                            {"l": 0, "r": rendered.pdf_width, "b": 0, "t": rendered.pdf_height},
+                        )
+                        if png is not None:
+                            found[page_no] = png
+                finally:
+                    renderer.close()
+                    pdf_doc.close()
+        except Exception as e:  # fall back to whatever docling gave us
+            logger.error(f"Failed to render full-page images from PDF: {e}")
+
+        return found
+
+    @staticmethod
+    def crop_pictures(
+        renderer: PageRenderer,
+        doc_json: dict[str, Any],
+        output_prefix: str,
+    ) -> tuple[list[dict[str, Any]], dict[str, bytes], set[str]]:
+        """Crop docling's pictures straight from the PDF, skipping page furniture.
+
+        Produces the same metadata shape as ``extract_from_json``, so nothing
+        downstream can tell where the pixels came from.  Must be called inside
+        ``_pdfium_lock``.
+
+        Args:
+            renderer: Renderer over the chunk PDF, shared with the table crops.
+            doc_json: Document JSON from docling-serve.
+            output_prefix: Prefix for output filenames.
+
+        Returns:
+            Tuple of (images_metadata, image_bytes_dict, skipped_self_refs).
+            The skipped refs must reach the markdown builder, or those pictures
+            fall through to its positional lookup and pick up another
+            picture's file.
+        """
+        pictures = doc_json.get("pictures") or []
+        if not pictures:
+            return [], {}, set()
+
+        furniture = PictureFilter.find_furniture_indices(doc_json, renderer)
+
+        images_meta: list[dict[str, Any]] = []
+        images_bytes: dict[str, bytes] = {}
+        skipped: set[str] = set()
+
+        for idx, picture in enumerate(pictures):
+            ref = picture.get("self_ref", f"#/pictures/{idx}")
+            if idx in furniture:
+                skipped.add(ref)
+                continue
+
+            try:
+                prov = picture.get("prov") or []
+                bbox = prov[0].get("bbox") if prov else None
+                page_no = prov[0].get("page_no", 1) if prov else 1
+                png = renderer.crop_png(page_no, bbox) if bbox else None
+            except Exception as exc:
+                # One malformed bbox must not cost the whole chunk its images,
+                # the way _crop_single_table has always guarded each table.
+                logger.warning(f"Could not crop picture {idx}: {exc}")
+                skipped.add(ref)
+                continue
+            if png is None:
+                skipped.add(ref)
+                continue
+
+            filename = f"{output_prefix}_p{page_no}_picture{idx + 1}.png"
+            images_bytes[filename] = png
+
+            caption_data = picture.get("caption")
+            if isinstance(caption_data, dict):
+                caption = caption_data.get("text", "")
+            elif isinstance(caption_data, str):
+                caption = caption_data
+            else:
+                caption = ""
+
+            images_meta.append(
+                {
+                    "filename": filename,
+                    "page_no": page_no,
+                    "index": idx + 1,
+                    "self_ref": ref,
+                    "bbox": bbox,
+                    "caption": caption,
+                }
+            )
+
+        logger.info(
+            f"Cropped {len(images_meta)} pictures from the PDF "
+            f"({len(furniture)} of {len(pictures)} skipped as page furniture)"
+        )
+        return images_meta, images_bytes, skipped
+
+    @staticmethod
     def detect_full_page_images(
         doc_json: dict[str, Any],
         output_prefix: str,
         threshold: float | None = None,
+        pdf_bytes: bytes | None = None,
     ) -> tuple[list[dict[str, Any]], dict[str, bytes]]:
         """
         Detect pages where docling missed dominant/full-page images.
 
         For each page that has no detected pictures or tables, checks whether
-        the text coverage is below a threshold. If so, extracts the full-page
-        render from ``doc_json["pages"][page_no]["image"]``.
+        the text coverage is below a threshold. If so, takes the full-page
+        render from docling's response when it embedded one, otherwise renders
+        the page from the PDF.
 
         Args:
             doc_json: Document JSON from docling-serve
             output_prefix: Prefix for output filenames
             threshold: Text-coverage threshold (fraction of page area).
                        Defaults to ``get_config().FULL_PAGE_IMAGE_TEXT_COVERAGE_THRESHOLD``.
+            pdf_bytes: Source PDF, used to render the page locally when docling
+                       embedded no page image (``image_export_mode=placeholder``).
 
         Returns:
             Tuple of (images_metadata, image_bytes_dict) for newly detected
@@ -222,6 +374,7 @@ class ImageExtractor:
 
         images_meta: list[dict[str, Any]] = []
         images_bytes: dict[str, bytes] = {}
+        candidates: list[int] = []
 
         pages = doc_json.get("pages", {})
         for page_no_str, page_data in pages.items():
@@ -248,20 +401,15 @@ class ImageExtractor:
             if coverage >= threshold:
                 continue
 
-            # Check for page-level image
-            image_data = page_data.get("image")
-            if not image_data:
-                continue
-            uri = image_data.get("uri", "") if isinstance(image_data, dict) else ""
-            if not uri.startswith("data:"):
-                continue
+            candidates.append(page_no)
 
-            # Decode base64 image
-            try:
-                _, b64_data = uri.split(",", 1)
-                image_bytes_decoded = base64.b64decode(b64_data)
-            except Exception as e:
-                logger.warning(f"Failed to decode full-page image for page {page_no}: {e}")
+        # These pages have neither picture nor table, so they never share a
+        # render with those crops and get their own renderer.
+        page_images = ImageExtractor._full_page_pixels(candidates, doc_json, pdf_bytes)
+
+        for page_no in candidates:
+            image_bytes_decoded = page_images.get(page_no)
+            if image_bytes_decoded is None:
                 continue
 
             filename = f"{output_prefix}_p{page_no}_fullpage.png"
@@ -292,6 +440,7 @@ class ImageExtractor:
         content_list: list[ContentItemDict],
         markdown: str,
         output_prefix: str,
+        pdf_bytes: bytes | None = None,
     ) -> tuple[list[dict[str, Any]], dict[str, bytes], list[ContentItemDict], str]:
         """
         Detect and inject full-page images into extraction results.
@@ -307,6 +456,7 @@ class ImageExtractor:
             content_list: Existing content list
             markdown: Existing markdown string
             output_prefix: Prefix for output filenames
+            pdf_bytes: Source PDF, used when docling embedded no page images
 
         Returns:
             Tuple of (images_meta, images_bytes, content_list, markdown) with
@@ -315,6 +465,7 @@ class ImageExtractor:
         new_meta, new_bytes = ImageExtractor.detect_full_page_images(
             doc_json,
             output_prefix,
+            pdf_bytes=pdf_bytes,
         )
         if not new_meta:
             return images_meta, images_bytes, content_list, markdown

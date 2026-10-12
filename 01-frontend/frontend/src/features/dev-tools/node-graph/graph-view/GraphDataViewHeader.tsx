@@ -55,7 +55,7 @@ export function GraphDataViewHeader(props: {
           )}
           {selectedNode && (
             <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] leading-4 font-semibold text-emerald-800 ring-1 ring-emerald-200">
-              {selectedNode.node_type}
+              {selectedNode.nodeType}
             </span>
           )}
         </div>

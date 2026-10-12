@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "db-proxy values",
+  "type": "object",
+  "definitions": {
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": {"type": ["string", "null"]},
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": ["string", "number"]},
+        "digest": {"type": ["string", "null"]},
+        "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+      }
+    },
+    "pdb": {
+      "type": "object",
+      "properties": {"enabled": {"type": "boolean"}, "minAvailable": {"type": ["integer", "string"]}}
+    }
+  },
+  "properties": {
+    "namespaceOverride": {"type": ["string", "null"]},
+    "imagePullSecrets": {"type": ["array", "null"]},
+    "serviceAccount": {
+      "type": "object",
+      "properties": {
+        "create": {"type": "boolean"},
+        "name": {"type": ["string", "null"]},
+        "annotations": {"type": ["object", "null"]}
+      }
+    },
+    "podAnnotations": {"type": ["object", "null"]},
+    "podLabels": {"type": ["object", "null"]},
+    "cloudSqlProxy": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "name": {"type": ["string", "null"]},
+        "instanceConnectionName": {"type": ["string", "null"], "pattern": "^$|^[^:]+:[^:]+:[^:]+$"},
+        "privateIp": {"type": "boolean"},
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "httpPort": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "replicaCount": {"type": "integer", "minimum": 0},
+        "maxSigtermDelaySeconds": {"type": "integer", "minimum": 0},
+        "image": {"$ref": "#/definitions/image"},
+        "extraArgs": {"type": ["array", "null"], "items": {"type": "string"}},
+        "spreadAcrossNodes": {"type": "boolean"},
+        "podDisruptionBudget": {"$ref": "#/definitions/pdb"}
+      }
+    },
+    "pgbouncer": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "name": {"type": ["string", "null"]},
+        "server": {
+          "type": "object",
+          "properties": {
+            "host": {"type": ["string", "null"]},
+            "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+            "sslmode": {"enum": ["disable", "allow", "prefer", "require", "verify-ca", "verify-full"]}
+          }
+        },
+        "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+        "replicaCount": {"type": "integer", "minimum": 0},
+        "image": {"$ref": "#/definitions/image"},
+        "runAsUser": {"type": "integer"},
+        "runAsGroup": {"type": "integer"},
+        "auth": {
+          "type": "object",
+          "properties": {
+            "type": {"enum": ["scram-sha-256", "md5", "plain", "trust", "any", "cert", "hba"]},
+            "existingSecret": {"type": ["string", "null"]},
+            "key": {"type": "string"}
+          }
+        },
+        "poolMode": {"enum": ["session", "transaction", "statement"]},
+        "maxClientConn": {"type": "integer", "minimum": 1},
+        "defaultPoolSize": {"type": "integer", "minimum": 1},
+        "serverIdleTimeout": {"type": "integer", "minimum": 0},
+        "ignoreStartupParameters": {"type": "array", "items": {"type": "string"}},
+        "logConnections": {"type": "boolean"},
+        "extraSettings": {"type": ["object", "null"]},
+        "spreadAcrossNodes": {"type": "boolean"},
+        "podDisruptionBudget": {"$ref": "#/definitions/pdb"}
+      }
+    }
+  }
+}

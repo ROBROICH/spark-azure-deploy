@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/project-maintenance-couplings
+---
+
 # Project Maintenance Couplings
 
 Use when a change touches repo-specific files whose correctness depends on another nearby file.

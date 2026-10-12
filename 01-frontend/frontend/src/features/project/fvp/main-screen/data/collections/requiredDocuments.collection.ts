@@ -1,9 +1,9 @@
 import {
-  createRequiredDocumentTypeProjectIdRequiredDocumentTypesPost,
-  deleteRequiredDocumentTypeProjectIdRequiredDocumentTypesDocumentTypeIdDelete,
-  patchRequiredDocTypeProjectIdRequiredDocumentTypesDocumentTypeIdPatch,
+  v1FormalCompletenessCreateRequiredDocumentType as createRequiredDocumentType,
+  v1FormalCompletenessDeleteRequiredDocumentType as deleteRequiredDocumentType,
+  v1FormalCompletenessPatchRequiredDocumentType as patchRequiredDocumentType,
   type RequiredDocumentResponse,
-} from '@/api-clients/fcs-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { createCollection } from '@tanstack/react-db';
@@ -54,18 +54,15 @@ export const requiredDocumentsCollection = createCollection(
       async ({ transaction }) => {
         const results: RequiredDocument[] = await Promise.all(
           transaction.mutations.map(async (m) => {
-            const { data } =
-              await createRequiredDocumentTypeProjectIdRequiredDocumentTypesPost(
-                {
-                  path: { project_id: m.modified.projectId },
-                  body: { document_name: m.modified.name },
-                },
-              );
+            const { data } = await createRequiredDocumentType({
+              path: { projectId: m.modified.projectId },
+              body: { documentName: m.modified.name },
+            });
             if (!data) {
               throw new Error('Failed to create custom doc type');
             }
 
-            if (!('document_type_id' in data)) {
+            if (!('documentTypeId' in data)) {
               return requiredDocumentSchema.parse({
                 ...m.modified,
                 origin: 'custom' as const,
@@ -75,10 +72,10 @@ export const requiredDocumentsCollection = createCollection(
             const created: RequiredDocumentResponse = data;
             return requiredDocumentSchema.parse({
               ...m.modified,
-              id: created.document_type_id,
-              name: created.document_name,
+              id: created.documentTypeId,
+              name: created.documentName,
               origin: created.origin,
-              isResolved: created.is_resolved,
+              isResolved: created.isResolved,
             });
           }),
         );
@@ -103,15 +100,13 @@ export const requiredDocumentsCollection = createCollection(
       await Promise.all(
         transaction.mutations.map(async (m) => {
           const item = m.original;
-          await deleteRequiredDocumentTypeProjectIdRequiredDocumentTypesDocumentTypeIdDelete(
-            {
-              path: {
-                project_id: item.projectId,
-                document_type_id: m.key,
-              },
-              throwOnError: true,
+          await deleteRequiredDocumentType({
+            path: {
+              projectId: item.projectId,
+              documentTypeId: m.key,
             },
-          );
+            throwOnError: true,
+          });
         }),
       );
 
@@ -119,11 +114,17 @@ export const requiredDocumentsCollection = createCollection(
         transaction.mutations.map((m) => m.original.projectId),
       );
       await Promise.all(
-        Array.from(projectIds).map((projectId) =>
+        Array.from(projectIds).flatMap((projectId) => [
           queryClient.invalidateQueries({
             queryKey: requiredDocumentsQueryKey(projectId),
           }),
-        ),
+          queryClient.invalidateQueries({
+            queryKey: ['formal-documents', projectId],
+          }),
+          queryClient.invalidateQueries({
+            queryKey: ['formal-document-summary', projectId],
+          }),
+        ]),
       );
     },
     onUpdate:
@@ -136,13 +137,13 @@ export const requiredDocumentsCollection = createCollection(
 
         const results = await Promise.all(
           transaction.mutations.map(async (m) => {
-            const body: { document_name?: string; is_resolved?: boolean } = {};
+            const body: { documentName?: string; isResolved?: boolean } = {};
 
             if (
               typeof m.changes.name === 'string' &&
               m.changes.name !== m.original.name
             ) {
-              body.document_name = m.changes.name;
+              body.documentName = m.changes.name;
               projectIdsToInvalidate.add(m.original.projectId);
             }
 
@@ -150,7 +151,7 @@ export const requiredDocumentsCollection = createCollection(
               typeof m.changes.isResolved === 'boolean' &&
               m.changes.isResolved !== m.original.isResolved
             ) {
-              body.is_resolved = m.changes.isResolved;
+              body.isResolved = m.changes.isResolved;
             }
 
             if (Object.keys(body).length === 0) {
@@ -160,21 +161,18 @@ export const requiredDocumentsCollection = createCollection(
               });
             }
 
-            const { data } =
-              await patchRequiredDocTypeProjectIdRequiredDocumentTypesDocumentTypeIdPatch(
-                {
-                  path: {
-                    project_id: m.original.projectId,
-                    document_type_id: m.key,
-                  },
-                  body,
-                },
-              );
+            const { data } = await patchRequiredDocumentType({
+              path: {
+                projectId: m.original.projectId,
+                documentTypeId: m.key,
+              },
+              body,
+            });
             if (!data) {
               throw new Error('Failed to update custom doc type');
             }
 
-            if (!('document_type_id' in data)) {
+            if (!('documentTypeId' in data)) {
               return requiredDocumentSchema.parse({
                 ...m.original,
                 ...m.changes,
@@ -185,21 +183,24 @@ export const requiredDocumentsCollection = createCollection(
             return requiredDocumentSchema.parse({
               ...m.original,
               ...m.changes,
-              id: updated.document_type_id,
-              name: updated.document_name,
+              id: updated.documentTypeId,
+              name: updated.documentName,
               origin: updated.origin,
-              isResolved: updated.is_resolved,
+              isResolved: updated.isResolved,
             });
           }),
         );
 
         if (projectIdsToInvalidate.size > 0) {
           await Promise.all(
-            Array.from(projectIdsToInvalidate).map((projectId) =>
+            Array.from(projectIdsToInvalidate).flatMap((projectId) => [
               queryClient.invalidateQueries({
                 queryKey: requiredDocumentsQueryKey(projectId),
               }),
-            ),
+              queryClient.invalidateQueries({
+                queryKey: ['formal-documents', projectId],
+              }),
+            ]),
           );
         }
 

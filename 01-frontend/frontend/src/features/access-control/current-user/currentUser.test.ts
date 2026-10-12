@@ -12,8 +12,8 @@ const { getIdentityMeGetMock, getLocalDevCurrentUserEnvMock } = vi.hoisted(
   }),
 );
 
-vi.mock('@/api-clients/identity-management-module/sdk.gen', () => ({
-  getIdentityMeGet: getIdentityMeGetMock,
+vi.mock('@/api-clients/backend/sdk.gen', () => ({
+  v1IdentityGetCurrentIdentity: getIdentityMeGetMock,
 }));
 
 vi.mock('@/features/shared/config/startupEnv', () => ({
@@ -21,6 +21,11 @@ vi.mock('@/features/shared/config/startupEnv', () => ({
 }));
 
 describe('getCurrentUser', () => {
+  beforeEach(() => {
+    getIdentityMeGetMock.mockReset();
+    getLocalDevCurrentUserEnvMock.mockReset();
+  });
+
   afterEach(() => {
     vi.unstubAllEnvs();
   });
@@ -28,7 +33,7 @@ describe('getCurrentUser', () => {
   describe('in production builds', () => {
     beforeEach(() => {
       vi.stubEnv('DEV', false);
-      getIdentityMeGetMock.mockReset();
+      vi.stubEnv('VITE_DEV_API_MODE', '');
     });
 
     it("passes through the 'user' role unchanged", async () => {
@@ -103,7 +108,7 @@ describe('getCurrentUser', () => {
   describe('in development builds', () => {
     beforeEach(() => {
       vi.stubEnv('DEV', true);
-      getIdentityMeGetMock.mockReset();
+      vi.stubEnv('VITE_DEV_API_MODE', 'port-forwarding');
       getLocalDevCurrentUserEnvMock.mockReturnValue({
         userId: 'dev-user',
         email: 'dev@example.com',
@@ -124,6 +129,34 @@ describe('getCurrentUser', () => {
       });
       expect(getIdentityMeGetMock).not.toHaveBeenCalled();
       expect(getLocalDevCurrentUserEnvMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('with the local Testing session proxy', () => {
+    beforeEach(() => {
+      vi.stubEnv('DEV', true);
+      vi.stubEnv('VITE_DEV_API_MODE', 'session-proxy');
+    });
+
+    it('uses the authenticated backend identity and preserves the user role', async () => {
+      const identity = {
+        userId: 'testing-user',
+        email: 'testing@example.test',
+        firstName: 'Testing',
+        lastName: 'User',
+        role: 'user',
+      };
+      getIdentityMeGetMock.mockResolvedValue({ data: identity });
+
+      await expect(getCurrentUser()).resolves.toEqual(identity);
+      expect(getLocalDevCurrentUserEnvMock).not.toHaveBeenCalled();
+    });
+
+    it('does not fall back to a local admin when the Testing session fails', async () => {
+      getIdentityMeGetMock.mockRejectedValue(new Error('Unauthorized'));
+
+      await expect(getCurrentUser()).rejects.toThrow(CurrentUserLoadError);
+      expect(getLocalDevCurrentUserEnvMock).not.toHaveBeenCalled();
     });
   });
 

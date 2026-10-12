@@ -45,9 +45,14 @@ export const DocumentsTableView = (props: DocumentsTableViewProps) => {
   const visibleRows = table.getRowModel().rows;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50">
+    <div
+      className="overflow-x-auto overflow-y-hidden rounded-lg border border-slate-200 bg-slate-50"
+      role="region"
+      aria-label={t('redesign.documentsCard.tableAriaLabel')}
+      tabIndex={0}
+    >
       <table
-        className="w-full table-fixed border-collapse"
+        className="w-full min-w-[360px] table-fixed border-collapse"
         aria-label={t('redesign.documentsCard.tableAriaLabel')}
       >
         <thead className="sticky top-0 z-[5] bg-slate-100">

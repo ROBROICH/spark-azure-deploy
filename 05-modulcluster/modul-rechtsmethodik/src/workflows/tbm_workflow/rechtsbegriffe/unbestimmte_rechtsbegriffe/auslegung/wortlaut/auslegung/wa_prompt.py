@@ -1,5 +1,7 @@
 """Prompt template for Wortlaut-Auslegung."""
 
+from src.activities.prompt_blocks import closing_block
+
 wa_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht. 
@@ -69,16 +71,11 @@ Wende die folgenden Schritte für jeden Begriff in der Liste einzeln und nachein
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmte Rechtsbegriffe: {unbestimmte_rechtsbegriffe}
-Satz Text: {satz_text}
-Paragraph Text: {paragraph_text}
-{external_data_tag_close}
-
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmte Rechtsbegriffe: {unbestimmte_rechtsbegriffe}",
+    "Satz Text: {satz_text}",
+    "Paragraph Text: {paragraph_text}",
+)
 
 wa_agent_prompt_no_api = """
 **Rolle**
@@ -139,13 +136,8 @@ Wende die folgenden Schritte für jeden Begriff in der Liste einzeln und nachein
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-Unbestimmte Rechtsbegriffe: {unbestimmte_rechtsbegriffe}
-Satz Text: {satz_text}
-Paragraph Text: {paragraph_text}
-{external_data_tag_close}
-
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Unbestimmte Rechtsbegriffe: {unbestimmte_rechtsbegriffe}",
+    "Satz Text: {satz_text}",
+    "Paragraph Text: {paragraph_text}",
+)

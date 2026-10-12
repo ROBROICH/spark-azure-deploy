@@ -7,11 +7,11 @@ import {
 
 describe('composite keys', () => {
   it('round-trips validated node refs', () => {
-    const key = toCompositeKey({ id: 'topic-1', node_type: 'topic' });
+    const key = toCompositeKey({ id: 'topic-1', nodeType: 'topic' });
 
     expect(fromCompositeKey(key)).toEqual({
       id: 'topic-1',
-      node_type: 'topic',
+      nodeType: 'topic',
     });
   });
 

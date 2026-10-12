@@ -1,3 +1,7 @@
+---
+ruleId: api-integration/prefer-tanstack-db-collections-for-server-backed-state
+---
+
 # Prefer TanStack DB Collections for Server-Backed State
 
 - Default to TanStack DB collections for feature data that behaves like app state, not just a one-off request.

@@ -1,0 +1,17 @@
+{{- /*
+External Keycloak Backend. Backend is a NAMESPACED resource — one instance per env
+namespace so the same-namespace references from dashboard-api-route (/api/me) and
+oidc-policy resolve locally.
+*/ -}}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: Backend
+metadata:
+  name: keycloak-external
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  endpoints:
+    - fqdn:
+        hostname: {{ include "gateway-routes.keycloakHost" . }}
+        port: 443

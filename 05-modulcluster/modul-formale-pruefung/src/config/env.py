@@ -5,6 +5,7 @@ import os
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel
+from temporal.connection_config import TemporalConfig as SharedTemporalConfig
 
 
 class LiteLLMConfig(BaseModel):
@@ -13,16 +14,8 @@ class LiteLLMConfig(BaseModel):
     MODEL: ChatModel = Field(min_length=1)
 
 
-class TemporalConfig(BaseModel):
-    """Temporal and Temporal S3 settings."""
-
-    HOST: str = Field(min_length=1)
+class TemporalConfig(SharedTemporalConfig):
     LLM_MAX_PER_SECOND: int = Field(gt=0)
-    S3_BUCKET_NAME: str = Field(min_length=1)
-    S3_ENDPOINT_URL: str = Field(min_length=1)
-    S3_ACCESS_KEY_ID: str = Field(min_length=1)
-    S3_SECRET_ACCESS_KEY: str = Field(min_length=1)
-    S3_REGION: str
 
 
 class Settings(BaseSettings):
@@ -34,6 +27,7 @@ class Settings(BaseSettings):
     OTEL_ENDPOINT: str = Field(min_length=1)
     TEMPORAL: TemporalConfig
     TEMPORAL_JOB_SERVICE_URL: str
+    LLM_NO_CACHE: bool = False
 
     model_config = SettingsConfigDict(
         env_file=[".env.local", ".env"] if not os.getenv("SKIP_DOTENV") else None,

@@ -1,0 +1,6 @@
+{{- /* Authentication needs a password from an existing Secret (see values). */ -}}
+{{- with .Values.redis.auth }}
+{{- if and .enabled (not .existingSecret) (not .password) }}
+{{- fail "redis: auth.enabled needs redis.auth.existingSecret (a Secret holding the password under existingSecretPasswordKey) — or set redis.auth.enabled=false" }}
+{{- end }}
+{{- end }}

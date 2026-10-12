@@ -1,3 +1,7 @@
+---
+ruleId: nodes/run-node-mutations-via-useaction
+---
+
 # Run Node Mutations Via `useAction`
 
 - For node payload updates in feature UI, use `const { transact, update } = useAction()` and perform writes inside `transact(() => { update(node, ...) })`.

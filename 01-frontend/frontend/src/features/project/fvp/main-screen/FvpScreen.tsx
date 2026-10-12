@@ -59,7 +59,7 @@ export const FvpScreen = () => {
 
   return (
     <div className="flex w-full flex-1 justify-center bg-bg-primary">
-      <div className="flex w-full max-w-container flex-col gap-10 p-6 pt-8">
+      <div className="flex w-full max-w-container flex-col gap-10 p-4 pt-8 sm:p-6">
         <section
           aria-labelledby="fvp-redesign-page-title"
           className="flex flex-col gap-6"

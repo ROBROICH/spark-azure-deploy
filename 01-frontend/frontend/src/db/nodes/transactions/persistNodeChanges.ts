@@ -1,8 +1,10 @@
-import { updateNodesProjectIdUpdatePost as updateExamNodes } from '@/api-clients/examination-module';
-import { updateNodesProjectIdUpdatePost as updateFeedbackNodes } from '@/api-clients/feedback-module';
-import { updateNodesProjectIdUpdatePost as updateOmsNodes } from '@/api-clients/oms-module';
-import { updateNodesProjectIdUpdatePost as updatePlsNodes } from '@/api-clients/pls-module';
-import { updateNodesProjectIdUpdatePost as updateVaeNodes } from '@/api-clients/vae-module';
+import {
+  v1ExaminationServiceUpdateNodes as updateExamNodes,
+  v1FeedbackUpdateNodes as updateFeedbackNodes,
+  v1ObjectionsManagementServiceUpdateNodes as updateOmsNodes,
+  v1ProjectLogicServiceUpdateNodes as updatePlsNodes,
+  v1AdministrativeFileDraftUpdateNodes as updateVaeNodes,
+} from '@/api-clients/backend';
 import {
   EXAMINATION_NODE_TYPE_LITERALS,
   FEEDBACK_NODE_TYPE_LITERALS,
@@ -40,13 +42,13 @@ export type PersistedNodeChanges = {
   updated: Omit<NodePayloadByType, 'compositeKey'>[];
 };
 
-type ProjectVersionQuery = { project_version: number };
+type ProjectVersionQuery = { projectVersion: number };
 
 type PersistedNodeChangeResult = {
   data?: {
     deleted?: PersistedNodeChanges['deleted'];
-    inserted?: PersistedNodeChanges['inserted'];
-    updated?: PersistedNodeChanges['updated'];
+    inserted?: (PersistedNodeChanges['inserted'][number] | null)[];
+    updated?: (PersistedNodeChanges['updated'][number] | null)[];
   };
 } | null;
 
@@ -55,39 +57,39 @@ type CompletedPersistedNodeChangeResult =
     data: NonNullable<NonNullable<PersistedNodeChangeResult>['data']>;
   };
 
-const isExamNodeType = <T extends { node_type: NodeTypeLiteral }>(
+const isExamNodeType = <T extends { nodeType: NodeTypeLiteral }>(
   node: T,
-): node is Extract<T, { node_type: ExamNodeRef['node_type'] }> =>
+): node is Extract<T, { nodeType: ExamNodeRef['nodeType'] }> =>
   EXAMINATION_NODE_TYPE_LITERALS.includes(
-    node.node_type as ExamNodeRef['node_type'],
+    node.nodeType as ExamNodeRef['nodeType'],
   );
 
-const isPlsNodeType = <T extends { node_type: NodeTypeLiteral }>(
+const isPlsNodeType = <T extends { nodeType: NodeTypeLiteral }>(
   node: T,
-): node is Extract<T, { node_type: PlsNodeRef['node_type'] }> =>
-  PLS_NODE_TYPE_LITERALS.includes(node.node_type as PlsNodeRef['node_type']);
+): node is Extract<T, { nodeType: PlsNodeRef['nodeType'] }> =>
+  PLS_NODE_TYPE_LITERALS.includes(node.nodeType as PlsNodeRef['nodeType']);
 
-const isFeedbackNodeType = <T extends { node_type: NodeTypeLiteral }>(
+const isFeedbackNodeType = <T extends { nodeType: NodeTypeLiteral }>(
   node: T,
-): node is Extract<T, { node_type: FeedbackNodeRef['node_type'] }> =>
+): node is Extract<T, { nodeType: FeedbackNodeRef['nodeType'] }> =>
   FEEDBACK_NODE_TYPE_LITERALS.includes(
-    node.node_type as FeedbackNodeRef['node_type'],
+    node.nodeType as FeedbackNodeRef['nodeType'],
   );
 
-const isOmsNodeType = <T extends { node_type: NodeTypeLiteral }>(
+const isOmsNodeType = <T extends { nodeType: NodeTypeLiteral }>(
   node: T,
-): node is Extract<T, { node_type: OmsNodeRef['node_type'] }> =>
-  OMS_NODE_TYPE_LITERALS.includes(node.node_type as OmsNodeRef['node_type']);
+): node is Extract<T, { nodeType: OmsNodeRef['nodeType'] }> =>
+  OMS_NODE_TYPE_LITERALS.includes(node.nodeType as OmsNodeRef['nodeType']);
 
-const isVaeNodeType = <T extends { node_type: NodeTypeLiteral }>(
+const isVaeNodeType = <T extends { nodeType: NodeTypeLiteral }>(
   node: T,
-): node is Extract<T, { node_type: VaeNodeRef['node_type'] }> =>
-  VAE_NODE_TYPE_LITERALS.includes(node.node_type as VaeNodeRef['node_type']);
+): node is Extract<T, { nodeType: VaeNodeRef['nodeType'] }> =>
+  VAE_NODE_TYPE_LITERALS.includes(node.nodeType as VaeNodeRef['nodeType']);
 
 const hasPendingNodeChanges = (changes: NodeChanges) =>
   Object.values(changes).flat().length > 0;
 
-const isPersistableNodeType = (node: { node_type: NodeTypeLiteral }) =>
+const isPersistableNodeType = (node: { nodeType: NodeTypeLiteral }) =>
   isExamNodeType(node) ||
   isFeedbackNodeType(node) ||
   isPlsNodeType(node) ||
@@ -103,7 +105,7 @@ const getUnsupportedNodeTypes = (changes: NodeChanges) => {
     ...changes.deletes,
   ]) {
     if (!isPersistableNodeType(node)) {
-      unsupportedNodeTypes.add(node.node_type);
+      unsupportedNodeTypes.add(node.nodeType);
     }
   }
 
@@ -161,7 +163,7 @@ const persistSplitNodeChanges = (
   return Promise.all([
     hasPendingNodeChanges(plsUpdates)
       ? updatePlsNodes({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: plsUpdates,
           throwOnError: true,
@@ -169,7 +171,7 @@ const persistSplitNodeChanges = (
       : null,
     hasPendingNodeChanges(examUpdates)
       ? updateExamNodes({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: examUpdates,
           throwOnError: true,
@@ -177,7 +179,7 @@ const persistSplitNodeChanges = (
       : null,
     hasPendingNodeChanges(feedbackUpdates)
       ? updateFeedbackNodes({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: feedbackUpdates,
           throwOnError: true,
@@ -185,7 +187,7 @@ const persistSplitNodeChanges = (
       : null,
     hasPendingNodeChanges(omsUpdates)
       ? updateOmsNodes({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: omsUpdates,
           throwOnError: true,
@@ -193,7 +195,7 @@ const persistSplitNodeChanges = (
       : null,
     hasPendingNodeChanges(vaeUpdates)
       ? updateVaeNodes({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: vaeUpdates,
           throwOnError: true,
@@ -211,8 +213,18 @@ const mergePersistedNodeResults = (
   );
 
   return {
-    inserted: completedResults.flatMap((result) => result.data.inserted ?? []),
-    updated: completedResults.flatMap((result) => result.data.updated ?? []),
+    inserted: completedResults.flatMap((result) =>
+      (result.data.inserted ?? []).filter(
+        (node): node is PersistedNodeChanges['inserted'][number] =>
+          node !== null,
+      ),
+    ),
+    updated: completedResults.flatMap((result) =>
+      (result.data.updated ?? []).filter(
+        (node): node is PersistedNodeChanges['updated'][number] =>
+          node !== null,
+      ),
+    ),
     deleted: completedResults.flatMap((result) => result.data.deleted ?? []),
   };
 };
@@ -233,7 +245,7 @@ export const persistNodeChanges = async (
     );
   }
 
-  const query = { project_version: projectVersion };
+  const query = { projectVersion: projectVersion };
   const results = await persistSplitNodeChanges(projectId, query, changes);
 
   return mergePersistedNodeResults(results);

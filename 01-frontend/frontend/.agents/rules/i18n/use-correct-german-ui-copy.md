@@ -1,3 +1,10 @@
+---
+ruleId: i18n/use-correct-german-ui-copy
+paths:
+  - "src/**/*.tsx"
+  - "src/features/**/*.json"
+---
+
 # Use Correct German UI Copy
 
 - In German UI text, use German typography and punctuation: `„…“` instead of `"..."`, and end complete status or empty-state sentences with a period.

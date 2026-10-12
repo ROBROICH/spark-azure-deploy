@@ -1,0 +1,294 @@
+# =============================================================================
+# temporal — wrapper values
+# =============================================================================
+#
+# Thin wrapper around the official temporalio/temporal Helm chart with
+# PostgreSQL persistence. All keys under "temporal:" are forwarded verbatim to
+# the upstream chart.
+#
+# Upstream chart:
+#   https://go.temporal.io/helm-charts  version 1.6.0  (appVersion 1.31.2)
+#   The packaged archive is committed under charts/; `helm dependency update`
+#   (run in this directory) refreshes it and needs network access.
+#
+# Persistence is PostgreSQL (e.g. Cloud SQL), reached via a DIRECT connection
+# to the server — no transaction-mode pooler in between: Temporal and its
+# schema tools need session semantics. Set the host, the database names
+# (e.g. <env>-temporal / <env>-temporal-visibility) and the database user per
+# installation; placeholders below use the <…> convention.
+#
+# Upgrading from wrapper 0.3.x (upstream 0.73.x): the upstream chart 1.x
+# configures stores under temporal.server.config.persistence.datastores.<name>
+# (sql: pluginName/driverName, databaseName, connectAddr host:port, user,
+# existingSecret, createDatabase, manageSchema) and numHistoryShards under
+# temporal.server.config.persistence; the old keys
+# (persistence.default/visibility, schema.setup/update/createDatabase, the
+# bundled cassandra/elasticsearch/mysql/postgresql/prometheus/grafana
+# subcharts) fail the render with a pointer to the new key. Server 1.31
+# needs core schema 1.19 / visibility schema 1.14: with manageSchema the
+# chart's schema Job migrates the databases before the server starts.
+# =============================================================================
+
+# Stage name appended to wrapper-level resource names as a suffix (e.g. "-my-env").
+# Propagated automatically via global.stage.name when deployed inside an
+# umbrella chart. NOTE: only wrapper-owned resources (search-attributes Job)
+# carry the suffix — the upstream subchart is not stage-aware and names its
+# resources {release}-temporal-<component>.
+stage:
+  name: ""
+
+# Namespace override for wrapper-level resources. Precedence: this key, then
+# global.namespaceOverride, then the release namespace (-n flag). The upstream
+# subchart always uses the release namespace.
+namespaceOverride: ""
+
+# Extra labels applied to wrapper-level resources (flat key-value map).
+# global.labels entries are merged in by the templates.
+labels: {}
+
+# ── Search-attributes post-install Job ───────────────────────────────────────
+# Registers project-specific custom search attributes (ProjectId: Keyword,
+# ProjectVersion: Int) into the "default" Temporal namespace as a Helm
+# post-install/post-upgrade hook.
+# ---------------------------------------------------------------------------
+searchAttributesJob:
+  enabled: true
+  image:
+    repository: temporalio/admin-tools
+    tag: "1.31.2"
+  # In-cluster address of the Temporal frontend service.
+  # Leave empty to auto-derive from the upstream chart's fullname and the
+  # namespace: <fullname>-frontend.<namespace>.svc.cluster.local:7233, with
+  # <fullname> = temporal.fullnameOverride, else the release name when it
+  # contains "temporal", else <release>-temporal (no stage suffix — the
+  # upstream subchart's Services are not stage-suffixed).
+  # Set explicitly only when the Job runs in a different namespace than the
+  # Temporal server.
+  temporalAddress: ""
+  # Upper bound for the whole hook in seconds (readiness waits included).
+  activeDeadlineSeconds: 900
+  # Pod / container security of the hook (it only talks to Temporal).
+  securityContext:
+    seccompProfile: {type: RuntimeDefault}
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities: {drop: [ALL]}
+  imagePullSecrets: []
+  # ServiceAccount for the Job pod. Empty falls back to global.serviceAccount.name
+  # (the shared per-namespace KSA), else the namespace default SA.
+  serviceAccountName: ""
+
+# ── Upstream chart values ────────────────────────────────────────────────────
+temporal:
+  # Master switch consumed by the Chart.yaml dependency condition
+  # (temporal.enabled) — allows the umbrella to turn the engine off wholesale.
+  enabled: true
+
+  # ── Image pull secrets (applied to all upstream pods) ─────────────────────
+  imagePullSecrets: []
+
+  # ── ServiceAccount ────────────────────────────────────────────────────────
+  # Upstream default: create=false, name empty → namespace default SA. The
+  # upstream chart does not read global.serviceAccount: to run under a shared
+  # ServiceAccount, set serviceAccount.name here.
+  serviceAccount:
+    create: false
+    name:
+
+  # ── Server ────────────────────────────────────────────────────────────────
+  server:
+    replicaCount: 1
+    image:
+      repository: temporalio/server
+      tag: "1.31.2"
+
+    # Pod security (the upstream default runs uid 1000 with fsGroup 1000):
+    # non-root, RuntimeDefault seccomp. Containers drop every capability
+    # and cannot escalate (per service below). The root filesystem stays
+    # writable: the server renders its configuration file at startup.
+    securityContext:
+      fsGroup: 1000
+      runAsUser: 1000
+      runAsNonRoot: true
+      seccompProfile: {type: RuntimeDefault}
+
+    # Dynamic config values applied at runtime without server restart:
+    #   useNewMatcher   — use the new task-queue matching implementation
+    #   enableFairness  — fair weighted task dispatching across task queues
+    #   enableMigration — allows online migration of task-queue data
+    dynamicConfig:
+      matching.useNewMatcher:
+        - value: true
+          constraints: {}
+      matching.enableFairness:
+        - value: true
+          constraints: {}
+      matching.enableMigration:
+        - value: true
+          constraints: {}
+
+    config:
+      persistence:
+        # defaultStore / visibilityStore name entries of datastores below.
+        defaultStore: default
+        visibilityStore: visibility
+        # IMMUTABLE after the first deployment and must match the value used
+        # during schema setup.
+        numHistoryShards: 512
+
+        datastores:
+          default:
+            sql:
+              pluginName: postgres12
+              driverName: postgres12
+              # Direct connection to the server, host:port (private IP / host
+              # name; the schema Job needs this form).
+              connectAddr: "<postgres-host>:5432"
+              connectProtocol: tcp
+              databaseName: "<env>-temporal"
+              user: "<env>-user"
+              # Secret holding the database user's password (key secretKey).
+              existingSecret: "postgres-credentials"
+              secretKey: password
+              maxConns: 5
+              maxIdleConns: 2
+              maxConnLifetime: "1h"
+              # The databases are created beforehand (owned by the env user,
+              # e.g. by db-init); the chart's schema Job sets up and migrates
+              # their schema on install/upgrade.
+              createDatabase: false
+              manageSchema: true
+          visibility:
+            sql:
+              pluginName: postgres12
+              driverName: postgres12
+              connectAddr: "<postgres-host>:5432"
+              connectProtocol: tcp
+              databaseName: "<env>-temporal-visibility"
+              user: "<env>-user"
+              existingSecret: "postgres-credentials"
+              secretKey: password
+              maxConns: 5
+              maxIdleConns: 2
+              maxConnLifetime: "1h"
+              createDatabase: false
+              manageSchema: true
+
+      # Default namespace, created by the chart's namespace Job.
+      namespaces:
+        create: true
+        namespace:
+          - name: default
+            retention: 60d
+
+    # ── Per-service replicas & resources ─────────────────────────────────────
+    # Modest defaults (roughly 0.25–0.5 CPU / 0.5–1 Gi per service) —
+    # deliberately small (a production-sized history service needs around
+    # 2 CPU/6 Gi); size every block per installation.
+    history:
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+      resources:
+        requests:
+          cpu: 500m
+          memory: 1Gi
+        limits:
+          cpu: "1"
+          memory: 2Gi
+    frontend:
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+      service:
+        type: ClusterIP
+        port: 7233
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+    matching:
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+    worker:
+      containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities: {drop: [ALL]}
+      resources:
+        requests:
+          cpu: 250m
+          memory: 512Mi
+        limits:
+          cpu: 500m
+          memory: 1Gi
+
+  # ── Schema and namespace Jobs ─────────────────────────────────────────────
+  # Helm hooks (pre-install/pre-upgrade): the schema is in place before the
+  # server starts. They connect DIRECTLY to the server like Temporal itself.
+  schema:
+    securityContext:
+      seccompProfile: {type: RuntimeDefault}
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities: {drop: [ALL]}
+
+  # Server 1.30+ images need none of the 1.29 compatibility shims.
+  shims:
+    dockerize: false
+    elasticsearchTool: false
+
+  # ── Admin tools (also used by the schema Jobs) ────────────────────────────
+  admintools:
+    image:
+      repository: temporalio/admin-tools
+      tag: "1.31.2"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+    securityContext:
+      seccompProfile: {type: RuntimeDefault}
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities: {drop: [ALL]}
+
+  # ── Web UI ────────────────────────────────────────────────────────────────
+  # Reachable through the gateway-routes chart or web.ingress.
+  web:
+    enabled: true
+    replicaCount: 1
+    securityContext:
+      seccompProfile: {type: RuntimeDefault}
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities: {drop: [ALL]}
+    image:
+      repository: temporalio/ui
+      tag: "2.53.3"
+    service:
+      type: ClusterIP
+      port: 8080
+    ingress:
+      enabled: false
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+    additionalEnv:
+      # Origin the UI is served from, e.g. https://temporal.example.com.
+      - name: TEMPORAL_CORS_ORIGINS
+        value: "<temporal-cors-origin>"

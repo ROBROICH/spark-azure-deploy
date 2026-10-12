@@ -1,3 +1,7 @@
+---
+ruleId: nodes/keep-optional-node-metadata-non-suspending
+---
+
 # Keep Optional Node Metadata Non-Suspending
 
 - In code review, flag suspending `useNode(...)` or `useNodes(...)` calls when the payload is only used for optional labels, badges, external-state decoration, icons, tooltips, or click-target metadata.

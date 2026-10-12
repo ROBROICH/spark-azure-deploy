@@ -3,9 +3,10 @@ import { describe, expect, it } from 'vitest';
 import type { StoredContradiction } from '@/features/project/fvp/data/plausibility/contradiction.schema';
 import {
   EXPECTED_MAX_NORMALIZED_RATING,
-  EXPECTED_MIN_NORMALIZED_RATING,
+  UNCERTAIN_SENSITIVITY_THRESHOLD,
   filterContradictions,
   getLowestUsableContradictionRating,
+  getNormalizedRating,
   hasUsableContradictionRatings,
 } from './contradictionFilters';
 
@@ -15,7 +16,9 @@ const makeContradiction = (
   overrides: Partial<ContradictionListItem>,
 ): ContradictionListItem => ({
   id: 'contradiction-1',
+  title: null,
   description: 'Lorem ipsum contradiction',
+  rating: null,
   status: 'OPEN',
   occurrences: [
     {
@@ -186,15 +189,62 @@ describe('filterContradictions', () => {
 
   it('applies a provided minimum rating threshold', () => {
     const contradictions = [
-      makeContradiction({ id: 'keep', rating: EXPECTED_MIN_NORMALIZED_RATING }),
+      makeContradiction({
+        id: 'keep',
+        rating: UNCERTAIN_SENSITIVITY_THRESHOLD,
+      }),
       makeContradiction({ id: 'drop', rating: 0.72 }),
     ];
 
     const result = filterContradictions(contradictions, {
-      ratingThreshold: EXPECTED_MIN_NORMALIZED_RATING,
+      ratingThreshold: UNCERTAIN_SENSITIVITY_THRESHOLD,
     });
 
     expect(result.map((item) => item.id)).toEqual(['drop', 'keep']);
+  });
+});
+
+describe('getNormalizedRating', () => {
+  it('prefers the confidence score over the legacy rating and scales 0..100 to 0..1', () => {
+    expect(
+      getNormalizedRating(
+        makeContradiction({ rating: 85, confidenceScore: 12.5 }),
+      ),
+    ).toBe(0.125);
+  });
+
+  it('always scales the confidence score by 100, also below 1', () => {
+    expect(
+      getNormalizedRating(makeContradiction({ confidenceScore: 0.5 })),
+    ).toBe(0.005);
+    expect(getNormalizedRating(makeContradiction({ confidenceScore: 1 }))).toBe(
+      0.01,
+    );
+  });
+
+  it('falls back to the legacy rating when no confidence score exists', () => {
+    expect(getNormalizedRating(makeContradiction({ rating: 85 }))).toBe(0.85);
+    expect(
+      getNormalizedRating(
+        makeContradiction({ rating: 85, confidenceScore: null }),
+      ),
+    ).toBe(0.85);
+  });
+
+  it('sorts and filters by the confidence score when present', () => {
+    const contradictions = [
+      makeContradiction({ id: 'low', rating: 85, confidenceScore: 3 }),
+      makeContradiction({ id: 'high', rating: 60, confidenceScore: 91 }),
+      makeContradiction({ id: 'mid', rating: 80, confidenceScore: 40 }),
+    ];
+
+    const sorted = filterContradictions(contradictions, {});
+    expect(sorted.map(({ id }) => id)).toEqual(['high', 'mid', 'low']);
+
+    const filtered = filterContradictions(contradictions, {
+      ratingThreshold: 0.4,
+    });
+    expect(filtered.map(({ id }) => id)).toEqual(['high', 'mid']);
   });
 });
 

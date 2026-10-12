@@ -4,20 +4,18 @@ Lists all law docs for one source config via the list_law_docs activity, then
 fans out one UpdateBegruendungenLawDocWorkflow sub-workflow per law_doc.
 """
 
-from temporal.utils import sliding_window
-from temporal.workflows.begruendungen.types import (
+from temporal.contracts import (
     GNDocData,
     ProcessLawDocInput,
     ProcessLawDocResult,
     UpdateBegruendungenSourceInput,
     UpdateBegruendungenSourceOutput,
 )
-from temporal.workflows.begruendungen.update_begruendungen_source import (
-    UPDATE_BEGRUENDUNGEN_SOURCE_WORKFLOW_ID,
+from temporal.registry import (
+    BEGRUENDUNGEN_UPDATE_LAW_DOC_WORKFLOW,
+    BEGRUENDUNGEN_UPDATE_SOURCE_WORKFLOW,
 )
-from temporal.workflows.begruendungen.update_begruendungen_law_doc import (
-    execute_update_begruendungen_law_doc_workflow,
-)
+from temporal.utils import execute_child_workflow, sliding_window
 from temporalio import workflow
 
 from begruendungen_db.workflows.update_begruendungen.activities import (
@@ -25,7 +23,7 @@ from begruendungen_db.workflows.update_begruendungen.activities import (
 )
 
 
-@workflow.defn(name=UPDATE_BEGRUENDUNGEN_SOURCE_WORKFLOW_ID)
+@workflow.defn(name=BEGRUENDUNGEN_UPDATE_SOURCE_WORKFLOW.name)
 class UpdateBegruendungenSourceWorkflow:
     """List law docs for one source config, then fan out a sub-workflow per law_doc."""
 
@@ -38,12 +36,15 @@ class UpdateBegruendungenSourceWorkflow:
         )
 
         async def run_law_doc(law_doc_data: GNDocData) -> ProcessLawDocResult:
-            return await execute_update_begruendungen_law_doc_workflow(
-                ProcessLawDocInput(
-                    law_doc=law_doc_data,
-                    source=sc.source,
-                    extra=sc.extra,
-                    overwrite=sc.overwrite,
+            return ProcessLawDocResult.model_validate(
+                await execute_child_workflow(
+                    definition=BEGRUENDUNGEN_UPDATE_LAW_DOC_WORKFLOW,
+                    input=ProcessLawDocInput(
+                        law_doc=law_doc_data,
+                        source=sc.source,
+                        extra=sc.extra,
+                        overwrite=sc.overwrite,
+                    ),
                 )
             )
 

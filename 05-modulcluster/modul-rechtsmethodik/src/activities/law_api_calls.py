@@ -6,10 +6,17 @@ from urllib.parse import quote
 
 import httpx
 from pydantic import BaseModel, ConfigDict
-from temporal.workflows.rechtsmethodik.types import Absatz
+from temporal.activities.law_db import (
+    LawDbRows,
+    QueryKResultsUTInput,
+    QueryTopKDRInput,
+    define_query_k_results_ut_activity,
+    define_query_top_k_dr_activity,
+)
 from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
+from src.absatz import Absatz
 from src.activities.utils import api_call
 from src.env import ENV
 from src.workflows.norm_workflow.norm_types import (
@@ -18,6 +25,8 @@ from src.workflows.norm_workflow.norm_types import (
 )
 
 LAW_DB = ENV.LAW_DATABASE
+
+_HTTP_TIMEOUT_SECONDS = 10.0
 
 
 class FetchNormInput(BaseModel):
@@ -55,33 +64,6 @@ class FetchDocumentByJurabkInput(BaseModel):
 
     jurabk: str
     bundesland: str | None = None
-
-
-class QueryTopKDRInput(BaseModel):
-    """Input for querying top-k Drucksachen results."""
-
-    jurabk: str
-    query_text: str
-    section_substrings: list[str] | None = None
-    k: int | None = 10
-
-
-class UTNorms(BaseModel):
-    """Reference to a norm for Urteilstext queries."""
-
-    name: str
-    name_suffix: str | None = None
-    paragraph: str | None = None
-    absatz: str | None = None
-
-
-class QueryKResultsUTInput(BaseModel):
-    """Input for querying k Urteilstext results by query text and norm references."""
-
-    query_text: str
-    norms: list[UTNorms]
-    k: int | None = 10
-    similarity_threshold: float | None = 0.3
 
 
 class QueryChunksUTInput(BaseModel):
@@ -322,24 +304,22 @@ async def fetch_all_norm_data(
 
 
 # http://localhost:18021/query_top_k
-@activity.defn(name="query_top_k_dr")
-async def _query_top_k_dr(activity_input: QueryTopKDRInput) -> list[dict[str, Any]]:
-    """Temporal activity: query top-k Drucksachen by similarity."""
-    return await _post_and_validate_list(LAW_DB.QUERY_TOP_K_DR_URL, activity_input.model_dump())
+_query_top_k_dr = define_query_top_k_dr_activity(
+    name="query_top_k_dr", url=LAW_DB.QUERY_TOP_K_DR_URL, http_timeout=_HTTP_TIMEOUT_SECONDS
+)
 
 
-async def query_top_k_dr(activity_input: QueryTopKDRInput) -> list[dict[str, Any]]:
+async def query_top_k_dr(activity_input: QueryTopKDRInput) -> LawDbRows:
     return await api_call(_query_top_k_dr, activity_input)
 
 
 # http://localhost:18022/query_k_results
-@activity.defn(name="query_k_results_ut")
-async def _query_k_results_ut(activity_input: QueryKResultsUTInput) -> list[dict[str, Any]]:
-    """Temporal activity: query k Urteilstext results."""
-    return await _post_and_validate_list(LAW_DB.QUERY_K_RESULTS_UT_URL, activity_input.model_dump())
+_query_k_results_ut = define_query_k_results_ut_activity(
+    name="query_k_results_ut", url=LAW_DB.QUERY_K_RESULTS_UT_URL, http_timeout=_HTTP_TIMEOUT_SECONDS
+)
 
 
-async def query_k_results_ut(activity_input: QueryKResultsUTInput) -> list[dict[str, Any]]:
+async def query_k_results_ut(activity_input: QueryKResultsUTInput) -> LawDbRows:
     return await api_call(_query_k_results_ut, activity_input)
 
 

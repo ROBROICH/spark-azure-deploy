@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, patch
 from uuid import uuid4
 
 import pytest
-from temporal.workflows.inhaltsextraktion.types import (
+from temporal.contracts import (
     DeleteDocumentsWorkflowInput,
     DeleteDocumentsWorkflowOutput,
 )

@@ -1,7 +1,9 @@
 import type {
-  ProjectAssignmentsRequest,
   Relation,
-} from '@/api-clients/identity-management-module';
+  V1IdentityReplaceProjectAssignmentsData as ReplaceProjectAssignmentsData,
+} from '@/api-clients/backend';
+
+type ProjectAssignmentsRequest = ReplaceProjectAssignmentsData['body'];
 
 export type ProjectAssignmentRelation = Extract<Relation, 'member' | 'owner'>;
 
@@ -50,11 +52,11 @@ export const toProjectAssignmentsRequest = (
   assignments: [
     ...uniqueUserIds(assignments.owners).map((userId) => ({
       role: 'owner' as const,
-      user_id: userId,
+      userId: userId,
     })),
     ...uniqueUserIds(assignments.members).map((userId) => ({
       role: 'member' as const,
-      user_id: userId,
+      userId: userId,
     })),
   ],
 });

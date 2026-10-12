@@ -116,7 +116,10 @@ function SelectMenuOption(props: React.ComponentProps<typeof SelectItem>) {
     <SelectItem className={cn(POPUP_SELECT_ITEM_CLASSES, className)} {...rest}>
       <SelectItemText>{children}</SelectItemText>
       <SelectItemIndicator>
-        <Check className="size-4 shrink-0" aria-hidden="true" />
+        <Check
+          className="size-4 shrink-0 forced-colors:text-[color:CanvasText]"
+          aria-hidden="true"
+        />
       </SelectItemIndicator>
     </SelectItem>
   );
@@ -142,6 +145,12 @@ function SelectMenuOption(props: React.ComponentProps<typeof SelectItem>) {
  * Screen readers announce them differently: listbox says "3 of 6, selected";
  * menu says nothing about the current value. Use Select for any "choose a value"
  * interaction; use ActionMenu for "pick an action to perform".
+ *
+ * Exception — sort/filter controls: do NOT use SelectMenu here. Screen readers
+ * announce role="combobox" as an editable input, wrongly implying free-text entry
+ * for a fixed value set (BITV 9.4.1.2 / WCAG 4.1.2). Sort/filter pills
+ * use the menu pattern instead (see FilterPillSelect / ActionMenuRadioGroup);
+ * SelectMenu's combobox stays correct for in-form value fields.
  *
  * Need a custom trigger? Use the primitives:
  * SelectMenuRoot, SelectMenuTrigger, SelectMenuContent, SelectMenuOption, SelectMenuValue.

@@ -1,0 +1,29 @@
+{
+  "projects": {
+    "populated": {
+      "id": "3c88281c-5e76-4a0a-a473-2a22b051d849",
+      "historicalVersion": 2,
+      "latestVersion": 3
+    },
+    "empty": {
+      "id": "07a264ce-3419-43ae-90e6-bccfeebfc134",
+      "latestVersion": 1
+    },
+    "unknown": {
+      "id": "ffffffff-ffff-4fff-8fff-ffffffffffff"
+    }
+  },
+  "nodes": {
+    "currentNotes": [
+      "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+      "68478e74-3d59-4175-bf0d-3bd4c04dc34e",
+      "a8180785-958d-4f09-9d2e-cafeb0aaef80"
+    ],
+    "historicalOccurrence": {
+      "id": "1440451a-5aa4-4fb8-9d3a-cf38689e7513",
+      "noteId": "4d37e385-eb4c-4b57-9ed8-d7f10611e290",
+      "documentId": "5fdf74aa-3e83-4079-a254-b78835278161"
+    },
+    "unknown": "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee"
+  }
+}

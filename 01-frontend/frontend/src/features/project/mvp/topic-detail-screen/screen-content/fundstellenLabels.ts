@@ -4,10 +4,10 @@ export const getNormReferenceLabel = (
   norm: NodePayloadByType<'norm'>,
   gesetzJurabk: string | null,
 ) => {
-  const paragraphRef = norm.paragraph_nr
-    ? norm.paragraph_nr.trim().startsWith('§')
-      ? norm.paragraph_nr.trim()
-      : `§ ${norm.paragraph_nr.trim()}`
+  const paragraphRef = norm.paragraphNr
+    ? norm.paragraphNr.trim().startsWith('§')
+      ? norm.paragraphNr.trim()
+      : `§ ${norm.paragraphNr.trim()}`
     : '§';
 
   return [gesetzJurabk, paragraphRef].filter(Boolean).join(' ');
@@ -17,7 +17,7 @@ export const getNormSelectionLabel = (
   norm: NodePayloadByType<'norm'>,
   gesetzJurabk: string | null,
 ) => {
-  return [getNormReferenceLabel(norm, gesetzJurabk), norm.paragraph_titel]
+  return [getNormReferenceLabel(norm, gesetzJurabk), norm.paragraphTitel]
     .filter(Boolean)
     .join(' ');
 };

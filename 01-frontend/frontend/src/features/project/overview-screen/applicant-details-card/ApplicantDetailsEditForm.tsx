@@ -1,4 +1,4 @@
-import { type ProjectResponse } from '@/api-clients/pls-module';
+import { type ProjectResponse } from '@/api-clients/backend';
 import { projectsCollection } from '@/features/project/data/collections/projects.collection';
 import type { ApplicantAutocompleteField } from '@/features/project/data/project-details-form/applicant-fields/applicantAutocomplete';
 import { editApplicantSchema } from '@/features/project/overview-screen/schemas';
@@ -132,7 +132,7 @@ export function ApplicantDetailsEditForm(props: ApplicantDetailsEditFormProps) {
             </form.Field>
           </div>
         </ApplicantFieldRow>
-        <div className="flex items-start border-b border-border-primary">
+        <div className="flex flex-col items-start border-b border-border-primary lg:flex-row">
           <FieldLabel className="w-36 shrink-0 px-3 py-[11px] text-sm font-medium tracking-tight text-text-primary">
             {t('ApplicantDetails.address')}
           </FieldLabel>

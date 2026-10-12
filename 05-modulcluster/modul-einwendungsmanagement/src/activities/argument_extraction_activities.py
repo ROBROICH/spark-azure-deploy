@@ -8,7 +8,7 @@ source documents.
 import unicodedata
 
 from rapidfuzz import fuzz
-from temporal.workflows.einwendungsmanagement.types import TextSpan
+from temporal.contracts import TextSpan
 from temporalio import activity
 
 from src.schemas.argument_extraction_schemas import (

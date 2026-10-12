@@ -40,3 +40,23 @@ export const PROJECT_SWITCHER_OPTIONS = [
   },
   ...PROJECT_STEP_OPTIONS,
 ] as const;
+
+const EWMS_ONLY_STEP_OPTIONS = [
+  { ...PROJECT_STEP_OPTIONS[2], code: '1', number: 1 },
+] as const;
+
+/**
+ * Process steps offered for the effective product mode. EWMS-only mode keeps
+ * exactly the EWMS step; SPARK keeps the full existing list.
+ */
+export const getProductStepOptions = (productMode: 'spark' | 'ewms') =>
+  productMode === 'ewms' ? EWMS_ONLY_STEP_OPTIONS : PROJECT_STEP_OPTIONS;
+
+/**
+ * Stepper options (overview plus process steps) for the effective product
+ * mode. EWMS-only mode offers exactly Verfahrensübersicht and EWMS.
+ */
+export const getProductSwitcherOptions = (productMode: 'spark' | 'ewms') => [
+  PROJECT_SWITCHER_OPTIONS[0],
+  ...getProductStepOptions(productMode),
+];

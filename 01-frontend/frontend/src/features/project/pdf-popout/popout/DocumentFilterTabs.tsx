@@ -13,6 +13,7 @@ export type DocumentFilterTabsProps = {
   topicLabel: string;
   allCount: number;
   topicCount: number;
+  hasMoreFiles?: boolean;
 };
 
 /**
@@ -29,15 +30,26 @@ export const DocumentFilterTabs = (props: DocumentFilterTabsProps) => {
     topicLabel,
     allCount,
     topicCount,
+    hasMoreFiles = false,
   } = props;
   const { t } = useTranslation('PdfPopout');
 
   const labels = {
-    all: t('PdfPopoutSidebar.filterAll', { count: allCount }),
-    topic: t('PdfPopoutSidebar.filterTopic', {
-      label: topicLabel,
-      count: topicCount,
-    }),
+    all: t(
+      hasMoreFiles
+        ? 'PdfPopoutSidebar.filterAllPartial'
+        : 'PdfPopoutSidebar.filterAll',
+      { count: allCount },
+    ),
+    topic: t(
+      hasMoreFiles
+        ? 'PdfPopoutSidebar.filterTopicPartial'
+        : 'PdfPopoutSidebar.filterTopic',
+      {
+        label: topicLabel,
+        count: topicCount,
+      },
+    ),
   } satisfies Record<DocumentFilter, string>;
 
   const handleKeyDown = (

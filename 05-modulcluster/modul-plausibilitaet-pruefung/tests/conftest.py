@@ -12,12 +12,11 @@ os.environ.setdefault("DMS_BASE_URL", "http://localhost:8000")
 os.environ.setdefault("TEMPORAL_HOST", "localhost:7233")
 os.environ.setdefault("TEMPORAL_S3_BUCKET_NAME", "test-bucket")
 os.environ.setdefault("TEMPORAL_S3_ENDPOINT_URL", "http://localhost:9000")
-os.environ.setdefault("TEMPORAL_S3_ACCESS_KEY_ID", "minioadmin")
-os.environ.setdefault("TEMPORAL_S3_SECRET_ACCESS_KEY", "minioadmin")
+os.environ.setdefault("TEMPORAL_S3_ACCESS_KEY_ID", "test-access-key")
+os.environ.setdefault("TEMPORAL_S3_SECRET_ACCESS_KEY", "test-secret-key")
 os.environ.setdefault("TEMPORAL_S3_REGION", "eu-west-1")
 os.environ.setdefault("OTEL_SERVICE_NAME", "test-plausibility")
 os.environ.setdefault("OTEL_ENDPOINT", "http://localhost:4317")
-os.environ.setdefault("TEMPORAL_JOB_SERVICE_URL", "http://localhost:18011")
 
 import httpx
 import pytest
@@ -28,7 +27,7 @@ from src.qdrant.schemas import (
     ClaimMetadata,
     ClaimPayload,
 )
-from src.workflows.check_logic_wf.schemas.cluster_summarizer_schemas import (
+from src.workflows.check_logic_wf.schemas.clustering_schemas import (
     InconsistencyPair,
 )
 from src.workflows.check_logic_wf.schemas.context_checker_schemas import (
@@ -51,7 +50,7 @@ def install_transport(monkeypatch: pytest.MonkeyPatch) -> TransportInstaller:
             kwargs.pop("limits", None)
             return original(*args, transport=transport, **kwargs)
 
-        monkeypatch.setattr("src.dms.dms_client.httpx.AsyncClient", _factory)
+        monkeypatch.setattr("temporal.dms_client.httpx.AsyncClient", _factory)
 
     return _install
 

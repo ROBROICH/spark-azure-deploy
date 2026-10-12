@@ -28,51 +28,32 @@ def _make_dms_file(
 
 
 class TestListAllFiles:
-    """Tests for the _list_all_files pagination helper."""
-
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.list_files")
-    async def test_returns_empty_when_first_page_empty(self, mock_list_files: Any) -> None:
-        """Test that an empty first page returns an empty list."""
+    @patch("src.activities.deletion.list_all_files")
+    async def test_returns_empty_when_no_files(self, mock_list_all_files: Any) -> None:
         project_id = uuid4()
-        mock_list_files.return_value = []
+        mock_list_all_files.return_value = []
 
         result = await _list_all_files(project_id, "document")
 
         assert result == []
-        mock_list_files.assert_awaited_once()
+        mock_list_all_files.assert_awaited_once_with(project_id, "document")
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.list_files")
-    async def test_maps_single_page_results(self, mock_list_files: Any) -> None:
-        """Test that a single page of results is correctly mapped to DeletionFileInfo objects."""
+    @patch("src.activities.deletion.list_all_files")
+    async def test_maps_results_to_deletion_file_info(self, mock_list_all_files: Any) -> None:
         project_id = uuid4()
-        mock_list_files.return_value = [
+        mock_list_all_files.return_value = [
             _make_dms_file(filename="doc1.pdf", file_type="document"),
             _make_dms_file(filename="doc2.pdf", file_type="document"),
         ]
 
-        result = await _list_all_files(project_id, "document", page_size=500)
+        result = await _list_all_files(project_id, "document")
 
         assert len(result) == 2
         assert result[0].filename == "doc1.pdf"
         assert result[1].filename == "doc2.pdf"
         assert result[0].file_type == "document"
-
-    @pytest.mark.asyncio
-    @patch("src.activities.deletion.list_files")
-    async def test_paginates_until_partial_page(self, mock_list_files: Any) -> None:
-        """Test that pagination continues until a partial page is returned."""
-        project_id = uuid4()
-        full_page = [_make_dms_file(filename=f"doc{i}.pdf", file_type="document") for i in range(2)]
-        partial_page = [_make_dms_file(filename="last.pdf", file_type="document")]
-        mock_list_files.side_effect = [full_page, partial_page]
-
-        result = await _list_all_files(project_id, "document", page_size=2)
-
-        assert len(result) == 3
-        assert [item.filename for item in result] == ["doc0.pdf", "doc1.pdf", "last.pdf"]
-        assert mock_list_files.await_count == 2
 
 
 class TestListProjectFilesForDeletion:

@@ -4,10 +4,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import type { RequestItem } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
 import { RequestListPanel } from './RequestListPanel';
-
-let liveQueryItems: RequestItem[] = [];
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
@@ -23,13 +20,18 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('@tanstack/react-db', () => ({
   eq: vi.fn(),
-  useLiveQuery: () => ({ data: liveQueryItems }),
+  useLiveInfiniteQuery: () => ({
+    data: [],
+    hasNextPage: false,
+    isFetchingNextPage: false,
+  }),
 }));
 
 vi.mock(
   '@/features/project/nachforderungen/data/collections/requestItems.collection',
   () => ({
-    requestItemsCollection: {},
+    REQUEST_ITEMS_PAGE_SIZE: 50,
+    createRequestItemsCollection: () => ({}),
   }),
 );
 
@@ -72,7 +74,6 @@ vi.mock('@/features/project/nachforderungen/sidebar-panel/RequestForm', () => ({
 }));
 
 afterEach(() => {
-  liveQueryItems = [];
   cleanup();
 });
 

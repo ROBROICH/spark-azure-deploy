@@ -1,6 +1,5 @@
 """CLI utilities for jura_db download pipeline"""
 
-import typer
 from pathlib import Path
 from typing_extensions import Annotated
 import logging
@@ -26,11 +25,14 @@ logger = logging.getLogger("cli")
 app = typer.Typer()
 
 
+def document_link(doc_id: str) -> str:
+    """direct https download link for a document"""
+    return f"{app_config.rii_base_document_url}/{doc_id}.zip"
+
+
 def get_document_info_by_name(document_name: str) -> dict[str, str]:
     """Get document info directly from document name without TOC"""
-    # Construct the direct download link
-    base_url = app_config.rii_base_document_url
-    link = f"{base_url}/{document_name}.zip"
+    link = document_link(document_name)
 
     return {
         "gericht": "Unknown",  # We don't have this info without TOC
@@ -43,6 +45,8 @@ def get_document_info_by_name(document_name: str) -> dict[str, str]:
 
 def download_document(link: str, output_dir: Path) -> Path:
     """Download document from link and save to output directory"""
+    if not link.startswith("https://"):
+        raise ValueError(f"refusing to download {link}: documents must be fetched via https")
     try:
         # Create output directory if it doesn't exist
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -151,6 +155,8 @@ def process_document(document_identifier: str, overwrite: bool = False) -> Docum
             toc_path = _resolve_toc_path()
             document_info = get_toc_item(toc_path, document_number)
             doc_id = document_info["link"].split("/")[-1].replace(".zip", "")
+            # TOC entries link via plain http
+            document_info["link"] = document_link(doc_id)
         else:
             # Mode 2: Direct document name
             logger.info(f"Processing document by name: {document_identifier}")

@@ -1,0 +1,125 @@
+# =============================================================================
+# redis — values.yaml
+# =============================================================================
+#
+# Thin project wrapper around the cloudpirates/redis chart (Bitnami-compatible
+# API). All keys under redis: are forwarded verbatim to the upstream chart.
+#
+# Upstream chart:
+#   oci://registry-1.docker.io/cloudpirates/redis  version 0.26.4
+#   https://github.com/CloudPirates-io/helm-charts/tree/main/charts/redis
+#
+# Instance naming
+# ---------------
+# Set redis.fullnameOverride to the desired instance name to produce
+# deterministic resource names independent of the Helm release name.
+# This gives each instance an explicit, stable name (e.g. "redis-sessions", "redis-shared", "formale-pruefung-redis").
+#
+# Stage-aware naming:
+#   redis.fullnameOverride: "redis-sessions"           (no stage)
+#   redis.fullnameOverride: "redis-sessions-prod"      (explicit stage suffix)
+#
+# Rendered resources (with fullnameOverride redis-x): Service redis-x, headless
+# Service redis-x-headless and a StatefulSet with a VolumeClaimTemplate.
+#
+# Configuration mapping (redis-server flags → Helm):
+#   --appendonly yes                           → extraConfig: "appendonly yes"
+#   --maxmemory 256mb                          → extraConfig: "maxmemory 256mb"
+#   --maxmemory-policy allkeys-lru             → extraConfig: "maxmemory-policy allkeys-lru"
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# redis — upstream cloudpirates/redis chart values
+# -----------------------------------------------------------------------------
+
+redis:
+  enabled: true
+
+  # -------------------------------------------------------
+  # Naming: set these to control resource names explicitly.
+  # -------------------------------------------------------
+  fullnameOverride: ""
+  nameOverride: ""
+
+  # -------------------------------------------------------
+  # Image — set registry and tag to match the deploying environment.
+  # Known-good tag:
+  #   8.6.1-alpine@sha256:4e00c0ccc5bf80187cf5321408096e07c6b45291b86b5ea5a24f9915d5784b89
+  # Full image path example:
+  #   registry.example.com/mirror/redis
+  # -------------------------------------------------------
+  image:
+    registry: <container-registry>
+    repository: image-repo/infra/redis
+    tag: "<image-tag>"
+    pullPolicy: IfNotPresent
+
+  global:
+    # Pull secrets for a private registry or mirror.
+    imagePullSecrets: []
+
+  # -------------------------------------------------------
+  # Architecture — standalone by default.
+  # Use "replication" + sentinel.enabled=true for HA.
+  # -------------------------------------------------------
+  architecture: standalone
+
+  sentinel:
+    enabled: false
+
+  # -------------------------------------------------------
+  # Authentication — on by default. The password comes from an existing
+  # Secret (e.g. an ExternalSecret): existingSecret is required while auth is
+  # enabled (the upstream chart would otherwise generate a random password on
+  # every render, which GitOps tools report as permanent drift). Every client
+  # must send it. Set enabled: false only on a network the instance's clients
+  # alone can reach.
+  # -------------------------------------------------------
+  auth:
+    enabled: true
+    sentinel: false
+    existingSecret: ""
+    existingSecretPasswordKey: "redis-password"
+
+  # -------------------------------------------------------
+  # Resources — sized for a small session/cache instance.
+  # Override per-instance for higher-traffic workloads.
+  # -------------------------------------------------------
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  # -------------------------------------------------------
+  # Persistence — 1Gi on the cluster's default storage class (storageClass: "").
+  # -------------------------------------------------------
+  persistence:
+    enabled: true
+    storageClass: ""
+    accessMode: ReadWriteOnce
+    size: 1Gi
+
+  # -------------------------------------------------------
+  # Additional redis.conf directives appended to the generated config.
+  # Maps directly to redis-server command-line flags:
+  #
+  # Persistent data stores:
+  #   extraConfig: "appendonly yes"
+  #
+  # Cache/session instances:
+  #   extraConfig: |
+  #     appendonly yes
+  #     maxmemory 256mb
+  #     maxmemory-policy allkeys-lru
+  # -------------------------------------------------------
+  extraConfig: ""
+
+  # -------------------------------------------------------
+  # Service — ClusterIP on the standard Redis port 6379.
+  # -------------------------------------------------------
+  service:
+    type: ClusterIP
+    port: 6379

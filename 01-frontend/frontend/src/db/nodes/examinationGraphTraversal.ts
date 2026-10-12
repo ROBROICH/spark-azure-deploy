@@ -69,14 +69,14 @@ const withTypedDescendants = <TNodeType extends string, TRef extends NodeRef>(
   state: TypedDescendantTraversalState<TRef>,
   startId: string,
   type: TNodeType,
-  visit: (ref: TRef & { node_type: TNodeType }) => boolean | void,
+  visit: (ref: TRef & { nodeType: TNodeType }) => boolean | void,
 ) => {
   forEachDescendant(state, startId, (ref) => {
-    if (ref.node_type !== type) {
+    if (ref.nodeType !== type) {
       return;
     }
 
-    return visit(ref as TRef & { node_type: TNodeType });
+    return visit(ref as TRef & { nodeType: TNodeType });
   });
 };
 
@@ -87,8 +87,8 @@ export const getTypedDescendantRefs = <
   state: TypedDescendantTraversalState<TRef>,
   startId: string,
   type: TNodeType,
-): (TRef & { node_type: TNodeType })[] => {
-  const refs: (TRef & { node_type: TNodeType })[] = [];
+): (TRef & { nodeType: TNodeType })[] => {
+  const refs: (TRef & { nodeType: TNodeType })[] = [];
 
   withTypedDescendants(state, startId, type, (ref) => {
     refs.push(ref);
@@ -140,7 +140,7 @@ export const getFirstTypedDescendantRef = <
   startId: string,
   type: TNodeType,
 ) => {
-  let match: (TRef & { node_type: TNodeType }) | null = null;
+  let match: (TRef & { nodeType: TNodeType }) | null = null;
 
   withTypedDescendants(state, startId, type, (ref) => {
     match = ref;

@@ -9,9 +9,9 @@ import {
 } from './ewmsSubtopics';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
@@ -20,42 +20,40 @@ const makeTopic = (id: string, name: string) =>
   ({
     compositeKey: `topic:${id}` as CompositeKey,
     id,
-    node_type: 'topic',
+    nodeType: 'topic',
     name,
     description: null,
-    parent_topic_id: null,
-    mvp_assignee: null,
-    mvp_assignees: [],
-    show_in_mvp: true,
-    show_in_ewm: true,
-    show_in_beschluss: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    parentTopicId: null,
+    mvpAssignee: null,
+    mvpAssignees: [],
+    showInMvp: true,
+    showInEwm: true,
+    showInBeschluss: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
   }) as unknown as EwmsTopicNode;
 
 const makeSubtopic = (id: string, name: string, topicId: string) =>
   ({
     compositeKey: `subtopic:${id}` as CompositeKey,
     id,
-    node_type: 'subtopic',
+    nodeType: 'subtopic',
     name,
     description: null,
-    topic_id: topicId,
-    show_in_mvp: true,
-    show_in_ewm: true,
-    show_in_beschluss: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    topicId: topicId,
+    showInMvp: true,
+    showInEwm: true,
+    showInBeschluss: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
   }) satisfies EwmsSubtopicNode;
 
 describe('buildEwmsSubtopicOptionsByTopic', () => {
@@ -63,22 +61,22 @@ describe('buildEwmsSubtopicOptionsByTopic', () => {
     const topic1 = makeTopic('topic-1', 'Topic 1');
     const topic2 = makeTopic('topic-2', 'Topic 2');
     const index = buildProjectNodeIndex([
-      createSummary({ id: topic1.id, node_type: 'topic' }),
-      createSummary({ id: topic2.id, node_type: 'topic' }),
+      createSummary({ id: topic1.id, nodeType: 'topic' }),
+      createSummary({ id: topic2.id, nodeType: 'topic' }),
       createSummary({
         id: 'subtopic-b',
-        node_type: 'subtopic',
-        parents: [{ id: topic1.id, node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: topic1.id, nodeType: 'topic' }],
       }),
       createSummary({
         id: 'subtopic-a',
-        node_type: 'subtopic',
-        parents: [{ id: topic1.id, node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: topic1.id, nodeType: 'topic' }],
       }),
       createSummary({
         id: 'subtopic-c',
-        node_type: 'subtopic',
-        parents: [{ id: topic2.id, node_type: 'topic' }],
+        nodeType: 'subtopic',
+        parents: [{ id: topic2.id, nodeType: 'topic' }],
       }),
     ]);
 
@@ -104,7 +102,7 @@ describe('buildEwmsSubtopicOptionsByTopic', () => {
   it('uses the payload topic id when a loaded subtopic has no graph edge', () => {
     const topic = makeTopic('topic-1', 'Topic 1');
     const index = buildProjectNodeIndex([
-      createSummary({ id: topic.id, node_type: 'topic' }),
+      createSummary({ id: topic.id, nodeType: 'topic' }),
     ]);
 
     const optionsByTopicId = buildEwmsSubtopicOptionsByTopic(

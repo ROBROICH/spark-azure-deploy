@@ -73,7 +73,7 @@ export const AiParticipationArgumentCard = (
 ) => {
   const { argument, canMutate, onToggleInBeschluss } = props;
   const { t } = useTranslation('Rpb');
-  const isValid = Boolean(argument.is_valid_argument);
+  const isValid = Boolean(argument.isValidArgument);
   const reference = getRpbArgumentReference(argument);
   const body =
     argument.text?.trim() ||
@@ -82,7 +82,7 @@ export const AiParticipationArgumentCard = (
 
   return (
     <ArgumentCard
-      variant={isValid && argument.in_vae ? 'success' : 'default'}
+      variant={isValid && argument.inVae ? 'success' : 'default'}
       className={cn(!isValid && 'border-slate-200 bg-slate-50 shadow-none')}
     >
       <ArgumentCardHeader className={!isValid ? 'bg-slate-100' : undefined}>
@@ -106,7 +106,7 @@ export const AiParticipationArgumentCard = (
         <ArgumentCardFooter>
           <ParticipationStatusButton
             argumentReference={reference}
-            inBeschluss={argument.in_vae}
+            inBeschluss={argument.inVae}
             disabled={!canMutate}
             onClick={() => onToggleInBeschluss(argument)}
           />

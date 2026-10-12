@@ -104,6 +104,30 @@ function createPayloadsCollection(projectId: string, projectVersion: number) {
     clearLoaderCache: () => {
       loader.clearAll();
     },
+    /**
+     * Refreshes the on-demand DataLoader cache with authoritative payloads
+     * returned by a write. Without this, the loader keeps the pre-mutation
+     * payload (e.g. a risk `status: 'open'`) memoised forever; the next
+     * on-demand collection sync then re-emits that stale row and silently
+     * reverts the just-persisted status even though the server returned 200
+     * (Epic #4567, topicId BCtV0rzxfo4).
+     */
+    primeLoaderPayloads: (payloads: ReadonlyArray<NodePayload>) => {
+      for (const payload of payloads) {
+        const ref: NodeRef = {
+          nodeType: payload.nodeType,
+          id: payload.id,
+        };
+        loader.clear(ref);
+        loader.prime(ref, payload);
+      }
+    },
+    /** Drops deleted refs from the loader cache so they are not re-emitted. */
+    clearLoaderPayloads: (refs: ReadonlyArray<NodeRef>) => {
+      for (const ref of refs) {
+        loader.clear({ nodeType: ref.nodeType, id: ref.id });
+      }
+    },
   });
 }
 

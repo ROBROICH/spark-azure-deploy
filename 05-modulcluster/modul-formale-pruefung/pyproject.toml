@@ -12,8 +12,8 @@ dependencies = [
   "python-dotenv>=1.2.2",
   "pydantic-settings>=2.12.0,<3.0.0",
   "scikit-learn>=1.7.2,<2.0.0",
-  "temporal",
-  "urllib3>=2.7.0,<3",
+  "temporal[prompt-guard]",
+  "urllib3>=2.8.0,<3",
   "jaraco.context==6.1.0",
   "jinja2>=3.1.6",
   "cryptography>=50.0.1",
@@ -21,7 +21,6 @@ dependencies = [
   "wheel>=0.46.2",
   "protobuf>=6.33.5",
   "pydantic>=2.10.6",
-  "prompt-injection",
 ]
 
 [dependency-groups]
@@ -42,7 +41,6 @@ package = false
 
 [tool.uv.sources]
 temporal = { workspace = true }
-prompt-injection = { workspace = true }
 
 [build-system]
 requires = ["setuptools>=84", "wheel"]
@@ -99,3 +97,21 @@ lint = "ruff check ."
 format = "ruff format ."
 typecheck = "pyrefly check ."
 dev = "main.py"
+
+[tool.poe.tasks.eval]
+help = "Run an evaluation suite against the local stack"
+cmd = "python -m evaluation"
+
+[tool.poe.tasks.eval-setup]
+help = "Create the projects an evaluation suite runs against"
+cmd = "python -m evaluation.setup"
+
+
+
+# pytest functions return None by definition and fixtures take framework types
+# nobody writes out; the rest of the strict rules still apply to tests.
+[[tool.pyrefly.sub_config]]
+matches = "tests/**"
+[tool.pyrefly.sub_config.errors]
+unannotated-return = false
+unannotated-parameter = false

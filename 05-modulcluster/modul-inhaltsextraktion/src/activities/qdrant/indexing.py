@@ -8,7 +8,7 @@ from datetime import timedelta
 from qdrant_client import AsyncQdrantClient
 from qdrant_client import models as qm
 from qdrant_client.http.models import PointStruct
-from temporal.workflows.inhaltsextraktion.types import QdrantSourceFileCleanupInput, QdrantSourceFileCleanupOutput
+from temporal.contracts import QdrantSourceFileCleanupInput, QdrantSourceFileCleanupOutput
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
@@ -30,17 +30,13 @@ from src.activities.qdrant.schemas import (
 from src.config import get_config
 from src.env import ENV
 from src.schemas import ProcessedDocument
-from src.utils.dms_utils import (
-    ListFilesInput,
-    download_file,
-    list_files,
-)
+from src.utils.dms_utils import download_file, list_all_files
 from src.workflows.deletion.types import QdrantDocumentDeleteInput
 from src.workflows.qdrant.schemas import (
     ChunkMetadata,
     ParentChunkMetadata,
-    QuestionMetadata,
     QdrantDocumentContext,
+    QuestionMetadata,
     SummaryMetadata,
 )
 
@@ -153,37 +149,17 @@ async def _get_inhalts_extraktion_docs(input: tuple[str, list[str] | None]) -> l
         activity.logger.info("No file_ids provided for project %s. Returning empty extraction file list.", project_id)
         return []
 
-    proj_uuid = uuid.UUID(project_id)
-    page_size = 500
-    page = 1
-    candidate_files: list[QdrantExtractionFile] = []
-    results: list[QdrantExtractionFile] = []
-    total_files = 0
-
-    while True:
-        batch = await list_files(
-            ListFilesInput(
-                project_id=proj_uuid,
-                file_type="content_extraction",
-                page=page,
-                page_size=page_size,
-            )
+    all_files = await list_all_files(uuid.UUID(project_id), "content_extraction")
+    candidate_files = [
+        QdrantExtractionFile(
+            extraction_file_id=str(f.id),
+            filename=f.filename,
+            project_id=project_id,
         )
-        total_files += len(batch)
-
-        for f in batch:
-            if f.filename.endswith("_processed.json"):
-                candidate_files.append(
-                    QdrantExtractionFile(
-                        extraction_file_id=str(f.id),
-                        filename=f.filename,
-                        project_id=project_id,
-                    )
-                )
-
-        if len(batch) < page_size:
-            break
-        page += 1
+        for f in all_files
+        if f.filename.endswith("_processed.json")
+    ]
+    results: list[QdrantExtractionFile] = []
 
     for extraction_file in candidate_files:
         try:
@@ -201,11 +177,10 @@ async def _get_inhalts_extraktion_docs(input: tuple[str, list[str] | None]) -> l
             results.append(extraction_file)
 
     activity.logger.info(
-        "Found %d matching _processed.json files out of %d candidates across %d total content_extraction files (%d pages) for project %s",
+        "Found %d matching _processed.json files out of %d candidates across %d total content_extraction files for project %s",
         len(results),
         len(candidate_files),
-        total_files,
-        page,
+        len(all_files),
         project_id,
     )
     return results
@@ -623,21 +598,20 @@ def _build_cleanup_marker_filter(project_id: str, source_file_id: str, marker: s
 @activity.defn(name="mark_qdrant_source_files_deleted")
 async def _mark_qdrant_source_files_deleted(input: QdrantSourceFileCleanupInput) -> QdrantSourceFileCleanupOutput:
     qdrant_client = _get_qdrant_client()
-    processed: list[str] = []
     try:
-        for source_file_id in input.source_file_ids:
-            await qdrant_client.set_payload(
-                collection_name=ENV.QDRANT_COLLECTION_NAME,
-                payload={
-                    "is_deleted": True,
-                    "qdrant_cleanup_marker": input.marker,
-                    "qdrant_cleanup_project_version": input.project_version,
-                },
-                points=_build_active_source_file_filter(input.project_id, source_file_id),
-                wait=True,
-            )
-            processed.append(source_file_id)
-        return QdrantSourceFileCleanupOutput(processed_file_ids=processed)
+        if await qdrant_client.collection_exists(ENV.QDRANT_COLLECTION_NAME):
+            for source_file_id in input.source_file_ids:
+                await qdrant_client.set_payload(
+                    collection_name=ENV.QDRANT_COLLECTION_NAME,
+                    payload={
+                        "is_deleted": True,
+                        "qdrant_cleanup_marker": input.marker,
+                        "qdrant_cleanup_project_version": input.project_version,
+                    },
+                    points=_build_active_source_file_filter(input.project_id, source_file_id),
+                    wait=True,
+                )
+        return QdrantSourceFileCleanupOutput(processed_file_ids=input.source_file_ids)
     finally:
         await qdrant_client.close()
 
@@ -645,21 +619,20 @@ async def _mark_qdrant_source_files_deleted(input: QdrantSourceFileCleanupInput)
 @activity.defn(name="restore_qdrant_source_files_deleted")
 async def _restore_qdrant_source_files_deleted(input: QdrantSourceFileCleanupInput) -> QdrantSourceFileCleanupOutput:
     qdrant_client = _get_qdrant_client()
-    processed: list[str] = []
     try:
-        for source_file_id in input.source_file_ids:
-            await qdrant_client.set_payload(
-                collection_name=ENV.QDRANT_COLLECTION_NAME,
-                payload={
-                    "is_deleted": False,
-                    "qdrant_cleanup_marker": "",
-                    "qdrant_cleanup_project_version": 0,
-                },
-                points=_build_cleanup_marker_filter(input.project_id, source_file_id, input.marker),
-                wait=True,
-            )
-            processed.append(source_file_id)
-        return QdrantSourceFileCleanupOutput(processed_file_ids=processed)
+        if await qdrant_client.collection_exists(ENV.QDRANT_COLLECTION_NAME):
+            for source_file_id in input.source_file_ids:
+                await qdrant_client.set_payload(
+                    collection_name=ENV.QDRANT_COLLECTION_NAME,
+                    payload={
+                        "is_deleted": False,
+                        "qdrant_cleanup_marker": "",
+                        "qdrant_cleanup_project_version": 0,
+                    },
+                    points=_build_cleanup_marker_filter(input.project_id, source_file_id, input.marker),
+                    wait=True,
+                )
+        return QdrantSourceFileCleanupOutput(processed_file_ids=input.source_file_ids)
     finally:
         await qdrant_client.close()
 

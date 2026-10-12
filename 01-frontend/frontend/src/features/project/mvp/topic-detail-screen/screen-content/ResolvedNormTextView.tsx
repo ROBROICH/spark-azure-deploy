@@ -21,7 +21,7 @@ export const ResolvedNormTextView = (props: {
   } = props;
   const selectedTopicNormRef = {
     id: detailDocumentId,
-    node_type: 'topic_norm' as const,
+    nodeType: 'topic_norm' as const,
   };
   const { data: selectedTopicNorm } = useNode(selectedTopicNormRef);
   const { data: resolvedNorms } = useDescendantNodes(
@@ -30,7 +30,7 @@ export const ResolvedNormTextView = (props: {
   );
   const resolvedNorm = resolvedNorms.at(0) ?? null;
   const selectedGesetzRef = resolvedNorm
-    ? { id: resolvedNorm.gesetz_id, node_type: 'gesetz' as const }
+    ? { id: resolvedNorm.gesetzId, nodeType: 'gesetz' as const }
     : null;
   const { data: selectedGesetz } = useNode(selectedGesetzRef);
   const selectedNorm = selectedTopicNorm

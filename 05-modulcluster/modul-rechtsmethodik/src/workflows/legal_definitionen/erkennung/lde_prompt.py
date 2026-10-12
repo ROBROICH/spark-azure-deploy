@@ -1,5 +1,7 @@
 """Prompt template for legal definition extraction."""
 
+from src.activities.prompt_blocks import closing_block
+
 lde_agent_begriffsbestimmungen_prompt = """
 **Rolle**  
 Du bist ein juristisches Analysemodell, spezialisiert auf deutsche Gesetzestexte.
@@ -119,14 +121,15 @@ Eine Legaldefinition ist eine im Gesetz enthaltene Bestimmung, die einen Begriff
 
 **Anwendung**  
 Analysiere den folgenden Gesetzesparagraphen:  
-Gesetzesparagraph: {paragraph_text}
-
-Achte insbesondere darauf, dass Legaldefinitionen häufig **mehrere Sätze, Teilsätze, Aufzählungen, Bedingungen oder Folgesätze** enthalten.  
-Stelle sicher, dass **alle** Bestandteile, die inhaltlich zur Definition gehören, vollständig und unverändert aufgenommen werden.
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "Gesetzesparagraph: {paragraph_text}",
+    notes=(
+        "Achte insbesondere darauf, dass Legaldefinitionen häufig **mehrere Sätze, Teilsätze, Aufzählungen, "
+        "Bedingungen oder Folgesätze** enthalten.  \n"
+        "Stelle sicher, dass **alle** Bestandteile, die inhaltlich zur Definition gehören, vollständig und "
+        "unverändert aufgenommen werden."
+    ),
+)
 
 
 lde_agent_allgemeiner_paragraph_prompt = """
@@ -175,8 +178,4 @@ Auch Begriffe, die unmittelbar in Klammern hinter einer Beschreibung stehen, kö
 
 **Anwendung**  
 Analysiere den folgenden Gesetzesparagraphen:  
-Gesetzesparagraph: {paragraph_text}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block("Gesetzesparagraph: {paragraph_text}")

@@ -68,7 +68,7 @@ class TestParseStage1Response:
 
 class TestParseStage2Response:
     def test_clean_json(self) -> None:
-        raw = '{"results": [{"node_id": "42", "relevant_indices": [0, 2], "begruendung": "Test"}]}'
+        raw = '{"results": [{"node_id": "42", "relevant_indices": [0, 2], "begruendung": "Test", "relevance": 0.9}]}'
         result = parse_llm_json(raw, Stage2SentenceResponse)
         assert len(result.results) == EXPECTED_SINGLE_RESULT_COUNT
         assert result.results[0].node_id == "42"
@@ -77,7 +77,7 @@ class TestParseStage2Response:
     def test_reasoning_before_json(self) -> None:
         raw = (
             "Ich prüfe die Sätze auf Relevanz für das TBM.\n\n"
-            '{"results": [{"node_id": "10", "relevant_indices": [0, 1, 3], "begruendung": "Relevant"}]}'
+            '{"results": [{"node_id": "10", "relevant_indices": [0, 1, 3], "begruendung": "Relevant", "relevance": 0.7}]}'
         )
         result = parse_llm_json(raw, Stage2SentenceResponse)
         assert result.results[0].node_id == "10"
@@ -88,14 +88,21 @@ class TestParseStage2Response:
             "```json\n"
             "{\n"
             '  "results": [\n'
-            '    {"node_id": "1", "relevant_indices": [0], "begruendung": "A"},\n'
-            '    {"node_id": "2", "relevant_indices": [1, 2], "begruendung": "B"}\n'
+            '    {"node_id": "1", "relevant_indices": [0], "begruendung": "A", "relevance": 0.9},\n'
+            '    {"node_id": "2", "relevant_indices": [1, 2], "begruendung": "B", "relevance": 0.4}\n'
             "  ]\n"
             "}\n"
             "```"
         )
         result = parse_llm_json(raw, Stage2SentenceResponse)
         assert len(result.results) == EXPECTED_MULTIPLE_RESULT_COUNT
+
+    def test_missing_relevance_stays_absent(self) -> None:
+        """A Stage 2 response without the relevance value parses and leaves the value absent."""
+        raw = '{"results": [{"node_id": "42", "relevant_indices": [0], "begruendung": "Test"}]}'
+        result = parse_llm_json(raw, Stage2SentenceResponse)
+        assert result.results[0].relevant_indices == [0]
+        assert result.results[0].relevance is None
 
 
 # ---------------------------------------------------------------------------

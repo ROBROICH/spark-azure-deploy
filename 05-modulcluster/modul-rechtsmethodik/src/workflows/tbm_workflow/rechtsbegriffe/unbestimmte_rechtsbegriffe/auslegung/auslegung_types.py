@@ -1,7 +1,7 @@
 """Type definitions for the Auslegung (interpretation) sub-workflows."""
 
 from pydantic import BaseModel, field_validator
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     UnbestimmterRechtsbegriff,
 )
 

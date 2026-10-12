@@ -103,7 +103,7 @@ export const RunningWorkflowCard = (props: RunningWorkflowCardProps) => {
               </h4>
               <p className="mt-1 text-[11px] text-text-secondary">
                 {formatWorkflowTimestamp(
-                  workflowSummary.workflow.workflow_start_time,
+                  workflowSummary.workflow.workflowStartTime,
                   dateLocale,
                   fallbackValue,
                 )}
@@ -139,20 +139,20 @@ export const RunningWorkflowCard = (props: RunningWorkflowCardProps) => {
         <dl className="flex flex-col gap-3">
           <WorkflowDetailRow
             label={t('Sidebar.runningWorkflowsPanel.details.workflowId')}
-            value={workflowSummary.workflow.workflow_id}
+            value={workflowSummary.workflow.workflowId}
           />
           <WorkflowDetailRow
             label={t('Sidebar.runningWorkflowsPanel.details.runId')}
-            value={workflowSummary.workflow.run_id || fallbackValue}
+            value={workflowSummary.workflow.runId || fallbackValue}
           />
           <WorkflowDetailRow
             label={t('Sidebar.runningWorkflowsPanel.details.workflowType')}
-            value={workflowSummary.workflow.workflow_type || fallbackValue}
+            value={workflowSummary.workflow.workflowType || fallbackValue}
           />
           <WorkflowDetailRow
             label={t('Sidebar.runningWorkflowsPanel.details.startedAt')}
             value={formatWorkflowTimestamp(
-              workflowSummary.workflow.workflow_start_time,
+              workflowSummary.workflow.workflowStartTime,
               dateLocale,
               fallbackValue,
             )}
@@ -160,18 +160,12 @@ export const RunningWorkflowCard = (props: RunningWorkflowCardProps) => {
           <WorkflowDetailRow
             label={t('Sidebar.runningWorkflowsPanel.details.finishedAt')}
             value={formatWorkflowTimestamp(
-              workflowSummary.workflow.workflow_close_time,
+              workflowSummary.workflow.workflowCloseTime,
               dateLocale,
               fallbackValue,
             )}
           />
           <WorkflowDetailRow label={durationLabel} value={workflowDuration} />
-          <WorkflowDetailRow
-            label={t(
-              'Sidebar.runningWorkflowsPanel.details.childWorkflowCount',
-            )}
-            value={String(workflowSummary.workflow.children?.length ?? 0)}
-          />
         </dl>
         <div className="mt-4 border-t border-border-primary pt-3">
           <p className="mb-2 text-xs font-medium text-text-secondary">
@@ -182,7 +176,7 @@ export const RunningWorkflowCard = (props: RunningWorkflowCardProps) => {
           <div className="flex flex-col gap-2">
             {workflowSummary.workflows.map((workflow) => (
               <RunningWorkflowRunRow
-                key={`${workflow.workflow_id}:${workflow.run_id}`}
+                key={`${workflow.workflowId}:${workflow.runId}`}
                 workflow={workflow}
                 dateLocale={dateLocale}
                 fallbackValue={fallbackValue}

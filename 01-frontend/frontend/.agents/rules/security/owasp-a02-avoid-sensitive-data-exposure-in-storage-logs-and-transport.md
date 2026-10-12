@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a02-avoid-sensitive-data-exposure-in-storage-logs-and-transport
+---
+
 # OWASP A02: Avoid Sensitive Data Exposure in Storage, Logs, and Transport
 
 - Covers OWASP A02 Cryptographic Failures.

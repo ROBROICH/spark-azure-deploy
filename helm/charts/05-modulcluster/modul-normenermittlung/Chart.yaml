@@ -1,0 +1,14 @@
+apiVersion: v2
+name: modul-normenermittlung
+description: >
+  AI module — norm/TBM determination (Normenermittlung): Temporal worker
+  that determines applicable norms and technical rules via Qdrant vector
+  search and LLM calls. Part of the SPARK Workflow agent layer
+  (05-modulcluster).
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

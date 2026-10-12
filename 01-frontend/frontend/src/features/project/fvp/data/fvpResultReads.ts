@@ -7,22 +7,22 @@ const invalidate = (projectId: string, prefixes: string[]) => {
 };
 
 export const retryTableOfContentsReads = (projectId: string) =>
-  invalidate(projectId, ['toc-notes', 'toc-notes-response', 'request-items']);
+  invalidate(projectId, ['toc-notes', 'toc-notes-response', 'request-sources']);
 
 export const retryRequiredDocumentsReads = (projectId: string) =>
   invalidate(projectId, [
     'required-documents',
-    'document-assignments',
-    'request-items',
+    'formal-document-summary',
+    'formal-documents',
+    'request-sources',
   ]);
 
 export const retryPlausibilityReads = (projectId: string) =>
-  invalidate(projectId, ['pp-contradictions', 'request-items']);
+  invalidate(projectId, ['pp-contradictions', 'request-sources']);
 
 export const retryDocumentsTableReads = (projectId: string) =>
   invalidate(projectId, [
-    'files',
     'required-documents',
-    'document-assignments',
-    'request-items',
+    'formal-documents',
+    'formal-document-summary',
   ]);

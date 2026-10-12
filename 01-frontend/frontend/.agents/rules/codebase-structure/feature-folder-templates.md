@@ -1,3 +1,9 @@
+---
+ruleId: codebase-structure/feature-folder-templates
+paths:
+  - "src/**"
+---
+
 # Feature Folder Templates
 
 Use when creating, moving, reviewing, or restructuring code under `src/features`.

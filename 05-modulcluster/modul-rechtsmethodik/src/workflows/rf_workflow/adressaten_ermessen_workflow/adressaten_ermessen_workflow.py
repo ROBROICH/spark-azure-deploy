@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import ERMESSENSENTSCHEIDUNG, HANDLUNGSERMAECHTIGUNG
+from temporal.contracts import Ermessensspielraum, RechtsfolgenAdressat
 from temporalio import workflow
 
 from src.workflows.rf_workflow.adressaten_ermessen_workflow.ermessensart.ea import (
@@ -33,7 +33,7 @@ class AdressatenErmessenWorkflow:
             task_timeout=timedelta(seconds=60),
         )
 
-        if ra_output != HANDLUNGSERMAECHTIGUNG:
+        if ra_output != RechtsfolgenAdressat.HANDLUNGSERMÄCHTIGUNG:
             return AdressatenErmessenWorkflowOutput(
                 text=rechtsfolge,
                 rechtsfolgen_adressat=ra_output,
@@ -43,7 +43,7 @@ class AdressatenErmessenWorkflow:
             ErmessensIdentifikationsAgentWorkflow.run, rechtsfolge, task_timeout=timedelta(seconds=60)
         )
 
-        if ei_output != ERMESSENSENTSCHEIDUNG:
+        if ei_output != Ermessensspielraum.ERMESSENSENTSCHEIDUNG:
             return AdressatenErmessenWorkflowOutput(
                 text=rechtsfolge,
                 rechtsfolgen_adressat=ra_output,

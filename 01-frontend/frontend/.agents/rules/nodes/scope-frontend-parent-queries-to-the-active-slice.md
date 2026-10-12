@@ -1,3 +1,7 @@
+---
+ruleId: nodes/scope-frontend-parent-queries-to-the-active-slice
+---
+
 # Scope `frontend_parent_ids` Queries To The Active Slice
 
 - When a feature derives selection, grouping, or assignment state from `frontend_parent_ids`, scope the live query to the current topic, open group, visible file set, or active dialog slice instead of the whole project corpus.

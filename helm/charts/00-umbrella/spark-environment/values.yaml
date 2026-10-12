@@ -1,0 +1,761 @@
+# =============================================================================
+# spark-environment — values.yaml
+# =============================================================================
+#
+# Generic configuration reference for the SPARK Workflow umbrella chart.
+# Replace all <placeholder> values with deployment-specific values before
+# installing. See README.md for the full placeholder reference.
+#
+# Install:
+#   helm upgrade --install spark . -f values.yaml --namespace <release-namespace>
+#
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# Global shared configuration
+# ---------------------------------------------------------------------------
+
+global:
+
+  # Stage identifier appended to generated resource names (e.g. "svc-dev").
+  # Leave empty to deploy without a name suffix.
+  stage:
+    name: ""
+
+  # Value of the "environment" pod label applied to every workload.
+  labels:
+    environment: ""
+
+  # Shared baseline environment variables injected into every container.
+  # A chart's own env always takes precedence on name collisions.
+  env: []
+
+  # Additional shared environment variables merged after env.
+  # A chart's own env / extraEnv always takes precedence on name collisions.
+  extraEnv:
+    # --- Authentication & authorization (all services) ---
+    # JWT audience claim validated by each service.
+    - name: AUTH_AUDIENCE
+      value: "<auth-audience>"
+    # Base URL of the Keycloak server.
+    - name: AUTH_BASE_URL
+      value: "<keycloak-base-url>"
+    # Authentication enforcement mode (e.g. strict, enforce, disabled).
+    - name: AUTH_MODE
+      value: "<auth-mode>"
+    - name: AUTH_ALLOWED_MACHINE_IDENTITIES
+      value: "spiffe://cluster.local/ns/*/sa/*"
+    # Keycloak realm name used for token validation.
+    - name: AUTH_REALM
+      value: "<auth-realm>"
+    # SpiceDB gRPC endpoint for relationship-based access control.
+    - name: AUTH_SPICE_DB_ENDPOINT
+      value: "<spicedb-host>"
+    # Set to "true" to connect without TLS (development only).
+    - name: AUTH_SPICE_DB_INSECURE
+      value: "true"
+    # SpiceDB pre-shared key; sourced from a Kubernetes Secret.
+    - name: AUTH_SPICE_DB_TOKEN
+      valueFrom:
+        secretKeyRef:
+          key: preshared_key
+          name: spicedb-config
+
+  # --- spark-backend modulith (all backend-services pools) ---
+  backend:
+    # Namespace of the pools; empty = the layer / release namespace.
+    namespaceOverride: ""
+    image:
+      repository: <container-registry>/spark-backend
+      # Pinned image tag. Use <tag>@sha256:<digest> for reproducible releases.
+      tag: "<image-tag>"
+    # Non-secret configuration of every pool (ConfigMap spark-backend-config,
+    # loaded with envFrom). Values may use Helm templates.
+    config:
+      ENV: "<environment-name>"
+      HOST: 0.0.0.0
+      PORT: "8000"
+      DB_HOST: "<postgresdb-host>"
+      DB_MIGRATE_HOST: "<postgresdb-host>"
+      DB_PORT: "5432"
+      DB_NAME: "<postgresdb-name-backend>"
+      AUTH_CLIENT_ID: "<keycloak-backend-client-id>"
+      AUTH_PRIVILEGED_REALM: master
+      AUTH_PRIVILEGED_CLIENT_ID: role-changer
+      TEMPORAL_HOST: "<temporal-host>"
+      TEMPORAL_NAMESPACE: default
+      TEMPORAL_S3_BUCKET_NAME: "<temporal-payloads-bucket>"
+      TEMPORAL_S3_ENDPOINT_URL: "<object-storage-url>"
+      TEMPORAL_S3_REGION: "<s3-region>"
+      BUCKET_NAME: "<object-storage-bucket>"
+      S3_ENDPOINT_URL: "<object-storage-url>"
+      S3_REGION: "<s3-region>"
+      UNO_HOST: "<unoserver-host>"
+      CLAMAV_BASE_URL: "<kubernetes-http-service-url>"
+      LAW_DATABASE_BASE_URL: "<kubernetes-http-service-url>"
+      PROJECT_LOGIC_SERVICE_CORS_ORIGINS: "<cors-origins>"
+      OTEL_EXPORTER_OTLP_ENDPOINT: "<otel-endpoint>"
+    # Secrets: whole Secrets via envFrom (secretRefs) and/or single keys (env).
+    secretRefs: []
+    # The modulith requires DB_USER, DB_PASSWORD, DB_MIGRATE_USER and
+    # DB_MIGRATE_PASSWORD (runtime and migration role; may be the same user),
+    # AUTH_CLIENT_SECRET, the S3/Temporal S3 keys and ARCHIVAL_ENCRYPTION_KEY.
+    env:
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          name: "<backend-db-secret>"
+          key: username
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: "<backend-db-secret>"
+          key: password
+    - name: DB_MIGRATE_USER
+      valueFrom:
+        secretKeyRef:
+          name: "<backend-db-secret>"
+          key: username
+    - name: DB_MIGRATE_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          name: "<backend-db-secret>"
+          key: password
+    # KEDA temporal triggers (only for pools with keda.enabled).
+    keda:
+      temporal:
+        endpoint: "<temporal-host>"
+
+# ---------------------------------------------------------------------------
+# agent-services — AI modules and shared agent infrastructure
+# ---------------------------------------------------------------------------
+#
+# Per-chart keys are placed under agent-services.<chart-name>. Any key
+# supported by the leaf chart's values.yaml can be set here.
+# Namespaces default to "agent-services"; see the service-layer chart.
+
+agent-services:
+  # Set to false to exclude the entire agent layer from the release.
+  enabled: true
+
+  # --- gesetze-normen-db-service ---
+  # Laws and legal norms reference database.
+  gesetze-normen-db-service:
+    image:
+      # Container image for the gesetze-normen-db workload.
+      repository: <container-registry>/gesetze-normen-db
+      # Pinned image tag. Use <tag>@sha256:<digest> for reproducible releases.
+      tag: "<image-tag>"
+    extraEnv:
+    # PostgreSQL host / pooler hostname.
+    - name: DB_HOST
+      value: "<postgresdb-host-gesetze-normen>"
+    # Database name.
+    - name: DB_NAME
+      value: "<postgresdb-name-gesetze-normen>"
+    # PostgreSQL port.
+    - name: DB_PORT
+      value: "5432"
+    # Database password sourced from the gesetze-normen-db-credentials secret.
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: gesetze-normen-db-credentials
+    # Database username sourced from the gesetze-normen-db-credentials secret.
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: gesetze-normen-db-credentials
+    # Maximum overflow connections beyond pool size.
+    - name: DB_MAXOVERFLOW
+      value: "10"
+    # PostgreSQL connection pool size.
+    - name: DB_POOLSIZE
+      value: "15"
+    # Internal URL of the PDF extraction service (inhaltsextraktion).
+    - name: GCP_TEAM2PDFURL
+      value: "<inhaltsextraktion-service-url>"
+    # Log verbosity level (DEBUG, INFO, WARNING, ERROR).
+    - name: LOG_LEVEL
+      value: "INFO"
+    # GCP project identifier for workload identity and bucket access.
+    - name: GCP_GCPPROJECT
+      value: "<gcp-project-id>"
+    # GCP bucket for incoming PDF extraction data (team 2).
+    - name: GCP_BUCKETTEAM2NAME
+      value: "<gcp-bucket-team2>"
+    # GCP bucket for legal reference database data (team 7).
+    - name: GCP_BUCKETTEAM7NAME
+      value: "<gcp-bucket-team7>"
+
+  # --- gesetzesbegruendung-db-service ---
+  # Legislative reasoning reference database.
+  gesetzesbegruendung-db-service:
+    image:
+      repository: <container-registry>/begruendungen-db
+      tag: "<image-tag>"
+    extraEnv:
+    # PostgreSQL host / pooler hostname.
+    - name: DB_HOST
+      value: "<postgresdb-host-gesetzesbegruendung>"
+    # Database name.
+    - name: DB_NAME
+      value: "<postgresdb-name-gesetzesbegruendung>"
+    # PostgreSQL port.
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: gesetzesbegruendung-db-credentials
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: gesetzesbegruendung-db-credentials
+    # LiteLLM proxy base URL.
+    - name: CHUNKING_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM model name used for text chunking.
+    - name: CHUNKING_MODEL
+      value: "<llm-model-name>"
+    # Token overlap between consecutive chunks.
+    - name: CHUNKING_OVERLAP
+      value: "256"
+    # Chunking backend provider (e.g. litellm).
+    - name: CHUNKING_PROVIDER
+      value: "litellm"
+    # Maximum number of tokens per chunk.
+    - name: CHUNKING_SIZE
+      value: "2048"
+    # LiteLLM API key for chunking requests; sourced from a secret.
+    - name: CHUNKING_APIKEY
+      valueFrom:
+        secretKeyRef:
+          name: <chunking-llm-secret>
+          key: master-key
+    # Maximum overflow connections beyond pool size.
+    - name: DB_MAXOVERFLOW
+      value: "5"
+    # PostgreSQL connection pool size.
+    - name: DB_POOLSIZE
+      value: "10"
+    # Docling hostname.
+    - name: DOCLING_HOST
+      value: "<docling-host>"
+    # Docling OCR engine (e.g. easyocr, tesseract).
+    - name: DOCLING_OCR_ENGINE
+      value: "easyocr"
+    # Docling service port.
+    - name: DOCLING_PORT
+      value: "443"
+    # Docling service protocol (http or https).
+    - name: DOCLING_PROTOCOL
+      value: "https"
+    # Set to "true" to expose Prometheus metrics.
+    - name: ENABLE_METRICS
+      value: "true"
+    # Internal URL of the gesetze-normen-db-service.
+    - name: GESETZE_NORMEN_URL
+      value: "<gesetze-normen-service-url>"
+    # Keycloak token URL for Docling authentication.
+    - name: KEYCLOAK_TOKEN_URL
+      value: "<keycloak-token-url>"
+    # Keycloak client ID for Docling authentication; sourced from a secret.
+    - name: KEYCLOAK_CLIENT_ID
+      valueFrom:
+        secretKeyRef:
+          name: <docling-keycloak-secret>
+          key: KEYCLOAK_CLIENT_ID
+    # Keycloak client secret for Docling authentication; sourced from a secret.
+    - name: KEYCLOAK_CLIENT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: <docling-keycloak-secret>
+          key: KEYCLOAK_CLIENT_SECRET
+    # Log verbosity level (DEBUG, INFO, WARNING, ERROR).
+    - name: LOG_LEVEL
+      value: "INFO"
+
+  # --- jura-db-service ---
+  # General legal reference database.
+  jura-db-service:
+    image:
+      repository: <container-registry>/jura-db
+      tag: "<image-tag>"
+    extraEnv:
+    - name: DB_HOST
+      value: "<postgresdb-host-jura>"
+    # Database name.
+    - name: DB_NAME
+      value: "<postgresdb-name-jura>"
+    # PostgreSQL port.
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: jura-db-credentials
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: jura-db-credentials
+    # LiteLLM proxy base URL.
+    - name: CHUNKING_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM model name used for text chunking.
+    - name: CHUNKING_MODEL
+      value: "<llm-model-name>"
+    # Token overlap between consecutive chunks.
+    - name: CHUNKING_OVERLAP
+      value: "256"
+    # Chunking backend provider (e.g. litellm).
+    - name: CHUNKING_PROVIDER
+      value: "litellm"
+    # Maximum number of tokens per chunk.
+    - name: CHUNKING_SIZE
+      value: "2048"
+    # LiteLLM API key for chunking requests; sourced from a secret.
+    - name: CHUNKING_APIKEY
+      valueFrom:
+        secretKeyRef:
+          name: <chunking-llm-secret>
+          key: master-key
+    # Maximum overflow connections beyond pool size.
+    - name: DB_MAXOVERFLOW
+      value: "5"
+    # PostgreSQL connection pool size.
+    - name: DB_POOLSIZE
+      value: "15"
+    # Set to "true" to expose Prometheus metrics.
+    - name: ENABLE_METRICS
+      value: "true"
+    # Internal URL of the gesetze-normen-db-service.
+    - name: GESETZE_NORMEN_URL
+      value: "<gesetze-normen-service-url>"
+    # Log verbosity level (DEBUG, INFO, WARNING, ERROR).
+    - name: LOG_LEVEL
+      value: "INFO"
+
+  # --- llm-client ---
+  # LLM gateway client. Routes inference requests to configured model backends.
+  llm-client:
+    image:
+      repository: <container-registry>/llm-client
+      tag: "<image-tag>"
+    extraEnv:
+    # LiteLLM proxy base URL.
+    - name: LITELLM_BASE_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM proxy master key; sourced from the litellm-proxy-credentials secret.
+    - name: LITELLM_MASTER_KEY
+      valueFrom:
+        secretKeyRef:
+          key: LITELLM_MASTER_KEY
+          name: litellm-proxy-credentials-llm-custom
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+    # S3 access key for Temporal payload storage.
+    - name: TEMPORAL_S3_ACCESS_KEY_ID
+      valueFrom:
+        secretKeyRef:
+          key: TEMPORAL_S3_ACCESS_KEY_ID
+          name: temporal-s3-secrets-llm-custom
+    # S3 secret key for Temporal payload storage.
+    - name: TEMPORAL_S3_SECRET_ACCESS_KEY
+      valueFrom:
+        secretKeyRef:
+          key: TEMPORAL_S3_SECRET_ACCESS_KEY
+          name: temporal-s3-secrets-llm-custom
+
+  # --- modul-anonymisierung ---
+  # AI module: anonymisation of content.
+  modul-anonymisierung:
+    image:
+      repository: <container-registry>/anonymisierung-module
+      tag: "<image-tag>"
+    extraEnv:
+    # Enable LLM-assisted anonymisation.
+    - name: LLM_ENABLED
+      value: "true"
+    # LiteLLM model identifier used for anonymisation inference.
+    - name: LLM_MODEL
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- modul-bewertung ---
+  # AI module: legal assessment.
+  modul-bewertung:
+    image:
+      repository: <container-registry>/bewertung-module
+      tag: "<image-tag>"
+    extraEnv:
+    # LiteLLM proxy base URL.
+    - name: LITELLM_BASE_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM model for legal assessment inference.
+    - name: LITELLM_MODEL
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- modul-einwendungsmanagement ---
+  # AI module: objection management.
+  modul-einwendungsmanagement:
+    image:
+      repository: <container-registry>/einwendungsmanagement-module
+      tag: "<image-tag>"
+    extraEnv:
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # Maximum LLM inference requests per second.
+    - name: TEMPORAL_LLM_MAX_PER_SECOND
+      value: "<rate-limit>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- modul-formale-pruefung ---
+  # AI module: formal completeness check.
+  modul-formale-pruefung:
+    image:
+      repository: <container-registry>/formale-pruefung-module
+      tag: "<image-tag>"
+    extraEnv:
+    # LiteLLM proxy base URL.
+    - name: LITELLM_BASE_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM model used for formal checks.
+    - name: LITELLM_MODEL
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+    # Maximum LLM requests per second.
+    - name: TEMPORAL_LLM_MAX_PER_SECOND
+      value: "<rate-limit>"
+
+  # --- modul-inhaltsextraktion-sachverhalt ---
+  # AI module: content extraction — facts.
+  modul-inhaltsextraktion-sachverhalt:
+    image:
+      repository: <container-registry>/extraction-module-backend
+      tag: "<image-tag>"
+    extraEnv:
+    # LiteLLM model for metadata extraction.
+    - name: METADATA_MODEL_NAME
+      value: "<llm-model-name>"
+    # LiteLLM model for topic/theme classification.
+    - name: SCHWERPUNKTTHEMA_MODEL_NAME
+      value: "<llm-model-name>"
+    # LiteLLM model for document structure analysis.
+    - name: STRUCTURE_MODEL_NAME
+      value: "<llm-model-name>"
+    # LiteLLM model for summarisation.
+    - name: SUMMARIZATION_MODEL_NAME
+      value: "<llm-model-name>"
+
+    # Docling service hostname for OCR/parsing.
+    - name: DOCLING_HOST
+      value: "<docling-host>"
+    # LiteLLM proxy base URL for injection-model requests.
+    - name: INJECTION_MODEL_URL
+      value: "<litellm-proxy-url>"
+    # Keycloak token URL for Docling authentication.
+    - name: KEYCLOAK_TOKEN_URL
+      value: "<keycloak-token-url>"
+    # LiteLLM proxy base URL.
+    - name: LITELLM_BASE_URL
+      value: "<litellm-proxy-url>"
+    # Log verbosity level.
+    - name: LOG_LEVEL
+      value: "INFO"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Qdrant REST base URL for vector search.
+    - name: QDRANT_BASE_URL
+      value: "<qdrant-url>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+    # Temporal server URL (gRPC or HTTP).
+    - name: TEMPORAL_SERVER_URL
+      value: "<temporal-host>"
+    # Unoserver endpoint for document format conversion.
+    - name: UNO_HOST
+      value: "<unoserver-host>"
+    # Vision-language model for visual summarisation.
+    - name: VLM_SUMMARY_MODEL_NAME
+      value: "<llm-model-name>"
+
+  # --- modul-plausibilitaet-pruefung ---
+  # AI module: plausibility verification.
+  modul-plausibilitaet-pruefung:
+    image:
+      repository: <container-registry>/plausibilitaet-pruefung-module
+      tag: "<image-tag>"
+    extraEnv:
+    # LiteLLM model for plausibility checks.
+    - name: LITELLM_MODEL
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Qdrant cluster gRPC endpoint for vector search.
+    - name: QDRANT_CLUSTER_ENDPOINT
+      value: "<qdrant-host>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket used for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- modul-rechtsmethodik ---
+  # AI module: application of legal methodology.
+  modul-rechtsmethodik:
+    image:
+      repository: <container-registry>/rechtsmethodik-module
+      tag: "<image-tag>"
+    extraEnv:
+    # PostgreSQL database name for the legal-terms lookup store.
+    - name: LEGAL_DEFINITION_POSTGRES_DATABASE
+      value: "<postgresdb-name-rechtsmethodik>"
+    # PostgreSQL host for the legal-terms lookup store.
+    - name: LEGAL_DEFINITION_POSTGRES_HOST
+      value: "<postgresdb-host-rechtsmethodik>"
+    - name: LEGAL_DEFINITION_POSTGRES_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: postgres-cluster-user
+    # PostgreSQL port for the legal-terms lookup store.
+    - name: LEGAL_DEFINITION_POSTGRES_PORT
+      value: "5432"
+    - name: LEGAL_DEFINITION_POSTGRES_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: postgres-cluster-user
+    # Large LLM for complex legal reasoning tasks.
+    - name: MODELS_LARGE_LLM
+      value: "<llm-model-name>"
+    # Medium LLM for standard reasoning tasks.
+    - name: MODELS_MEDIUM_LLM
+      value: "<llm-model-name>"
+    # Small LLM for lightweight tasks.
+    - name: MODELS_SMALL_LLM
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- modul-suche-und-zuordnung ---
+  # AI module: semantic search and document assignment.
+  modul-suche-und-zuordnung:
+    image:
+      repository: <container-registry>/suche-und-zuordnung
+      tag: "<image-tag>"
+    extraEnv:
+    # Research LLM for database-backed queries.
+    - name: LLM_DB_RESEARCH_MODEL
+      value: "<llm-model-name>"
+    # Embedding model name.
+    - name: LLM_EMBEDDING_MODEL
+      value: "<llm-model-name>"
+    # SVM stage-1 model for page-index classification.
+    - name: LLM_PAGEINDEX_SVM_MODEL_STAGE1
+      value: "<llm-model-name>"
+    # SVM stage-2 model for page-index classification.
+    - name: LLM_PAGEINDEX_SVM_MODEL_STAGE2
+      value: "<llm-model-name>"
+    # OpenTelemetry collector gRPC endpoint.
+    - name: OTEL_ENDPOINT
+      value: "<otel-endpoint>"
+    # Qdrant gRPC host:port for vector search.
+    - name: QDRANT_HOST
+      value: "<qdrant-host>"
+    # Temporal gRPC frontend host:port.
+    - name: TEMPORAL_HOST
+      value: "<temporal-host>"
+    # S3 bucket name for Temporal workflow payload storage.
+    - name: TEMPORAL_S3_BUCKET_NAME
+      value: "temporal-payloads"
+    # S3 endpoint URL for Temporal payload storage.
+    - name: TEMPORAL_S3_ENDPOINT_URL
+      value: "<object-storage-url>"
+
+  # --- rechtsaenderungs-monitoring ---
+  # Shared infrastructure: legal amendment monitoring.
+  rechtsaenderungs-monitoring:
+    image:
+      repository: <container-registry>/rechtsaenderungsmonitoring
+      tag: "<image-tag>"
+    extraEnv:
+    - name: DB_HOST
+      value: "<postgresdb-host-rechtsaenderungs-monitoring>"
+    # Database name.
+    - name: DB_NAME
+      value: "<postgresdb-name-rechtsaenderungs-monitoring>"
+    # PostgreSQL port.
+    - name: DB_PORT
+      value: "5432"
+    - name: DB_PASSWORD
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: rechtsaenderungs-monitoring-db-credentials
+    - name: DB_USER
+      valueFrom:
+        secretKeyRef:
+          key: username
+          name: rechtsaenderungs-monitoring-db-credentials
+    # LiteLLM proxy URL for legal change categorisation model.
+    - name: LLM_CATEGORISATION_URL
+      value: "<litellm-proxy-url>"
+    # LiteLLM proxy URL for legal change summarisation model.
+    - name: LLM_SUMMARISATION_URL
+      value: "<litellm-proxy-url>"
+
+# ---------------------------------------------------------------------------
+# backend-services — the spark-backend modulith (pools)
+# ---------------------------------------------------------------------------
+#
+# The modulith runs as one pool per API surface/worker (alias of
+# spark-backend-pool). Everything the pools share is configured once under
+# global.backend (see the global block above and
+# 02-backend/spark-backend-pool/values.yaml); per-pool keys (replicaCount,
+# resources, pool.worker, autoscaling, keda, podMonitoring) go under
+# backend-services.<pool>. Pool defaults live in the backend-services chart.
+# Namespaces default to "backend-services"; see the service-layer chart.
+
+backend-services:
+  # Set to false to exclude the entire backend layer from the release.
+  enabled: true
+
+  # Example pool overrides (all 15 pools accept the same keys):
+  # document-management-service:
+  #   replicaCount: 3
+  #   keda:
+  #     enabled: true          # requires KEDA in the cluster
+  #   podMonitoring:
+  #     enabled: true          # GMP; when no namespace-wide PodMonitoring exists
+
+# ---------------------------------------------------------------------------
+# frontend-services — user-facing workloads
+# ---------------------------------------------------------------------------
+#
+# Per-chart keys are placed under frontend-services.<chart-name>.
+# Namespaces default to "frontend-services"; see the service-layer chart.
+
+frontend-services:
+  # Set to false to exclude the entire frontend layer from the release.
+  enabled: true
+
+  # --- frontend ---
+  # Main web application.
+  frontend:
+    image:
+      repository: <container-registry>/frontend-app
+      tag: "<image-tag>"
+    extraEnv:
+    # API base path used by the frontend to reach backend services.
+    - name: VITE_API_BASE_URL
+      value: /api
+    # Application base path for client-side routing.
+    - name: VITE_APP_BASE_PATH
+      value: /app
+    # Set to "true" to enable the EWMS feature flag.
+    - name: VITE_ENABLE_EWMS_FEATURE
+      value: "true"
+    # Set to "true" to activate maintenance mode in the UI.
+    - name: VITE_ENABLE_MAINTENANCE_MODE
+      value: "false"
+    # Sentry DSN for frontend error reporting.
+    - name: VITE_SENTRY_DSN
+      value: "<sentry-dsn-url>"
+    # Sentry environment tag.
+    - name: VITE_SENTRY_ENVIRONMENT
+      value: "<sentry-environment>"
+    # Base URL of the Temporal UI service.
+    - name: VITE_TEMPORAL_UI_BASE_URL
+      value: "<temporal-ui-url>"
+    # Set to "true" to route file downloads through the backend S3 proxy.
+    - name: VITE_USE_S3_PROXY
+      value: "false"
+
+  # --- prototype-demo ---
+  # Demo and prototype frontend for feature previews.
+  prototype-demo:
+    image:
+      repository: <container-registry>/frontend-demo-app
+      tag: "<image-tag>"
+    extraEnv: []

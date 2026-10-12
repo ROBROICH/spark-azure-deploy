@@ -1,4 +1,4 @@
-import { generateDownloadUrlV2FilesFileIdGenerateDownloadUrlGetOptions } from '@/api-clients/dms-module/@tanstack/react-query.gen';
+import { v1DocumentManagementGenerateFileDownloadUrlOptions as generateFileDownloadUrlOptions } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { useProjectRouteVersion } from '@/features/project/versioning/projectVersioning';
 import { toSafeDownloadUrl } from '@/features/shared/remote-files/downloadUrlSafety';
 import { useQuery } from '@tanstack/react-query';
@@ -23,12 +23,12 @@ export const useFileDownloadUrl = (
   const routeProjectVersion = useProjectRouteVersion();
   const projectVersion = options?.projectVersion ?? routeProjectVersion;
   const query = useQuery({
-    ...generateDownloadUrlV2FilesFileIdGenerateDownloadUrlGetOptions({
+    ...generateFileDownloadUrlOptions({
       path: {
-        file_id: fileId ?? '',
+        fileId: fileId ?? '',
       },
       query: {
-        project_version: projectVersion,
+        projectVersion: projectVersion,
         inline: true,
       },
     }),

@@ -1,0 +1,13 @@
+SPARK Workflow spark-environment umbrella release.
+
+Layers (toggle via values):
+  - agent-services.enabled
+  - backend-services.enabled
+  - frontend-services.enabled
+
+Per-service toggles live under each layer key, e.g. agent-services.modul-bewertung.enabled.
+
+Install namespace (helm -n):
+  {{ .Release.Namespace }}
+
+Run: helm get values {{ .Release.Name }} -n {{ .Release.Namespace }}

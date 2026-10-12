@@ -1,0 +1,145 @@
+# Optional resources of the standard leaf template set.
+suite: standard leaf optional resources
+release:
+  name: rel
+  namespace: relns
+set:
+  fullnameOverride: app
+  image:
+    repository: registry.example.com/spark/app
+    tag: "1.0.0"
+tests:
+  - it: HPA and KEDA are mutually exclusive
+    template: templates/hpa.yaml
+    set:
+      autoscaling.enabled: true
+      keda:
+        enabled: true
+        triggers: [{type: cpu, metricType: Utilization, metadata: {value: "70"}}]
+    asserts:
+      - failedTemplate:
+          errorPattern: mutually exclusive
+
+  - it: renders the HPA when enabled
+    template: templates/hpa.yaml
+    set:
+      autoscaling: {enabled: true, minReplicas: 2, maxReplicas: 5}
+    asserts:
+      - isKind: {of: HorizontalPodAutoscaler}
+      - equal: {path: spec.minReplicas, value: 2}
+      - equal: {path: spec.scaleTargetRef.name, value: app}
+
+  - it: renders no HPA by default
+    template: templates/hpa.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: renders the ScaledObject when KEDA is enabled
+    template: templates/scaledobject.yaml
+    set:
+      keda:
+        enabled: true
+        triggers: [{type: cpu, metricType: Utilization, metadata: {value: "70"}}]
+    asserts:
+      - isKind: {of: ScaledObject}
+      - equal: {path: spec.scaleTargetRef.name, value: app}
+
+  - it: renders the PodMonitoring when enabled
+    template: templates/podmonitoring.yaml
+    set:
+      podMonitoring.enabled: true
+    asserts:
+      - isKind: {of: PodMonitoring}
+      - equal: {path: metadata.namespace, value: relns}
+
+  - it: renders the Service from service.ports
+    template: templates/service.yaml
+    set:
+      service:
+        enabled: true
+        ports: [{port: 80, targetPort: http, name: http}]
+    asserts:
+      - equal: {path: "spec.ports[0].targetPort", value: http}
+      - equal: {path: 'spec.selector["app.kubernetes.io/instance"]', value: app}
+
+  - it: renders no Service when disabled
+    template: templates/service.yaml
+    set:
+      service.enabled: false
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: creates its ServiceAccount with merged annotations
+    template: templates/serviceaccount.yaml
+    set:
+      serviceAccount.annotations: {a: chart}
+      global.serviceAccount.annotations: {a: global, b: global}
+    asserts:
+      - equal: {path: metadata.annotations, value: {a: chart, b: global}}
+
+  - it: creates no ServiceAccount in shared-SA mode
+    template: templates/serviceaccount.yaml
+    set:
+      global.serviceAccount.name: shared-sa
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: places the Ingress next to its Service and routes to service.ports
+    template: templates/ingress.yaml
+    set:
+      namespaceOverride: apps
+      service: {enabled: true, port: 81, ports: [{port: 8080, targetPort: http, name: http}]}
+      ingress:
+        enabled: true
+        hosts: [{host: app.example.com, paths: [{path: /, pathType: Prefix}]}]
+    asserts:
+      - equal: {path: metadata.namespace, value: apps}
+      - equal: {path: 'spec.rules[0].http.paths[0].backend.service.port.number', value: 8080}
+
+  - it: falls back to the deprecated service.port without service.ports
+    template: templates/ingress.yaml
+    set:
+      service: {enabled: true, port: 81, ports: []}
+      ingress:
+        enabled: true
+        hosts: [{host: app.example.com, paths: [{path: /, pathType: Prefix}]}]
+    asserts:
+      - equal: {path: 'spec.rules[0].http.paths[0].backend.service.port.number', value: 81}
+
+  - it: renders a PodDisruptionBudget on request
+    template: templates/pdb.yaml
+    set:
+      podDisruptionBudget: {enabled: true, minAvailable: 2}
+    asserts:
+      - isKind: {of: PodDisruptionBudget}
+      - equal: {path: spec.minAvailable, value: 2}
+      - equal: {path: 'spec.selector.matchLabels["app.kubernetes.io/instance"]', value: app}
+
+  - it: prefers maxUnavailable when set
+    template: templates/pdb.yaml
+    set:
+      podDisruptionBudget: {enabled: true, maxUnavailable: 1}
+    asserts:
+      - equal: {path: spec.maxUnavailable, value: 1}
+      - notExists: {path: spec.minAvailable}
+
+  - it: isolates ingress with a NetworkPolicy on request
+    template: templates/networkpolicy.yaml
+    set:
+      networkPolicy: {enabled: true}
+    asserts:
+      - equal: {path: spec.policyTypes, value: [Ingress]}
+      - equal: {path: spec.ingress, value: [{from: [{podSelector: {}}]}]}
+
+  - it: renders a ServiceMonitor on request
+    template: templates/servicemonitor.yaml
+    set:
+      serviceMonitor.enabled: true
+    asserts:
+      - isKind: {of: ServiceMonitor}
+      - equal: {path: 'spec.endpoints[0].port', value: http}
+
+  - it: renders none of them by default
+    templates: [templates/pdb.yaml, templates/networkpolicy.yaml, templates/servicemonitor.yaml]
+    asserts:
+      - hasDocuments: {count: 0}

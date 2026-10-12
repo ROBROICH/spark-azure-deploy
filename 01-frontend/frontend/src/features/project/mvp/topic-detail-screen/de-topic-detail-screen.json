@@ -29,7 +29,9 @@
     "aiSupportDescription": "Diese Unterlage enthält KI-Fundstellen.",
     "aiSupportDescriptionForNorm": "Zur ausgewählten Norm {{norm}} gibt es in dieser Unterlage KI-Fundstellen.",
     "sichten": "Sichten",
-    "gesichtet": "Gesichtet"
+    "gesichtet": "Gesichtet",
+    "sichtenEntfernen": "Sichtung entfernen",
+    "actionsMenuAriaLabel": "Aktionen für {{file}}"
   },
   "FundstellenTabContent": {
     "keinDokument": "Keine Unterlage",
@@ -94,6 +96,12 @@
   },
   "FundstellenSelectedReferenceCard": {
     "pageNumber": "S. {{page}}"
+  },
+  "FundstellenReliability": {
+    "focusCount": "Fokus: {{focused}} von {{total}}",
+    "focusCountExplanation": "Die KI schlägt vor, mit diesen {{focused}} von {{total}} Fundstellen zu beginnen. Sie enthalten konkrete Angaben zum Sachverhalt.",
+    "notInFocusExplanation": "Nicht im Fokus. Die Textstelle enthält keine konkreten Angaben zum Sachverhalt, kann für Ihre Prüfung aber trotzdem nützlich sein.",
+    "unratedExplanation": "Nicht im Fokus. Für diese Textstelle liegt keine Einschätzung der KI vor."
   },
   "FundstellenOutdatedTrigger": {
     "title": "KI-Fundstellen veraltet",

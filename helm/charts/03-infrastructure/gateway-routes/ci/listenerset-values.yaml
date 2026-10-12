@@ -1,0 +1,12 @@
+# ci: the environment brings its own listeners (ListenerSet) and certificate.
+global:
+  stage: {name: ci}
+domain: ci.example.com
+listenerSet:
+  enabled: true
+  tls:
+    certificate:
+      enabled: true
+      issuerRef: {name: letsencrypt-dns}
+auth:
+  keycloakHost: keycloak.example.com

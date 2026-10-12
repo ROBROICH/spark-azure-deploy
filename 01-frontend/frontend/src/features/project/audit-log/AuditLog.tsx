@@ -118,7 +118,7 @@ export const AuditLog = (props: AuditLogProps) => {
   const sortedItems = sortHistoryItemsNewestFirst(items);
   const groupedItems = groupHistoryItems(sortedItems, getTimeSections(t));
   const parentItem = sortedItems[0];
-  const offset = query.offset ?? 0;
+  const offset = Number(query.offset ?? 0);
   const loadedItemCount = items.length;
   const sidebarTitle = getSidebarTitle(drilldownGroup, t);
   const isWorkflowExportUnavailable = drilldownGroup?.type === 'workflow';
@@ -233,8 +233,8 @@ export const AuditLog = (props: AuditLogProps) => {
       sidebarExpanded={sidebarExpanded}
       className={
         sidebarExpanded
-          ? 'w-[min(72rem,calc(100vw-19rem))]'
-          : 'w-[min(72rem,calc(100vw-5rem))]'
+          ? 'w-full sm:w-[min(72rem,calc(100vw-19rem))]'
+          : 'w-full sm:w-[min(72rem,calc(100vw-5rem))]'
       }
       modal
     >

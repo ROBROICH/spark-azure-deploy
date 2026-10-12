@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from '@tanstack/react-router';
 import { getLegacyPlausibilityCheckRedirect } from '@/features/project/route/legacyPlausibilityCheckRoute';
+import { redirectExcludedStepToEwms } from '@/features/project/route/productModeRedirect';
 
 /**
  * Legacy redirect route for /verfahren/$verfahrenId/pp
@@ -9,6 +10,7 @@ import { getLegacyPlausibilityCheckRedirect } from '@/features/project/route/leg
  */
 export const Route = createFileRoute('/verfahren/$verfahrenId/pp/')({
   beforeLoad: ({ params }) => {
+    redirectExcludedStepToEwms(params.verfahrenId);
     throw redirect(getLegacyPlausibilityCheckRedirect(params.verfahrenId));
   },
 });

@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { TooltipProvider } from '@/features/ui/tooltip/Tooltip';
 import { DocumentTypeBadgeSelect } from './DocumentTypeBadgeSelect';
 
 const mocks = vi.hoisted(() => ({
@@ -18,6 +19,8 @@ vi.mock('react-i18next', () => ({
         'DocumentTypeDropdown.manageLabel':
           '+ Dokumententyp anlegen oder verwalten',
         'DocumentTypeDropdown.selectLabel': 'Unterlagentyp auswählen',
+        'DocumentTypeDropdown.assignmentUncertain': 'Zuordnung unsicher',
+        'DocumentTypeDropdown.confirmAriaLabel': 'Zuordnung bestätigen',
       })[key] ?? key,
   }),
 }));
@@ -162,5 +165,97 @@ describe('DocumentTypeBadgeSelect', () => {
     );
 
     expect(mocks.onSelect).toHaveBeenCalledWith('type-uebersicht');
+  });
+
+  it('shows an assignment warning below 0.8 and hides it at 0.8, null, and linked', () => {
+    const suggestion = {
+      label: 'Lageplan',
+      selectedTypeId: 'type-lageplan',
+    };
+
+    const { rerender } = render(
+      <TooltipProvider>
+        <DocumentTypeBadgeSelect
+          status={{ kind: 'ai_suggestion', ...suggestion, confidence: 0.79 }}
+          availableTypes={[]}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Zuordnung unsicher' }),
+    ).toBeTruthy();
+
+    rerender(
+      <TooltipProvider>
+        <DocumentTypeBadgeSelect
+          status={{ kind: 'ai_suggestion', ...suggestion, confidence: 0.8 }}
+          availableTypes={[]}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'Zuordnung unsicher' }),
+    ).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <DocumentTypeBadgeSelect
+          status={{ kind: 'ai_suggestion', ...suggestion, confidence: null }}
+          availableTypes={[]}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'Zuordnung unsicher' }),
+    ).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <DocumentTypeBadgeSelect
+          status={{
+            kind: 'linked',
+            label: 'Lageplan',
+            selectedTypeId: 'type-lageplan',
+          }}
+          availableTypes={[]}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', { name: 'Zuordnung unsicher' }),
+    ).toBeNull();
+  });
+
+  it('places the uncertainty warning before the confirmation action', () => {
+    render(
+      <TooltipProvider>
+        <DocumentTypeBadgeSelect
+          status={{
+            kind: 'ai_suggestion',
+            label: 'Lageplan',
+            selectedTypeId: 'type-lageplan',
+            confidence: 0.79,
+          }}
+          availableTypes={[]}
+          onConfirm={() => undefined}
+        />
+      </TooltipProvider>,
+    );
+
+    const warning = screen.getByRole('button', {
+      name: 'Zuordnung unsicher',
+    });
+    const confirmation = screen.getByRole('button', {
+      name: 'Zuordnung bestätigen',
+    });
+
+    expect(
+      warning.compareDocumentPosition(confirmation) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 });

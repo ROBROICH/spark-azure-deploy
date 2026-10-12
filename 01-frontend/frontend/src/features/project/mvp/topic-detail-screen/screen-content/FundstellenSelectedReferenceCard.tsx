@@ -6,6 +6,9 @@ import { AiReferenceCard } from '@/features/ui/ai/AiReferenceCard';
 import { AiReferenceRow } from '@/features/ui/ai/AiReferenceRow';
 import { getRouteApi } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { FundstellenFocusCount } from './FundstellenFocusCount';
+import { FundstellenNotInFocusHint } from './FundstellenNotInFocusHint';
+import { doesFundstelleCarryAssessment } from './fundstellenReliability';
 import type { FundstellenCardEntry } from './mvpFundstellenCardModels';
 
 const route = getRouteApi('/verfahren/$verfahrenId/mvp/$topicName/');
@@ -28,18 +31,21 @@ export const FundstellenSelectedReferenceCard = (
   const navigate = route.useNavigate();
   const feedbackTargetRefs = entries.map((entry) => ({
     id: entry.id,
-    node_type: 'fundstelle' as const,
+    nodeType: 'fundstelle' as const,
   }));
   const documentLabel =
     document?.filename.split('/').pop() ??
     t('FundstellenTabContent.keinDokument');
-  const connectedDocument = document?.dms_file_id ? document : null;
+  const connectedDocument = document?.dmsFileId ? document : null;
   const missingTitlePlaceholder = t(
     'FundstellenTabContent.missingTitlePlaceholder',
   );
 
   return (
-    <AiReferenceCard title={t('FundstellenTabContent.referencesTitle')}>
+    <AiReferenceCard
+      title={t('FundstellenTabContent.referencesTitle')}
+      titleTrailing={<FundstellenFocusCount entries={entries} />}
+    >
       <div role="list" className="flex flex-col gap-1 p-1">
         <AiReferenceRow
           item={{ type: 'document', label: documentLabel }}
@@ -54,55 +60,67 @@ export const FundstellenSelectedReferenceCard = (
                     replace: true,
                     resetScroll: false,
                   });
-                  openConnectedFile(connectedDocument.dms_file_id);
+                  openConnectedFile(connectedDocument.dmsFileId);
                 }
               : undefined
           }
         />
         <FeedbackLookupProvider targetRefs={feedbackTargetRefs}>
-          {entries.map((entry) => (
-            <div
-              key={entry.id}
-              role="presentation"
-              className="flex items-center"
-            >
-              <div className="min-w-0 flex-1">
-                <AiReferenceRow
-                  item={{
-                    type: 'passage',
-                    label: entry.title || missingTitlePlaceholder,
-                    page: t('FundstellenSelectedReferenceCard.pageNumber', {
-                      page: entry.pageNumber,
-                    }),
-                  }}
-                  onClick={
-                    connectedDocument
-                      ? () => {
-                          navigate({
-                            search: (prev) => ({
-                              ...prev,
-                              previewDocumentId: connectedDocument.id,
-                            }),
-                            replace: true,
-                            resetScroll: false,
-                          });
-                          openConnectedFile(connectedDocument.dms_file_id);
-                          jumpToConnectedFilePage(
-                            entry.pageNumber,
-                            connectedDocument.dms_file_id,
-                          );
-                        }
-                      : undefined
-                  }
-                />
+          {entries.map((entry) => {
+            return (
+              <div
+                key={entry.id}
+                role="presentation"
+                className="flex items-center"
+              >
+                <div className="min-w-0 flex-1">
+                  <AiReferenceRow
+                    item={{
+                      type: 'passage',
+                      label: entry.title || missingTitlePlaceholder,
+                      page: t('FundstellenSelectedReferenceCard.pageNumber', {
+                        page: entry.pageNumber,
+                      }),
+                    }}
+                    afterTitle={
+                      <FundstellenNotInFocusHint
+                        confidence={entry.confidence}
+                      />
+                    }
+                    labelClassName={
+                      doesFundstelleCarryAssessment(entry.confidence)
+                        ? undefined
+                        : 'text-slate-500'
+                    }
+                    onClick={
+                      connectedDocument
+                        ? () => {
+                            navigate({
+                              search: (prev) => ({
+                                ...prev,
+                                previewDocumentId: connectedDocument.id,
+                              }),
+                              replace: true,
+                              resetScroll: false,
+                            });
+                            openConnectedFile(connectedDocument.dmsFileId);
+                            jumpToConnectedFilePage(
+                              entry.pageNumber,
+                              connectedDocument.dmsFileId,
+                            );
+                          }
+                        : undefined
+                    }
+                  />
+                </div>
+                <div className="pr-1">
+                  <NodeFeedbackThumbButtons
+                    targetRef={{ id: entry.id, nodeType: 'fundstelle' }}
+                  />
+                </div>
               </div>
-              <div className="pr-1">
-                <NodeFeedbackThumbButtons
-                  targetRef={{ id: entry.id, node_type: 'fundstelle' }}
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </FeedbackLookupProvider>
       </div>
     </AiReferenceCard>

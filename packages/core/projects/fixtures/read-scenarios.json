@@ -1,0 +1,39 @@
+{
+  "projects": {
+    "populated": {
+      "id": "1d3e4d64-c48b-45a4-a193-8d14e74dae01",
+      "latestVersion": 1
+    },
+    "unknown": {
+      "id": "ffffffff-ffff-4fff-8fff-ffffffffffff"
+    }
+  },
+  "projectTypes": {
+    "primary": "00000000-0000-0000-0000-000000000000",
+    "unknown": "ffffffff-ffff-4fff-8fff-fffffffffff1"
+  },
+  "projectStatuses": {
+    "current": "00000000-0000-0000-0000-000000000001"
+  },
+  "topics": {
+    "withNorms": "5a2c13a1-680d-431e-acec-921cd92a1d1d",
+    "withoutNorms": "03c330c1-c38c-49ba-bc91-6ec4686e8b15",
+    "batchSecond": "0e610124-d736-48f4-81ad-17770bf17972",
+    "unknown": "ffffffff-ffff-4fff-8fff-fffffffffff2"
+  },
+  "subtopics": {
+    "current": "0452954d-91a9-4266-8b6d-e9e3bb3325aa"
+  },
+  "topicNorms": {
+    "current": "0c434c3d-12cc-44b4-8093-ad5e7c91b735"
+  },
+  "deadlines": {
+    "unknown": "ffffffff-ffff-4fff-8fff-fffffffffff3"
+  },
+  "releasedVersionLock": {
+    "id": "04e7be70-757d-4c80-8560-e19e00b959ff",
+    "sourceVersion": 1,
+    "targetVersion": 1,
+    "token": "ab39ae65d77e4f53a8e753f26d47c2bb"
+  }
+}

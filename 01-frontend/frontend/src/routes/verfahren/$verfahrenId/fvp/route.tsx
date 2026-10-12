@@ -1,3 +1,4 @@
+import { redirectExcludedStepToEwms } from '@/features/project/route/productModeRedirect';
 import { ProjectNavbar } from '@/features/project/route-navbar/ProjectNavbar';
 import { ProjectNavbarSkeleton } from '@/features/project/route-navbar/ProjectNavbarSkeleton';
 import {
@@ -12,6 +13,9 @@ const INVALIDATION_RETRY_DELAY_MS = 1_500;
 const ACTIVE_LOADING_REFRESH_INTERVAL_MS = 5_000;
 
 export const Route = createFileRoute('/verfahren/$verfahrenId/fvp')({
+  beforeLoad: ({ params }) => {
+    redirectExcludedStepToEwms(params.verfahrenId);
+  },
   component: FvpLayout,
 });
 
@@ -95,7 +99,11 @@ function FvpLayoutContent() {
     };
 
     if (refreshLlmMatchingData) {
-      invalidateWithRetry([['required-documents'], ['document-assignments']]);
+      invalidateWithRetry([
+        ['required-documents'],
+        ['formal-documents'],
+        ['formal-document-summary'],
+      ]);
     }
 
     if (refreshTocData) {
@@ -129,7 +137,11 @@ function FvpLayoutContent() {
     const queryKeys: string[][] = [];
 
     if (isLlmMatchingWorkflowLoading) {
-      queryKeys.push(['required-documents'], ['document-assignments']);
+      queryKeys.push(
+        ['required-documents'],
+        ['formal-documents'],
+        ['formal-document-summary'],
+      );
     }
 
     if (isTableOfContentsWorkflowLoading) {

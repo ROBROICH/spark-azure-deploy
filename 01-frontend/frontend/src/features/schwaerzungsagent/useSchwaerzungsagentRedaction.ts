@@ -1,8 +1,12 @@
-import { anonymizePdfWorkflowsAnonymisierungPost } from '@/api-clients/agent-orchestration-module';
-import type { BodyAnonymizePdfWorkflowsAnonymisierungPost } from '@/api-clients/agent-orchestration-module';
+import {
+  v1AgentOrchestrationAnonymizePdf as anonymizePdf,
+  type V1AgentOrchestrationAnonymizePdfData as AnonymizePdfData,
+} from '@/api-clients/backend';
 import { getHttpErrorStatus } from '@/integrations/api-clients/httpErrorStatus';
 import { useEffect, useRef, useState } from 'react';
 import type { SchwaerzungsagentSession } from './schwaerzungsagentSession';
+
+type BodyAnonymizePdfWorkflowsAnonymisierungPost = AnonymizePdfData['body'];
 
 const REQUEST_TIMEOUT_MS = 4 * 60 * 1000;
 const RETRY_DELAY_MS = 1000;
@@ -68,9 +72,7 @@ type RedactionAttemptDecision = {
   shouldUploadFile: boolean;
 };
 
-type RedactionAttemptResult = Awaited<
-  ReturnType<typeof anonymizePdfWorkflowsAnonymisierungPost<true>>
->;
+type RedactionAttemptResult = Awaited<ReturnType<typeof anonymizePdf<true>>>;
 
 type UseSchwaerzungsagentRedactionProps = {
   enabled: boolean;
@@ -142,7 +144,7 @@ const runRedactionAttempt = async (params: {
   } = params;
 
   try {
-    const result = await anonymizePdfWorkflowsAnonymisierungPost({
+    const result = await anonymizePdf({
       body: createRedactionRequestBody(requestId, file, shouldUploadFile),
       parseAs: 'blob',
       signal: requestController.signal,

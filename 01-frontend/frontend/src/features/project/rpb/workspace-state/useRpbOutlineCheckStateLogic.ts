@@ -22,7 +22,7 @@ type UseRpbOutlineCheckStateLogicParams = {
 const getAttachedTopicId = (
   vaeNode: RpbOutlineTreeNode['vaeNode'],
 ): string | undefined => {
-  return vaeNode.topic_id ?? undefined;
+  return vaeNode.topicId ?? undefined;
 };
 
 const createRpbOutlineNodeCheckabilityById = (
@@ -155,14 +155,14 @@ export const useRpbOutlineCheckStateLogic = (
       transact(() => {
         update(vaeNode, (draft) => {
           if (shouldToggleFinalDecision) {
-            draft.checked_by_leader = !draft.checked_by_leader;
+            draft.checkedByLeader = !draft.checkedByLeader;
             return;
           }
 
-          const nextChecked = !draft.checked_by_assignee;
-          draft.checked_by_assignee = nextChecked;
+          const nextChecked = !draft.checkedByAssignee;
+          draft.checkedByAssignee = nextChecked;
           if (!nextChecked) {
-            draft.checked_by_leader = false;
+            draft.checkedByLeader = false;
           }
         });
       });

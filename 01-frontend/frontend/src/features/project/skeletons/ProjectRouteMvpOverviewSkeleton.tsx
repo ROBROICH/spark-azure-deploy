@@ -42,7 +42,7 @@ type ProjectRouteMvpOverviewSkeletonProps = {
 
 const MvpOverviewSkeletonContent = () => {
   return (
-    <div className="flex w-full flex-1 flex-col overflow-y-auto bg-white px-32 py-8">
+    <div className="flex w-full flex-1 flex-col overflow-y-auto bg-white px-4 py-8 md:px-32">
       <div className="mx-auto flex w-full max-w-container flex-col gap-4">
         <div className="flex items-center gap-2">
           <Skeleton className="size-8 rounded-lg" aria-hidden />

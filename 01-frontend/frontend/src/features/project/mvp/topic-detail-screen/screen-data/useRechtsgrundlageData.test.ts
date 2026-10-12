@@ -1,4 +1,4 @@
-import type { LegalBasisNormResponse } from '@/api-clients/examination-module';
+import type { LegalBasisNormResponse } from './availableRechtsgrundlageData';
 import { toCompositeKey } from '@/db/nodes/compositeKey';
 import type { NodePayloadByType } from '@/db/nodes/types';
 import { describe, expect, it } from 'vitest';
@@ -17,26 +17,25 @@ const createTopicNormEntry = (id: string, paragraphNr: string) => {
   return {
     topicNorm: {
       absatz: null,
-      compositeKey: toCompositeKey({ id, node_type: 'topic_norm' }),
-      created_at: '2026-05-14T10:00:00.000Z',
-      frontend_parent_ids: ['topic:topic-1'],
+      compositeKey: toCompositeKey({ id, nodeType: 'topic_norm' }),
+      createdAt: '2026-05-14T10:00:00.000Z',
+      frontendParentIds: ['topic:topic-1'],
       id,
-      is_deleted: false,
-      is_outdated: false,
+      isDeleted: false,
+      isOutdated: false,
       jurabk: 'BNatSchG',
-      mvp_status: 'unchecked',
-      node_type: 'topic_norm',
+      mvpStatus: 'unchecked',
+      nodeType: 'topic_norm',
       nummer: null,
-      paragraph_nr: paragraphNr,
-      project_id: 'project-1',
-      project_version: 1,
+      paragraphNr: paragraphNr,
+      projectId: 'project-1',
+      projectVersion: 1,
       satz: null,
-      satz_statuses: {},
-      sys_period: null,
-      topic_id: 'topic-1',
+      satzStatuses: {},
+      topicId: 'topic-1',
       type: 'pruefung',
-      update_type: null,
-      updated_at: '2026-05-14T10:00:00.000Z',
+      updateType: null,
+      updatedAt: '2026-05-14T10:00:00.000Z',
     } satisfies NodePayloadByType<'topic_norm'>,
     gesetz: null,
     norm: null,
@@ -50,13 +49,13 @@ const createAvailableNormEntry = (id: string, paragraphNr: string) => {
     selectionKey,
     legalBasis: {
       jurabk: 'BNatSchG',
-      paragraph_nr: paragraphNr,
+      paragraphNr: paragraphNr,
     },
     norm: {
-      gesetz_id: 'gesetz-1',
+      gesetzId: 'gesetz-1',
       id: selectionKey,
-      paragraph_nr: paragraphNr,
-      paragraph_titel: null,
+      paragraphNr: paragraphNr,
+      paragraphTitel: null,
       text: '',
     },
     gesetz: null,
@@ -73,23 +72,22 @@ const createProjectNorm = (
   topicNormId: string,
 ) => {
   return {
-    compositeKey: toCompositeKey({ id, node_type: 'norm' }),
-    created_at: '2026-05-14T10:00:00.000Z',
-    frontend_parent_ids: [`topic_norm:${topicNormId}`],
-    gesetz_id: 'project-law-bnatschg',
+    compositeKey: toCompositeKey({ id, nodeType: 'norm' }),
+    createdAt: '2026-05-14T10:00:00.000Z',
+    frontendParentIds: [`topic_norm:${topicNormId}`],
+    gesetzId: 'project-law-bnatschg',
     id,
-    is_deleted: false,
-    is_outdated: false,
-    node_type: 'norm',
-    paragraph_nr: paragraphNr,
-    paragraph_titel: null,
-    project_id: 'project-1',
-    project_version: 1,
+    isDeleted: false,
+    isOutdated: false,
+    nodeType: 'norm',
+    paragraphNr: paragraphNr,
+    paragraphTitel: null,
+    projectId: 'project-1',
+    projectVersion: 1,
     regelungsgegenstand: null,
-    sys_period: null,
     text: '',
-    update_type: null,
-    updated_at: '2026-05-14T10:00:00.000Z',
+    updateType: null,
+    updatedAt: '2026-05-14T10:00:00.000Z',
   } satisfies NodePayloadByType<'norm'>;
 };
 
@@ -105,21 +103,17 @@ const createLegalBasisNorm = (params: {
   return {
     bundesland: params.bundesland,
     jurabk: params.jurabk,
-    paragraph_nr: params.paragraphNr,
-    paragraph_titel: paragraphTitle,
+    paragraphNr: params.paragraphNr,
+    paragraphTitel: paragraphTitle,
     gesetz: {
       id: params.lawId,
       jurabk: params.jurabk,
       name: params.jurabk,
     },
     norm: {
-      id: `law-db-norm-${params.paragraphNr}`,
-      gesetz_id: params.lawId,
-      paragraph_nr: params.paragraphNr,
-      paragraph_titel: paragraphTitle,
       text: `Normtext ${params.paragraphNr}`,
     },
-    is_deconstructed: params.isDeconstructed ?? true,
+    isDeconstructed: params.isDeconstructed ?? true,
   } satisfies LegalBasisNormResponse;
 };
 
@@ -156,7 +150,7 @@ describe('sortAvailableNormEntriesByParagraphNumber', () => {
 
     expect(
       sortAvailableNormEntriesByParagraphNumber(normEntries).map(
-        (normEntry) => normEntry.norm.paragraph_nr,
+        (normEntry) => normEntry.norm.paragraphNr,
       ),
     ).toEqual(['§ 3', '12', '12a', '45']);
   });
@@ -175,39 +169,31 @@ describe('createAvailableRechtsgrundlageData', () => {
       [
         {
           jurabk: 'BNatSchG',
-          paragraph_nr: '44',
-          paragraph_titel: 'Artenschutz',
+          paragraphNr: '44',
+          paragraphTitel: 'Artenschutz',
           gesetz: {
             id: 'law-bnatschg',
             jurabk: 'BNatSchG',
             name: 'BNatSchG',
           },
           norm: {
-            id: 'law-db-norm-44',
-            gesetz_id: 'law-bnatschg',
-            paragraph_nr: '44',
-            paragraph_titel: 'Artenschutz',
             text: 'Normtext 44',
           },
-          is_deconstructed: true,
+          isDeconstructed: true,
         },
         {
           jurabk: 'EnWG',
-          paragraph_nr: '17',
-          paragraph_titel: 'Netzanschluss',
+          paragraphNr: '17',
+          paragraphTitel: 'Netzanschluss',
           gesetz: {
             id: 'law-enwg',
             jurabk: 'EnWG',
             name: 'EnWG',
           },
           norm: {
-            id: 'law-db-norm-17',
-            gesetz_id: 'law-enwg',
-            paragraph_nr: '17',
-            paragraph_titel: 'Netzanschluss',
             text: 'Normtext 17',
           },
-          is_deconstructed: true,
+          isDeconstructed: true,
         },
       ],
       [projectNorm],
@@ -224,7 +210,7 @@ describe('createAvailableRechtsgrundlageData', () => {
       selectionKey: 'bnatschg::44',
       legalBasis: {
         jurabk: 'BNatSchG',
-        paragraph_nr: '44',
+        paragraphNr: '44',
       },
       projectNorm,
       topicNorms: [topicNorm],

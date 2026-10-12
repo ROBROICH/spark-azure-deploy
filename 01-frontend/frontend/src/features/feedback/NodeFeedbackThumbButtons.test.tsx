@@ -30,22 +30,21 @@ vi.mock('react-i18next', () => ({
   }),
 }));
 
-const targetRef = { id: 'target-1', node_type: 'fundstelle' as const };
+const targetRef = { id: 'target-1', nodeType: 'fundstelle' as const };
 const existingFeedback = {
   id: 'feedback-1',
-  node_type: 'feedback' as const,
+  nodeType: 'feedback' as const,
   compositeKey: 'feedback:feedback-1',
-  project_id: 'project-1',
-  is_deleted: false,
+  projectId: 'project-1',
+  isDeleted: false,
   rating: 'positive' as const,
   reason: 'RESULT_CORRECT',
   text: 'old text',
-  user_id: 'other-user',
-  frontend_parent_ids: ['fundstelle:target-1'],
-  update_type: 'manual' as const,
-  created_at: '2026-01-01T00:00:00.000Z',
-  updated_at: '2026-01-01T00:00:00.000Z',
-  sys_period: null,
+  userId: 'other-user',
+  frontendParentIds: ['fundstelle:target-1'],
+  updateType: 'manual' as const,
+  createdAt: '2026-01-01T00:00:00.000Z',
+  updatedAt: '2026-01-01T00:00:00.000Z',
 };
 
 describe('NodeFeedbackThumbButtons', () => {
@@ -86,7 +85,7 @@ describe('NodeFeedbackThumbButtons', () => {
     const user = userEvent.setup();
     mocks.useFeedbackForTargetMock.mockReturnValue({
       feedback: existingFeedback,
-      feedbackRef: { id: 'feedback-1', node_type: 'feedback' },
+      feedbackRef: { id: 'feedback-1', nodeType: 'feedback' },
     });
 
     render(<NodeFeedbackThumbButtons targetRef={targetRef} />);

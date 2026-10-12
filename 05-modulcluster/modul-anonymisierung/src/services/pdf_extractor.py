@@ -57,16 +57,7 @@ def extract_all_texts(
         pages_needing_ocr,
         pdf_path,
     )
-    try:
-        ocr_pdf_bytes = _run_ocr_to_bytes(pdf_path, pages_needing_ocr, lang)
-    except Exception:
-        logger.warning(
-            "OCR failed for pages %s of %s — those pages will have no text",
-            pages_needing_ocr,
-            pdf_path,
-            exc_info=True,
-        )
-        return [t.split("\n") for t in page_texts], original_bytes
+    ocr_pdf_bytes = _run_ocr_to_bytes(pdf_path, pages_needing_ocr, lang)
 
     # Re-read text from OCR'd pages
     ocr_doc = pdfium.PdfDocument(ocr_pdf_bytes)

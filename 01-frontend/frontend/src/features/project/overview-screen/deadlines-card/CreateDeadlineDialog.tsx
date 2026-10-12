@@ -1,9 +1,5 @@
 import { deadlinesCollection } from '@/features/project/overview-screen/data/collections/deadlines.collection';
-import {
-  createDeadlineSchema,
-  type DeadlineFormValues,
-  defaultDeadlineValues,
-} from '@/features/project/overview-screen/schemas';
+import { defaultDeadlineValues } from '@/features/project/overview-screen/schemas';
 import { toast } from '@/features/ui/toast/Toast';
 import {
   Dialog,
@@ -11,10 +7,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/features/ui/dialog/Dialog';
-import { useForm } from '@tanstack/react-form';
+import * as Sentry from '@sentry/react';
 import { useTranslation } from 'react-i18next';
 
-import { DeadlineDialogForm } from './DeadlineDialogForm';
+import {
+  DeadlineDialogForm,
+  useDeadlineDialogForm,
+} from './DeadlineDialogForm';
 
 export type CreateDeadlineDialogProps = {
   canMutateProject: boolean;
@@ -28,50 +27,43 @@ export function CreateDeadlineDialog(props: CreateDeadlineDialogProps) {
   const { canMutateProject, projectId, open, onOpenChange } = props;
   const { t } = useTranslation('Project');
 
-  const schema = createDeadlineSchema(t);
-
-  const form = useForm<
-    DeadlineFormValues,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    typeof schema,
-    undefined,
-    undefined,
-    undefined,
-    undefined,
-    unknown
-  >({
-    defaultValues: defaultDeadlineValues,
-    validators: { onSubmit: schema },
-    onSubmit: ({ value }) => {
-      if (!canMutateProject) {
-        onOpenChange(false);
-        return;
-      }
-
-      const now = new Date().toISOString();
-      deadlinesCollection.insert(
-        {
-          id: crypto.randomUUID(),
-          projectId,
-          deadlineType: value.deadlineType.trim(),
-          startAt: value.startAt.trim(),
-          endAt: value.endAt.trim(),
-          legalBasis: value.legalBasis.trim() || null,
-          createdAt: now,
-          updatedAt: now,
-        },
-        {
-          optimistic: false,
-        },
-      );
-      toast.success(t('Deadlines.createSuccess'));
-      form.reset();
+  const form = useDeadlineDialogForm(defaultDeadlineValues, async (value) => {
+    if (!canMutateProject) {
       onOpenChange(false);
-    },
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const transaction = deadlinesCollection.insert(
+      {
+        // Local collection key only; the server assigns the real id and the
+        // create payload deliberately omits this field.
+        id: crypto.randomUUID(),
+        projectId,
+        deadlineType: value.deadlineType.trim(),
+        startAt: value.startAt.trim(),
+        endAt: value.endAt.trim(),
+        legalBasis: value.legalBasis.trim() || null,
+        createdAt: now,
+        updatedAt: now,
+      },
+      {
+        optimistic: false,
+      },
+    );
+
+    try {
+      await transaction.isPersisted.promise;
+    } catch (error) {
+      // Keep the dialog open with the unsaved draft so the user can retry.
+      Sentry.captureException(error);
+      toast.error(t('Deadlines.createError'));
+      return;
+    }
+
+    toast.success(t('Deadlines.createSuccess'));
+    form.reset();
+    onOpenChange(false);
   });
 
   const handleOpenChange = (next: boolean) => {
@@ -90,14 +82,7 @@ export function CreateDeadlineDialog(props: CreateDeadlineDialogProps) {
         <DeadlineDialogForm
           form={form}
           formId="create-deadline-form"
-          labels={{
-            cancel: t('Deadlines.createDialog.cancel'),
-            deadlineType: t('Deadlines.form.deadlineType'),
-            endAt: t('Deadlines.form.endAt'),
-            legalBasis: t('Deadlines.form.legalBasis'),
-            save: t('Deadlines.createDialog.save'),
-            startAt: t('Deadlines.form.startAt'),
-          }}
+          mode="create"
         />
       </DialogContent>
     </Dialog>

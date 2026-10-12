@@ -1,6 +1,7 @@
 import { Button } from '@/features/ui/button/Button';
+import { zipProcessingFailureMessageKey } from '@/features/project/data/file-processing/zipProcessingFailureMessages';
 import { CloudUpload } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DialogShell } from '../dialog-content/DialogShell';
 import { FileItemRow } from '../dialog-content/FileItemRow';
@@ -15,31 +16,72 @@ const isZipFile = (filename: string) => filename.toLowerCase().endsWith('.zip');
 
 const GLOBAL_ERROR_MESSAGE_KEY = {
   'zip-required': 'Documents.updateDocuments.upload.errors.unsupportedFormat',
+  'single-zip-required':
+    'Documents.updateDocuments.upload.errors.singleZipRequired',
   'upload-failed': 'Documents.updateDocuments.upload.errors.uploadFailed',
   'processing-failed':
     'Documents.updateDocuments.upload.errors.processingFailed',
 } as const satisfies Record<UploadGlobalError, string>;
 
+/**
+ * Keeps multi-file selections out of the single-ZIP update workflow.
+ * Drag previews use item counts; the drop handler validates the actual selection.
+ * @returns Upload controls and feedback for selecting one archive.
+ */
 export const UploadStep = () => {
   const { t } = useTranslation('Project');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { files, isUploading, globalError, addFiles, startUpload, close } =
-    useDocumentsUploadContext();
+  // eslint-disable-next-line no-restricted-syntax -- drag rejection is transient feedback for this drop target.
+  const [isDropRejected, setIsDropRejected] = useState(false);
+  const {
+    files,
+    isUploading,
+    globalError,
+    uploadErrorDetails,
+    addFiles,
+    startUpload,
+    close,
+  } = useDocumentsUploadContext();
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selected = event.target.files ? Array.from(event.target.files) : [];
-    if (selected.length > 0) {
+  const selectFiles = (selected: File[]) => {
+    if (selected.length === 0) {
+      return;
+    }
+    const rejected = selected.length > 1;
+    setIsDropRejected(rejected);
+    if (!rejected) {
       addFiles(selected);
     }
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    selectFiles(event.target.files ? Array.from(event.target.files) : []);
     event.target.value = '';
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const fileCount = Array.from(event.dataTransfer.items).filter(
+      (item) => item.kind === 'file',
+    ).length;
+    const rejected = fileCount > 1;
+    event.dataTransfer.dropEffect = rejected ? 'none' : 'copy';
+    setIsDropRejected(rejected);
+  };
+
+  const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
+    if (
+      event.relatedTarget instanceof Node &&
+      event.currentTarget.contains(event.relatedTarget)
+    ) {
+      return;
+    }
+    setIsDropRejected(false);
   };
 
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
-    const dropped = Array.from(event.dataTransfer.files);
-    if (dropped.length > 0) {
-      addFiles(dropped);
-    }
+    selectFiles(Array.from(event.dataTransfer.files));
   };
 
   const triggerSelect = () => fileInputRef.current?.click();
@@ -49,6 +91,7 @@ export const UploadStep = () => {
   );
 
   const isEmpty = files.length === 0;
+  const displayedError = isDropRejected ? 'single-zip-required' : globalError;
 
   return (
     <DialogShell
@@ -84,7 +127,8 @@ export const UploadStep = () => {
           <div
             className="flex flex-col items-center gap-6 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-10"
             onDrop={handleDrop}
-            onDragOver={(event) => event.preventDefault()}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
           >
             <span className="flex size-8 items-center justify-center p-1">
               <CloudUpload
@@ -125,9 +169,16 @@ export const UploadStep = () => {
           </div>
         )}
 
-        {globalError && (
+        {displayedError && (
           <p role="alert" className="text-[13px] leading-[18px] text-red-700">
-            {t(GLOBAL_ERROR_MESSAGE_KEY[globalError])}
+            {t(
+              displayedError === 'processing-failed'
+                ? zipProcessingFailureMessageKey(
+                    uploadErrorDetails?.workflowFailureCode,
+                    GLOBAL_ERROR_MESSAGE_KEY[displayedError],
+                  )
+                : GLOBAL_ERROR_MESSAGE_KEY[displayedError],
+            )}
           </p>
         )}
 
@@ -135,7 +186,6 @@ export const UploadStep = () => {
           ref={fileInputRef}
           type="file"
           accept={ACCEPTED_FILE_TYPES}
-          multiple
           className="hidden"
           onChange={handleFileChange}
           aria-hidden

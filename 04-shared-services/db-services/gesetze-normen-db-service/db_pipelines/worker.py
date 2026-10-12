@@ -8,7 +8,7 @@ from db_services_shared.models.db.database import (
 )
 from temporal.observability import (
     ObservabilityConfig,
-    TracingMode,  # noqa: F401
+    TracingMode,
     setup_observability,
 )
 
@@ -31,16 +31,16 @@ elif "pytest" not in sys.modules:
         )
     )
 
-import asyncio  # noqa: E402
+import asyncio
 
-from temporal.s3_payload_storage import S3PayloadStorage  # noqa: E402
-from temporal.worker import start_temporal_worker  # noqa: E402
-from temporal.workflows.gesetze_normen.update_rechtsgrundlage import (  # noqa: E402
-    TASK_QUEUE,
+from temporal.registry import (
+    GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW,
 )
+from temporal.s3_payload_storage import S3PayloadStorage
+from temporal.worker import start_temporal_worker
 
-from db_pipelines.config import app_config  # noqa: E402
-from db_pipelines.workflows import make_activities, workflows  # noqa: E402
+from db_pipelines.config import app_config
+from db_pipelines.workflows import make_activities, workflows
 
 
 async def start_worker() -> None:
@@ -57,7 +57,7 @@ async def start_worker() -> None:
         host=ENV.TEMPORAL.HOST,
         workflows=workflows,
         activities=make_activities(sessionmaker=get_async_session_factory()),
-        task_queue=TASK_QUEUE,
+        task_queue=GESETZE_NORMEN_UPDATE_RECHTSGRUNDLAGE_WORKFLOW.task_queue,
         storage=storage,
     )
 

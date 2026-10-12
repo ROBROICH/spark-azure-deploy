@@ -3,14 +3,8 @@ import { retryDocumentsTableReads } from '@/features/project/fvp/data/fvpResultR
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { useDocumentsTree } from '@/features/project/fvp/main-screen/data/read-model/useDocumentsTree';
 import { useRequiredDocumentsTree } from '@/features/project/fvp/main-screen/data/read-model/useRequiredDocuments';
-import { projectAndFilterNodes } from '@/features/project/fvp/main-screen/documents-card/documents-table/DocumentsTable.filters';
 import { FvpTopicAssignmentProvider } from '@/features/project/fvp/main-screen/documents-card/documents-table/FvpTopicAssignmentContext';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import {
-  getRequestItemSourceItemId,
-  getRequestItemSourceType,
-} from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { Button } from '@/features/ui/button/Button';
 import { getRouteApi } from '@tanstack/react-router';
 import {
   type ExpandedState,
@@ -20,12 +14,20 @@ import {
 } from '@tanstack/react-table';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { TreeNode } from '@/features/project/data/document-tree/documentTree.types';
+import {
+  DOCUMENT_STATUS,
+  type TreeNode,
+} from '@/features/project/data/document-tree/documentTree.types';
 import { createColumns } from './columns';
 import { DocumentsTableSkeleton } from './DocumentsTableSkeleton';
 import { DocumentsTableView } from './DocumentsTableView';
 import { useDocumentsTableActions } from './useDocumentsTableActions';
 
+const STATUS_FILTERS = {
+  [DOCUMENT_STATUS.assigned]: 'assigned',
+  [DOCUMENT_STATUS.unassigned]: 'unassigned',
+  [DOCUMENT_STATUS.onRequestList]: 'requested',
+} as const;
 const route = getRouteApi('/verfahren/$verfahrenId/fvp/documents/');
 
 // In preview mode the topic column is hidden, so the topic-assignment provider
@@ -44,8 +46,6 @@ type DocumentsTableProps = {
  * @returns Documents table content, loading skeleton, or collection error state.
  */
 export const DocumentsTable = (props: DocumentsTableProps) => {
-  'use no memo';
-
   const { forceLoading = false } = props;
 
   const { t } = useTranslation('FormalCompletenessCheck');
@@ -68,14 +68,18 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
     }),
   });
 
-  // eslint-disable-next-line no-restricted-syntax -- the parsed search filter must keep stable identity for the compiler-opt-out table state
+  // eslint-disable-next-line no-restricted-syntax -- parsed route filters keep stable identity at the table's query boundary.
   const documentTypeFilter = useMemo(
     () => (documentTypeFilterParam ? documentTypeFilterParam.split(',') : []),
     [documentTypeFilterParam],
   );
-  // eslint-disable-next-line no-restricted-syntax -- the parsed search filter must keep stable identity for the compiler-opt-out table state
+  // eslint-disable-next-line no-restricted-syntax -- parsed route filters keep stable identity at the table's query boundary.
   const statusFilter = useMemo(
-    () => (statusFilterParam ? statusFilterParam.split(',') : []),
+    () =>
+      statusFilterParam?.split(',').flatMap((status) => {
+        const value = STATUS_FILTERS[status as keyof typeof STATUS_FILTERS];
+        return Object.hasOwn(STATUS_FILTERS, status) ? [value] : [];
+      }),
     [statusFilterParam],
   );
   const { canMutateProject } = useCanMutateProject({
@@ -86,16 +90,14 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
     treeData: documentsTreeData,
     isLoading: documentsTreeLoading,
     isError: documentsTreeError,
-  } = useDocumentsTree(verfahrenId);
-  const {
-    data: requestItems,
-    isLoading: requestItemsLoading,
-    isError: requestItemsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, verfahrenId)),
-  );
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useDocumentsTree(verfahrenId, {
+    search: search.trim() || undefined,
+    documentTypeId: documentTypeFilter.length ? documentTypeFilter : undefined,
+    status: statusFilter,
+  });
   const {
     tree: availableDocumentTypesStructured,
     isLoading: requiredTypesLoading,
@@ -119,37 +121,6 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
     setExpanded(allCollapsed ? {} : true);
   }
 
-  // eslint-disable-next-line no-restricted-syntax -- deriving the requested-id set once per request-items change avoids rebuilding table filter inputs in this compiler-opt-out component
-  const requestedIds = useMemo(
-    () =>
-      new Set(
-        requestItems
-          .filter((item) => {
-            const sourceType = getRequestItemSourceType(item);
-            return (
-              sourceType === 'tableOfContents' ||
-              sourceType === 'requiredDocuments'
-            );
-          })
-          .map((item) => getRequestItemSourceItemId(item))
-          .filter((id): id is string => id !== undefined),
-      ),
-    [requestItems],
-  );
-
-  // eslint-disable-next-line no-restricted-syntax -- the projected tree should only change when its real filter inputs change in this compiler-opt-out component
-  const filteredData = useMemo(
-    () =>
-      projectAndFilterNodes(
-        documentsTreeData,
-        search,
-        documentTypeFilter,
-        statusFilter,
-        requestedIds,
-      ),
-    [documentsTreeData, requestedIds, search, documentTypeFilter, statusFilter],
-  );
-
   // eslint-disable-next-line no-restricted-syntax -- column visibility is part of TanStack Table state and should remain stable until the preview selection changes
   const columnVisibility = useMemo(
     () => ({
@@ -164,7 +135,6 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
 
   const {
     handleAddComment,
-    handleConfirmDocumentType,
     handleFileClick,
     handleManageCustomDocumentTypes,
     handleRequestDocument,
@@ -181,7 +151,6 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
         activeDocumentId: previewDocumentId,
         canMutateProject,
         onFileClick: handleFileClick,
-        onConfirmDocumentType: handleConfirmDocumentType,
         onSelectDocumentType: handleSelectDocumentType,
         onManageCustomDocumentTypes: handleManageCustomDocumentTypes,
         onRequestDocument: handleRequestDocument,
@@ -193,7 +162,6 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
       availableDocumentTypesStructured,
       canMutateProject,
       handleAddComment,
-      handleConfirmDocumentType,
       handleFileClick,
       handleManageCustomDocumentTypes,
       handleRequestDocument,
@@ -204,7 +172,7 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
   );
 
   const table = useReactTable({
-    data: filteredData,
+    data: documentsTreeData,
     columns,
     state: {
       expanded: tableExpanded,
@@ -219,10 +187,7 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
   });
 
   const isTableLoading =
-    forceLoading ||
-    documentsTreeLoading ||
-    requestItemsLoading ||
-    requiredTypesLoading;
+    forceLoading || documentsTreeLoading || requiredTypesLoading;
 
   if (isTableLoading) {
     return <DocumentsTableSkeleton />;
@@ -230,17 +195,27 @@ export const DocumentsTable = (props: DocumentsTableProps) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {(documentsTreeError || requestItemsError || requiredTypesError) && (
+      {(documentsTreeError || requiredTypesError) && (
         <CollectionErrorAlert
           onRetry={() => retryDocumentsTableReads(verfahrenId)}
         />
       )}
       <FvpTopicAssignmentProvider
         canMutateProject={canMutateProject}
-        rows={previewDocumentId ? NO_TOPIC_ASSIGNMENT_ROWS : filteredData}
+        rows={previewDocumentId ? NO_TOPIC_ASSIGNMENT_ROWS : documentsTreeData}
       >
         <DocumentsTableView table={table} />
       </FvpTopicAssignmentProvider>
+      {hasNextPage && (
+        <Button
+          variant="secondary"
+          size="sm"
+          disabled={isFetchingNextPage}
+          onClick={() => void fetchNextPage()}
+        >
+          {t('DocumentsCard.loadMore')}
+        </Button>
+      )}
     </div>
   );
 };

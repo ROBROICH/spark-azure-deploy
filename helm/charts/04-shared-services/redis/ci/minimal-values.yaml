@@ -1,0 +1,4 @@
+# ci: authentication with the password from an existing Secret.
+redis:
+  auth:
+    existingSecret: redis-auth

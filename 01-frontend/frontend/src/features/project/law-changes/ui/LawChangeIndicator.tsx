@@ -2,7 +2,10 @@ import { IconChip } from '@/features/ui/icon-chip/IconChip';
 import { useLiveQuery } from '@tanstack/react-db';
 import { TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { lawChangesCollection } from '../data/collections/lawChanges.collection';
+import {
+  lawChangesCollection,
+  useLawChangesServiceUnavailable,
+} from '../data/collections/lawChanges.collection';
 import {
   type LawChangeNormRef,
   type LawChangeRecord,
@@ -16,18 +19,26 @@ type LawChangeIndicatorProps = LawChangeNormRef & {
 
 export type LawChangeIndicatorViewProps = LawChangeIndicatorProps & {
   isErrorLawChanges?: boolean;
+  isServiceUnavailable?: boolean;
   lawChanges: LawChangeRecord[];
 };
 
 export function LawChangeIndicatorView(props: LawChangeIndicatorViewProps) {
   const {
     isErrorLawChanges = false,
+    isServiceUnavailable = false,
     jurabk,
     lawChanges,
     paragraphNr,
     onOpen,
   } = props;
   const { t } = useTranslation('Rpb');
+
+  // The backend being down is an infra outage, not a user-facing error. Degrade
+  // gracefully by hiding the indicator entirely instead of showing an alarm.
+  if (isServiceUnavailable) {
+    return null;
+  }
 
   if (isErrorLawChanges) {
     return <LawChangeCollectionStatusChip />;
@@ -62,11 +73,13 @@ export function LawChangeIndicator(props: LawChangeIndicatorProps) {
   const { data: lawChanges, isError } = useLiveQuery((q) =>
     q.from({ lawChanges: lawChangesCollection }),
   );
+  const isServiceUnavailable = useLawChangesServiceUnavailable();
 
   return (
     <LawChangeIndicatorView
       {...props}
       isErrorLawChanges={isError}
+      isServiceUnavailable={isServiceUnavailable}
       lawChanges={lawChanges}
     />
   );

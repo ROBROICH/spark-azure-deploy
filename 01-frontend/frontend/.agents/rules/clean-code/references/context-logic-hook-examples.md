@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/references/context-logic-hook-examples
+---
+
 # Context Logic Hook Examples
 
 ## Anti-Pattern

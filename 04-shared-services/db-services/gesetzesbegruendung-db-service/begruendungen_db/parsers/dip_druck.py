@@ -3,7 +3,6 @@ from anyascii import anyascii
 from pathlib import Path
 from typing import Any, override
 import json
-import pickle
 
 from pydantic import BaseModel
 from event_logging.enums import (
@@ -27,10 +26,21 @@ from begruendungen_db.schemas.db import (
 from begruendungen_db.parsers.base import BaseProcessor, SkippedDocumentException
 
 from db_services_shared.utils.gesetze_normen import GNDoc
-from db_services_shared.utils.docling import pdf_to_doc, load_cached_doc, DoclingConfig, DoclingException
+from authentification.client_credentials import ClientCredentialsTokenProvider
+from db_services_shared.utils.docling import pdf_to_doc, load_cached_doc, DoclingConfig, DoclingException, docling_auth
 from begruendungen_db.chunking import process_chunks, vectorise_chunks
 import httpx
 from httpx import HTTPError
+
+
+def _load_cached_chunks(cache_path: Path) -> list[Chunk] | None:
+    """read the json embeddings cache, legacy or broken caches count as a miss"""
+    if not cache_path.exists():
+        return None
+    try:
+        return [Chunk(**c) for c in json.loads(cache_path.read_text(encoding="utf-8"))]
+    except (ValueError, TypeError):
+        return None
 
 
 class DocumentMeta(BaseModel):
@@ -47,6 +57,7 @@ class DIPDruckProcessor(BaseProcessor):
     HEADERS = {"accept": "application/json"}
     api_key: str
     docling_config: DoclingConfig
+    docling_auth: ClientCredentialsTokenProvider | None
 
     def __init__(self, base_path: Path, **kwargs: Any) -> None:
         super().__init__(self.BASEURL, base_path, **kwargs)
@@ -62,6 +73,7 @@ class DIPDruckProcessor(BaseProcessor):
         if "docling" not in kwargs:
             raise ValueError("Docling configuration is required to process documents")
         self.docling_config = DoclingConfig(**kwargs["docling"])
+        self.docling_auth = docling_auth(self.docling_config)
         kwargs.pop("docling")
 
 
@@ -277,7 +289,7 @@ class DIPDruckProcessor(BaseProcessor):
                 docling_doc = load_cached_doc(pdf_path.with_suffix(".docling"))
             else:
                 try:
-                    docling_doc = pdf_to_doc(pdf_path, self.docling_config)
+                    docling_doc = pdf_to_doc(pdf_path, self.docling_config, self.docling_auth)
                 except DoclingException as e:
                     # self.logger.warning(f"could not convert pdf {pdf_path}: {e}")
                     raise e
@@ -288,18 +300,14 @@ class DIPDruckProcessor(BaseProcessor):
 
             # self.logger.debug("processing chunks")
             embeddings_cache_path = pdf_path.with_suffix(".embeddings")
-            if embeddings_cache_path.exists():
-                # self.logger.debug("loading cached embeddings")
-                with open(embeddings_cache_path, "rb") as f:
-                    raw_chunks = pickle.load(f)  # nosec B301 - cache wird nur lokal genutzt
-                    # reload data only because old relationships get cached in pickle
-                    chunks = [Chunk(**c.model_dump()) for c in raw_chunks]
-            else:
+            chunks = _load_cached_chunks(embeddings_cache_path)
+            if chunks is None:
                 raw_chunks = process_chunks(docling_doc, doc["dokumentnummer"])
                 # self.logger.debug("vectorising chunks")
                 chunks = vectorise_chunks(raw_chunks, jurabk)
-                with open(embeddings_cache_path, "wb") as f:
-                    pickle.dump(chunks, f)
+                embeddings_cache_path.write_text(
+                    json.dumps([c.model_dump() for c in chunks], ensure_ascii=False), encoding="utf-8"
+                )
             opt_args["chunks"] = chunks
 
         optional_arguments = ["vorgangsbezug_anzahl", "wahlperiode", "pdf_hash"]

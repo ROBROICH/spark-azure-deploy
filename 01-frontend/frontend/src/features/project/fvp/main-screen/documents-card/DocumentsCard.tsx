@@ -67,14 +67,18 @@ export const DocumentsCard = (props: DocumentsCardProps) => {
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex items-start gap-6">
+      <div className="flex flex-col items-start gap-6 sm:flex-row">
         <div
-          className={showPreview ? 'min-w-0 flex-1 overflow-x-clip' : 'w-full'}
+          className={
+            showPreview
+              ? 'w-full min-w-0 overflow-x-clip sm:flex-1'
+              : 'w-full min-w-0 overflow-x-clip'
+          }
         >
           <DocumentsTable forceLoading={isDocumentsBusy} />
         </div>
         {showPreview && (
-          <div className="sticky top-8 h-[min(64rem,calc(100dvh-8rem))] w-1/2 shrink-0 self-start">
+          <div className="top-8 h-auto w-full shrink-0 self-start sm:sticky sm:h-[min(64rem,calc(100dvh-8rem))] sm:w-1/2">
             <PdfPreview />
           </div>
         )}

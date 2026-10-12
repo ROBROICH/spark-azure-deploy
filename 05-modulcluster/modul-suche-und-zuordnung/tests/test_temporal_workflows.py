@@ -2,7 +2,7 @@
 Tests for Temporal workflow input/output models.
 """
 
-from temporal.workflows.modul_suche_und_zuordnung.types import NormData
+from temporal.contracts import SucheZuordnungNormData as NormData
 
 from src.workflows.match_single_tbm_workflow import (
     MatchSingleTBMWorkflowInput,

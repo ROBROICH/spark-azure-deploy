@@ -1,0 +1,34 @@
+{
+  "name": "@spark-workflow/node-crud",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "test": "bun test --preload @spark-workflow/test-support/evlog-disabled --isolate --dots",
+    "test:postgres": "AUTH_MODE=disabled bun test test/real-postgres.test.ts test/real-postgres-audit-disabled.test.ts",
+    "typecheck": "tsgo --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@spark-workflow/http-host": "workspace:*",
+    "@spark-workflow/resource": "workspace:*",
+    "@spark-workflow/audit-client": "workspace:*",
+    "@spark-workflow/authentification": "workspace:*",
+    "@sinclair/typebox": "0.34.52",
+    "better-result": "3.0.1",
+    "drizzle-orm": "0.45.2",
+    "drizzle-typebox": "0.3.3",
+    "elysia": "1.4.29",
+    "es-toolkit": "catalog:",
+    "evlog": "2.25.0"
+  },
+  "devDependencies": {
+    "@spark-workflow/test-support": "workspace:*",
+    "@spark-workflow/postgres-runtime": "workspace:*",
+    "@types/bun": "1.4.0",
+    "@typescript/native-preview": "7.0.0-dev.20260425.1",
+    "typescript": "5.9.3"
+  }
+}

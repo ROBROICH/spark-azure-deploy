@@ -1,17 +1,19 @@
 import { buildDocumentsTree } from '@/features/project/data/document-tree/buildDocumentsTree';
-import { useDocuments } from './useDocuments';
+import { useDocuments, type DocumentListFilters } from './useDocuments';
 import { useRequiredDocumentTypes } from './useRequiredDocuments';
 
-/**
- * Builds the hierarchical documents tree from API-backed collections.
- * Merges DMS files with FCS results and required document types.
- */
-export const useDocumentsTree = (projectId: string) => {
+export const useDocumentsTree = (
+  projectId: string,
+  filters: DocumentListFilters = {},
+) => {
   const {
     documents: files,
     isLoading: filesLoading,
     isError: filesError,
-  } = useDocuments(projectId);
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useDocuments(projectId, filters);
   const {
     documentTypes: requiredTypes,
     isLoading: typesLoading,
@@ -25,5 +27,8 @@ export const useDocumentsTree = (projectId: string) => {
     isLoading: filesLoading || typesLoading,
     isError: filesError || typesError,
     sourceDocumentsCount: files.length,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   };
 };

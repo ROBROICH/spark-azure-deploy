@@ -17,6 +17,7 @@ from src.models.schemas import (
     PageTextData,
 )
 from src.services.pdf_extractor import extract_all_texts
+from src.services.pdf_sanitizer import sanitize_pdf
 from src.services.pii_matcher import fuzzy_search_pdf
 from src.services.presidio_detector import detect_pii_in_lines
 from src.services.redactor import redact_pdf
@@ -52,7 +53,7 @@ def apply_redactions(inp: ApplyRedactionsInput) -> ApplyRedactionsResult:
     """Apply PII redactions to all pages of a PDF.
 
     Performs fuzzy matching per page, then delegates to the rasterize-and-blackout
-    redaction pipeline.
+    redaction pipeline. Every output is sanitized to remove hidden data containers.
     """
     pii_terms = inp.pii_terms
     error_pages = list(inp.error_pages)
@@ -67,12 +68,11 @@ def apply_redactions(inp: ApplyRedactionsInput) -> ApplyRedactionsResult:
             activity.logger.info("Removed %d digital signature(s)", signatures_removed)
 
     if not pii_terms:
-        # No terms to match — return the signature-stripped PDF.
         doc = pdfium.PdfDocument(working_pdf)
         num_pages = len(doc)
         doc.close()
         return ApplyRedactionsResult(
-            redacted_pdf=working_pdf,
+            redacted_pdf=sanitize_pdf(working_pdf),
             pages_processed=num_pages,
             matches_found=0,
             error_pages=error_pages,
@@ -111,7 +111,7 @@ def apply_redactions(inp: ApplyRedactionsInput) -> ApplyRedactionsResult:
     )
 
     return ApplyRedactionsResult(
-        redacted_pdf=redacted_bytes,
+        redacted_pdf=sanitize_pdf(redacted_bytes),
         pages_processed=num_pages,
         matches_found=total_matches,
         error_pages=error_pages,

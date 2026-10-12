@@ -34,7 +34,7 @@ type DialogShellProps = {
    */
   lockClose?: boolean;
   children: ReactNode;
-  footer: ReactNode;
+  footer?: ReactNode;
 };
 
 const WIDTH_CLASS = {
@@ -129,9 +129,11 @@ export const DialogShell = (props: DialogShellProps) => {
         </div>
       )}
       <div className="flex flex-1 flex-col overflow-hidden">{children}</div>
-      <div className="flex items-center justify-between gap-2 border-t border-slate-200 p-2">
-        {footer}
-      </div>
+      {footer && (
+        <div className="flex items-center justify-between gap-2 border-t border-slate-200 p-2">
+          {footer}
+        </div>
+      )}
     </DialogContent>
   );
 };

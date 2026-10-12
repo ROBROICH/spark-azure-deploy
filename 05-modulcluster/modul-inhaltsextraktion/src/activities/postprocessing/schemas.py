@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import BaseModel
 from temporal import Base64Bytes
-from temporal.workflows.inhaltsextraktion.types import BaseMetadata, SummaryData
+from temporal.contracts import BaseMetadata, SummaryData
 
 from src.providers.base import ContentItemDict
 from src.schemas import Chunk, DocumentTopic, ProcessedDocument

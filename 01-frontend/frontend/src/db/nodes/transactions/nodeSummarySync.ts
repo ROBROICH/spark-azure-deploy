@@ -12,8 +12,8 @@ type SummarySyncNode = PersistedNodeChanges['inserted'][number];
 
 const hasFrontendParentIds = (
   node: SummarySyncNode,
-): node is SummarySyncNode & { frontend_parent_ids: string[] } =>
-  'frontend_parent_ids' in node && Array.isArray(node.frontend_parent_ids);
+): node is SummarySyncNode & { frontendParentIds: string[] } =>
+  'frontendParentIds' in node && Array.isArray(node.frontendParentIds);
 
 export const syncUpdatedSummaries = (
   nodesCollection: NodeSummaryCollection,
@@ -34,7 +34,7 @@ export const syncUpdatedSummaries = (
     return [
       {
         ...existingSummary,
-        frontend_parent_ids: updatedNode.frontend_parent_ids,
+        frontendParentIds: updatedNode.frontendParentIds,
       },
     ];
   });
@@ -58,9 +58,9 @@ export const syncInsertedSummaries = (
     return [
       {
         id: insertedNode.id,
-        node_type: insertedNode.node_type,
+        nodeType: insertedNode.nodeType,
         parents: [],
-        frontend_parent_ids: insertedNode.frontend_parent_ids,
+        frontendParentIds: insertedNode.frontendParentIds,
         compositeKey: toCompositeKey(insertedNode),
       } as unknown as NodeSummaryCollectionItem,
     ];

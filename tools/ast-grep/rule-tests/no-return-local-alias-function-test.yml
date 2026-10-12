@@ -1,0 +1,150 @@
+id: no-return-local-alias-function
+
+invalid:
+  - |
+    function computeMac(payload: string): string {
+      const mac = computeArtifactMac(payload);
+      return mac;
+    }
+
+  - |
+    const computeMac = (payload: string): string => {
+      const mac = computeArtifactMac(payload);
+      return mac;
+    };
+
+  - |
+    const makeThing = function (input: string) {
+      const thing = buildThing(input);
+      return thing;
+    };
+
+  - |
+    function withType(input: string): Thing {
+      const thing: Thing = buildThing(input);
+      return thing;
+    }
+
+  - |
+    const column = {
+      id() {
+        const id = uuid("id");
+        return id;
+      },
+    };
+
+  - |
+    class ThingService {
+      makeThing(input: string) {
+        const thing = buildThing(input);
+        return thing;
+      }
+    }
+
+  - |
+    function computeMacWithComments(payload: string): string {
+      // Compute the stable artifact key.
+      const mac = computeArtifactMac(payload);
+      // Return the computed key.
+      return mac;
+      // Keep this wrapper explicit.
+    }
+
+  - |
+    const makeThingWithEmptyStatement = (input: string): Thing => {
+      const thing = buildThing(input);
+      ;
+      return thing;
+    };
+
+  - |
+    class CommentedThingService {
+      makeThing(input: string) {
+        // Build the requested thing.
+        ;
+        const thing: Thing = buildThing(input);
+        ;
+        // Return the same thing.
+        return thing;
+        ;
+      }
+    }
+
+  - |
+    function makeMutableThing(input: string) {
+      let thing = buildThing(input);
+      return thing;
+    }
+
+  - |
+    class VarThingService {
+      makeThing(input: string) {
+        var thing = buildThing(input);
+        return thing;
+      }
+    }
+
+valid:
+  - |
+    function realBody(input: string): Thing {
+      const raw = buildThing(input);
+      validateThing(raw);
+      return raw;
+    }
+
+  - |
+    function realBodyWithTrivia(input: string): Thing {
+      const raw = buildThing(input);
+      ;
+      // Validation is semantic work.
+      validateThing(raw);
+      return raw;
+    }
+
+  - |
+    function returnDifferentLocal(input: string): Thing {
+      const thing = buildThing(input);
+      return input;
+    }
+
+  - |
+    function returnDestructuredLocal(input: string): Thing {
+      const { thing } = buildResult(input);
+      return thing;
+    }
+
+  - |
+    const loadRows = async (input: string) => {
+      const rows = await queryRows(input);
+      return rows;
+    };
+
+  - |
+    function genericAlias<T>(input: T) {
+      const thing = buildThing(input);
+      return thing;
+    }
+
+  - |
+    const returnTypedExpression = function (input: string): Thing {
+      const thing = buildThing(input);
+      return thing;
+    };
+
+  - |
+    const mutableArrowAlias = (input: string) => {
+      let thing = buildThing(input);
+      return thing;
+    };
+
+  - |
+    const varArrowAlias = (input: string) => {
+      var thing = buildThing(input);
+      return thing;
+    };
+
+  - |
+    const typedArrowAlias = (input: string) => {
+      const thing: Thing = buildThing(input);
+      return thing;
+    };

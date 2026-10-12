@@ -1,5 +1,7 @@
 """Prompt template for Satz-Kategorie classification."""
 
+from src.activities.prompt_blocks import closing_block
+
 satz_kategorie_prompt = """ 
 **Rolle**  
 Du bist ein Rechtsspezialist, der darauf spezialisiert ist, einzelne Sätze aus juristischen Normen zu analysieren und diese in ihre entsprechende rechtsmethodische Funktion zu kategorisieren.
@@ -84,10 +86,6 @@ Alle Sätze, die keiner der oben genannten Kategorien zugeordnet werden können.
 
 **Anwendung**  
 Analysiere den folgenden Satz: 
-{external_data_tag_open}
-{satz_text}
-{external_data_tag_close}
-
-**Formatierung**  
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "{satz_text}",
+)

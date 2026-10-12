@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a08-protect-software-and-data-integrity
+---
+
 # OWASP A08: Protect Software and Data Integrity
 
 - Covers OWASP A08 Software and Data Integrity Failures.

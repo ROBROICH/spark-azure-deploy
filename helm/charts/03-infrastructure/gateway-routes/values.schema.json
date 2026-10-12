@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "gateway-routes values",
+  "type": "object",
+  "properties": {
+    "domain": {"type": ["string", "null"]},
+    "baseDomain": {"type": ["string", "null"]},
+    "hosts": {"type": "object", "additionalProperties": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}]}},
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "name": {"type": "string"},
+        "namespace": {"type": "string"},
+        "sectionName": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}]},
+        "httpSectionName": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}]},
+        "sectionNames": {"type": ["object", "null"], "additionalProperties": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1}]}}
+      }
+    },
+    "listenerSet": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "httpsPort": {"type": "integer"},
+        "httpPort": {"type": "integer"},
+        "tls": {"type": "object", "properties": {"certificate": {"type": "object", "properties": {"enabled": {"type": "boolean"}, "issuerRef": {"type": "object", "properties": {"kind": {"enum": ["Issuer", "ClusterIssuer"]}}}}}}}
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "keycloakHost": {"type": ["string", "null"]},
+        "realm": {"type": ["string", "null"]},
+        "clientID": {"type": "string"},
+        "allowedRoles": {"type": "array", "items": {"type": "string"}},
+        "audiences": {"type": ["array", "null"], "items": {"type": "string"}}
+      }
+    },
+    "cors": {"type": "object", "properties": {"allowOrigins": {"type": ["array", "null"], "items": {"type": "string"}}, "allowCredentials": {"type": "boolean"}}},
+    "oidc": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {"sameSite": {"enum": ["Strict", "Lax", "None"]}, "scopes": {"type": "array", "items": {"type": "string"}}}
+      }
+    },
+    "backendServicePort": {"type": "integer"},
+    "routes": {"type": "object", "additionalProperties": {"type": "object", "properties": {"enabled": {"type": "boolean"}}}},
+    "landing": {"type": "object", "properties": {"enabled": {"type": "boolean"}}},
+    "extraDashboards": {
+      "type": ["object", "null"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["hosts"],
+        "properties": {
+          "hosts": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "frontend": {"type": "object", "properties": {"chart": {"type": "string", "minLength": 1}}},
+          "landing": {"type": "boolean"},
+          "oidc": {"type": ["object", "null"], "properties": {"sameSite": {"enum": ["Strict", "Lax", "None"]}, "scopes": {"type": "array", "items": {"type": "string"}}}}
+        }
+      }
+    },
+    "extraRoutes": {
+      "type": ["object", "null"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["group", "matches", "chart"],
+        "properties": {
+          "group": {"type": "string", "minLength": 1},
+          "hosts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "sectionNames": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "matches": {"type": "array", "minItems": 1, "items": {"type": "object"}},
+          "rewrite": {"type": ["string", "null"]},
+          "chart": {"type": "string", "minLength": 1},
+          "port": {"type": "integer", "minimum": 1, "maximum": 65535}
+        }
+      }
+    },
+    "extraSites": {
+      "type": ["object", "null"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["hosts", "chart"],
+        "properties": {
+          "hosts": {"type": "array", "items": {"type": "string", "minLength": 1}, "minItems": 1},
+          "chart": {"type": "string", "minLength": 1},
+          "port": {"type": "integer", "minimum": 1, "maximum": 65535},
+          "oidc": {"type": ["object", "null"], "properties": {"sameSite": {"enum": ["Strict", "Lax", "None"]}, "scopes": {"type": "array", "items": {"type": "string"}}}}
+        }
+      }
+    },
+    "temporalAuthorization": {"type": "object", "properties": {"enabled": {"type": "boolean"}}}
+  }
+}

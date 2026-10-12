@@ -1,0 +1,90 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /me freezes normalized claims and meaningful auth failures: normalized responses 1`] = `
+[
+  {
+    "body": {
+      "email": "ada.admin@example.test",
+      "firstName": "Ada",
+      "lastName": "Admin",
+      "role": "admin",
+      "userId": "30000000-0000-0000-0000-000000000001",
+    },
+    "id": "complete-admin",
+    "status": 200,
+  },
+  {
+    "body": {
+      "email": "unnamed.user@example.test",
+      "firstName": null,
+      "lastName": null,
+      "role": "user",
+      "userId": "30000000-0000-0000-0000-000000000002",
+    },
+    "id": "optional-names-user",
+    "status": 200,
+  },
+  {
+    "body": {
+      "email": "fixture.service@example.test",
+      "firstName": "Fixture",
+      "lastName": "Service",
+      "role": "service",
+      "userId": "30000000-0000-0000-0000-000000000003",
+    },
+    "id": "complete-service",
+    "status": 200,
+  },
+  {
+    "id": "missing-current-user",
+    "status": 401,
+  },
+  {
+    "id": "missing-email",
+    "status": 401,
+  },
+  {
+    "id": "missing-credential",
+    "status": 401,
+  },
+  {
+    "id": "invalid-credential",
+    "status": 401,
+  },
+  {
+    "id": "unsupported-role",
+    "status": 403,
+  },
+]
+`;
+
+exports[`GET /users freezes pagination, filtering, exact search, no-match, and provider failure: stable responses 1`] = `
+[
+  {
+    "body": {
+      "users": [
+        {
+          "email": "alice@example.test",
+          "firstName": "Alice",
+          "lastName": "Fixture",
+          "role": "user",
+          "userId": "10000000-0000-0000-0000-000000000001",
+        },
+      ],
+    },
+    "id": "search",
+    "status": 200,
+  },
+  {
+    "body": {
+      "users": [],
+    },
+    "id": "no-match",
+    "status": 200,
+  },
+  {
+    "id": "provider-error",
+    "status": 500,
+  },
+]
+`;

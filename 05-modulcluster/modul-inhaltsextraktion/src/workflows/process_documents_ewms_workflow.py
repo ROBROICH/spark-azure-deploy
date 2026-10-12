@@ -10,23 +10,24 @@ their scan status.
 import asyncio
 from datetime import timedelta
 
-from temporal.workflows.inhaltsextraktion.types import (
-    PROCESS_DOCUMENTS_EWMS_WORKFLOW_ID,
+from temporal.contracts import (
     ProcessDocumentsEWMSWorkflowInput,
     ProcessDocumentsEWMSWorkflowOutput,
     SingleDocumentEWMSWorkflowOutput,
 )
+from temporal.registry import INHALTSEXTRAKTION_PROCESS_DOCUMENTS_EWMS_WORKFLOW
+from temporal.utils import sliding_window_collect_failures
 from temporalio import workflow
 from temporalio.common import WorkflowIDReusePolicy
+from temporalio.exceptions import ApplicationError
 
 from src.activities.dms_activities import DmsFileInfo, dms_get_file_metadata
 from src.config import snapshot_config
 from src.env import ENV
-from src.utils.sliding_window import sliding_window
 from src.workflows.single_document_workflow_ewms import SingleDocumentEWMSWorkflow, SingleDocumentEWMSWorkflowInput
 
 
-@workflow.defn(name=PROCESS_DOCUMENTS_EWMS_WORKFLOW_ID)
+@workflow.defn(name=INHALTSEXTRAKTION_PROCESS_DOCUMENTS_EWMS_WORKFLOW.name)
 class ProcessDocumentsEWMSWorkflow:
     """Orchestrator workflow for batch processing DMS documents.
 
@@ -41,13 +42,13 @@ class ProcessDocumentsEWMSWorkflow:
     async def run(self, input: ProcessDocumentsEWMSWorkflowInput) -> ProcessDocumentsEWMSWorkflowOutput:
         """Executes the batch document processing pipeline."""
         snapshot_config()
+        bounded_retries = workflow.patched("bound-process-documents-ewms-retries")
         workflow_start_time = workflow.now()
 
         workflow.logger.info(
             f"Starting batch document processing for project: {input.project_id}. Total files: {len(input.file_ids)}"
         )
 
-        # Step 1: Fetch metadata for all requested documents concurrently
         file_infos: list[DmsFileInfo] = await asyncio.gather(
             *[dms_get_file_metadata(file_id) for file_id in input.file_ids]
         )
@@ -73,18 +74,22 @@ class ProcessDocumentsEWMSWorkflow:
                 task_timeout=timedelta(seconds=60),
             )
 
-        # Step 2: Execute single document workflows concurrently via sliding window
         results: list[SingleDocumentEWMSWorkflowOutput] = []
-        ok, failed = await sliding_window(file_infos, execute_single_doc, max_concurrency)
+        ok, failed = await sliding_window_collect_failures(file_infos, execute_single_doc, max_concurrency)
         results.extend(ok)
 
-        # Step 3: Retry any failed document workflows
         while failed:
             workflow.logger.info(f"Retrying {len(failed)} failed document workflows...")
-            new_results, failed = await sliding_window(failed, execute_single_doc, max_concurrency)
-            results.extend(new_results)
+            retry_results, failed = await sliding_window_collect_failures(failed, execute_single_doc, max_concurrency)
+            results.extend(retry_results)
+            if bounded_retries and failed:
+                raise ApplicationError(
+                    f"{len(failed)} of {len(file_infos)} document(s) failed after one retry: "
+                    f"{[file_info.filename for file_info in failed]}",
+                    type="DocumentProcessingFailed",
+                    non_retryable=True,
+                )
 
-        # Step 4: Calculate total duration and return aggregated results
         workflow_end_time = workflow.now()
         total_duration_seconds = (workflow_end_time - workflow_start_time).total_seconds()
         workflow.logger.info(

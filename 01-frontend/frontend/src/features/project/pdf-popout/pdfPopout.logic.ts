@@ -81,29 +81,6 @@ export const buildPdfFileTree = (files: ProjectPdfFile[]) => {
   return mapDocumentFileTreeToPdfTree(documentTree.children);
 };
 
-export const findPdfFileIdByTitle = (
-  files: ProjectPdfFile[],
-  title: string,
-): string | undefined => {
-  const normalizedTitle = title.trim().toLocaleLowerCase('de');
-  if (!normalizedTitle) {
-    return undefined;
-  }
-
-  const exactMatch = files.find(
-    (file) => file.title.toLocaleLowerCase('de') === normalizedTitle,
-  );
-  if (exactMatch) {
-    return exactMatch.id;
-  }
-
-  const basenameMatch = files.find((file) => {
-    const basename = file.path.split('/').pop() ?? file.title;
-    return basename.toLocaleLowerCase('de') === normalizedTitle;
-  });
-  return basenameMatch?.id;
-};
-
 export const createInitialPdfPanes = (connectedFileId?: string): PdfPane[] => [
   {
     id: 'connected-pane',

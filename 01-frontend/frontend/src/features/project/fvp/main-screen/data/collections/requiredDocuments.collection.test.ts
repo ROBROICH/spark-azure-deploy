@@ -6,16 +6,15 @@ const mocks = vi.hoisted(() => ({
   invalidateQueries: vi.fn(),
 }));
 
-vi.mock('@/api-clients/fcs-module', () => ({
-  createRequiredDocumentTypeProjectIdRequiredDocumentTypesPost: vi.fn(),
-  deleteRequiredDocumentTypeProjectIdRequiredDocumentTypesDocumentTypeIdDelete:
-    (...args: unknown[]) => mocks.deleteRequiredDocumentType(...args),
-  patchRequiredDocTypeProjectIdRequiredDocumentTypesDocumentTypeIdPatch:
-    vi.fn(),
+vi.mock('@/api-clients/backend', () => ({
+  v1FormalCompletenessCreateRequiredDocumentType: vi.fn(),
+  v1FormalCompletenessDeleteRequiredDocumentType: (...args: unknown[]) =>
+    mocks.deleteRequiredDocumentType(...args),
+  v1FormalCompletenessPatchRequiredDocumentType: vi.fn(),
 }));
 
-vi.mock('@/api-clients/fcs-module/@tanstack/react-query.gen', () => ({
-  getRequiredDocumentTypesProjectIdRequiredDocumentTypesGetOptions: vi.fn(),
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1FormalCompletenessGetRequiredDocumentTypesOptions: vi.fn(),
 }));
 
 vi.mock('@/integrations/tanstack-query/root-provider', () => ({
@@ -59,7 +58,7 @@ describe('requiredDocumentsCollection.onDelete (H2)', () => {
     await onDelete({ transaction });
 
     expect(mocks.deleteRequiredDocumentType).toHaveBeenCalledWith({
-      path: { project_id: 'project-1', document_type_id: 'doc-1' },
+      path: { projectId: 'project-1', documentTypeId: 'doc-1' },
       throwOnError: true,
     });
   });

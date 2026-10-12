@@ -1,5 +1,7 @@
 """Prompt template for explicit Verweise identification."""
 
+from src.activities.prompt_blocks import closing_block
+
 verweis_agent_prompt_explizit = """
 **Rolle**
 Du bist ein hochspezialisierter juristischer Experte für die Analyse und Strukturierung von expliziten Verweisen in Gesetzestexten. 
@@ -19,7 +21,7 @@ Dein Ziel ist es, alle relevanten expliziten Verweise aus den gegebenen Tatbesta
     - Beispiele: "§ 54 Absatz 1 BNatSchG", "Artikel 3 GG"
     - Bestandteile können sein: Gesetz, Paragraph, Absatz, Satz, Anhang, Artikel, Richtlinie, Verordnung, technische Norm sowie Untergliederungen von Absätzen oder Sätzen (z. B. Nummern, Buchstaben, Doppelbuchstaben usw.)
     - Hinweis: Wenn mehrere Untergliederungen zu einem Satz oder Absatz gehören, sind sie als Liste im Feld "untergliederung" in hierarchischer Reihenfolge auszugeben.
-    - Beachte: Wenn ein Paragraph oder Absatz ohne Gesetzesnennung referenziert wird, verwende das übergebene {gesetz} bzw. {paragraph_nr} als Fallback
+    - Beachte: Wenn ein Paragraph oder Absatz ohne Gesetzesnennung referenziert wird, verwende das übergebene {external_data_tag_open}{gesetz}{external_data_tag_close} bzw. {external_data_tag_open}{paragraph_nr}{external_data_tag_close} als Fallback
 
 **Vorgehen**
 1. Sequenzielle Analyse der Tatbestandsmerkmale und der Rechtsfolge
@@ -38,8 +40,8 @@ Dein Ziel ist es, alle relevanten expliziten Verweise aus den gegebenen Tatbesta
   - Beachte außerdem Untergliederungen von Absätzen oder Sätzen (z. B. Nummern, Buchstaben, Doppelbuchstaben usw.).
   - Untergliederungen müssen in der im Text vorkommenden bzw. hierarchischen Reihenfolge ausgegeben werden.
   - Extrahiere die relevanten Informationen präzise, ohne führende Begriffe.
-  - Wenn ein Paragraph ohne Gesetzesnennung referenziert wird, verwende das übergebene {gesetz} als Kontext.
-  - Wenn ein Absatz oder Satz ohne Gesetzes- und Paragraphennennung referenziert wird, verwende sowohl das übergebene {gesetz} als auch den übergebenen {paragraph_nr} als Kontext.
+  - Wenn ein Paragraph ohne Gesetzesnennung referenziert wird, verwende das übergebene {external_data_tag_open}{gesetz}{external_data_tag_close} als Kontext.
+  - Wenn ein Absatz oder Satz ohne Gesetzes- und Paragraphennennung referenziert wird, verwende sowohl das übergebene {external_data_tag_open}{gesetz}{external_data_tag_close} als auch den übergebenen {external_data_tag_open}{paragraph_nr}{external_data_tag_close} als Kontext.
 
 3. Strukturierung der Ausgabe
   - Erstelle für jeden identifizierten expliziten Verweis einen separaten Eintrag in der Liste unter dem Schlüssel "verweise" im Output-Dictionary.
@@ -466,15 +468,11 @@ Ausgabe:
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und extrahiere alle expliziten Verweise aus den folgenden Listen von Tatbestandsmerkmalen und der separaten Rechtsfolge:
-{external_data_tag_open}
-- Tatbestandsmerkmale: {atomare_tatbestandsmerkmale}
-- Rechtsfolge: {rechtsfolge}
-
-Berücksichtige dabei die folgenden Kontextinformationen:
-- Übergebenes Gesetz: {gesetz}
-- Übergebener Paragraph: {paragraph_nr}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- Tatbestandsmerkmale: {atomare_tatbestandsmerkmale}",
+    "- Rechtsfolge: {rechtsfolge}",
+    "",
+    "Berücksichtige dabei die folgenden Kontextinformationen:",
+    "- Übergebenes Gesetz: {gesetz}",
+    "- Übergebener Paragraph: {paragraph_nr}",
+)

@@ -2,7 +2,7 @@ import { measureGraphPerf } from '@/db/nodes/graphPerf';
 import type { ProjectNodeIndex } from '@/db/nodes/examinationGraphModel';
 import type { NodeRef } from '@/db/nodes/types';
 
-type FundstelleRef = NodeRef & { node_type: 'fundstelle' };
+type FundstelleRef = NodeRef & { nodeType: 'fundstelle' };
 
 const createDocumentNormPairKey = (documentId: string, normId: string) => {
   return `${documentId}\u0000${normId}`;
@@ -68,7 +68,7 @@ const collectAncestorIds = (
 const collectAncestorIdsByType = (
   index: ProjectNodeIndex,
   startId: string,
-  nodeType: NodeRef['node_type'],
+  nodeType: NodeRef['nodeType'],
   ancestorIdsByNodeId: Map<string, ReadonlySet<string>>,
 ) => {
   const matchingAncestorIds = new Set<string>();
@@ -82,7 +82,7 @@ const collectAncestorIdsByType = (
   for (const ancestorId of ancestorIds) {
     const ancestor = index.nodeById.get(ancestorId);
 
-    if (ancestor?.node_type === nodeType) {
+    if (ancestor?.nodeType === nodeType) {
       matchingAncestorIds.add(ancestor.id);
     }
   }

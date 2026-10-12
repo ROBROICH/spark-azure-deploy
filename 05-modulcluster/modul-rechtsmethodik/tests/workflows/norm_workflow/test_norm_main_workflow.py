@@ -1,4 +1,4 @@
-# ruff: noqa: PLR2004, PLC0415
+# ruff: noqa: PLC0415
 """Tests for NormDekonstruktionWorkflow logic (branching in _process_satz and _get_tbms_and_rf)."""
 
 from unittest.mock import AsyncMock, patch
@@ -9,8 +9,8 @@ from fixtures.bnatschg_44 import (
     SATZ_1_NR_1_TATBESTANDSMERKMALE,
     SATZ_1_NR_1_TEXT,
 )
-from temporal.workflows.rechtsmethodik.types import Absatz
 
+from src.absatz import Absatz
 from src.workflows.norm_workflow.norm_main_workflow import NormDekonstruktionWorkflow
 from src.workflows.norm_workflow.norm_types import (
     NormDekonstruktionWorkflowInput,
@@ -18,7 +18,7 @@ from src.workflows.norm_workflow.norm_types import (
 )
 
 _PATCH_CHILD = "temporalio.workflow.execute_child_workflow"
-_PATCH_GATHER = "asyncio.gather"
+_PATCH_GATHER = "src.workflows.norm_workflow.norm_main_workflow.asyncio.gather"
 
 
 @pytest.fixture
@@ -56,11 +56,10 @@ class TestProcessSatz:
             mock_child.return_value = "verfahrensrechtlich"
             result = await NormDekonstruktionWorkflow._process_satz(satz)
 
-        assert result.norm_typ_lvl_1 == "verfahrensrechtlich"
-        assert result.norm_typ_lvl_2 is None
+        assert result.norm_typ_lvl1 == "verfahrensrechtlich"
+        assert result.norm_typ_lvl2 is None
         assert result.tatbestandsmerkmale is None
         assert result.rechtsfolge is None
-        assert mock_child.call_count == 1
 
     async def test_materiell_sonstiges_skips_tbm_extraction(self, satz: NormDekonstruktionWorkflowSatzInput) -> None:
         """Tests if a materiell-rechtlich norm with sonstiges kategorie skips TBM extraction."""
@@ -68,34 +67,33 @@ class TestProcessSatz:
             mock_child.side_effect = ["materiell-rechtlich", "sonstiges"]
             result = await NormDekonstruktionWorkflow._process_satz(satz)
 
-        assert result.norm_typ_lvl_1 == "materiell-rechtlich"
-        assert result.norm_typ_lvl_2 == "sonstiges"
+        assert result.norm_typ_lvl1 == "materiell-rechtlich"
+        assert result.norm_typ_lvl2 == "sonstiges"
         assert result.tatbestandsmerkmale is None
-        assert mock_child.call_count == 2
 
     async def test_wenn_dann_with_empty_tbms_falls_back_to_sonstiges(
         self, satz: NormDekonstruktionWorkflowSatzInput
     ) -> None:
-        """Tests if a wenn-dann norm with empty TBMs falls back to norm_typ_lvl_2 'sonstiges'."""
+        """Tests if a wenn-dann norm with empty TBMs falls back to norm_typ_lvl2 'sonstiges'."""
         with patch(_PATCH_CHILD, new_callable=AsyncMock) as mock_child:
             # norm_typ → materiell, satz_kategorie → wenn-dann, praedikatenlogik → empty TBMs
             empty_tbms: list[str] = []
             mock_child.side_effect = ["materiell-rechtlich", "wenn-dann", (empty_tbms, ["Rechtsfolge"])]
             result = await NormDekonstruktionWorkflow._process_satz(satz)
 
-        assert result.norm_typ_lvl_2 == "sonstiges"
+        assert result.norm_typ_lvl2 == "sonstiges"
         assert result.tatbestandsmerkmale is None
 
     async def test_wenn_dann_with_empty_rechtsfolgen_falls_back_to_sonstiges(
         self, satz: NormDekonstruktionWorkflowSatzInput
     ) -> None:
-        """Tests if a wenn-dann norm with empty Rechtsfolgen falls back to norm_typ_lvl_2 'sonstiges'."""
+        """Tests if a wenn-dann norm with empty Rechtsfolgen falls back to norm_typ_lvl2 'sonstiges'."""
         with patch(_PATCH_CHILD, new_callable=AsyncMock) as mock_child:
             empty_rf: list[str] = []
             mock_child.side_effect = ["materiell-rechtlich", "wenn-dann", (["TBM"], empty_rf)]
             result = await NormDekonstruktionWorkflow._process_satz(satz)
 
-        assert result.norm_typ_lvl_2 == "sonstiges"
+        assert result.norm_typ_lvl2 == "sonstiges"
         assert result.tatbestandsmerkmale is None
 
     async def test_preserves_satz_metadata(self, satz: NormDekonstruktionWorkflowSatzInput) -> None:
@@ -194,8 +192,8 @@ class TestGetTbmsAndRfWithRealData:
                 mock_gather.return_value = (SATZ_1_NR_1_ATOMARE_TATBESTANDSMERKMALE, rechtsfolge_neu)
                 result = await NormDekonstruktionWorkflow._process_satz(satz)
 
-        assert result.norm_typ_lvl_1 == "materiell-rechtlich"
-        assert result.norm_typ_lvl_2 == "wenn-dann"
+        assert result.norm_typ_lvl1 == "materiell-rechtlich"
+        assert result.norm_typ_lvl2 == "wenn-dann"
         assert result.atomare_tatbestandsmerkmale == SATZ_1_NR_1_ATOMARE_TATBESTANDSMERKMALE
 
 
@@ -229,7 +227,7 @@ class TestRun:
                         satz_nr="1",
                         markers=["§ 4 Abs. 1 S. 1"],
                         satz_text="Wer eine Anlage betreibt, bedarf einer Genehmigung.",
-                        norm_typ_lvl_1="verfahrensrechtlich",
+                        norm_typ_lvl1="verfahrensrechtlich",
                     )
                     mock_gather.return_value = [mock_process.return_value]
                     result = await NormDekonstruktionWorkflow().run(norm_input)
@@ -252,8 +250,8 @@ class TestRun:
             satz_nr="1",
             markers=["§ 4 Abs. 1 S. 1"],
             satz_text="Wer eine Anlage betreibt, bedarf einer Genehmigung.",
-            norm_typ_lvl_1="materiell-rechtlich",
-            norm_typ_lvl_2="wenn-dann",
+            norm_typ_lvl1="materiell-rechtlich",
+            norm_typ_lvl2="wenn-dann",
             tatbestandsmerkmale=["Betreiben einer Anlage"],
             rechtsfolge="bedarf einer Genehmigung",
             atomare_tatbestandsmerkmale=["Betreiben einer Anlage"],

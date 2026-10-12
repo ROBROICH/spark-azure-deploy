@@ -62,6 +62,9 @@ const baseContext = {
   projects: [],
   isLoading: false,
   isError: false,
+  hasNextPage: false,
+  isFetchingNextPage: false,
+  fetchNextPage: vi.fn(),
   retry: retryMock,
 };
 
@@ -82,6 +85,23 @@ const makeProject = (index: number): Project => ({
   latestVersion: 1,
   owners: [],
   members: [],
+  auditors: [],
+  state: null,
+  imported: null,
+  salutation: null,
+  company: null,
+  firstName: null,
+  lastName: null,
+  street: null,
+  houseNumber: null,
+  addressSupplement: null,
+  plz: null,
+  location: null,
+  country: null,
+  email: null,
+  phone: null,
+  fax: null,
+  currentProcessStepId: null,
 });
 
 describe('ProjectsTable', () => {
@@ -174,7 +194,9 @@ describe('ProjectsTable', () => {
     render(<ProjectsTable />);
 
     expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.queryByRole('region')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('region', { name: 'ProjectsTable.tableAriaLabel' }),
+    ).toBeInTheDocument();
     expect(screen.getAllByRole('row')).toHaveLength(61);
   });
 

@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 
 export type AuditLogTimeSection = {
   key: string;

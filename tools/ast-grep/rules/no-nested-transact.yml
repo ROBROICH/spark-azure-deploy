@@ -1,0 +1,13 @@
+id: no-nested-transact
+language: TypeScript
+severity: error
+message: "Do not nest transact callbacks. Compose work inside one transaction boundary."
+rule:
+  any:
+    - pattern: $RUNTIME.transact($$$ARGS)
+    - pattern: transact($$$ARGS)
+  inside:
+    stopBy: end
+    any:
+      - pattern: $OUTER.transact($CALLBACK)
+      - pattern: transact($CALLBACK)

@@ -1,7 +1,7 @@
 import {
-  listFilesV2FilesGet,
+  v1DocumentManagementListFiles as listFiles,
   type FileResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 
 const EWMS_DOCUMENTS_PAGE_SIZE = 50;
 
@@ -20,13 +20,13 @@ const loadEwmsDocumentsPage = async (
   page: number,
   allFiles: FileResponse[],
 ): Promise<FileResponse[]> => {
-  const { data } = await listFilesV2FilesGet({
+  const { data } = await listFiles({
     query: {
-      file_type: 'ewms_document',
+      fileType: 'ewms_document',
       projectId,
-      project_version: projectVersion,
+      projectVersion: projectVersion,
       page,
-      page_size: EWMS_DOCUMENTS_PAGE_SIZE,
+      pageSize: EWMS_DOCUMENTS_PAGE_SIZE,
     },
     throwOnError: true,
   });

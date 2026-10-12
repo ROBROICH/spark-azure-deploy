@@ -50,9 +50,10 @@ OpenAPI inputs instead.
 
 ### API Endpoints
 
-Frontend API clients derive their base URLs from `VITE_API_BASE_URL` and append
-service-specific paths such as `/pls/v1`, `/dms/v1`, `/identity`, and
-`/temporal`.
+The generated SPARK Workflow backend client uses the aggregate `/api` route tree. In local acceptance mode,
+Vite routes owner-specific prefixes to separate SPARK Workflow backend processes on the former service ports;
+all processes still expose the same aggregate graph. The law-changes client remains separate
+because it is owned by the Rechtsänderungsmonitoring service.
 
 ## Project Structure
 
@@ -92,31 +93,16 @@ exists.
 
 ### Agent Guidance
 
-The `.agents/rules` folder contains important code conventions for this
-frontend. Load the relevant rule folder before changing code in areas such as
-accessibility, API integration, clean code, forms, internationalization, nodes,
-security, or codebase structure.
-
-The public frontend agent skills in `.agents/skills` cover common maintenance
-workflows:
-
-- `fe-code-review`: review local changes, branch diffs, feature folders, or
-  pull requests against the frontend rules.
-- `fe-codebase-structure`: audit or normalize `src/` and `src/features`
-  structure before moving files or creating new feature shapes.
-- `fe-lint-fixer`: fix scoped lint, type-check, test, or other
-  `pnpm run check` failures.
-- `fe-regression-review-dev`: review `dev...HEAD` runtime TypeScript changes
-  for regressions introduced by the current branch.
-- `fe-with-nodes`: wire backend data through the shared nodes layer or replace
-  mocks with node-backed hooks.
+Agents load the rules through [AGENTS.md](AGENTS.md): the index in
+`.agents/CODE-STANDARDS.md`, its baseline rules, and only the rules whose
+trigger matches the selected code.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Node.js 24.x
-- pnpm 10.30.2
+- [pnpm 10.30.2](https://pnpm.io/installation)
 - Local backend service forwards or another development API environment
 
 ### Environment Variables
@@ -134,6 +120,8 @@ Local configuration is read from `.env.local`. Start by copying
 | `VITE_SENTRY_DSN` | Error reporting DSN. Leave empty to disable reporting locally. | - |
 | `VITE_SENTRY_ENVIRONMENT` | Error reporting environment label. | `local` |
 | `VITE_ENABLE_EWMS_FEATURE` | Enables the EWMS feature. | `true` |
+| `VITE_PRODUCT_MODE` | Product mode: `spark` (full SPARK Workflow) or `ewms` (EWMS-only). Any other value fails closed at startup. In containers the runtime value wins over the build-time value; an omitted container variable defaults to `spark`. | `spark` |
+| `VITE_PRODUCT_DOMAIN` | Parent domain of the deployments, for example `example.com`. The admin menu links `dashboard[.test|.staging].<domain>` and `ewms[.test|.staging].<domain>` to each other; without a domain it offers no link. | - |
 | `VITE_ENABLE_AUTH_REDIRECT_RETRY` | Retries once after session refresh before showing the session-expired dialog. | `true` |
 | `VITE_ENABLE_MAINTENANCE_MODE` | Enables the maintenance-mode screen. | `false` |
 | `VITE_SYSTEM_LOAD_DISABLE_THRESHOLD_PERCENTAGE` | Blocks AI workflow starts at or above this system load percentage. | `500` |
@@ -145,26 +133,15 @@ Local configuration is read from `.env.local`. Start by copying
 | `VITE_LOCAL_USER_FIRST_NAME` | Fallback current-user first name for local development. | `Local` |
 | `VITE_LOCAL_USER_LAST_NAME` | Fallback current-user last name for local development. | `Developer` |
 
-Vite also uses the OpenAPI variables to derive local proxy targets for
-`pnpm dev:port-forwarding`.
+Vite uses these variables as local proxy targets for
+`pnpm dev:port-forwarding`. SPARK Workflow backend generation reads the committed
+`02-backend/service_api_docs/specs/spark-backend.json` contract.
 
 | Variable | Local proxy path | Generated client output |
 | --- | --- | --- |
-| `VITE_PLS_OPENAPI_URL` | `/pls/v1` | `src/api-clients/pls-module` |
-| `VITE_DMS_OPENAPI_URL` | `/dms/v1` | `src/api-clients/dms-module` |
-| `VITE_FCS_OPENAPI_URL` | `/fcs/v1` | `src/api-clients/fcs-module` |
-| `VITE_AOM_OPENAPI_URL` | `/agent-orchestration/v1` | `src/api-clients/agent-orchestration-module` |
-| `VITE_TEMPORAL_JOBS_OPENAPI_URL` | `/temporal` | `src/api-clients/temporal-jobs-module` |
-| `VITE_PNS_OPENAPI_URL` | `/plausibility-notes/v1` | `src/api-clients/pns-module` |
-| `VITE_OMS_OPENAPI_URL` | `/oms/v1` | `src/api-clients/oms-module` |
-| `VITE_SUPPLEMENTARY_REQUESTS_OPENAPI_URL` | `/supplementary-requests/v1` | `src/api-clients/supplementary-requests-module` |
-| `VITE_COMMENTS_OPENAPI_URL` | `/comment/v1` | `src/api-clients/comments-module` |
-| `VITE_EXAMINATION_OPENAPI_URL` | `/examination/v1` | `src/api-clients/examination-module` |
-| `VITE_VAE_OPENAPI_URL` | `/vae/v1` | `src/api-clients/vae-module` |
+| `VITE_API_URL` | `/api` | `src/api-clients/backend` |
+| `API_*_ORIGIN` | Owner-specific `/api/...` prefixes | Same aggregate SPARK Workflow backend client |
 | `VITE_LAW_CHANGES_OPENAPI_URL` | `/law-changes/v1` | `src/api-clients/law-changes-module` |
-| `VITE_IDENTITY_MANAGEMENT_OPENAPI_URL` | `/identity` | `src/api-clients/identity-management-module` |
-| `VITE_FEEDBACK_OPENAPI_URL` | `/feedback/v1` | `src/api-clients/feedback-module` |
-| `VITE_PROTOCOL_OPENAPI_URL` | `/protocol/v1` | `src/api-clients/protocol-module` |
 
 Do not commit secrets, credentials, generated tokens, or personal test values.
 
@@ -221,7 +198,7 @@ pnpm check                    # Run all pre-commit checks
 pnpm test                     # Run Vitest once
 pnpm test:coverage            # Run Vitest with coverage output
 pnpm type-check               # Run TypeScript without emitting files
-pnpm openapi-ts               # Regenerate generated API clients from OpenAPI specs
+pnpm openapi-ts               # Regenerate SPARK Workflow backend and configured Law Changes clients
 ```
 
 Run `pnpm check` before committing. For smaller in-progress changes, at least
@@ -286,6 +263,8 @@ Regenerate clients after backend schema changes:
 pnpm openapi-ts
 ```
 
+This command always regenerates `spark-backend` from the checked-in aggregate spec. It regenerates `law-changes-module` only when `VITE_LAW_CHANGES_OPENAPI_URL` is set.
+
 Client configuration is centralized in `src/integrations/api-clients/configureClients.ts`.
 Server-backed state should use the existing TanStack DB, TanStack Query, and
 nodes patterns already present in the relevant feature.
@@ -340,6 +319,6 @@ tracks them.
 ## Troubleshooting
 
 - If the app cannot reach backend services in local development, verify the
-  `VITE_*_OPENAPI_URL` values and active port forwards.
+  service addresses in `.env.local` and that the local backend processes are running.
 - If route changes do not appear, restart the Vite server so TanStack Router can
   regenerate route metadata.

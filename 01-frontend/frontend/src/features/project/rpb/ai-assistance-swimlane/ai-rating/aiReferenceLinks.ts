@@ -33,9 +33,9 @@ export const openBewertungReference = (
   openConnectedFile?: OpenConnectedFile,
 ) => {
   const referencedDocument = documents.find(
-    (dokument) => dokument.id === clickedReference.document_id,
+    (dokument) => dokument.id === clickedReference.documentId,
   );
-  const documentFileId = referencedDocument?.dms_file_id ?? null;
+  const documentFileId = referencedDocument?.dmsFileId ?? null;
 
   if (!referencedDocument) {
     return;
@@ -47,7 +47,7 @@ export const openBewertungReference = (
     openConnectedFile?.(documentFileId);
   }
   const pageNumber = getSmallestReferencePageNumber(
-    clickedReference.page_numbers,
+    clickedReference.pageNumbers,
   );
 
   if (pageNumber !== null && documentFileId) {
@@ -71,8 +71,8 @@ export const openBewertungDokument = (
 
   selectPreviewDocument(referencedDocument.id);
 
-  if (referencedDocument.dms_file_id) {
-    openConnectedFile?.(referencedDocument.dms_file_id);
+  if (referencedDocument.dmsFileId) {
+    openConnectedFile?.(referencedDocument.dmsFileId);
   }
 };
 
@@ -83,14 +83,14 @@ export const getBewertungDokumentRefs = (
   const dokumentRefs: NodeRefByType<'dokument'>[] = [];
 
   for (const bewertungQuelle of bewertungQuellen) {
-    if (seenDocumentIds.has(bewertungQuelle.dokument_id)) {
+    if (seenDocumentIds.has(bewertungQuelle.dokumentId)) {
       continue;
     }
 
-    seenDocumentIds.add(bewertungQuelle.dokument_id);
+    seenDocumentIds.add(bewertungQuelle.dokumentId);
     dokumentRefs.push({
-      id: bewertungQuelle.dokument_id,
-      node_type: 'dokument',
+      id: bewertungQuelle.dokumentId,
+      nodeType: 'dokument',
     });
   }
 
@@ -180,9 +180,9 @@ export const createBewertungReferenceMap = (
   const usedReferenceIds = new Set<string>();
 
   bewertungQuellen.forEach((bewertungQuelle, referenceIndex) => {
-    const dokument = dokumentById.get(bewertungQuelle.dokument_id);
-    const referenceIds = bewertungQuelle.cited_svm_id
-      ? getReferenceIds(Number.parseInt(bewertungQuelle.cited_svm_id, 10))
+    const dokument = dokumentById.get(bewertungQuelle.dokumentId);
+    const referenceIds = bewertungQuelle.citedSvmId
+      ? getReferenceIds(Number.parseInt(bewertungQuelle.citedSvmId, 10))
       : (() => {
           const discoveredReferenceId = orderedReferenceIds[referenceIndex];
           return discoveredReferenceId
@@ -193,10 +193,10 @@ export const createBewertungReferenceMap = (
               );
         })();
     const reference = {
-      chunk_ids: bewertungQuelle.chunk_ids,
-      document_id: bewertungQuelle.dokument_id,
+      chunkIds: bewertungQuelle.chunkIds,
+      documentId: bewertungQuelle.dokumentId,
       node_id: bewertungQuelle.id,
-      page_numbers: bewertungQuelle.page_numbers,
+      pageNumbers: bewertungQuelle.pageNumbers,
       title:
         bewertungQuelle.title.trim() ||
         dokument?.filename ||

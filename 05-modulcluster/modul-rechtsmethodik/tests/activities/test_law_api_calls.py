@@ -4,9 +4,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
+from temporal.activities.law_db import QueryKResultsUTInput, QueryTopKDRInput, UTNorm
+from temporalio import activity
 from temporalio.exceptions import ApplicationError
 
 from src.activities.law_api_calls import (
+    LAW_DB,
     DefinitionsByJurabkTitelInput,
     FetchDocumentByJurabkInput,
     FetchDocumentBySearchTermInput,
@@ -17,6 +20,8 @@ from src.activities.law_api_calls import (
     _fetch_norm,
     _ld_table_get_definitions_by_jurabk_titel,
     _post_and_validate_list,
+    _query_k_results_ut,
+    _query_top_k_dr,
     _tn_table_get_by_dokument,
     fetch_all_norm_data,
 )
@@ -59,6 +64,48 @@ class TestPostAndValidateList:
             pytest.raises(ValueError, match="Expected a list"),
         ):
             await _post_and_validate_list("http://example.com", {})
+
+
+class TestLawDbQueryActivities:
+    def test_activity_names_are_stable(self) -> None:
+        assert activity._Definition.must_from_callable(_query_top_k_dr).name == "query_top_k_dr"
+        assert activity._Definition.must_from_callable(_query_k_results_ut).name == "query_k_results_ut"
+
+    async def test_query_top_k_dr_posts_to_configured_url(self) -> None:
+        client = _make_http_client(200, [{"id": 1}])
+        inp = QueryTopKDRInput(jurabk="BNatSchG", query_text="q", section_substrings=["§ 44"], k=10)
+        with patch("temporal.activities.law_db.httpx.AsyncClient", return_value=client) as client_cls:
+            result = await _query_top_k_dr(inp)
+        assert result == [{"id": 1}]
+        client_cls.assert_called_once_with(timeout=10.0)
+        client.post.assert_called_once_with(
+            LAW_DB.QUERY_TOP_K_DR_URL,
+            json={"jurabk": "BNatSchG", "query_text": "q", "section_substrings": ["§ 44"], "k": 10},
+        )
+
+    async def test_query_k_results_ut_sends_similarity_threshold(self) -> None:
+        client = _make_http_client(200, [])
+        inp = QueryKResultsUTInput(query_text="q", norms=[UTNorm(name="BNatSchG")], k=20, similarity_threshold=0.3)
+        with patch("temporal.activities.law_db.httpx.AsyncClient", return_value=client):
+            assert await _query_k_results_ut(inp) == []
+        client.post.assert_called_once_with(
+            LAW_DB.QUERY_K_RESULTS_UT_URL,
+            json={
+                "query_text": "q",
+                "norms": [{"name": "BNatSchG", "name_suffix": None, "paragraph": None, "absatz": None}],
+                "k": 20,
+                "similarity_threshold": 0.3,
+            },
+        )
+
+    async def test_query_k_results_ut_raises_on_non_list_response(self) -> None:
+        client = _make_http_client(200, {"key": "v"})
+        inp = QueryKResultsUTInput(query_text="q", norms=[], k=10, similarity_threshold=0.3)
+        with (
+            patch("temporal.activities.law_db.httpx.AsyncClient", return_value=client),
+            pytest.raises(ValueError, match="Expected a list"),
+        ):
+            await _query_k_results_ut(inp)
 
 
 class TestDocumentLookups:

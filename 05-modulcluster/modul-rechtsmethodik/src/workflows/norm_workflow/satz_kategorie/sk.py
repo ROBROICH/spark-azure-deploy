@@ -1,6 +1,6 @@
 """Agent for classifying Satz-Kategorie (wenn-dann, etc.)."""
 
-from temporal.workflows.rechtsmethodik.types import SatzKategorie
+from temporal.contracts import SatzKategorie
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

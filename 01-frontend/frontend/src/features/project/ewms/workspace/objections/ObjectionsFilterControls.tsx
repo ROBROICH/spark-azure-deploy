@@ -58,8 +58,8 @@ const getObjectionsTypeCounts = (objections: EwmsObjectionListItem[]) => {
   };
 
   for (const objection of objections) {
-    if (objection.entry.beteiligung_typ) {
-      counts[objection.entry.beteiligung_typ] += 1;
+    if (objection.entry.beteiligungTyp !== null) {
+      counts[objection.entry.beteiligungTyp] += 1;
     }
   }
 
@@ -127,7 +127,7 @@ export const ObjectionsFilterControls = (
   const sortOptions = getObjectionsSortOptions(t);
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex flex-wrap items-center gap-1 sm:flex-nowrap">
       <FilterPillSelect
         icon={<ListFilter className="size-4" aria-hidden="true" />}
         fallbackLabel={t('objections.typeFilter.label')}

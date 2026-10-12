@@ -26,7 +26,7 @@ const FundstellenNormModeContent = (props: {
     new Map(
       fundstellenCards.map((card) => [
         card.documentId,
-        { id: card.documentId, node_type: 'dokument' as const },
+        { id: card.documentId, nodeType: 'dokument' as const },
       ]),
     ).values(),
   );
@@ -56,7 +56,7 @@ const FundstellenNormModeContent = (props: {
       {sortedNormCards.map((card) => (
         <FundstellenDocumentGroupCard
           key={card.documentId}
-          documentFileId={documentById.get(card.documentId)?.dms_file_id}
+          documentFileId={documentById.get(card.documentId)?.dmsFileId}
           documentLabel={documentById
             .get(card.documentId)
             ?.filename.split('/')

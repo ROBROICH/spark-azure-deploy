@@ -63,7 +63,7 @@ export const NormTextView = (props: NormTextViewProps) => {
         <LawChangeIndicatorView
           jurabk={selectedNorm.topicNorm.jurabk}
           lawChanges={lawChanges}
-          paragraphNr={selectedNorm.topicNorm.paragraph_nr}
+          paragraphNr={selectedNorm.topicNorm.paragraphNr}
           onOpen={(lawChange) => {
             navigate({
               search: (prev) => ({

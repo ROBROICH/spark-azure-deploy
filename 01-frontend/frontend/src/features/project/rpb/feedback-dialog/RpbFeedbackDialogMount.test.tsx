@@ -44,7 +44,7 @@ vi.mock('@/features/feedback/FeedbackNodeDialog', () => ({
     onClose: () => void;
     targetRef?: {
       id: string;
-      node_type: string;
+      nodeType: string;
     };
   }) => (
     <div>
@@ -52,7 +52,7 @@ vi.mock('@/features/feedback/FeedbackNodeDialog', () => ({
       <span data-testid="initial-rating">{props.initialRating}</span>
       <span data-testid="target-ref">
         {props.targetRef
-          ? `${props.targetRef.node_type}:${props.targetRef.id}`
+          ? `${props.targetRef.nodeType}:${props.targetRef.id}`
           : 'none'}
       </span>
       <button type="button" onClick={props.onClose}>

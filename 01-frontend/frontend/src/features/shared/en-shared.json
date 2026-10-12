@@ -100,7 +100,7 @@
     "deleteSearch": "Clear search"
   },
   "currentUserLoadError": {
-    "title": "There was a problem during SPARK's initial load.",
+    "title": "There was a problem during SPARK Workflow's initial load.",
     "description": "Please reload the page. If the error persists, contact your system administrator.",
     "reload": "Reload page"
   },
@@ -140,6 +140,7 @@
   "sidebar": {
     "home": "Dashboard",
     "projects": "Projects",
+    "administration": "Administration",
     "settings": "Settings",
     "collapse": "Collapse",
     "collapseProject": "Collapse {{name}}",
@@ -162,6 +163,8 @@
     "changelogAriaLabelWithVersion": "Changelog, version {{version}}",
     "mainNavAriaLabel": "Main navigation",
     "openMobileMenu": "Open menu",
+    "openActionSidebar": "Open actions",
+    "closeActionSidebar": "Close actions",
     "roleSwitcher": {
       "ariaCurrent": "Frontend role {{frontendRole}}, Keycloak role {{keycloakRole}}",
       "triggerLabel": "FE {{frontendRole}} / KC {{keycloakRole}}",
@@ -193,6 +196,7 @@
       "currentComplexity": "Current",
       "maxComplexity": "Maximum",
       "breakdown": "Breakdown",
+      "otherWorkflowTypes": "Other workflow types",
       "runningCount": "Count",
       "complexityWeight": "Weight",
       "totalComplexity": "Total",

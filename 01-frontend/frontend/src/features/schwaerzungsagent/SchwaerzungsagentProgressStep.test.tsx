@@ -13,7 +13,7 @@ vi.mock('@/features/workflow-runtime/system-load/useSystemLoad', () => ({
     data:
       mocks.loadPercentage === undefined
         ? undefined
-        : { load_percentage: mocks.loadPercentage },
+        : { loadPercentage: mocks.loadPercentage },
     isError: false,
     isFetching: false,
     isLoading: false,

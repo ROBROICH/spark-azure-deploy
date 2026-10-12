@@ -74,7 +74,7 @@ const createNodeRef = <T extends NodeTypeLiteral>(
 
   return {
     id,
-    node_type: nodeType,
+    nodeType: nodeType,
   } satisfies NodeRefByType<T>;
 };
 
@@ -149,7 +149,7 @@ type AiSatzDetailViewContentProps = {
 };
 
 const hasMultipleSaetzeInAbsatz = (saetze: NodePayloadByType<'satz'>[]) => {
-  return new Set(saetze.map((satz) => satz.satz_nr)).size > 1;
+  return new Set(saetze.map((satz) => satz.satzNr)).size > 1;
 };
 
 /**
@@ -169,17 +169,21 @@ const AiSatzDetailViewContent = (props: AiSatzDetailViewContentProps) => {
   const navigate = route.useNavigate();
   const satzRef = createNodeRef(rechtsmethodikSatzId, 'satz');
   const { data: satz } = useNode(satzRef);
-  const absatzRef = createNodeRef(satz?.absatz_id, 'absatz');
+  const absatzRef = createNodeRef(satz?.absatzId, 'absatz');
   const { data: absatz } = useNode(absatzRef);
-  const normRef = createNodeRef(absatz?.norm_id, 'norm');
+  const normRef = createNodeRef(absatz?.normId, 'norm');
   const { data: norm } = useNode(normRef);
-  const gesetzRef = createNodeRef(norm?.gesetz_id, 'gesetz');
+  const gesetzRef = createNodeRef(norm?.gesetzId, 'gesetz');
   const { data: gesetz } = useNode(gesetzRef);
   const { data: saetze } = useDescendantNodes('satz', absatzRef);
   const absatzRefs = useDescendants('absatz', normRef);
   const { data: atomareTbms } = useDescendantNodes('atomares_tbm', satzRef);
   const { data: rechtsfolgen } = useDescendantNodes('rechtsfolge', satzRef);
-  const { data: adressaten } = useDescendantNodes('adressat', satzRef);
+  const { data: ermessensspielraeume } = useDescendantNodes(
+    'ermessensspielraum',
+    satzRef,
+  );
+  const { data: ermessensarten } = useDescendantNodes('ermessensart', satzRef);
   const { data: sollensanordnungen } = useDescendantNodes(
     'sollensanordnungen',
     satzRef,
@@ -210,7 +214,7 @@ const AiSatzDetailViewContent = (props: AiSatzDetailViewContentProps) => {
     gesetz && norm ? (
       <LawChangeIndicator
         jurabk={gesetz.jurabk}
-        paragraphNr={norm.paragraph_nr}
+        paragraphNr={norm.paragraphNr}
         onOpen={(lawChange) => {
           navigate({
             to: '.',
@@ -252,14 +256,15 @@ const AiSatzDetailViewContent = (props: AiSatzDetailViewContentProps) => {
     auslegungsvorschlaege,
   );
   const rechtsfolgeBadges = getRechtsfolgeBadges(
-    adressaten,
     sollensanordnungen,
+    ermessensspielraeume,
+    ermessensarten,
   );
   const verweise = getVerweise(t, expliziteVerweise);
   const hasTatbestandsSection =
     tbmItems.length > 0 ||
-    Boolean(satz.formel?.trim() || satz.wenn_dann?.trim());
-  const logicSummary = satz.formel?.trim() || satz.wenn_dann?.trim() || null;
+    Boolean(satz.formel?.trim() || satz.wennDann?.trim());
+  const logicSummary = satz.formel?.trim() || satz.wennDann?.trim() || null;
 
   return (
     <>

@@ -4,7 +4,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import WENN_DANN, AtomaresTBM, Rechtsbegriffe, SatzKategorie, Verweise
+from temporal.contracts import AtomaresTBM, Rechtsbegriffe, SatzKategorie, Verweise
 
 from src.workflows.norm_workflow.norm_types import NormDekonstruktionWorkflowSatzOutput
 from src.workflows.tbm_workflow.pruefformulierung.pf_data_format import Pruefformulierung
@@ -22,7 +22,7 @@ _COMMON = {
 
 
 def _make_satz(
-    norm_typ_lvl_2: SatzKategorie | None = WENN_DANN,
+    norm_typ_lvl2: SatzKategorie | None = SatzKategorie.WENN_DANN,
     atomare: list[str] | None = None,
     rechtsfolge: str | None = None,
 ) -> NormDekonstruktionWorkflowSatzOutput:
@@ -30,8 +30,8 @@ def _make_satz(
         satz_nr="1",
         markers=["§ 4 Abs. 1 S. 1"],
         satz_text="Wer eine Anlage betreibt, bedarf einer Genehmigung.",
-        norm_typ_lvl_1="materiell-rechtlich",
-        norm_typ_lvl_2=norm_typ_lvl_2,
+        norm_typ_lvl1="materiell-rechtlich",
+        norm_typ_lvl2=norm_typ_lvl2,
         atomare_tatbestandsmerkmale=atomare,
         rechtsfolge=rechtsfolge,
     )
@@ -48,7 +48,7 @@ def _make_rechtsbegriffe() -> Rechtsbegriffe:
 class TestProcessSatzBranching:
     async def test_non_wenn_dann_skips_child_workflows(self) -> None:
         """Tests if non-WENN_DANN Sätze skip child workflow execution."""
-        satz = _make_satz(norm_typ_lvl_2="sonstiges")
+        satz = _make_satz(norm_typ_lvl2=SatzKategorie.SONSTIGES)
         with patch(_PATCH_RUN_CHILD, new_callable=AsyncMock) as mock_run:
             result = await TatbestandsAnalyseWorkflow._process_satz(**_COMMON, satz=satz)
         mock_run.assert_not_called()
@@ -58,7 +58,11 @@ class TestProcessSatzBranching:
 
     async def test_wenn_dann_no_tbms_and_no_rf_skips_child_workflows(self) -> None:
         """Tests if WENN_DANN Sätze without TBMs and Rechtsfolge skip child workflow execution."""
-        satz = _make_satz(norm_typ_lvl_2=WENN_DANN, atomare=None, rechtsfolge=None)
+        satz = _make_satz(
+            norm_typ_lvl2=SatzKategorie.WENN_DANN,
+            atomare=None,
+            rechtsfolge=None,
+        )
         with patch(_PATCH_RUN_CHILD, new_callable=AsyncMock) as mock_run:
             result = await TatbestandsAnalyseWorkflow._process_satz(**_COMMON, satz=satz)
         mock_run.assert_not_called()
@@ -66,7 +70,11 @@ class TestProcessSatzBranching:
 
     async def test_wenn_dann_with_tbms_and_rf_calls_run_child_workflows(self) -> None:
         """Tests if WENN_DANN Sätze with TBMs and Rechtsfolge trigger child workflow execution."""
-        satz = _make_satz(norm_typ_lvl_2=WENN_DANN, atomare=["TBM A"], rechtsfolge="Genehmigung erteilen.")
+        satz = _make_satz(
+            norm_typ_lvl2=SatzKategorie.WENN_DANN,
+            atomare=["TBM A"],
+            rechtsfolge="Genehmigung erteilen.",
+        )
         with patch(_PATCH_RUN_CHILD, new_callable=AsyncMock) as mock_run:
             mock_run.return_value = (None, None, None)
             await TatbestandsAnalyseWorkflow._process_satz(**_COMMON, satz=satz)
@@ -74,11 +82,11 @@ class TestProcessSatzBranching:
 
     async def test_base_output_preserves_satz_metadata(self) -> None:
         """Tests if the base output preserves the Satz metadata unchanged."""
-        satz = _make_satz(norm_typ_lvl_2="sonstiges")
+        satz = _make_satz(norm_typ_lvl2=SatzKategorie.SONSTIGES)
         result = await TatbestandsAnalyseWorkflow._process_satz(**_COMMON, satz=satz)
         assert result.satz_nr == satz.satz_nr
         assert result.satz_text == satz.satz_text
-        assert result.norm_typ_lvl_2 == "sonstiges"
+        assert result.norm_typ_lvl2 == "sonstiges"
 
     @pytest.mark.parametrize(
         "atomare,rechtsfolge,expects_call",
@@ -93,7 +101,11 @@ class TestProcessSatzBranching:
         self, atomare: list[str] | None, rechtsfolge: str | None, expects_call: bool
     ) -> None:
         """Tests if child workflow execution is triggered when either TBMs or Rechtsfolge is present."""
-        satz = _make_satz(norm_typ_lvl_2=WENN_DANN, atomare=atomare, rechtsfolge=rechtsfolge)
+        satz = _make_satz(
+            norm_typ_lvl2=SatzKategorie.WENN_DANN,
+            atomare=atomare,
+            rechtsfolge=rechtsfolge,
+        )
         with patch(_PATCH_RUN_CHILD, new_callable=AsyncMock) as mock_run:
             mock_run.return_value = (None, None, None)
             await TatbestandsAnalyseWorkflow._process_satz(**_COMMON, satz=satz)

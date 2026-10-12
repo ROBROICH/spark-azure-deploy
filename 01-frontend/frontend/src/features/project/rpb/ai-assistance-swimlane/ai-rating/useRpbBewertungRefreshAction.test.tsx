@@ -5,6 +5,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useRpbBewertungRefreshAction } from './useRpbBewertungRefreshAction';
 
 const mocks = vi.hoisted(() => ({
+  latestWorkflowFailure: null as {
+    errorCode: 'ANALYSIS_FAILED';
+    branches: never[];
+  } | null,
   isHandledProjectVersionConflictErrorMock: vi.fn(),
   mutateMock: vi.fn(),
   observeStartedMock: vi.fn(() => Promise.resolve()),
@@ -36,11 +40,15 @@ vi.mock(
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (nodeType: string) => {
     if (nodeType === 'atomares_tbm') {
-      return [{ id: 'tbm-1', node_type: 'atomares_tbm' }];
+      return [{ id: 'tbm-1', nodeType: 'atomares_tbm' }];
     }
 
     return [];
   },
+}));
+
+vi.mock('@/features/workflow-runtime/workflow-status/useWorkflow', () => ({
+  useWorkflow: () => ({ latestFailure: mocks.latestWorkflowFailure }),
 }));
 
 vi.mock(
@@ -75,12 +83,9 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
   };
 });
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    startBewertungWorkflowWorkflowsBewertungPostMutation: () => ({}),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartBewertungWorkflowMutation: () => ({}),
+}));
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
@@ -97,11 +102,35 @@ describe('useRpbBewertungRefreshAction', () => {
     mocks.mutateMock.mockReset();
     mocks.observeStartedMock.mockClear();
     mocks.toastMock.error.mockReset();
+    mocks.latestWorkflowFailure = null;
     mocks.workflowStates = [
       { isLoading: false, isRunning: false },
       { isLoading: false, isRunning: false },
     ];
     vi.mocked(Sentry.captureException).mockReset();
+  });
+
+  it('reports a failed rating run and hides it while a refresh runs', () => {
+    mocks.latestWorkflowFailure = {
+      errorCode: 'ANALYSIS_FAILED',
+      branches: [],
+    };
+    const renderAction = () =>
+      renderHook(() =>
+        useRpbBewertungRefreshAction({
+          canMutateTopic: true,
+          normId: 'norm-1',
+          verfahrenId: 'verfahren-1',
+        }),
+      );
+
+    expect(renderAction().result.current.failureCode).toBe('ANALYSIS_FAILED');
+
+    mocks.workflowStates = [
+      { isLoading: false, isRunning: true },
+      { isLoading: false, isRunning: false },
+    ];
+    expect(renderAction().result.current.failureCode).toBeNull();
   });
 
   it('suppresses toast and Sentry for handled project-version conflicts', () => {

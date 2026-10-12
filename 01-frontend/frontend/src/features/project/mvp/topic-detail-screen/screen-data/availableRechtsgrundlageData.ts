@@ -1,7 +1,4 @@
-import type {
-  LegalBasisNormResponse,
-  LegalBasisNormSelection,
-} from '@/api-clients/examination-module';
+import type { V1ExaminationAddLegalBasisNormsToProjectData as AddLegalBasisNormsToProjectData } from '@/api-clients/backend';
 import type { NodePayloadByType, NodeRefByType } from '@/db/nodes/types';
 import type { FederalStateCode } from '@/features/project/data/project-details-form/federalStates';
 import { getStoredParentRefByType } from '../storedParentRefs';
@@ -10,14 +7,27 @@ import {
   createLegalBasisSelectionKey,
 } from './rechtsgrundlageParagraphNumbers';
 
+type LegalBasisNormSelection =
+  AddLegalBasisNormsToProjectData['body']['norms'][number];
+
+export type LegalBasisNormResponse = {
+  jurabk: string;
+  paragraphNr: string;
+  paragraphTitel?: string | null;
+  bundesland?: string | null;
+  isDeconstructed?: boolean;
+  gesetz: { id: string; jurabk: string; name?: string };
+  norm: { text?: string | null };
+};
+
 export type AvailableNormEntry = {
   selectionKey: string;
   legalBasis: LegalBasisNormSelection;
   norm: {
     id: string;
-    gesetz_id: string;
-    paragraph_nr: string;
-    paragraph_titel?: string | null;
+    gesetzId: string;
+    paragraphNr: string;
+    paragraphTitel?: string | null;
     text?: string | null;
   };
   gesetz: { id: string; jurabk: string; name?: string } | null;
@@ -43,8 +53,8 @@ export const sortAvailableNormEntriesByParagraphNumber = (
 ) => {
   return [...normEntries].sort((left, right) => {
     const paragraphComparison = compareParagraphNumbers(
-      left.norm.paragraph_nr,
-      right.norm.paragraph_nr,
+      left.norm.paragraphNr,
+      right.norm.paragraphNr,
     );
 
     if (paragraphComparison !== 0) {
@@ -65,7 +75,7 @@ const collectProjectNormsByTopicNormId = (
   >();
 
   for (const norm of normen) {
-    for (const parentRef of norm.frontend_parent_ids
+    for (const parentRef of norm.frontendParentIds
       .map((parentId) => getStoredParentRefByType(parentId, 'topic_norm'))
       .filter(
         (topicNormRef): topicNormRef is NodeRefByType<'topic_norm'> =>
@@ -90,7 +100,7 @@ const collectTopicNormsBySelectionKey = (
   for (const topicNorm of topicNormById.values()) {
     const selectionKey = createLegalBasisSelectionKey(
       topicNorm.jurabk,
-      topicNorm.paragraph_nr,
+      topicNorm.paragraphNr,
     );
     const existingTopicNorms = topicNormsBySelectionKey.get(selectionKey) ?? [];
     topicNormsBySelectionKey.set(selectionKey, [
@@ -109,7 +119,7 @@ const createAvailableNormEntry = (
 ) => {
   const selectionKey = createLegalBasisSelectionKey(
     legalBasisNorm.jurabk,
-    legalBasisNorm.paragraph_nr,
+    legalBasisNorm.paragraphNr,
   );
   const topicNorms = topicNormsBySelectionKey.get(selectionKey) ?? [];
   const topicNormLinks = topicNorms.flatMap<AvailableTopicNormLink>(
@@ -129,13 +139,13 @@ const createAvailableNormEntry = (
     selectionKey,
     legalBasis: {
       jurabk: legalBasisNorm.jurabk,
-      paragraph_nr: legalBasisNorm.paragraph_nr,
+      paragraphNr: legalBasisNorm.paragraphNr,
     },
     norm: {
       id: selectionKey,
-      gesetz_id: legalBasisNorm.gesetz.id,
-      paragraph_nr: legalBasisNorm.paragraph_nr,
-      paragraph_titel: legalBasisNorm.paragraph_titel,
+      gesetzId: legalBasisNorm.gesetz.id,
+      paragraphNr: legalBasisNorm.paragraphNr,
+      paragraphTitel: legalBasisNorm.paragraphTitel,
       text: legalBasisNorm.norm.text,
     },
     gesetz: legalBasisNorm.gesetz,
@@ -150,7 +160,7 @@ const isLegalBasisNormAvailableForProject = (
   legalBasisNorm: LegalBasisNormResponse,
   projectBundeslandCode: FederalStateCode | null,
 ) => {
-  if (!legalBasisNorm.is_deconstructed) {
+  if (!legalBasisNorm.isDeconstructed) {
     return false;
   }
 

@@ -1,7 +1,7 @@
 """Data models for Satz-Kategorie classification."""
 
 from pydantic import BaseModel, ConfigDict, Field
-from temporal.workflows.rechtsmethodik.types import SatzKategorie
+from temporal.contracts import SatzKategorie
 
 
 class SatzKategorieAgentOutput(BaseModel):

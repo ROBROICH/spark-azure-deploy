@@ -1,4 +1,4 @@
-import type { BeteiligungTyp } from '@/api-clients/oms-module';
+import type { BeteiligungTyp } from '@/api-clients/backend';
 import type { CompositeKey } from '@/db/nodes/compositeKey';
 import { describe, expect, it } from 'vitest';
 import type {
@@ -23,28 +23,27 @@ import { EWMS_UNASSIGNED_SUBTOPIC_SELECTION } from './data/ewmsSubtopicSelection
 
 const makeEntry = (
   beteiligungTyp: BeteiligungTyp,
-  classificationStatus: EwmsBeteiligungsEingang['classification_status'] = 'loading',
+  classificationStatus: EwmsBeteiligungsEingang['classificationStatus'] = 'loading',
   fileId = 'file-1',
 ): EwmsBeteiligungsEingang =>
   ({
     compositeKey: `beteiligungs_eingang:${beteiligungTyp}` as CompositeKey,
     id: beteiligungTyp,
-    node_type: 'beteiligungs_eingang',
-    beteiligung_typ: beteiligungTyp,
-    file_id: fileId,
+    nodeType: 'beteiligungs_eingang',
+    beteiligungTyp: beteiligungTyp,
+    fileId: fileId,
     filename: `${fileId}.pdf`,
-    beteiligungs_eingang_markdown_id: null,
-    extraction_status: 'success',
-    classification_status: classificationStatus,
-    project_id: 'project-1',
-    is_deleted: false,
-    is_outdated: false,
-    frontend_parent_ids: [],
-    project_version: 1,
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    markdownId: null,
+    extractionStatus: 'success',
+    classificationStatus: classificationStatus,
+    projectId: 'project-1',
+    isDeleted: false,
+    isOutdated: false,
+    frontendParentIds: [],
+    projectVersion: 1,
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
   }) satisfies EwmsBeteiligungsEingang;
 
 const makeNamedEntry = (
@@ -65,29 +64,31 @@ const makeArgument = (
   ({
     compositeKey: `argument:${id}` as CompositeKey,
     id,
-    node_type: 'argument',
-    beteiligungs_eingang_id: beteiligungsEingangId,
-    sub_topic_id: subtopicId,
-    topic_id: topicId,
+    nodeType: 'argument',
+    beteiligungsEingangId: beteiligungsEingangId,
+    extractionPayload: null,
+    subTopicId: subtopicId,
+    topicId: topicId,
     text: 'Argument',
-    start_idx: null,
-    end_idx: null,
+    startIdx: null,
+    endIdx: null,
     erwiderung: null,
     einordnung: null,
     context: null,
-    context_start_idx: null,
-    context_end_idx: null,
-    argument_id: null,
+    contextStartIdx: null,
+    contextEndIdx: null,
+    argumentId: null,
     status: 'open',
-    in_vae: false,
-    is_valid_argument: true,
-    project_id: 'project-1',
-    is_deleted: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    topicConfidence: null,
+    subTopicConfidence: null,
+    inVae: false,
+    isValidArgument: true,
+    projectId: 'project-1',
+    isDeleted: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
   }) satisfies EwmsArgumentNode;
 
 describe('matchesBeteiligungsEingangFilter', () => {
@@ -214,7 +215,7 @@ describe('resolveEwmsReferenceId', () => {
     expect(
       resolveEwmsReferenceId({
         ...makeArgument('node-id-1', 'entry-1'),
-        argument_id: 'EXAMPLE-ARG-1',
+        argumentId: 'EXAMPLE-ARG-1',
       }),
     ).toBe('EXAMPLE-ARG-1');
   });
@@ -229,9 +230,9 @@ describe('resolveEwmsReferenceId', () => {
 describe('sortEwmsArguments', () => {
   it('sorts backend reference ids with numeric locale comparison', () => {
     const sorted = sortEwmsArguments([
-      { ...makeArgument('node-3', 'entry-1'), argument_id: 'EXAMPLE-ARG-10' },
-      { ...makeArgument('node-2', 'entry-1'), argument_id: 'EXAMPLE-ARG-2' },
-      { ...makeArgument('node-1', 'entry-1'), argument_id: 'EXAMPLE-ARG-1' },
+      { ...makeArgument('node-3', 'entry-1'), argumentId: 'EXAMPLE-ARG-10' },
+      { ...makeArgument('node-2', 'entry-1'), argumentId: 'EXAMPLE-ARG-2' },
+      { ...makeArgument('node-1', 'entry-1'), argumentId: 'EXAMPLE-ARG-1' },
     ]);
 
     expect(sorted.map(resolveEwmsReferenceId)).toEqual([
@@ -265,19 +266,19 @@ describe('sortEwmsObjectionItems', () => {
       {
         entry: {
           ...makeNamedEntry('stellungnahme', 'Beta.pdf', 'file-2'),
-          created_at: '2026-02-01T00:00:00.000Z',
+          createdAt: '2026-02-01T00:00:00.000Z',
         },
       },
       {
         entry: {
           ...makeNamedEntry('einwendung', 'Alpha.pdf'),
-          created_at: '2026-01-01T00:00:00.000Z',
+          createdAt: '2026-01-01T00:00:00.000Z',
         },
       },
       {
         entry: {
           ...makeNamedEntry('naturschutz', 'Gamma.pdf', 'file-3'),
-          created_at: '2026-03-01T00:00:00.000Z',
+          createdAt: '2026-03-01T00:00:00.000Z',
         },
       },
     ];
@@ -329,14 +330,14 @@ describe('EWMS objection list items', () => {
       ...loadingStatusItem,
       entry: {
         ...makeEntry('einwendung'),
-        classification_status: undefined,
+        classificationStatus: undefined,
       } as unknown as EwmsBeteiligungsEingang,
     };
     const nullStatusItem = {
       ...loadingStatusItem,
       entry: {
         ...makeEntry('einwendung'),
-        classification_status: null,
+        classificationStatus: null,
       } as unknown as EwmsBeteiligungsEingang,
     };
 

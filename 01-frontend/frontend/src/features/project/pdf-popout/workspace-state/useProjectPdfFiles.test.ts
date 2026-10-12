@@ -3,10 +3,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useProjectPdfFiles } from './useProjectPdfFiles';
 
 type TestDokument = {
-  dms_file_id: string;
+  dmsFileId: string;
   filename: string;
-  is_deleted?: boolean;
-  is_outdated?: boolean;
+  isDeleted?: boolean;
+  isOutdated?: boolean;
 };
 
 type TestProjectFile = {
@@ -27,7 +27,7 @@ vi.mock('@tanstack/react-router', () => ({
 }));
 
 vi.mock('@/db/nodes/examinationGraphModel', () => ({
-  getNodesByType: () => [{ id: 'dokument-node', node_type: 'dokument' }],
+  getNodesByType: () => [{ id: 'dokument-node', nodeType: 'dokument' }],
 }));
 
 vi.mock('@/db/nodes/hooks/useGraph', () => ({
@@ -55,22 +55,22 @@ describe('useProjectPdfFiles', () => {
   it('filters inactive dokument nodes and dedupes by DMS file id', () => {
     mocks.dokumente = [
       {
-        dms_file_id: 'file-1',
+        dmsFileId: 'file-1',
         filename: 'akten/current.pdf',
       },
       {
-        dms_file_id: 'file-1',
+        dmsFileId: 'file-1',
         filename: 'akten/duplicate.pdf',
       },
       {
-        dms_file_id: 'file-2',
+        dmsFileId: 'file-2',
         filename: 'akten/deleted.pdf',
-        is_deleted: true,
+        isDeleted: true,
       },
       {
-        dms_file_id: 'file-3',
+        dmsFileId: 'file-3',
         filename: 'akten/outdated.pdf',
-        is_outdated: true,
+        isOutdated: true,
       },
     ];
     mocks.projectFiles = [

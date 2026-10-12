@@ -29,6 +29,8 @@ export type DocumentsTreeFile = {
   linkedDocumentTypeId: string | null;
   linkedDocumentTypeHumanApproved: boolean;
   isDeleted?: boolean;
+  confidence?: number | null;
+  status?: DocumentStatus;
 };
 
 const formatDocCountLabel = (docCount: number) =>
@@ -106,7 +108,7 @@ const createDocumentNode = (
     id: file.id,
     filename: getFilename(file.path),
     createdAt: file.createdAt,
-    status: getDocumentStatus(file),
+    status: file.status ?? getDocumentStatus(file),
     linkedDocumentType:
       linkedTypeId && linkedTypeName
         ? {
@@ -117,6 +119,7 @@ const createDocumentNode = (
         : undefined,
     localFilePath: undefined,
     isDeleted: file.isDeleted,
+    confidence: file.confidence,
   };
 };
 

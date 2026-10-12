@@ -16,16 +16,15 @@ stages:
   - service-pipelines-4
   - service-pipelines-5
   - service-pipelines-6
-  - service-pipelines-7
-  - service-pipelines-8
-  - service-pipelines-9
-  - service-pipelines-10
 
 variables:
   DEVGUARD_WEB_UI: "https://devguard.opencode.de"
 
 include:
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/secret-scanning.yml"
+  - local: ".gitlab/ci/templates/handbuch-pages.yml"
+
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/secret-scanning.yml"
+    integrity: "sha256-7biJ6CALZ8sAh3VVNB+VbiDoX0yO6Ngq0DGU6NysMAU="
     inputs: &devguard-test-inputs
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_token: "$DEVGUARD_TOKEN"
@@ -34,22 +33,25 @@ include:
       pull_policy: "if-not-present"
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/static-application-security-testing.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/static-application-security-testing.yml"
+    integrity: "sha256-Y1YfR/T8+U+sxyxJnh8VN/6/Yrpei+bQoPiL9c+eZi0="
     inputs:
       <<: *devguard-test-inputs
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/infrastructure-as-code-scanning.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/infrastructure-as-code-scanning.yml"
+    integrity: "sha256-VBUChY/NW9gQbOmUehPdjLOyLrFF3kVP8p/Rehj2X5g="
     inputs:
       <<: *devguard-test-inputs
       stage: "test"
 
-  - remote: "https://gitlab.opencode.de/l3montree/devguard-ci-components/-/raw/v1.14.0/templates/software-composition-analysis.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/software-composition-analysis.yml"
+    integrity: "sha256-pmHqL5f9KEY7wcqJa0lUbaJvBR0igCzQWFa+b5ChJYI="
     inputs:
       <<: *devguard-test-inputs
       devguard_artifact_name: "pkg:generic/spark-workflow-monorepo"
       stage: "test"
-      fail_on_risk: "high"
+      fail_on_risk: "critical"
       fail_on_cvss: "critical"
 
 "devguard:secret_scanning":
@@ -77,248 +79,77 @@ frontend:
       when: always
     - when: never
 
-administrative-file-draft:
+.typescript:
+  stage: test
+  image: node:22.23.2
+  variables:
+    COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      exists: [02-backend/apps/spark-backend/package.json]
+      when: on_success
+    - exists: [02-backend/apps/spark-backend/package.json]
+      changes: &spark-backend-changes
+        - 02-backend/apps/spark-backend/**/*
+        - 02-backend/features/**/*
+        - packages/**/*
+        - scripts/**/*
+        - .gitlab/ci/services/spark-backend.yml
+        - .gitlab/ci/templates/devguard-oci-service.yml
+        - .gitlab-ci.yml
+        - package.json
+        - pnpm-lock.yaml
+        - pnpm-workspace.yaml
+        - vite.config.ts
+        - 02-backend/apps/Dockerfile
+      when: on_success
+    - when: never
+  before_script:
+    - corepack enable
+    - corepack prepare --activate
+    - pnpm install --frozen-lockfile
+
+typescript-lint:
+  extends: .typescript
+  script:
+    - pnpm run lint
+    - pnpm --filter '@spark-workflow/spark-backend' db:generate
+    - |
+      if [ -n "$(git status --short -- 02-backend/apps/spark-backend/src/migrations)" ]; then
+        git status --short -- 02-backend/apps/spark-backend/src/migrations
+        exit 1
+      fi
+
+typescript-typecheck:
+  extends: .typescript
+  script:
+    - pnpm run typecheck
+
+typescript-test:
+  extends: .typescript
+  script:
+    - pnpm exec -- vp run --filter './02-backend/apps/spark-backend' --filter './02-backend/features/*' --filter './packages/**' --fail-if-no-match --no-cache test
+
+spark-backend:
   stage: service-pipelines-1
   trigger:
     include:
-      - local: ".gitlab/ci/services/administrative-file-draft.yml"
+      - local: ".gitlab/ci/services/spark-backend.yml"
     strategy: depend
     forward: { yaml_variables: true, pipeline_variables: true }
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
       when: never
     - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/administrative_file_draft/**/*, .gitlab/ci/services/administrative-file-draft.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-agent-orchestration-service:
-  stage: service-pipelines-1
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/agent-orchestration-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/agent_orchestration_service/**/*, .gitlab/ci/services/agent-orchestration-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-comment-service:
-  stage: service-pipelines-2
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/comment-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/comment_service/**/*, .gitlab/ci/services/comment-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-document-management-service:
-  stage: service-pipelines-2
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/document-management-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/document_management_service/**/*, .gitlab/ci/services/document-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-examination-service:
-  stage: service-pipelines-2
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/examination-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/examination_service/**/*, .gitlab/ci/services/examination-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-feedback-service:
-  stage: service-pipelines-3
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/feedback-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/feedback_service/**/*, .gitlab/ci/services/feedback-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-formal-completeness-check:
-  stage: service-pipelines-3
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/formal-completeness-check.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/formal_completeness_check/**/*, .gitlab/ci/services/formal-completeness-check.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-fpp-service:
-  stage: service-pipelines-3
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/fpp-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/fpp_service/**/*, .gitlab/ci/services/fpp-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-identity-management-service:
-  stage: service-pipelines-4
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/identity-management-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/identity_management_service/**/*, .gitlab/ci/services/identity-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-objections-management-service:
-  stage: service-pipelines-4
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/objections-management-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/objections_management_service/**/*, .gitlab/ci/services/objections-management-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-plausibility-notes:
-  stage: service-pipelines-4
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/plausibility-notes.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/plausibility_notes/**/*, .gitlab/ci/services/plausibility-notes.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-project-logic-service:
-  stage: service-pipelines-5
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/project-logic-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/project_logic_service/**/*, .gitlab/ci/services/project-logic-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-protocol-service:
-  stage: service-pipelines-5
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/protocol-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/protocol_service/**/*, .gitlab/ci/services/protocol-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-supplementary-requests-service:
-  stage: service-pipelines-5
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/supplementary-requests-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/supplementary_requests_service/**/*, .gitlab/ci/services/supplementary-requests-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
-    - when: never
-
-temporal-job-service:
-  stage: service-pipelines-6
-  trigger:
-    include:
-      - local: ".gitlab/ci/services/temporal-job-service.yml"
-    strategy: depend
-    forward: { yaml_variables: true, pipeline_variables: true }
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-      when: never
-    - if: '$CI_COMMIT_TAG'
-      when: always
-    - changes: [02-backend/temporal_job_service/**/*, .gitlab/ci/services/temporal-job-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
-      when: always
+      exists: [02-backend/apps/spark-backend/package.json]
+      when: on_success
+    - exists: [02-backend/apps/spark-backend/package.json]
+      changes: *spark-backend-changes
+      when: on_success
     - when: never
 
 rechtsaenderungs-monitoring:
-  stage: service-pipelines-6
+  stage: service-pipelines-1
   trigger:
     include:
       - local: ".gitlab/ci/services/rechtsaenderungs-monitoring.yml"
@@ -334,7 +165,7 @@ rechtsaenderungs-monitoring:
     - when: never
 
 gesetze-normen-db-service:
-  stage: service-pipelines-6
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetze-normen-db-service.yml"
@@ -350,7 +181,7 @@ gesetze-normen-db-service:
     - when: never
 
 gesetzesbegruendung-db-service:
-  stage: service-pipelines-7
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/gesetzesbegruendung-db-service.yml"
@@ -366,7 +197,7 @@ gesetzesbegruendung-db-service:
     - when: never
 
 jura-db-service:
-  stage: service-pipelines-7
+  stage: service-pipelines-2
   trigger:
     include:
       - local: ".gitlab/ci/services/jura-db-service.yml"
@@ -382,7 +213,7 @@ jura-db-service:
     - when: never
 
 llm-client:
-  stage: service-pipelines-7
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/llm-client.yml"
@@ -398,7 +229,7 @@ llm-client:
     - when: never
 
 modul-anonymisierung:
-  stage: service-pipelines-8
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-anonymisierung.yml"
@@ -414,7 +245,7 @@ modul-anonymisierung:
     - when: never
 
 modul-bewertung:
-  stage: service-pipelines-8
+  stage: service-pipelines-3
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-bewertung.yml"
@@ -430,7 +261,7 @@ modul-bewertung:
     - when: never
 
 modul-einwendungsmanagement:
-  stage: service-pipelines-8
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-einwendungsmanagement.yml"
@@ -446,7 +277,7 @@ modul-einwendungsmanagement:
     - when: never
 
 modul-formale-pruefung:
-  stage: service-pipelines-9
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-formale-pruefung.yml"
@@ -462,7 +293,7 @@ modul-formale-pruefung:
     - when: never
 
 modul-inhaltsextraktion:
-  stage: service-pipelines-9
+  stage: service-pipelines-4
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-inhaltsextraktion.yml"
@@ -478,7 +309,7 @@ modul-inhaltsextraktion:
     - when: never
 
 modul-plausibilitaet-pruefung:
-  stage: service-pipelines-9
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-plausibilitaet-pruefung.yml"
@@ -494,7 +325,7 @@ modul-plausibilitaet-pruefung:
     - when: never
 
 modul-rechtsmethodik:
-  stage: service-pipelines-10
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-rechtsmethodik.yml"
@@ -510,7 +341,7 @@ modul-rechtsmethodik:
     - when: never
 
 modul-risikohinweiser:
-  stage: service-pipelines-10
+  stage: service-pipelines-5
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-risikohinweiser.yml"
@@ -526,7 +357,7 @@ modul-risikohinweiser:
     - when: never
 
 modul-suche-und-zuordnung:
-  stage: service-pipelines-10
+  stage: service-pipelines-6
   trigger:
     include:
       - local: ".gitlab/ci/services/modul-suche-und-zuordnung.yml"

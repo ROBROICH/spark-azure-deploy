@@ -40,6 +40,7 @@ const TREE_THEME_TOKENS = {
 
 type PdfFileTreeProps = {
   nodes: PdfTreeNode[];
+  pagination?: { isLoading: boolean; onLoadMore: () => Promise<unknown> };
   selectedDocumentId?: string;
   recentDocuments?: RecentDocument[];
   onSelectDocument: (documentId: string) => void;
@@ -78,6 +79,7 @@ const useTreeNodeContext = () => {
 const PdfFileTreeAccordion = (props: PdfFileTreeProps) => {
   const {
     nodes,
+    pagination,
     selectedDocumentId,
     recentDocuments,
     onSelectDocument,
@@ -168,6 +170,21 @@ const PdfFileTreeAccordion = (props: PdfFileTreeProps) => {
             <TreeNodeItem key={node.id} node={node} />
           ))}
         </Accordion>
+        {pagination && (
+          <button
+            type="button"
+            disabled={pagination.isLoading}
+            onClick={() => void pagination.onLoadMore()}
+            className={cn(
+              'focus-ring rounded-lg px-2 py-2 text-left text-[13px]',
+              tokens.itemDefault,
+            )}
+          >
+            {pagination.isLoading
+              ? t('PdfFileTree.loading')
+              : t('PdfFileTree.loadMore')}
+          </button>
+        )}
       </div>
     </TreeNodeContext.Provider>
   );

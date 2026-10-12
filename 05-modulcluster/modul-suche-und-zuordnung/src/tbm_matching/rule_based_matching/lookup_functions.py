@@ -83,22 +83,20 @@ def rule_matches(
 
 
 def get_documents_by_type(result_json: dict[str, Any], required_types: list[str]) -> list[dict[str, Any]]:
-    """Extracts assigned documents from ``matched_document_types``; deduplicates by ``document_id``."""
+    """Extract assigned documents from the Formal Completeness API response."""
     matched_documents: dict[str, dict[str, Any]] = {}
 
-    for entry in result_json.get("matched_document_types", []):
-        doc_type_name = entry.get("required_document_type", {}).get("document_type_name")
+    for entry in result_json.get("matchedDocumentTypes", []):
+        doc_type_name = entry.get("requiredDocumentType", {}).get("documentTypeName")
         if doc_type_name not in required_types:
             continue
-        for doc in entry.get("assigned_documents", []):
-            document_id = doc.get("document_id")
-            document_name = doc.get("document_name")
-            if not document_name or document_id in matched_documents:
+        for doc in entry.get("assignedDocuments", []):
+            document_id = doc["documentId"]
+            if document_id in matched_documents:
                 continue
             matched_documents[document_id] = {
-                "title": document_name,
+                "title": doc["documentName"],
                 "document_id": document_id,
-                "project_id": doc.get("project_id"),
             }
 
     return list(matched_documents.values())

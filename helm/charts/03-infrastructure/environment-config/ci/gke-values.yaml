@@ -1,0 +1,13 @@
+# ci: GKE — Workload Identity binding of the shared ServiceAccount, GCP project for the exporter.
+global:
+  stage: {name: ci}
+externalSecrets:
+  pathPrefix: ci
+serviceAccount:
+  annotations: {iam.gke.io/gcp-service-account: spark-ci@example-project.iam.gserviceaccount.com}
+gcp:
+  projectId: example-project
+otel:
+  exporters:
+    googlecloud: {}
+  resourceDetectors: [env, gcp]

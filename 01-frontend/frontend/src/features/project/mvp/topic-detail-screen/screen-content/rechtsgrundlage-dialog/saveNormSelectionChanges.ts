@@ -1,4 +1,4 @@
-import { addLegalBasisNormsToProject } from '@/api-clients/examination-module';
+import { v1ExaminationAddLegalBasisNormsToProject as addLegalBasisNormsToProject } from '@/api-clients/backend';
 import { toCompositeKey, type CompositeKey } from '@/db/nodes/compositeKey';
 import type { NodePayloadByType, NodeTypeLiteral } from '@/db/nodes/types';
 import type { AvailableNormEntry } from '../../screen-data/useRechtsgrundlageData.helpers';
@@ -82,7 +82,7 @@ const applyRemovedTopicNormChanges = (
     }
 
     update(topicNorm.norm, (draft) => {
-      draft.frontend_parent_ids = draft.frontend_parent_ids.filter(
+      draft.frontendParentIds = draft.frontendParentIds.filter(
         (parentId) => parentId !== topicNorm.topicNormCompositeKey,
       );
     });
@@ -122,15 +122,15 @@ export async function saveNormSelectionChanges(
   if (addedNormSelections.length > 0) {
     await addLegalBasisNormsToProject({
       body: {
-        topic_id: topicId,
+        topicId: topicId,
         norms: addedNormSelections,
         type: 'pruefung',
       },
       path: {
-        project_id: projectId,
+        projectId: projectId,
       },
       query: {
-        project_version: projectVersion,
+        projectVersion: projectVersion,
       },
       throwOnError: true,
     });

@@ -1,9 +1,11 @@
-import { listNodesProjectIdNodesGet as dmsListNodes } from '@/api-clients/dms-module';
-import { listNodesProjectIdNodesGet as examListNodes } from '@/api-clients/examination-module';
-import { listNodesProjectIdNodesGet as feedbackListNodes } from '@/api-clients/feedback-module';
-import { listNodesProjectIdNodesGet as omsListNodes } from '@/api-clients/oms-module';
-import { listNodesProjectIdNodesGet as plsListNodes } from '@/api-clients/pls-module';
-import { listNodesProjectIdNodesGet as vaeListNodes } from '@/api-clients/vae-module';
+import {
+  v1DocumentManagementServiceListNodes as dmsListNodes,
+  v1ExaminationServiceListNodes as examListNodes,
+  v1FeedbackListNodes as feedbackListNodes,
+  v1ObjectionsManagementServiceListNodes as omsListNodes,
+  v1ProjectLogicServiceListNodes as plsListNodes,
+  v1AdministrativeFileDraftListNodes as vaeListNodes,
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import { BasicIndex, createCollection } from '@tanstack/react-db';
@@ -25,36 +27,36 @@ const getVersionedCacheKey = (projectId: string, projectVersion: number) =>
  * shared project graph can rebuild from one merged node list.
  */
 const loadNodeSummaries = async (projectId: string, projectVersion: number) => {
-  const query = { project_version: projectVersion };
+  const query = { projectVersion: projectVersion };
   const [examRes, feedbackRes, plsRes, dmsRes, omsRes, vaeRes] =
     await Promise.all([
       examListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),
       feedbackListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),
       plsListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),
       dmsListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),
       omsListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),
       vaeListNodes({
-        path: { project_id: projectId },
+        path: { projectId: projectId },
         query,
         throwOnError: true,
       }),

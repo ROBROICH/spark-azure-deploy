@@ -29,9 +29,9 @@ vi.mock('@/features/feedback/useFeedbackLookup', () => ({
 
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: () => [
-    { id: 'satz-late', node_type: 'satz' },
-    { id: 'satz-missing-position', node_type: 'satz' },
-    { id: 'satz-early', node_type: 'satz' },
+    { id: 'satz-late', nodeType: 'satz' },
+    { id: 'satz-missing-position', nodeType: 'satz' },
+    { id: 'satz-early', nodeType: 'satz' },
   ],
 }));
 
@@ -40,17 +40,17 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
     data: [
       {
         id: 'satz-late',
-        node_type: 'satz',
+        nodeType: 'satz',
         position: 20,
       },
       {
         id: 'satz-early',
-        node_type: 'satz',
+        nodeType: 'satz',
         position: 10,
       },
       {
         id: 'satz-missing-position',
-        node_type: 'satz',
+        nodeType: 'satz',
         position: null,
       },
     ],
@@ -84,7 +84,7 @@ describe('AiAbsatzSection', () => {
   it('renders sentence rows sorted by position', () => {
     render(
       <AiAbsatzSection
-        absatzRef={{ id: 'absatz-1', node_type: 'absatz' }}
+        absatzRef={{ id: 'absatz-1', nodeType: 'absatz' }}
         hasMultipleAbsaetze={false}
         showDivider={false}
       />,

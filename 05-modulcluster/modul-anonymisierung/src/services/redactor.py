@@ -112,7 +112,7 @@ def redact_pdf(
                 img_pdf_bytes = img2pdf.convert(str(img_path))
                 with pikepdf.open(BytesIO(img_pdf_bytes)) as img_pdf:
                     original_pdf.pages[page_num] = img_pdf.pages[0]
-            
+
             _drop_stale_page_content(original_pdf)
             original_pdf.save(assembled_path)
 
@@ -130,7 +130,7 @@ def redact_pdf(
         except Exception:
             logger.exception("OCR failed for pages %s, keeping without text layer", rasterized_page_nums)
             result_bytes = assembled_path.read_bytes()
-    
+
     _assert_no_stale_page_content(result_bytes)
 
     return result_bytes, total_matches

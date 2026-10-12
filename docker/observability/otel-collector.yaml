@@ -31,7 +31,18 @@ processors:
         statements:
           - set(attributes["_service.name"], attributes["service.name"]) where attributes["service.name"] != nil
 
+  transform/temporal-metrics:
+    metric_statements:
+      - context: datapoint
+        statements:
+          - set(attributes["temporal_namespace"], attributes["namespace"]) where IsMatch(metric.name, "^temporal_") and attributes["namespace"] != nil
+          - delete_key(attributes, "namespace") where IsMatch(metric.name, "^temporal_")
+          - set(attributes["service_instance_id"], resource.attributes["service_instance_id"]) where IsMatch(metric.name, "^temporal_") and resource.attributes["service_instance_id"] != nil
+          - set(attributes["service_name"], resource.attributes["service_name"]) where IsMatch(metric.name, "^temporal_") and resource.attributes["service_name"] != nil
+
 exporters:
+  otlphttp/prometheus:
+    endpoint: http://prometheus:9090/api/v1/otlp
   otlp/tempo:
     endpoint: tempo:4317
     tls:
@@ -51,3 +62,7 @@ service:
       receivers: [otlp]
       processors: [transform/temporal, batch]
       exporters: [otlphttp/loki]
+    metrics:
+      receivers: [otlp]
+      processors: [transform/temporal-metrics, batch]
+      exporters: [otlphttp/prometheus]

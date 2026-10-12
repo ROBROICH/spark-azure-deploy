@@ -1,8 +1,13 @@
-"""Rasterize PDF chunks as a fallback when docling-serve crashes on complex content."""
+"""Rasterize PDF pages to JPEG before Docling.
+
+Used for CAD/GIS plan sheets (rasterize-first) and as a fallback when
+docling-serve crashes on complex vector or huge embedded images.
+"""
 
 import asyncio
 import io
 import logging
+import math
 from datetime import timedelta
 
 import pikepdf
@@ -23,13 +28,55 @@ __all__ = [
 logger = logging.getLogger(__name__)
 
 
+def _page_scale(width_pt: float, height_pt: float, requested_scale: float, max_pixels: int) -> float:
+    """Clamp the render scale so a page stays below max_pixels.
+
+    Plan and map sheets are many times larger than A4, so a fixed DPI produces
+    bitmaps of several hundred MB and images above PIL's DecompressionBomb limit.
+    """
+    area = width_pt * height_pt
+    if area <= 0:
+        return requested_scale
+    if math.ceil(width_pt * requested_scale) * math.ceil(height_pt * requested_scale) <= max_pixels:
+        return requested_scale
+
+    scale = min(requested_scale, math.sqrt(max_pixels / area))
+    short_side = min(width_pt, height_pt)
+    long_side = max(width_pt, height_pt)
+    # Fit an integer pixel rectangle: PDFium rounds both rendered sides up.
+    short_pixels = max(1, math.floor(short_side * scale))
+    long_pixels = max_pixels // short_pixels
+    scale = min(scale, short_pixels / short_side, long_pixels / long_side)
+    # Division/multiplication can round just above the final integer boundary.
+    while math.ceil(width_pt * scale) * math.ceil(height_pt * scale) > max_pixels:
+        scale = math.nextafter(scale, 0.0)
+    return scale
+
+
+def _render_page_jpeg(page: "pdfium.PdfPage", scale: float, quality: int) -> tuple[bytes, int, int]:
+    """Render one page to JPEG bytes, releasing the pdfium bitmap immediately."""
+    bitmap = page.render(scale=scale)
+    try:
+        with _pil_lock:
+            pil_image = bitmap.to_pil()
+            jpeg_buf = io.BytesIO()
+            pil_image.save(jpeg_buf, format="JPEG", quality=quality)
+            img_width, img_height = pil_image.width, pil_image.height
+            # to_pil() shares the pdfium buffer, so drop the image before closing
+            # the bitmap -- otherwise both stay alive for the whole loop.
+            del pil_image
+    finally:
+        bitmap.close()
+    return jpeg_buf.getvalue(), img_width, img_height
+
+
 def _rasterize_chunk_sync(chunk_bytes: bytes) -> bytes:
     """
     Synchronous helper to rasterize each page of a PDF chunk into a JPEG image.
 
     Renders each page at RASTER_FALLBACK_DPI using pypdfium2 and builds a new
-    image-only PDF using pikepdf. This strips all complex vector/embedded-image
-    content that causes docling-serve to crash.
+    image-only PDF using pikepdf. Strips CAD paths and huge embedded images
+    that make native Docling empty or crash.
 
     Args:
         chunk_bytes: Raw PDF bytes of the chunk
@@ -38,9 +85,9 @@ def _rasterize_chunk_sync(chunk_bytes: bytes) -> bytes:
         Rasterized PDF bytes
     """
     cfg = get_config()
-    dpi = cfg.RASTER_FALLBACK_DPI
     quality = cfg.RASTER_FALLBACK_JPEG_QUALITY
-    scale = dpi / 72.0
+    max_pixels = cfg.RASTER_MAX_PIXELS
+    requested_scale = cfg.RASTER_FALLBACK_DPI / 72.0
 
     # Phase 1: render all pages via pypdfium2 under the lock
     rendered_pages: list[tuple[float, float, bytes, int, int]] = []  # (w, h, jpeg, img_w, img_h)
@@ -52,13 +99,17 @@ def _rasterize_chunk_sync(chunk_bytes: bytes) -> bytes:
                 page_width = page.get_width()
                 page_height = page.get_height()
 
-                bitmap = page.render(scale=scale)
-                with _pil_lock:
-                    pil_image = bitmap.to_pil()
-                    jpeg_buf = io.BytesIO()
-                    pil_image.save(jpeg_buf, format="JPEG", quality=quality)
+                scale = _page_scale(page_width, page_height, requested_scale, max_pixels)
+                if scale < requested_scale:
+                    logger.info(
+                        f"Page {page_idx + 1}: capping render scale {requested_scale:.2f} -> {scale:.2f} "
+                        f"({int(page_width * scale)}x{int(page_height * scale)} px) to stay below "
+                        f"{max_pixels:,} pixels"
+                    )
 
-                rendered_pages.append((page_width, page_height, jpeg_buf.getvalue(), pil_image.width, pil_image.height))
+                jpeg, img_width, img_height = _render_page_jpeg(page, scale, quality)
+                rendered_pages.append((page_width, page_height, jpeg, img_width, img_height))
+                page.close()
         finally:
             src_doc.close()
 
@@ -102,9 +153,8 @@ async def _rasterize_chunk(input: RasterizeChunkInput) -> RasterizeChunkOutput:
     """
     Rasterize a PDF chunk by rendering each page as a JPEG image.
 
-    This activity is used as a fallback when docling-serve crashes on a chunk
-    due to huge embedded images. The rasterized PDF is much lighter and can
-    usually be processed successfully.
+    Plan sheets use this before Docling. Non-plan chunks use it after
+    docling-serve crashes on huge embedded images.
 
     Args:
         input: RasterizeChunkInput with chunk bytes and metadata

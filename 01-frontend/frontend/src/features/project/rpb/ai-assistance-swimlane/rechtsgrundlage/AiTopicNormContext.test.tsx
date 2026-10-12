@@ -28,18 +28,18 @@ vi.mock('@/db/nodes/hooks/useAction', () => ({
 
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: () => [
-    { id: 'satz-1', node_type: 'satz' },
-    { id: 'satz-2', node_type: 'satz' },
+    { id: 'satz-1', nodeType: 'satz' },
+    { id: 'satz-2', nodeType: 'satz' },
   ],
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
   useNode: () => ({
     data: {
-      satz_statuses: {},
+      satzStatuses: {},
       id: 'topic-norm-1',
-      node_type: 'topic_norm',
-      topic_id: 'topic-1',
+      nodeType: 'topic_norm',
+      topicId: 'topic-1',
     },
   }),
 }));
@@ -78,7 +78,7 @@ describe('AiTopicNormContext', () => {
 
     render(
       <AiTopicNormProvider
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       >
         <ContextProbe />
       </AiTopicNormProvider>,
@@ -97,7 +97,7 @@ describe('AiTopicNormContext', () => {
 
     render(
       <AiTopicNormProvider
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       >
         <ContextProbe />
       </AiTopicNormProvider>,
@@ -115,7 +115,7 @@ describe('AiTopicNormContext', () => {
 
     render(
       <AiTopicNormProvider
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       >
         <ContextProbe />
       </AiTopicNormProvider>,
@@ -129,15 +129,15 @@ describe('AiTopicNormContext', () => {
     );
 
     const recipe = mocks.updateMock.mock.calls[0]?.[1] as (
-      draft: Pick<NodePayloadByType<'topic_norm'>, 'satz_statuses'>,
+      draft: Pick<NodePayloadByType<'topic_norm'>, 'satzStatuses'>,
     ) => void;
     const draft = {
-      satz_statuses: {},
-    } satisfies Pick<NodePayloadByType<'topic_norm'>, 'satz_statuses'>;
+      satzStatuses: {},
+    } satisfies Pick<NodePayloadByType<'topic_norm'>, 'satzStatuses'>;
 
     recipe(draft);
 
-    expect(draft.satz_statuses).toEqual({
+    expect(draft.satzStatuses).toEqual({
       'satz-1': 'checked',
     });
   });
@@ -147,7 +147,7 @@ describe('AiTopicNormContext', () => {
 
     render(
       <AiTopicNormProvider
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       >
         <ContextProbe />
       </AiTopicNormProvider>,
@@ -166,7 +166,7 @@ describe('AiTopicNormContext', () => {
 
     render(
       <AiTopicNormProvider
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       >
         <ContextProbe />
       </AiTopicNormProvider>,
@@ -180,17 +180,17 @@ describe('AiTopicNormContext', () => {
     );
 
     const recipe = mocks.updateMock.mock.calls[0]?.[1] as (
-      draft: Pick<NodePayloadByType<'topic_norm'>, 'satz_statuses'>,
+      draft: Pick<NodePayloadByType<'topic_norm'>, 'satzStatuses'>,
     ) => void;
     const draft = {
-      satz_statuses: {
+      satzStatuses: {
         'satz-1': 'needs_revision',
       },
-    } satisfies Pick<NodePayloadByType<'topic_norm'>, 'satz_statuses'>;
+    } satisfies Pick<NodePayloadByType<'topic_norm'>, 'satzStatuses'>;
 
     recipe(draft);
 
-    expect(draft.satz_statuses).toEqual({
+    expect(draft.satzStatuses).toEqual({
       'satz-1': 'checked',
       'satz-2': 'checked',
     });

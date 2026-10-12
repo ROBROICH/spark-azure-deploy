@@ -1,0 +1,88 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /v2/files/{file_id}/generate-download-url HTTP contract snapshots unknown, wrong-version, excluded-deleted, absent-object, and pending states 1`] = `
+[
+  {
+    "body": {
+      "detail": "File '20000000-0000-4000-8000-000000000999' not found.",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "File '20000000-0000-4000-8000-000000000001' not found.",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "File '20000000-0000-4000-8000-000000000002' not found.",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "Document 'documents/10000000-0000-4000-8000-000000000001/missing/missing-object.pdf' not found",
+    },
+    "status": 404,
+  },
+  {
+    "body": {
+      "detail": "File '20000000-0000-4000-8000-000000000007' is not yet validated.",
+    },
+    "status": 409,
+  },
+]
+`;
+
+exports[`POST /v2/files/generate-upload-url HTTP contract snapshots duplicate, invalid payload/name, lock, and storage failures 1`] = `
+[
+  {
+    "body": {
+      "detail": "File 'basis.pdf' already exists (latest version 1). Pass create_new_version=True to create a new version instead.",
+    },
+    "status": 409,
+  },
+  {
+    "body": {
+      "detail": "File type '.exe' is not supported. Allowed types: .jpeg, .jpg, .pdf, .png, .zip",
+    },
+    "status": 415,
+  },
+  {
+    "body": {
+      "detail": "Project version cannot be modified while version creation is locked. Retry after the current version operation completes. correlation_id=<fixture-uuid>",
+    },
+    "status": 409,
+  },
+  {
+    "body": {
+      "detail": "Cannot upload a file or start new ZIP processing for project 10000000-0000-4000-8000-000000000001: existing ZIP approval is still active.",
+    },
+    "status": 409,
+  },
+]
+`;
+
+exports[`POST /v2/internal/files/generate-upload-url HTTP contract snapshots conflict, signing failure, forbidden Authorization, and malformed role inputs 1`] = `
+[
+  {
+    "body": {
+      "detail": "File 'basis.pdf' already exists (latest version 1). Pass create_new_version=True to create a new version instead.",
+    },
+    "status": 409,
+  },
+  {
+    "body": {
+      "detail": "Internal endpoint",
+    },
+    "status": 403,
+  },
+  {
+    "body": {
+      "detail": "Internal endpoint",
+    },
+    "status": 403,
+  },
+]
+`;

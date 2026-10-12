@@ -2,35 +2,34 @@
 
 from datetime import timedelta
 
+from temporal.contracts import DMSFileResponse, PlausibilityOrchestratorInput
+from temporal.registry import PLAUSIBILITAET_WORKFLOW
 from temporalio import workflow
 
-from src.dms.schemas import DMSFileResponse
+from src.config.config import config
 from src.workflows.check_logic_wf.workflow import PlausibilityCheckOrchestratorWorkflow
-from src.workflows.input_schemas import OrchestratorInputSchema
 from src.workflows.qdrant_wf.workflow import ClaimExtractionOrchestratorWorkflow
 
 
-@workflow.defn
+@workflow.defn(name=PLAUSIBILITAET_WORKFLOW.name)
 class PlausibilityMainOrchestratorWorkflow:
-    """Main orchestrator workflow that can start different sub-workflows based on input."""
+    """Main orchestrator: claim extraction, then the plausibility check."""
 
     @workflow.run
-    async def run(self, workflow_input: OrchestratorInputSchema) -> DMSFileResponse:
-        """First runs the qdrant builder workflow, then the check logic workflow."""
+    async def run(self, workflow_input: PlausibilityOrchestratorInput) -> DMSFileResponse:
+        """Run the claim extraction workflow, then the check workflow."""
         await workflow.execute_child_workflow(
             ClaimExtractionOrchestratorWorkflow.run,
             arg=workflow_input,
             task_queue=workflow.info().task_queue,
             id=f"{workflow.info().workflow_id}-qdrant_builder",
-            task_timeout=timedelta(seconds=60),
+            task_timeout=timedelta(seconds=config.TEMPORAL.WORKFLOW_TASK_TIMEOUT_SECONDS),
         )
 
-        check_logic_result = await workflow.execute_child_workflow(
+        return await workflow.execute_child_workflow(
             PlausibilityCheckOrchestratorWorkflow.run,
             arg=workflow_input,
             task_queue=workflow.info().task_queue,
             id=f"{workflow.info().workflow_id}-check_logic",
-            task_timeout=timedelta(seconds=60),
+            task_timeout=timedelta(seconds=config.TEMPORAL.WORKFLOW_TASK_TIMEOUT_SECONDS),
         )
-
-        return check_logic_result

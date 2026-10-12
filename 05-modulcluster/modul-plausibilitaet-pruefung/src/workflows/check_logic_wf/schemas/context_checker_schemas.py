@@ -53,7 +53,7 @@ class ContextCheckerLLMInput(BaseModel):
 
 
 class ContextCheckVerdict(BaseModel):
-    """Contradiction verdict produced by checker or verifier LLM."""
+    """Contradiction verdict of the context checker."""
 
     rating: int = Field(
         ge=0,
@@ -96,7 +96,7 @@ class ConflictCheckerLLMOutput(BaseModel):
 
 
 class ContextCheckerOutput(BaseModel):
-    """Result of context checking and optional verification for one claim pair."""
+    """Result of the context check for one claim pair."""
 
     chunk_a_id: str = Field(description="Chunk ID for the primary claim.")
     chunk_b_id: str = Field(description="Chunk ID for the reference claim.")

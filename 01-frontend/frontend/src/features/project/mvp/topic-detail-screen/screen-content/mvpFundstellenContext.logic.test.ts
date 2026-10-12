@@ -6,16 +6,16 @@ import {
   createMvpFundstellenRefIndexes,
 } from './mvpFundstellenContext.logic';
 
-const node = <T extends NodeSummary['node_type']>(
+const node = <T extends NodeSummary['nodeType']>(
   id: string,
   nodeType: T,
   parents: NodeSummary[] = [],
 ): NodeSummary<T> => ({
   id,
-  node_type: nodeType,
+  nodeType: nodeType,
   parents: parents.map((parent) => ({
     id: parent.id,
-    node_type: parent.node_type,
+    nodeType: parent.nodeType,
   })),
 });
 

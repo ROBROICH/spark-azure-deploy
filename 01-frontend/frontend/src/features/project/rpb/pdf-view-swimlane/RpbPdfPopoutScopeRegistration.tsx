@@ -46,12 +46,12 @@ export const RpbPdfPopoutScopeRegistration = () => {
     : null;
   const topicDocumentRefs = topicId
     ? getDescendants(topicId).filter(
-        (ref): ref is NodeRefByType<'dokument'> => ref.node_type === 'dokument',
+        (ref): ref is NodeRefByType<'dokument'> => ref.nodeType === 'dokument',
       )
     : [];
   const { data: topicDocuments } = useNodes(topicDocumentRefs);
   const previewDocumentRef = previewDocumentId
-    ? { id: previewDocumentId, node_type: 'dokument' as const }
+    ? { id: previewDocumentId, nodeType: 'dokument' as const }
     : null;
   const { data: previewDocument } = useNode(previewDocumentRef);
   const connectedFileId = findConnectedProjectDocumentId(
@@ -69,7 +69,7 @@ export const RpbPdfPopoutScopeRegistration = () => {
           topicDocuments,
           projectDocumentId,
         ) ??
-        (previewDocument?.dms_file_id === projectDocumentId
+        (previewDocument?.dmsFileId === projectDocumentId
           ? previewDocument.id
           : undefined);
 

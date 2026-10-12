@@ -25,7 +25,7 @@ That approach was compact, but it did not work well for this repository because 
 
 ## Current Design
 
-The pipeline is split into one repository test stage and ten batched service pipeline stages:
+The pipeline is split into one repository test stage and six batched service pipeline stages:
 
 ```yaml
 stages:
@@ -36,10 +36,6 @@ stages:
   - service-pipelines-4
   - service-pipelines-5
   - service-pipelines-6
-  - service-pipelines-7
-  - service-pipelines-8
-  - service-pipelines-9
-  - service-pipelines-10
 ```
 
 The `test` stage runs DevGuard repository checks:
@@ -48,6 +44,65 @@ The `test` stage runs DevGuard repository checks:
 - Static application security testing
 - Infrastructure-as-code scanning
 - Software composition analysis
+
+## Backend Modulith Migration
+
+The 15 legacy backend service triggers and child pipeline files have been
+removed. Their images no longer build, even before the replacement source
+arrives. Backend source directories and DiPlan are unchanged by this CI migration.
+
+The new `spark-backend` trigger and TypeScript checks activate only when
+`02-backend/apps/spark-backend/package.json` exists. This guard also applies to
+tags, so CI remains usable before the source migration lands. The migration
+must bring the complete workspace: the host app, feature and shared packages,
+root `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`, TypeScript/Vite
+configuration, required scripts, and `02-backend/apps/Dockerfile`.
+
+The child pipeline `.gitlab/ci/services/spark-backend.yml` owns the bundle:
+
+```text
+typescript-bundle -> oci-image -> attestation
+```
+
+Its `typescript-build` job uses `node:22.23.2`, enables Corepack, activates the
+root package's pinned pnpm version, installs with `--frozen-lockfile`, and
+builds only `@spark-workflow/spark-backend` with `NODE_ENV=production`. It publishes
+`02-backend/apps/spark-backend/dist/` as an artifact. The image job downloads
+that artifact through a local `needs` dependency and uses it as the Docker
+context with `02-backend/apps/Dockerfile`. No parent bundle, cross-pipeline
+artifact download, or DiPlan build is required.
+
+The `spark-backend` trigger runs only after successful parent checks. Its image
+is built, pushed, scanned, signed, and attested using the existing DevGuard
+settings; this pipeline does not deploy it or update GitOps overlays.
+
+## Handbook GitLab Pages
+
+The parent pipeline includes `.gitlab/ci/templates/handbuch-pages.yml`. Its
+`pages` job runs in the `test` stage, independently of service image pipelines.
+It builds the static application in `01-frontend/handbuch` from the Markdown and
+images in `docs/handbuch`, using Node.js 24 and the application's pinned pnpm
+version. The job derives `HANDBUCH_BASE_PATH` from `CI_PAGES_URL` so assets,
+links, and search work on both unique domains and project-path Pages URLs, then
+publishes `dist/public` as the root `public` artifact.
+
+Pages runs on default-branch pushes only when one of these paths changes:
+
+- `01-frontend/handbuch/**/*`
+- `docs/handbuch/**/*`
+- `.gitlab/ci/templates/handbuch-pages.yml`
+
+A manually started web pipeline on the default branch also publishes the
+handbook. If `BUILD_SERVICE` is set, it must be `All` or `handbuch` for that
+manual run. Merge-request and tag pipelines do not publish Pages. GitLab Pages
+must be enabled for the project; the deployment URL is available under
+**Deploy > Pages**.
+
+For local verification, run `types:check` and `build` as described in
+[`01-frontend/handbuch/README.md`](../../01-frontend/handbuch/README.md), and build
+with `HANDBUCH_BASE_PATH=/pages-test/` to check project-path hosting. Validate the
+merged GitLab CI configuration for changed and unchanged default-branch pushes,
+manual web runs, merge requests, and tags.
 
 ## Scan Failure Policy
 
@@ -79,14 +134,20 @@ Each service child pipeline includes the shared local DevGuard OCI template:
 
 ## Service Template
 
-The shared service template wraps the DevGuard `v1.14.0` OCI templates directly:
+The shared service template includes these DevGuard `v1.16.0` OCI templates directly:
 
 - `generate-tag.yml`
-- `build-oci-image.yml`
 - `container-scanning.yml`
-- `push-oci-image.yml`
 - `sign-oci-image.yml`
 - `attest.yml`
+
+Repository security checks also use DevGuard `v1.16.0` templates. All remote
+DevGuard includes use SHA-256 integrity pins; update the version and integrity
+value together.
+
+The local build job uses the digest-pinned Kaniko `v1.28.3` image bundled with
+scanner `v1.12.4`, matching DevGuard's upstream `v1.16.0` build template, which
+is unchanged from `v1.15.0`.
 
 The template accepts these inputs:
 
@@ -98,9 +159,14 @@ context
 dockerfile
 base_image_dev
 base_image
+build_needs
 ```
 
-`base_image_dev` and `base_image` are passed to Kaniko as the Docker build arguments `BASE_IMAGE_DEV` and `BASE_IMAGE`. This lets each service child pipeline select its build and runtime images without changing the shared template.
+`base_image_dev` and `base_image` are passed to Kaniko as the Docker build arguments `BASE_IMAGE_DEV` and `BASE_IMAGE`. This lets each service child pipeline select its build and runtime images without changing the shared template. Both default to an empty string for Dockerfiles that pin their own images, such as the TypeScript runtime Dockerfile.
+
+`build_needs` defaults to an empty array. A child can supply local artifact-producing
+jobs here; the image job downloads their artifacts alongside the generated tag.
+Existing frontend and Python children require no additional build dependencies.
 
 Example service child pipeline:
 
@@ -210,7 +276,7 @@ This keeps image tags from being overwritten on every `main` build and ensures t
 
 The parent `.gitlab-ci.yml` contains one trigger job per service. Service image pipelines run only when relevant files change.
 
-Each service trigger watches:
+Frontend and Python service triggers watch:
 
 - The service source directory
 - The service child pipeline file
@@ -219,7 +285,16 @@ Each service trigger watches:
 - `pyproject.toml`
 - `uv.lock`
 
-`uv.lock` and `pyproject.toml` intentionally trigger all service pipelines because dependency changes can affect any Python service build.
+`uv.lock` and `pyproject.toml` select the existing frontend and Python service
+pipelines, not `spark-backend`.
+
+The TypeScript checks and `spark-backend` trigger share a change list covering
+the host app, backend features, shared packages, scripts, root pnpm manifests
+and lockfile, Vite configuration, shared TypeScript Dockerfile, and relevant CI
+files. On pushes and merge requests, an unrelated service-only change does not
+select the modulith checks or build. Web pipelines have no push diff, so GitLab
+treats `changes` as true and selects all available services, including the
+modulith once its source exists.
 
 ## Merge Requests
 
@@ -228,13 +303,44 @@ Merge request pipelines are enabled and run on the merge request source branch c
 For merge requests:
 
 - The top-level `test` stage runs.
+- TypeScript checks run when the modulith source exists and watched files change.
 - Service image child pipelines are skipped.
 
 For pushes or web pipelines on `main`:
 
 - The `test` stage runs.
-- Changed services build, scan, push, sign, and attest.
+- Pushes select changed services; web pipelines select all available services.
+  Selected services build, scan, push, sign, and attest.
+- `spark-backend` runs only when its source exists and parent checks succeed.
 
 For tags:
 
-- All service image pipelines run.
+- All remaining service image pipelines run; `spark-backend` requires its source
+  to exist and parent checks to succeed.
+
+### Migration verification
+
+Validate parent and child configurations with GitLab CI lint/merged configuration
+for MR, main push, web, and tag pipelines, both before and after the workspace
+arrives. Confirm that no removed service is selected, absent modulith source
+selects no TypeScript jobs, watched workspace changes select all TypeScript
+checks and the eligible image child, and unrelated push/MR changes select neither.
+Verify that each batch has at most three service triggers and every local
+include resolves. After the source migration, run a real child pipeline to
+verify bundle artifact download, image build, scanning, signing, and attestation.
+
+## DevGuard 1.16 rollout checks
+
+This upgrade keeps `https://devguard.opencode.de` and the existing
+`DEVGUARD_API_URL`, assets, and credentials. Before activating the templates,
+confirm the actual API behind that variable is compatible with minor version
+`1.16`. Upstream guarantees compatibility within the same minor version; an
+upgrade of the separate gitops-hosted instance does not satisfy this check.
+
+Validate parent and representative child pipelines with GitLab CI lint/merged
+configuration for MR, main-branch, web, and tag execution. Verify source and
+container scans, unchanged high-risk/critical-CVSS blocking thresholds, image
+signatures, and SBOM/VEX/SARIF/SLSA attestations. MR pipelines must continue to
+skip service-image children. Shared CI changes select all services on eligible
+main/tag pipelines, so budget runner capacity. Revert template URLs and integrity
+pins together if needed. The backend CI migration is described separately above.

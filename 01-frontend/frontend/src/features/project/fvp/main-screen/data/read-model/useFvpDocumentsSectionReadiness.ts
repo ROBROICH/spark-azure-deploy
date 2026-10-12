@@ -1,21 +1,17 @@
-import { useDocumentsTree } from '@/features/project/fvp/main-screen/data/read-model/useDocumentsTree';
+import { useFormalDocumentSummary } from './useDocuments';
 import { useRequiredDocumentsTree } from '@/features/project/fvp/main-screen/data/read-model/useRequiredDocuments';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { useRequestSources } from '@/features/project/nachforderungen/data/requestQueries';
 
 export const useFvpDocumentsSectionReadiness = (projectId: string) => {
-  const { isLoading: documentsTreeLoading } = useDocumentsTree(projectId);
+  const { isLoading: documentsSummaryLoading } =
+    useFormalDocumentSummary(projectId);
   const { isLoading: requiredDocumentsTreeLoading } =
     useRequiredDocumentsTree(projectId);
-  const { isLoading: requestItemsLoading } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, projectId)),
-  );
+  const { isLoading: requestItemsLoading } = useRequestSources(projectId);
 
   return {
     isLoading:
-      documentsTreeLoading ||
+      documentsSummaryLoading ||
       requiredDocumentsTreeLoading ||
       requestItemsLoading,
   };

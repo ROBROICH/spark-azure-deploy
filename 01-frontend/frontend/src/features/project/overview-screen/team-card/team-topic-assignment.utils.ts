@@ -5,7 +5,7 @@ const MAX_TOPIC_ASSIGNEES = 7;
 export type TeamTopicNode = NodePayloadByType<'topic'>;
 
 const isUserAssignedToTopic = (topic: TeamTopicNode, userId: string) =>
-  topic.mvp_assignees.includes(userId);
+  topic.mvpAssignees.includes(userId);
 
 export const getAssignedTopicIds = (topics: TeamTopicNode[], userId: string) =>
   topics
@@ -39,7 +39,7 @@ export const getTopicAssigneeUpdate = (params: {
   topic: TeamTopicNode;
   userIds: string[];
 }) => {
-  const hasEditedAssignee = params.topic.mvp_assignees.some((userId) =>
+  const hasEditedAssignee = params.topic.mvpAssignees.some((userId) =>
     params.editedUserIds.has(userId),
   );
   const shouldAssign = params.selectedTopicIds.has(params.topic.id);
@@ -49,12 +49,12 @@ export const getTopicAssigneeUpdate = (params: {
   }
 
   const mvpAssignees = replaceAssignees({
-    assignees: params.topic.mvp_assignees,
+    assignees: params.topic.mvpAssignees,
     shouldAssign,
     userIds: params.userIds,
   });
 
-  if (areStringArraysEqual(mvpAssignees, params.topic.mvp_assignees)) {
+  if (areStringArraysEqual(mvpAssignees, params.topic.mvpAssignees)) {
     return null;
   }
 

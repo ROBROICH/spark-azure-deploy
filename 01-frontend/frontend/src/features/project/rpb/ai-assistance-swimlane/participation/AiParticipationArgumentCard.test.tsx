@@ -18,34 +18,36 @@ vi.mock('@/features/ui/ai-suggestion-badge/AiSuggestionBadge', () => ({
 
 const argument = (overrides: Partial<RpbArgumentNode> = {}): RpbArgumentNode =>
   ({
-    argument_id: 'A1',
-    beteiligungs_eingang_id: 'entry-1',
+    argumentId: 'A1',
+    beteiligungsEingangId: 'entry-1',
+    extractionPayload: null,
     compositeKey: toCompositeKey({
       id: overrides.id ?? 'argument-1',
-      node_type: 'argument',
+      nodeType: 'argument',
     }),
     context: null,
-    context_end_idx: null,
-    context_start_idx: null,
-    created_at: '2026-01-01T00:00:00.000Z',
+    contextEndIdx: null,
+    contextStartIdx: null,
+    createdAt: '2026-01-01T00:00:00.000Z',
     einordnung: null,
-    end_idx: null,
+    endIdx: null,
     erwiderung: null,
-    frontend_parent_ids: [],
+    frontendParentIds: [],
     id: 'argument-1',
-    in_vae: false,
-    is_valid_argument: true,
-    is_deleted: false,
-    node_type: 'argument',
-    project_id: 'project-1',
-    start_idx: null,
+    inVae: false,
+    isValidArgument: true,
+    isDeleted: false,
+    nodeType: 'argument',
+    projectId: 'project-1',
+    startIdx: null,
     status: 'open',
-    sub_topic_id: null,
-    sys_period: null,
+    topicConfidence: null,
+    subTopicConfidence: null,
+    subTopicId: null,
     text: 'Argument text',
-    topic_id: 'topic-1',
-    update_type: null,
-    updated_at: '2026-01-01T00:00:00.000Z',
+    topicId: 'topic-1',
+    updateType: null,
+    updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
   }) satisfies RpbArgumentNode;
 
@@ -77,7 +79,7 @@ describe('AiParticipationArgumentCard', () => {
   it('hides the action for invalid arguments even when already in_vae', () => {
     render(
       <AiParticipationArgumentCard
-        argument={argument({ in_vae: true, is_valid_argument: false })}
+        argument={argument({ inVae: true, isValidArgument: false })}
         canMutate
         onToggleInBeschluss={vi.fn()}
       />,

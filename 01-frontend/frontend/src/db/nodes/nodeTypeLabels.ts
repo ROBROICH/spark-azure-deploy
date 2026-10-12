@@ -50,10 +50,10 @@ export const EXAMINATION_NODE_TYPE_LITERALS = [
   'widerspruch',
   'zugeordnetes_dokument',
   'zusammenfassung',
-] satisfies Readonly<ExamNodeRef['node_type']>[];
+] satisfies Readonly<ExamNodeRef['nodeType']>[];
 
 export const FEEDBACK_NODE_TYPE_LITERALS = ['feedback'] satisfies Readonly<
-  FeedbackNodeRef['node_type']
+  FeedbackNodeRef['nodeType']
 >[];
 
 export const PLS_NODE_TYPE_LITERALS = [
@@ -61,22 +61,22 @@ export const PLS_NODE_TYPE_LITERALS = [
   'subtopic',
   'topic',
   'topic_norm',
-] satisfies Readonly<PlsNodeRef['node_type']>[];
+] satisfies Readonly<PlsNodeRef['nodeType']>[];
 
 export const DMS_NODE_TYPE_LITERALS = [
   'file',
   'file_topic',
   'zip_file',
-] satisfies Readonly<DmsNodeRef['node_type']>[];
+] satisfies Readonly<DmsNodeRef['nodeType']>[];
 
 export const OMS_NODE_TYPE_LITERALS = [
   'argument',
   'beteiligungs_eingang',
   'beteiligungs_eingang_markdown',
-] satisfies Readonly<OmsNodeRef['node_type']>[];
+] satisfies Readonly<OmsNodeRef['nodeType']>[];
 
 export const VAE_NODE_TYPE_LITERALS = ['risks', 'vae_node'] satisfies Readonly<
-  VaeNodeRef['node_type']
+  VaeNodeRef['nodeType']
 >[];
 
 export const NODE_TYPE_LITERALS = [

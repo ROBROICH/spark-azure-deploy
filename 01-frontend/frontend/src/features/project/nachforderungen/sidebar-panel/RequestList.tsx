@@ -7,10 +7,13 @@ import { Link, getRouteApi, useNavigate } from '@tanstack/react-router';
 import { ChevronDown, ClipboardList, Plus, X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
+import {
+  REQUEST_ITEMS_PAGE_SIZE,
+  requestItemsCollection,
+} from '@/features/project/nachforderungen/data/collections/requestItems.collection';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import type { RequestItem } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { eq, useLiveInfiniteQuery } from '@tanstack/react-db';
 import { useTranslation } from 'react-i18next';
 import { SidebarListState } from '@/features/project/action-sidebar/SidebarListState';
 import { SidebarPanelHeader } from '@/features/project/action-sidebar/SidebarPanelHeader';
@@ -41,20 +44,23 @@ export const RequestList = (props: RequestListProps) => {
   const { newRequestListInitItems } = route.useSearch();
   const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
   const {
-    data: requestItemsData,
+    data: requestItems,
     isLoading,
     isError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, verfahrenId)),
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useLiveInfiniteQuery(
+    (q) =>
+      q
+        .from({ items: requestItemsCollection })
+        .where(({ items }) => eq(items.projectId, verfahrenId))
+        .orderBy(({ items }) => items.createdAt, 'asc')
+        .orderBy(({ items }) => items.id, 'asc'),
+    { pageSize: REQUEST_ITEMS_PAGE_SIZE },
+    [verfahrenId],
   );
   const refetchRequestItems = () => requestItemsCollection.utils.refetch();
-  const requestItems = [...requestItemsData].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return dateA - dateB;
-  });
 
   const contentRef = useRef<HTMLDivElement>(null);
 
@@ -195,6 +201,19 @@ export const RequestList = (props: RequestListProps) => {
               canMutateProject={canMutateProject}
             />
           ))}
+
+          {hasNextPage && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              disabled={isFetchingNextPage}
+              onClick={fetchNextPage}
+            >
+              {t('RequestListPanel.loadMore')}
+            </Button>
+          )}
         </SidebarListState>
 
         {showManualForm ? (
@@ -236,7 +255,7 @@ export const RequestList = (props: RequestListProps) => {
       </div>
 
       {/* Dialogs */}
-      <DeleteDialog canMutateProject={canMutateProject} />
+      <DeleteDialog canMutateProject={canMutateProject} items={requestItems} />
     </SidebarPanelShell>
   );
 };

@@ -1,0 +1,29 @@
+packages:
+  - '02-backend/apps/*'
+  - '02-backend/features/*'
+  - 'packages/*'
+  - 'packages/temporal/contracts'
+  - 'packages/*/typescript'
+
+overrides:
+  tinypool: 2.1.2
+
+catalog:
+  camelcase-keys: 10.0.2
+  es-toolkit: 1.45.1
+  type-fest: 5.8.0
+
+allowBuilds:
+  '@ast-grep/cli': true
+  '@swc/core': true
+  bun: true
+  esbuild: true
+  'protobufjs': false
+
+minimumReleaseAgeExclude:
+  - better-result@3.0.1
+
+supportedArchitectures:
+  libc:
+    - 'musl'
+    - 'glibc'

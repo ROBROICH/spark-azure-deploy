@@ -20,7 +20,7 @@ from typing import Any
 
 import httpx
 
-from src.config import get_config
+from src.config import get_config, get_docling_image_export_mode
 from src.utils.keycloak_token import get_keycloak_token_provider
 
 logger = logging.getLogger(__name__)
@@ -31,11 +31,79 @@ MAX_SUBMIT_RETRIES = 3
 MAX_FETCH_RETRIES = 3
 SUBMIT_RETRY_DELAY = 10
 _RETRYABLE_STATUS_CODES = {502, 503, 504}
+_BUSY_LOG_EVERY = 20
+_TASK_LOST_STATUS = 404
 
 # Poll/fetch requests must complete well within the 2-minute heartbeat timeout.
 # The 300s client-level timeout is for large file uploads (submit); polls and
 # fetches should never take that long.
 _SHORT_TIMEOUT = httpx.Timeout(90.0, connect=30.0)
+
+
+def _expired_budget(
+    waited: int,
+    queue_wait_timeout: int,
+    compute_deadline: float | None,
+    compute_timeout: int,
+    position: int | None,
+) -> str | None:
+    """Which budget has run out, or None while one is still open.
+
+    Queueing and converting are budgeted separately: a document that waited
+    behind a full queue and was never converted must not be reported as a
+    conversion timeout -- that message makes an overloaded docling-serve look
+    exactly like a broken one.
+    """
+    if compute_deadline is None:
+        if waited >= queue_wait_timeout:
+            at = f" at queue position {position}" if position is not None else ""
+            return f"did not start the task within {queue_wait_timeout}s{at}"
+        return None
+    if time.monotonic() >= compute_deadline:
+        return f"conversion timed out after {compute_timeout}s"
+    return None
+
+
+class _PollRetries:
+    """Retry bookkeeping for one polling loop.
+
+    Two strategies, and telling them apart is the point: a network error may
+    mean docling-serve is gone, while HTTP 502/503/504 means it is alive and
+    overloaded, so the task is still on its way.
+    """
+
+    def __init__(self, task_id: str, log_fn: Callable[[str], None]) -> None:
+        self.task_id = task_id
+        self.log_fn = log_fn
+        self.network_errors = 0
+        self.http_errors = 0
+
+    def on_network_error(self, error: Exception) -> None:
+        """Count a transport failure, giving up once the server looks gone."""
+        self.network_errors += 1
+        self.log_fn(f"Network error polling task {self.task_id} ({self.network_errors}/{MAX_NETWORK_ERRORS}): {error}")
+        if self.network_errors >= MAX_NETWORK_ERRORS:
+            raise RuntimeError(
+                f"docling-serve unreachable after {MAX_NETWORK_ERRORS} "
+                f"consecutive network errors (task_id={self.task_id}): {error}"
+            ) from error
+
+    def on_busy(self, status_code: int, seconds_left: int) -> None:
+        """Count an overload response, logging occasionally rather than on every poll."""
+        self.http_errors += 1
+        if self.http_errors % _BUSY_LOG_EVERY == 1:
+            self.log_fn(
+                f"docling-serve busy (HTTP {status_code}), still polling task {self.task_id} "
+                f"({self.http_errors} retries, {seconds_left}s remaining)"
+            )
+
+    def on_reachable(self) -> None:
+        """Any reply proves the server is alive, whatever its status code."""
+        self.network_errors = 0
+
+    def on_usable_response(self) -> None:
+        """A response that is not an overload reply also clears the busy count."""
+        self.http_errors = 0
 
 
 class DoclingTaskLostError(RuntimeError):
@@ -49,23 +117,24 @@ class DoclingTaskLostError(RuntimeError):
 class DoclingApiClient:
     """Handles HTTP communication with docling-serve API."""
 
-    def __init__(self, base_url: str, timeout: int) -> None:
+    def __init__(self, base_url: str, timeout: int, queue_wait_timeout: int | None = None) -> None:
+        """
+        Args:
+            base_url: docling-serve base URL.
+            timeout: Budget once the task is reported as started (compute).
+            queue_wait_timeout: Budget while the task is still pending in the
+                queue. Defaults to ``timeout`` when not given, so callers that
+                only know one number keep a sane bound on both phases.
+        """
         self.base_url = base_url
         self.timeout = timeout
-
-    async def _get_auth_headers(self) -> dict[str, str]:
-        """Get authorization headers if Keycloak is configured."""
-        token_provider = get_keycloak_token_provider()
-        if token_provider is None:
-            return {}
-        token = await token_provider.get_token()
-        return {"Authorization": f"Bearer {token}"}
+        self.queue_wait_timeout = queue_wait_timeout if queue_wait_timeout is not None else timeout
 
     def _form_data(self) -> dict[str, Any]:
         """Shared form data for both sync and async endpoints."""
         return {
             "to_formats": ["md", "json"],
-            "image_export_mode": "embedded",
+            "image_export_mode": get_docling_image_export_mode(),
             "do_ocr": "true",
             "ocr_engine": get_config().DOCLING_OCR_ENGINE,
             "ocr_lang": get_config().DOCLING_OCR_LANG,
@@ -116,6 +185,7 @@ class DoclingApiClient:
 
         async with httpx.AsyncClient(
             timeout=async_timeout,
+            auth=get_keycloak_token_provider(),
             limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
         ) as client:
             # Try async endpoint first, with retries for transient errors
@@ -151,6 +221,7 @@ class DoclingApiClient:
         upload_timeout = httpx.Timeout(120.0, connect=30.0)
         async with httpx.AsyncClient(
             timeout=upload_timeout,
+            auth=get_keycloak_token_provider(),
             limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
         ) as client:
             task_id = await self._submit_with_retries(client, pdf_bytes, pdf_filename, _log, heartbeat_fn)
@@ -181,6 +252,7 @@ class DoclingApiClient:
         async_timeout = httpx.Timeout(300.0, connect=30.0)
         async with httpx.AsyncClient(
             timeout=async_timeout,
+            auth=get_keycloak_token_provider(),
             limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
         ) as client:
             await self._poll_until_done(client, task_id, heartbeat_fn, _log)
@@ -252,7 +324,6 @@ class DoclingApiClient:
         """Submit a document for async conversion. Returns the task_id."""
         response = await client.post(
             f"{self.base_url}/v1/convert/file/async",
-            headers=await self._get_auth_headers(),
             files={"files": (pdf_filename, pdf_bytes, "application/pdf")},
             data=self._form_data(),
         )
@@ -272,57 +343,56 @@ class DoclingApiClient:
     ) -> None:
         """Poll the task status until success or failure.
 
+        Queueing and converting get separate budgets: a document that waited
+        behind a full queue and was never converted must not be reported as a
+        conversion timeout.
+
         Two retry strategies:
         - Network errors (ReadTimeout, ConnectError): server may be dead.
           Give up after MAX_NETWORK_ERRORS consecutive failures.
         - HTTP 502/503/504: server IS alive, just overloaded.
-          Keep polling until the overall deadline — the task is still processing.
+          Keep polling until the active deadline — the task is still processing.
         """
-        deadline = time.monotonic() + self.timeout
-        consecutive_network_errors = 0
-        consecutive_http_errors = 0
+        queued_at = time.monotonic()
+        compute_deadline: float | None = None
+        position: int | None = None
+        retries = _PollRetries(task_id, log_fn)
 
         while True:
-            if time.monotonic() >= deadline:
-                raise RuntimeError(f"docling-serve conversion timed out after {self.timeout}s (task_id={task_id})")
+            waited = int(time.monotonic() - queued_at)
+            expired = _expired_budget(waited, self.queue_wait_timeout, compute_deadline, self.timeout, position)
+            if expired is not None:
+                raise RuntimeError(f"docling-serve {expired} (task_id={task_id})")
 
             if heartbeat_fn:
-                heartbeat_fn(f"polling docling task {task_id}")
+                at = f" position {position}" if position is not None else ""
+                state = "converting" if compute_deadline is not None else f"queued{at}, {waited}s"
+                heartbeat_fn(f"polling docling task {task_id} — {state}")
 
             try:
                 response = await client.get(
                     f"{self.base_url}/v1/status/poll/{task_id}",
-                    headers=await self._get_auth_headers(),
                     timeout=_SHORT_TIMEOUT,
                 )
             except httpx.TransportError as e:
-                consecutive_network_errors += 1
-                log_fn(f"Network error polling task {task_id} ({consecutive_network_errors}/{MAX_NETWORK_ERRORS}): {e}")
-                if consecutive_network_errors >= MAX_NETWORK_ERRORS:
-                    raise RuntimeError(
-                        f"docling-serve unreachable after {MAX_NETWORK_ERRORS} "
-                        f"consecutive network errors (task_id={task_id}): {e}"
-                    ) from e
+                retries.on_network_error(e)
                 await asyncio.sleep(POLL_INTERVAL_SECONDS)
                 continue
 
-            consecutive_network_errors = 0
+            # A reply of any kind proves the server is reachable, so the network
+            # counter resets before the overload check -- otherwise alternating
+            # transport errors and 503s add up to a false "unreachable".
+            retries.on_reachable()
 
             if response.status_code in _RETRYABLE_STATUS_CODES:
-                consecutive_http_errors += 1
-                if consecutive_http_errors % 20 == 1:
-                    log_fn(
-                        f"docling-serve busy (HTTP {response.status_code}), "
-                        f"still polling task {task_id} "
-                        f"({consecutive_http_errors} retries, "
-                        f"{int(deadline - time.monotonic())}s remaining)"
-                    )
+                deadline = compute_deadline if compute_deadline is not None else queued_at + self.queue_wait_timeout
+                retries.on_busy(response.status_code, int(deadline - time.monotonic()))
                 await asyncio.sleep(POLL_INTERVAL_SECONDS)
                 continue
 
-            consecutive_http_errors = 0
+            retries.on_usable_response()
 
-            if response.status_code == 404:
+            if response.status_code == _TASK_LOST_STATUS:
                 raise DoclingTaskLostError(task_id)
             response.raise_for_status()
 
@@ -330,12 +400,21 @@ class DoclingApiClient:
             if not isinstance(data, dict):
                 raise RuntimeError(f"docling-serve returned non-dict poll response: {type(data).__name__}")
             status = data.get("task_status", "")
-            log_fn(f"Docling task {task_id} status: {status}")
+            reported = data.get("task_position")
+            if isinstance(reported, int):
+                position = reported
+            log_fn(
+                f"Docling task {task_id} status: {status}"
+                + (f" (queue position {reported})" if reported is not None else "")
+            )
 
             if status == "success":
                 return
             if status == "failure":
                 raise RuntimeError(f"docling-serve async conversion failed (task_id={task_id})")
+            if status == "started" and compute_deadline is None:
+                log_fn(f"Docling task {task_id} started after {waited}s in the queue")
+                compute_deadline = time.monotonic() + self.timeout
             # "pending" / "started" → sleep and continue polling
             await asyncio.sleep(POLL_INTERVAL_SECONDS)
 
@@ -355,7 +434,6 @@ class DoclingApiClient:
             try:
                 response = await client.get(
                     f"{self.base_url}/v1/result/{task_id}",
-                    headers=await self._get_auth_headers(),
                     timeout=_SHORT_TIMEOUT,
                 )
                 if response.status_code in _RETRYABLE_STATUS_CODES:
@@ -405,11 +483,11 @@ class DoclingApiClient:
             """Send the synchronous conversion request to docling-serve."""
             async with httpx.AsyncClient(
                 timeout=timeout,
+                auth=get_keycloak_token_provider(),
                 limits=httpx.Limits(max_connections=20, max_keepalive_connections=5),
             ) as client:
                 response = await client.post(
                     f"{self.base_url}/v1/convert/file",
-                    headers=await self._get_auth_headers(),
                     files={"files": (pdf_filename, pdf_bytes, "application/pdf")},
                     data=self._form_data(),
                 )

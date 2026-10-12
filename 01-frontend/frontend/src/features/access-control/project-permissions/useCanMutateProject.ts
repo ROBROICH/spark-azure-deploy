@@ -16,7 +16,7 @@ export function useCanMutateProject(params: UseCanMutateProjectParams) {
   const { role, userId } = useCurrentUser();
   const { verfahrenId } = projectRoute.useParams();
   const { data: project } = useProject(verfahrenId);
-  const isOwner = project?.owners?.includes(userId) ?? false;
+  const isOwner = project?.owners.includes(userId) ?? false;
   const canMutateProject =
     requiredLevel === 'owner'
       ? role === 'admin' || isOwner

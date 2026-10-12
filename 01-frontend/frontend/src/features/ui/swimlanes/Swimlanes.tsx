@@ -7,13 +7,14 @@ import { SwimlanesContext } from './SwimlanesContext';
 import { SwimlanesGroup } from './SwimlanesGroup';
 import { SwimlanesLane } from './SwimlanesLane';
 import type { SwimlanesProps } from './swimlanes.types';
+import { SWIMLANE_MIN_LANE_WIDTH } from './swimlanes.types';
 
 // ---------------------------------------------------------------------------
 // Root component
 // ---------------------------------------------------------------------------
 
 const SwimlanesRoot = (props: SwimlanesProps) => {
-  const { minLaneWidth = 200, children, className } = props;
+  const { minLaneWidth = SWIMLANE_MIN_LANE_WIDTH, children, className } = props;
 
   // eslint-disable-next-line no-restricted-syntax -- context providers need a stable value identity so swimlane consumers do not re-render on unrelated parent updates
   const contextValue = useMemo(
@@ -28,7 +29,7 @@ const SwimlanesRoot = (props: SwimlanesProps) => {
     <SwimlanesContext.Provider value={contextValue}>
       <div
         className={cn(
-          'flex min-h-0 flex-1 [&>*+*]:border-l [&>*+*]:border-l-border-primary',
+          'flex min-h-0 flex-1 overflow-x-auto overflow-y-hidden [&>*+*]:border-l [&>*+*]:border-l-border-primary',
           className,
         )}
         style={{ ['--swimlane-min-w' as string]: `${minLaneWidth}px` }}

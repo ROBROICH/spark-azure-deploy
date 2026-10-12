@@ -102,7 +102,9 @@ async def _create_final_json(input: CreateFinalJsonInput) -> AssembleFinalJsonRe
     processed_document = ProcessedDocument(metadata=metadata, markdown_content=final_markdown, chunks=chunks)
 
     activity.heartbeat("Serializing final JSON")
-    json_bytes = await asyncio.to_thread(lambda: processed_document.model_dump_json(indent=4).encode("utf-8"))
+    json_bytes = await asyncio.to_thread(
+        lambda: processed_document.model_dump_json(indent=4, by_alias=True).encode("utf-8")
+    )
     activity.heartbeat(f"Serialized {len(json_bytes) / (1024 * 1024):.1f} MB, uploading")
 
     # Get output directory (mirrors input folder structure) and stem for filename
@@ -138,7 +140,7 @@ async def chunk_markdown(
     return await workflow.execute_activity(
         _chunk_markdown,
         ChunkMarkdownInput(markdown=markdown, content_list=content_list),
-        start_to_close_timeout=timedelta(minutes=10),
+        start_to_close_timeout=timedelta(minutes=15),
         heartbeat_timeout=timedelta(minutes=3),
         retry_policy=RetryPolicy(maximum_attempts=get_config().TEMPORAL_PROCESSING_ACTIVITY_MAX_ATTEMPTS),
     )

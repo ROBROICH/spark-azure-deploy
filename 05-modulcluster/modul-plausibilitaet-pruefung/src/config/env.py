@@ -5,6 +5,7 @@ import os
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel, EmbeddingModel
+from temporal.connection_config import TemporalConfig
 
 
 class LiteLLMConfig(BaseModel):
@@ -23,17 +24,6 @@ class QdrantConfig(BaseModel):
     VECTOR_SIZE: int = Field(default=1024, gt=0)
 
 
-class TemporalConfig(BaseModel):
-    """Temporal and payload-storage settings required by local workers."""
-
-    HOST: str = Field(min_length=1)
-    S3_BUCKET_NAME: str = Field(min_length=1)
-    S3_ENDPOINT_URL: str = Field(min_length=1)
-    S3_ACCESS_KEY_ID: str = Field(min_length=1)
-    S3_SECRET_ACCESS_KEY: str = Field(min_length=1)
-    S3_REGION: str
-
-
 class Settings(BaseSettings):
     """Strict environment settings. All fields are required unless defaults are set."""
 
@@ -43,7 +33,6 @@ class Settings(BaseSettings):
     OTEL_SERVICE_NAME: str = Field(min_length=1)
     OTEL_ENDPOINT: str = Field(min_length=1)
     TEMPORAL: TemporalConfig
-    TEMPORAL_JOB_SERVICE_URL: str
 
     model_config = SettingsConfigDict(
         env_file=[".env.local", ".env"] if not os.getenv("SKIP_DOTENV") else None,

@@ -1,10 +1,9 @@
 import { queryOptions } from '@tanstack/react-query';
-import { getIdentityMeGet } from '@/api-clients/identity-management-module/sdk.gen';
+import { v1IdentityGetCurrentIdentity as getCurrentIdentity } from '@/api-clients/backend/sdk.gen';
 import type {
   IdentityResponse,
-  OidcRole,
   UserOidcRole,
-} from '@/api-clients/identity-management-module/types.gen';
+} from '@/api-clients/backend/types.gen';
 import { getLocalDevCurrentUserEnv } from '@/features/shared/config/startupEnv';
 
 export const CURRENT_USER_QUERY_KEY = ['current-user'] as const;
@@ -33,9 +32,8 @@ const USER_KEYCLOAK_ROLES = {
 } as const satisfies Record<UserOidcRole, true>;
 
 const isUserKeycloakRole = (
-  value: OidcRole | null | undefined,
-): value is UserOidcRole =>
-  value !== null && value !== undefined && value in USER_KEYCLOAK_ROLES;
+  value: IdentityResponse['role'],
+): value is UserOidcRole => value !== null && value in USER_KEYCLOAK_ROLES;
 
 export function getCurrentUserDisplayName(identity: {
   email: string;
@@ -67,11 +65,12 @@ function getLocalDevCurrentUser(): CurrentUserIdentity {
 }
 
 function shouldUseLocalDevCurrentUser() {
-  return (
-    import.meta.env.DEV ||
-    import.meta.env.VITE_DEV_API_MODE?.trim().toLowerCase() ===
-      'port-forwarding'
-  );
+  const apiMode = import.meta.env.VITE_DEV_API_MODE?.trim().toLowerCase();
+  if (apiMode === 'session-proxy') {
+    return false;
+  }
+
+  return import.meta.env.DEV || apiMode === 'port-forwarding';
 }
 
 export async function getCurrentUser(): Promise<CurrentUserIdentity> {
@@ -82,7 +81,7 @@ export async function getCurrentUser(): Promise<CurrentUserIdentity> {
   let data: IdentityResponse;
 
   try {
-    ({ data } = await getIdentityMeGet({
+    ({ data } = await getCurrentIdentity({
       throwOnError: true,
     }));
   } catch {

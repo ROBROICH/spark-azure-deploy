@@ -29,9 +29,7 @@ class VerweisExplizitAgentWorkflow:
     ) -> list[VerweisBlockExplizit]:
         """Extracts explicit references from the atomic legal constituents and the consequences."""
 
-        a_tbms_mit_ids = [
-            {"id": f"tbm_{i}", "tatbestandsmerkmal": tbm} for i, tbm in enumerate(input.atomare_tatbestandsmerkmale)
-        ]
+        a_tbms_mit_ids = [{"id": f"tbm_{i}", "tatbestandsmerkmal": tbm} for i, tbm in enumerate(input.atomare_tatbestandsmerkmale)]
         rf_mit_id = {"id": "rf_0", "rechtsfolge": input.rechtsfolge}
 
         # Batch a_tbms to avoid LLM gateway timeouts on large inputs

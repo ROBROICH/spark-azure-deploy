@@ -15,7 +15,7 @@ export const NoticeCards = (props: NoticeCardsProps) => {
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-1 gap-2 md:grid-cols-3">
+    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-3">
       <SummaryCard labelKey="redesign.summary.open" count={summary.open} />
       <SummaryCard
         labelKey="redesign.summary.requested"

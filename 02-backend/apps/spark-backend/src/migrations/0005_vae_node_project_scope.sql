@@ -1,0 +1,1 @@
+ALTER TABLE "vae_node" ADD CONSTRAINT "uq_vae_node_project_scope" UNIQUE("id","project_id","project_version");

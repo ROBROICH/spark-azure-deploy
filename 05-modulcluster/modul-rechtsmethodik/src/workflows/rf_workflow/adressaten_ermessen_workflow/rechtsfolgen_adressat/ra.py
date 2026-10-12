@@ -1,6 +1,6 @@
 """Agent for identifying Rechtsfolgen-Adressaten."""
 
-from temporal.workflows.rechtsmethodik.types import RechtsfolgenAdressat
+from temporal.contracts import RechtsfolgenAdressat
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

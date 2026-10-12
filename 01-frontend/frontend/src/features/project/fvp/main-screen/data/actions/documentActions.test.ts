@@ -1,91 +1,52 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { confirmDocumentType, setDocumentType } from './documentActions';
+import { client } from '@/api-clients/backend/client.gen';
+import { queryClient } from '@/integrations/tanstack-query/root-provider';
+import { afterEach, describe, expect, it } from 'vitest';
+import { setDocumentType } from './documentActions';
 
-const mocks = vi.hoisted(() => ({
-  state: new Map<string, Record<string, unknown>>(),
-  insert: vi.fn(),
-  update: vi.fn(),
-}));
+const originalClientConfig = client.getConfig();
 
-vi.mock('../collections/documentAssignments.collection', () => ({
-  documentAssignmentsCollection: {
-    state: mocks.state,
-    insert: (...args: unknown[]) => mocks.insert(...args),
-    update: (...args: unknown[]) => mocks.update(...args),
-  },
-}));
+afterEach(() => {
+  queryClient.clear();
+  client.setConfig(originalClientConfig);
+});
 
-type AssignmentDraft = {
-  humanRequiredDocumentTypeId: string | null;
-  documentTypeId: string | null;
-};
+describe('setDocumentType', () => {
+  it('records the chosen type as the human decision for that document', async () => {
+    const requests: { method: string; path: string; body: unknown }[] = [];
+    client.setConfig({
+      baseUrl: 'http://formal.test',
+      fetch: async (request) => {
+        if (!(request instanceof Request)) {
+          throw new TypeError('Expected a Request');
+        }
+        requests.push({
+          method: request.method,
+          path: new URL(request.url).pathname,
+          body: await request.json(),
+        });
+        return Response.json({});
+      },
+    });
 
-const applyUpdater = (call: unknown[]): AssignmentDraft => {
-  const updater = call[1] as (draft: AssignmentDraft) => void;
-  const draft: AssignmentDraft = {
-    humanRequiredDocumentTypeId: null,
-    documentTypeId: null,
-  };
-  updater(draft);
+    await setDocumentType('project-1', 'file-1', 'type-7');
 
-  return draft;
-};
-
-describe('documentActions', () => {
-  beforeEach(() => {
-    mocks.state.clear();
-    mocks.insert.mockReset();
-    mocks.update.mockReset();
+    expect(requests).toEqual([
+      {
+        method: 'PATCH',
+        path: '/api/fcs/v1/project-1/documents/file-1',
+        body: { humanRequiredDocumentTypeId: 'type-7' },
+      },
+    ]);
   });
 
-  describe('setDocumentType', () => {
-    it('inserts one assignment row carrying the chosen type when none is loaded (H6: no crash, one write)', () => {
-      setDocumentType('project-1', 'file-1', 'type-1');
-
-      expect(mocks.insert).toHaveBeenCalledTimes(1);
-      expect(mocks.insert).toHaveBeenCalledWith({
-        projectId: 'project-1',
-        documentId: 'file-1',
-        aiSuggestedDocumentTypeId: null,
-        humanRequiredDocumentTypeId: 'type-1',
-        documentTypeId: 'type-1',
-        documentTypeName: null,
-        isResolved: false,
-      });
-      expect(mocks.update).not.toHaveBeenCalled();
+  it('rejects when the server refuses the change so the caller can report it', async () => {
+    client.setConfig({
+      baseUrl: 'http://formal.test',
+      fetch: () => Promise.resolve(new Response(null, { status: 409 })),
     });
 
-    it('updates the existing assignment row instead of inserting a duplicate', () => {
-      mocks.state.set('file-1', { documentId: 'file-1' });
-
-      setDocumentType('project-1', 'file-1', 'type-1');
-
-      expect(mocks.insert).not.toHaveBeenCalled();
-      expect(mocks.update).toHaveBeenCalledTimes(1);
-      const updateCall = mocks.update.mock.calls[0];
-      expect(updateCall?.[0]).toBe('file-1');
-      expect(applyUpdater(updateCall ?? [])).toEqual({
-        humanRequiredDocumentTypeId: 'type-1',
-        documentTypeId: 'type-1',
-      });
-    });
-  });
-
-  describe('confirmDocumentType', () => {
-    it('confirms the AI suggestion on the existing row through a single update', () => {
-      mocks.state.set('file-1', {
-        aiSuggestedDocumentTypeId: 'ai-type',
-        documentTypeId: 'ai-type',
-      });
-
-      confirmDocumentType('project-1', 'file-1');
-
-      expect(mocks.insert).not.toHaveBeenCalled();
-      expect(mocks.update).toHaveBeenCalledTimes(1);
-      expect(applyUpdater(mocks.update.mock.calls[0] ?? [])).toEqual({
-        humanRequiredDocumentTypeId: 'ai-type',
-        documentTypeId: 'ai-type',
-      });
-    });
+    await expect(
+      setDocumentType('project-1', 'file-1', 'type-7'),
+    ).rejects.toBeDefined();
   });
 });

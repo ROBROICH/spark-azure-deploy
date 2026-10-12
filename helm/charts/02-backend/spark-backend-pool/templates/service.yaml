@@ -1,0 +1,16 @@
+{{- $backend := ((.Values.global | default dict).backend | default dict) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "spark-backend-pool.fullname" . }}
+  namespace: {{ include "spark-backend-pool.namespace" . }}
+  labels:
+    {{- include "spark-backend-pool.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ $backend.servicePort | default 80 }}
+      targetPort: http
+      protocol: TCP
+  selector:
+    {{- include "spark-backend-pool.selectorLabels" . | nindent 4 }}

@@ -1,3 +1,7 @@
+---
+ruleId: nodes/keep-node-summary-refresh-centralized
+---
+
 # Keep Node Summary Refresh Centralized
 
 - Keep background graph-summary freshness in `src/db/nodes/collections/nodeSummariesFreshness.ts`; do not add feature-level polling hooks for node summaries.

@@ -1,9 +1,9 @@
 """Agent for formulating the final Auslegungsergebnis."""
 
-from temporal.utils import sliding_window
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     UnbestimmterRechtsbegriff,
 )
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

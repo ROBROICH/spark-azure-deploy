@@ -32,6 +32,10 @@ from db_pipelines.schemas.db import (
 from pydantic import HttpUrl
 
 
+# law archives ship the norm xml plus embedded images
+ARCHIVE_SUFFIXES = {".xml", ".jpg", ".jpeg", ".gif", ".png"}
+
+
 class XmlProcessor1(BaseProcessor):
     """Class for processing xml files"""
 
@@ -91,7 +95,7 @@ class XmlProcessor1(BaseProcessor):
             output_file.write(response.content)
 
         # Extract files
-        extract_and_validate(zip_path, self.norm_dir)
+        extract_and_validate(zip_path, self.norm_dir, allowed_suffixes=ARCHIVE_SUFFIXES)
 
     def _extract_document_metadata(self, root: Element, norms: list[Element]) -> dict:
         """

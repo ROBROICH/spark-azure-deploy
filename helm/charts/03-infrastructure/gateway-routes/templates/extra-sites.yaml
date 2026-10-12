@@ -1,0 +1,66 @@
+{{- /*
+extraSites: further hosts of the environment, each routing everything under /
+to one backend chart's Service behind its own OIDC session (settings from
+oidc.temporal, cookies <key>_access_token / <key>_id_token, overridable per
+site). Route <key>-route, policy <key>-oidc-policy.
+*/ -}}
+{{- range $site := include "gateway-routes.extraSites" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $site.key }}-route
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $site.group) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $site.hosts | nindent 4 }}
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" $site.chart) }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" $site.chart) }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $site.port }}
+---
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: SecurityPolicy
+metadata:
+  name: {{ $site.key }}-oidc-policy
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      name: {{ $site.key }}-route
+  oidc:
+    provider:
+      issuer: {{ include "gateway-routes.keycloakIssuer" $ }}
+    clientID: {{ $.Values.auth.clientID }}
+    clientSecret:
+      name: {{ $.Values.auth.clientSecretName }}
+    {{- with $site.oidc }}
+    redirectURL: https://{{ index $site.hosts 0 }}{{ .redirectPath }}
+    logoutPath: {{ .logoutPath }}
+    scopes:
+      {{- toYaml .scopes | nindent 6 }}
+    cookieDomain: {{ index $site.hosts 0 }}
+    cookieNames:
+      {{- toYaml .cookieNames | nindent 6 }}
+    cookieConfig:
+      sameSite: {{ .sameSite }}
+    forwardAccessToken: true
+    refreshToken: true
+    defaultTokenTTL: {{ .tokenTTL }}
+    defaultRefreshTokenTTL: {{ .refreshTokenTTL }}
+    {{- end }}
+{{- end }}

@@ -1,4 +1,4 @@
-import type { GermanState } from '@/api-clients/pls-module/types.gen';
+import type { GermanState } from '@/api-clients/backend/types.gen';
 
 export const federalStateCodes = [
   'BY',
@@ -66,4 +66,8 @@ export const germanStates = Object.values(germanStateByCode) as [
 
 export function isFederalStateCode(value: string): value is FederalStateCode {
   return federalStateCodes.includes(value as FederalStateCode);
+}
+
+export function isGermanState(value: unknown): value is GermanState {
+  return typeof value === 'string' && value in federalStateCodeByGermanState;
 }

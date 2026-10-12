@@ -1,0 +1,88 @@
+{
+  "select": {
+    "ecs.version": "8.11.0",
+    "event.action": "read",
+    "event.outcome": "success",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "debug",
+    "service.name": "database-contract",
+    "event.default": "db_read",
+    "message": "DB Query: EXECUTE",
+    "event.type": "access"
+  },
+  "insert": {
+    "ecs.version": "8.11.0",
+    "event.action": "write",
+    "event.outcome": "success",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "debug",
+    "service.name": "database-contract",
+    "event.default": "db_write",
+    "message": "DB Query: insert",
+    "event.type": "change",
+    "database.operation": "insert"
+  },
+  "update": {
+    "ecs.version": "8.11.0",
+    "event.action": "change",
+    "event.outcome": "success",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "debug",
+    "service.name": "database-contract",
+    "event.default": "db_write",
+    "message": "DB Query: update",
+    "event.type": "change",
+    "database.operation": "update"
+  },
+  "delete": {
+    "ecs.version": "8.11.0",
+    "event.action": "delete",
+    "event.outcome": "success",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "debug",
+    "service.name": "database-contract",
+    "event.default": "db_write",
+    "message": "DB Query: delete",
+    "event.type": "change",
+    "database.operation": "delete"
+  },
+  "error": {
+    "ecs.version": "8.11.0",
+    "event.action": "write",
+    "event.outcome": "failure",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "error",
+    "service.name": "database-contract",
+    "event.default": "db_error",
+    "message": "Database operation failed",
+    "event.type": "change",
+    "database.operation": "insert"
+  },
+  "commit": {
+    "ecs.version": "8.11.0",
+    "event.action": "change",
+    "event.outcome": "success",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "info",
+    "service.name": "database-contract",
+    "event.default": "db_commit",
+    "message": "Transaction committed"
+  },
+  "rollback": {
+    "ecs.version": "8.11.0",
+    "event.action": "change",
+    "event.outcome": "failure",
+    "event.kind": "event",
+    "event.category": "database",
+    "log.level": "warn",
+    "service.name": "database-contract",
+    "event.default": "db_rollback",
+    "message": "Transaction rolled back"
+  }
+}

@@ -1,0 +1,20 @@
+{{- if .Values.namespace.create -}}
+# Environment namespace, carrying namespace.labels (e.g. the selector label
+# shared-service NetworkPolicies such as a central Qdrant admit).
+#
+# Default is namespace.create=false because the usual install path is
+# `helm upgrade --install … --create-namespace` (or ArgoCD CreateNamespace=true),
+# where Helm/ArgoCD owns the Namespace object. In that case the labels must be
+# applied out-of-band — see NOTES.txt for the exact kubectl command.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- /* chart labels win: namespace.labels cannot redefine environment etc. */}}
+    {{- merge (include "environment-config.labels" . | fromYaml) (.Values.namespace.labels | default dict) | toYaml | nindent 4 }}
+  {{- with .Values.namespace.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

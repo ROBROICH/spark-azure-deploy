@@ -1,0 +1,206 @@
+# =============================================================================
+# unoserver — base values
+# =============================================================================
+#
+# Minimal chart for the unoserver document-conversion service (deployment,
+# service).
+#
+# The rendered Service is named {release}-unoserver[-<stage>] — consumers
+# (document-management-service and the inhaltsextraktion modules) point their
+# UNO_HOST at it, e.g.:
+#   '{{ printf "%s-unoserver%s.%s.svc.cluster.local" .Release.Name (include "<chart>.stageSuffix" .) (include "<chart>.namespace" .) }}'
+# with UNO_PORT 2003.
+# =============================================================================
+
+
+# Desired pod replicas.
+
+replicaCount: 1
+
+# Container image. Point repository (or registry / global.imageRegistry) at
+# the registry serving it, e.g. registry.example.com/mirror/unoserver.
+# If tag is empty, Chart.appVersion is used.
+
+image:
+  # Registry prefixed to repository (empty: global.imageRegistry, used only
+  # when repository names no registry itself).
+  registry: ""
+  repository: unoserver
+  tag: "1.0.0"
+  # Digest pinned next to the tag (e.g. sha256:…).
+  digest: ""
+  pullPolicy: Always
+
+# Pull secrets for private registries (list).
+
+imagePullSecrets: []
+
+# Override chart name used in labels.
+
+nameOverride: ''
+
+# Override fully qualified resource name.
+
+fullnameOverride: ''
+
+# Target namespace when set on this chart.
+# Precedence: chart override, then global.namespaceOverride, then release
+# namespace (-n).
+
+namespaceOverride: ''
+
+# Stage name appended to generated resource names as a suffix (e.g. "-my-env").
+# When this chart is deployed inside an umbrella, the stage is propagated via
+# global.stage.name. Set it here only for standalone installs.
+
+stage:
+  name: ''
+
+# Service classification labels applied to Deployment, Service, ServiceAccount.
+#
+# labels.type        — workload category: frontend | backend | agent
+# labels.environment — environment tag on pods. When deployed inside an
+#                      umbrella, this is provided via global.labels.environment.
+
+labels:
+  type: backend
+  environment: ''
+
+# Container ports (list). unoserver listens on the UNO RPC port 2003.
+
+containerPorts:
+- containerPort: 2003
+
+# ServiceAccount for the pod (map). When global.serviceAccount.name is set
+# (shared per-namespace KSA), the pod uses that account and no
+# ServiceAccount resource is rendered by this chart.
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ''
+
+# Pod-level automountServiceAccountToken. Off: unoserver never talks to the
+# Kubernetes API. This also overrides the SA-level setting when the shared
+# KSA is used.
+
+automountServiceAccountToken: false
+
+# Extra annotations on the pod template (map).
+
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). Pod selectors are set by the
+# chart templates using Kubernetes recommended labels and must not be
+# overridden here.
+
+podLabels: {}
+
+# Pod-level securityContext. The explicit numeric UID is required so the
+# kubelet can verify runAsNonRoot.
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 100
+  runAsGroup: 101
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container-level securityContext. All capabilities dropped; read-only root
+# filesystem (writable paths are the emptyDir volumes below).
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+# Service exposure (map). Selector is set by templates.
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+  - port: 2003
+    targetPort: 2003
+    protocol: TCP
+
+# CPU/memory requests and limits.
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# Base environment variables injected into the container (list of EnvVar
+# objects). Variables from global.env are merged before this list; this list
+# takes precedence on name collisions.
+
+env:
+- name: CONVERSION_TIMEOUT
+  value: "120"
+
+# Additional environment variables merged after env (list of EnvVar objects).
+
+extraEnv: []
+
+# Probes (maps; {} disables one). The UNO port speaks a binary RPC protocol,
+# not HTTP, so the defaults check the served port (TCP): LibreOffice gets up
+# to three minutes to start.
+startupProbe:
+  tcpSocket: {port: 2003}
+  periodSeconds: 5
+  failureThreshold: 36
+
+livenessProbe:
+  tcpSocket: {port: 2003}
+  periodSeconds: 20
+
+readinessProbe:
+  tcpSocket: {port: 2003}
+  periodSeconds: 10
+
+# Pod volumes. All ephemeral.
+
+volumes:
+# Writable scratch space for unoserver temp files
+- name: tmp
+  emptyDir: {}
+# Unoserver uses /run for lock files and socket paths
+- name: run
+  emptyDir: {}
+# HOME directory — unoserver may fall back to writing here
+- name: home
+  emptyDir: {}
+# Without this, unoserver rescans all fonts on every conversion
+- name: fontconfig-cache
+  emptyDir: {}
+
+# Container volume mounts.
+
+volumeMounts:
+- name: tmp
+  mountPath: /tmp
+- name: run
+  mountPath: /run
+- name: home
+  mountPath: /home/worker
+- name: fontconfig-cache
+  mountPath: /var/cache/fontconfig
+
+# Node selector (map).
+
+nodeSelector: {}
+
+# Pod tolerations (list).
+
+tolerations: []
+
+# Pod affinity rules (map).
+
+affinity: {}

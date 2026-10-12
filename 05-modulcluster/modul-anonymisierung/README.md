@@ -60,16 +60,17 @@ sequenceDiagram
 
 ### Pipeline per Document
 
-1. **Text extraction** — pypdfium2 reads the embedded text; scanned pages without a text layer are run through `ocrmypdf` (Tesseract) to produce an OCR text layer.
+1. **Text extraction** — pypdfium2 reads the embedded text; scanned pages without a text layer are run through `ocrmypdf` (Tesseract) to produce an OCR text layer. Each OCR subprocess has a configurable hard runtime limit, and OCR activities are attempted up to three times. If all attempts fail, the workflow fails without returning a potentially unredacted document.
 2. **Presidio detection** — spaCy NER plus Presidio pattern recognizers produce deterministic PII candidates per page.
-3. **LLM PII extraction** — Page batches are sent to the LLM for context-aware detection; a second LLM pass filters the Presidio candidates.
+3. **LLM PII extraction** — Page batches are sent to the LLM for context-aware detection; a second LLM pass filters the Presidio candidates. If detection still fails for any page after the configured retries, the complete workflow fails without returning a partially anonymized PDF.
 4. **Merge & fuzzy matching** — Results are merged and deduplicated, then matched against the page text via Levenshtein similarity.
-5. **Redaction** — Matched terms are blacked out in the PDF.
+5. **Redaction** — Digital signature fields and widgets are removed before matched terms are blacked out, including signature widgets that are not registered in `/AcroForm/Fields`.
+6. **PDF sanitization** — Document and XMP metadata, annotations, forms and embedded files are removed from every output, including documents without detected PII. The workflow fails instead of returning a PDF if the sanitized result still contains these structures.
 
 ### Components
 
 - **Activities (`src/activities`):** `extract_texts`, `detect_pii_presidio` and `apply_redactions` — the I/O and CPU-bound steps run on the worker thread pool.
-- **Services (`src/services`):** `pdf_extractor` (text extraction + OCR), `presidio_detector` (Presidio/spaCy engine wrapper), `pii_matcher` (fuzzy matching) and `redactor` (PDF annotation/redaction).
+- **Services (`src/services`):** `pdf_extractor` (text extraction + OCR), `presidio_detector` (Presidio/spaCy engine wrapper), `pii_matcher` (fuzzy matching), `signature_stripper` (digital signature removal), `redactor` (PDF annotation/redaction) and `pdf_sanitizer` (hidden-data removal and validation).
 - **Prompts (`src/prompts`):** System and user prompt builders for LLM extraction and filtering.
 - **Config (`src/config.py`):** Stable algorithm parameters (batch sizes, thresholds, Presidio tuning).
 
@@ -111,6 +112,7 @@ The Pydantic schemas in `src/models/schemas.py` describe the activity I/O. The w
     │   └── pii_extraction.py        # LLM prompt builders (extraction + filtering)
     ├── services/
     │   ├── pdf_extractor.py         # Text extraction (pypdfium2 + OCR)
+    │   ├── pdf_sanitizer.py         # Hidden PDF data removal and validation
     │   ├── pii_matcher.py           # Fuzzy matching (Levenshtein)
     │   ├── presidio_detector.py     # Presidio NER engine wrapper
     │   └── redactor.py              # PDF annotation / redaction
@@ -126,7 +128,7 @@ The Pydantic schemas in `src/models/schemas.py` describe the activity I/O. The w
 - `uv` package manager
 - Python `>=3.13, <3.14`
 - Tesseract OCR with the German language pack (`tesseract-ocr`, `tesseract-ocr-deu`) and Ghostscript for the OCR fallback — already provided by the Dockerfile
-- Shared platform services from the [root README](../../README.md#dependencies) when running locally (Temporal, S3/MinIO and the LLM service)
+- Shared platform services from the [root README](../../README.md#dependencies) when running locally (Temporal, S3/VersityGW and the LLM service)
 
 ### Environment Variables
 
@@ -148,6 +150,7 @@ The Pydantic schemas in `src/models/schemas.py` describe the activity I/O. The w
 | `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | — | yes |
 | `TEMPORAL_S3_REGION` | S3 region | — | yes |
 | `OCR_JOBS` | Number of parallel Tesseract processes for `ocrmypdf` | `2` | no |
+| `OCR_TIMEOUT_SECONDS` | Hard runtime limit for each `ocrmypdf` subprocess | `1200` | no |
 | `OTEL_SERVICE_NAME` | OpenTelemetry service name | `anonymisierung` | no |
 | `OTEL_ENDPOINT` | OpenTelemetry collector endpoint | — | yes |
 
@@ -208,7 +211,7 @@ For scanned pages the result depends on the Tesseract German language model. Ens
 <details>
 <summary>Temporal "Complete result exceeds size limit" error</summary>
 
-Large payloads must be stored via S3. Ensure the `TEMPORAL_S3_*` variables are correctly configured and that the S3/MinIO endpoint is reachable.
+Large payloads must be stored via S3. Ensure the `TEMPORAL_S3_*` variables are correctly configured and that the S3/VersityGW endpoint is reachable.
 
 </details>
 

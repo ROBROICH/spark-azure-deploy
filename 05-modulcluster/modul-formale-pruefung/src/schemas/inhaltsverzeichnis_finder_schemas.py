@@ -7,9 +7,9 @@ LLM responses required for identifying the Table of Contents.
 """
 
 from pydantic import BaseModel, Field
-from temporal.workflows.formale_pruefung.types import (
+from temporal.contracts import (
     ChunkOutput,
-    DocumentTypeDefinitionDict,
+    DocumentTypeDefinition,
     InhaltsverzeichnisEntry,
 )
 
@@ -204,10 +204,10 @@ class DocumentTypeDescriptionGenerationActivityInput(BaseModel):
         entry_number (Optional[str]): The outline number of the element, if present.
             Example: 'A', '1.1', 'III', '2.3.1'.
             If no number is present, this field is null.
-        document_types (List[dict]): A list of dictionaries containing document type definitions.
+        document_types: Typed reference document definitions.
     """
 
     hierarchy_path: list[str] = Field(default_factory=list)
     entry_title: str
     entry_number: str | None = None
-    document_types: list[DocumentTypeDefinitionDict]
+    document_types: list[DocumentTypeDefinition]

@@ -24,7 +24,7 @@ export const EwmsLoadingPage = (props: EwmsLoadingPageProps) => {
     getEwmsLoadingPredictionDurationMs(batchFileCount);
   const workflowProgress = useWorkflowProgress({
     estimatedDurationMs,
-    workflow: workflow ?? { workflow_start_time: undefined },
+    workflow: workflow ?? { workflowStartTime: null },
   });
   const progressDescriptionKey =
     workflowProgress.status === 'overEstimate'

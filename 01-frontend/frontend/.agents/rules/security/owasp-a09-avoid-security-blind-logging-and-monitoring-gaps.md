@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a09-avoid-security-blind-logging-and-monitoring-gaps
+---
+
 # OWASP A09: Avoid Security-Blind Logging and Monitoring Gaps
 
 - Covers OWASP A09 Security Logging and Monitoring Failures.

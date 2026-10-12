@@ -19,7 +19,13 @@ function ProjectRouteContent(props: ProjectRouteContentProps) {
     <SidebarInset
       className={cn(
         'min-h-0 min-w-0 overflow-x-hidden',
-        isSwimlaneRoute ? 'overflow-y-hidden' : 'overflow-y-auto',
+        // Below lg (and thus at high browser zoom, which shrinks the CSS
+        // viewport) the pinned app-shell collapses the swimlane pane behind the
+        // stacked headers, so allow the project pane to scroll vertically and
+        // only re-pin the headers from lg upward (WCAG 1.4.10 reflow).
+        isSwimlaneRoute
+          ? 'overflow-y-auto lg:overflow-y-hidden'
+          : 'overflow-y-auto',
         isIndexRoute && 'bg-neutral-white',
       )}
     >

@@ -1,0 +1,124 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/required-document-types HTTP read contract snapshots category ordering, system/custom origin, resolution, and soft deletion 1`] = `
+{
+  "body": {
+    "categories": [
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000001",
+        "categoryName": "A Allgemeine Unterlagen",
+        "requiredDocuments": [
+          {
+            "documentName": "Antrag",
+            "documentTypeId": "41000000-0000-4000-8000-000000000001",
+            "isResolved": true,
+            "origin": "system",
+          },
+        ],
+      },
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000002",
+        "categoryName": "B Umweltunterlagen",
+        "requiredDocuments": [
+          {
+            "documentName": "Umweltbericht",
+            "documentTypeId": "41000000-0000-4000-8000-000000000002",
+            "isResolved": false,
+            "origin": "system",
+          },
+        ],
+      },
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000003",
+        "categoryName": "Benutzerdefiniert",
+        "requiredDocuments": [
+          {
+            "documentName": "Eigene Anlage",
+            "documentTypeId": "41000000-0000-4000-8000-000000000003",
+            "isResolved": true,
+            "origin": "custom",
+          },
+        ],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/required-document-types HTTP read contract snapshots the historical version 1`] = `
+{
+  "body": {
+    "categories": [
+      {
+        "categoryId": "32000000-0000-4000-8000-000000000001",
+        "categoryName": "Historische Unterlagen",
+        "requiredDocuments": [
+          {
+            "documentName": "Historischer Antrag",
+            "documentTypeId": "42000000-0000-4000-8000-000000000001",
+            "isResolved": false,
+            "origin": "system",
+          },
+        ],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/required-document-types HTTP read contract snapshots the empty project 1`] = `
+{
+  "body": {
+    "categories": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/required-document-types HTTP read contract omitted version resolves to the current categories 1`] = `
+{
+  "body": {
+    "categories": [
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000001",
+        "categoryName": "A Allgemeine Unterlagen",
+        "requiredDocuments": [
+          {
+            "documentName": "Antrag",
+            "documentTypeId": "41000000-0000-4000-8000-000000000001",
+            "isResolved": true,
+            "origin": "system",
+          },
+        ],
+      },
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000002",
+        "categoryName": "B Umweltunterlagen",
+        "requiredDocuments": [
+          {
+            "documentName": "Umweltbericht",
+            "documentTypeId": "41000000-0000-4000-8000-000000000002",
+            "isResolved": false,
+            "origin": "system",
+          },
+        ],
+      },
+      {
+        "categoryId": "31000000-0000-4000-8000-000000000003",
+        "categoryName": "Benutzerdefiniert",
+        "requiredDocuments": [
+          {
+            "documentName": "Eigene Anlage",
+            "documentTypeId": "41000000-0000-4000-8000-000000000003",
+            "isResolved": true,
+            "origin": "custom",
+          },
+        ],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

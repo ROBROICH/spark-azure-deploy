@@ -1,0 +1,195 @@
+{
+  "schema_version": 1,
+  "mode_decisions": [
+    {
+      "name": "disabled_ignores_present_credentials",
+      "mode": "disabled",
+      "credential_state": "present",
+      "verification_outcome": "must_not_run",
+      "expected_status": "disabled",
+      "expected_identity": false
+    },
+    {
+      "name": "dry_run_without_credentials",
+      "mode": "optional_verify_dry_run",
+      "credential_state": "missing",
+      "verification_outcome": "must_not_run",
+      "expected_status": "missing",
+      "expected_identity": false
+    },
+    {
+      "name": "dry_run_verified",
+      "mode": "optional_verify_dry_run",
+      "credential_state": "present",
+      "verification_outcome": "verified",
+      "expected_status": "verified",
+      "expected_identity": true
+    },
+    {
+      "name": "dry_run_unverified_claim_fallback",
+      "mode": "optional_verify_dry_run",
+      "credential_state": "present",
+      "verification_outcome": "unverified_claims",
+      "expected_status": "invalid_fallback_unverified",
+      "expected_identity": true
+    },
+    {
+      "name": "dry_run_unreadable_credentials",
+      "mode": "optional_verify_dry_run",
+      "credential_state": "present",
+      "verification_outcome": "unreadable",
+      "expected_status": "invalid_no_claims",
+      "expected_identity": false
+    },
+    {
+      "name": "strict_verified",
+      "mode": "strict",
+      "credential_state": "present",
+      "verification_outcome": "verified",
+      "expected_status": "verified",
+      "expected_identity": true
+    },
+    {
+      "name": "strict_rejects_inactive_identity",
+      "mode": "strict",
+      "credential_state": "present",
+      "verification_outcome": "inactive_identity",
+      "expected_error": "User not active"
+    },
+    {
+      "name": "strict_without_credentials",
+      "mode": "strict",
+      "credential_state": "missing",
+      "verification_outcome": "must_not_run",
+      "expected_error": "Missing or invalid Authorization header"
+    },
+    {
+      "name": "strict_rejects_unverified_credentials",
+      "mode": "strict",
+      "credential_state": "present",
+      "verification_outcome": "unverified_claims",
+      "expected_error": "verification failed"
+    }
+  ],
+  "claim_decisions": [
+    {
+      "name": "admin_precedes_user_and_service",
+      "roles": ["service", "user", "admin"],
+      "expected_roles": ["service", "user", "admin"],
+      "expected_primary_role": "admin"
+    },
+    {
+      "name": "user_precedes_service",
+      "roles": ["service", "user"],
+      "expected_roles": ["service", "user"],
+      "expected_primary_role": "user"
+    },
+    {
+      "name": "service_is_the_remaining_application_role",
+      "roles": ["service"],
+      "expected_roles": ["service"],
+      "expected_primary_role": "service"
+    },
+    {
+      "name": "unknown_roles_have_no_primary_role",
+      "roles": ["provider-default"],
+      "expected_roles": ["provider-default"],
+      "expected_primary_role": null
+    },
+    {
+      "name": "non_string_provider_roles_are_ignored",
+      "roles": ["user", 7, null],
+      "expected_roles": ["user"],
+      "expected_primary_role": "user"
+    }
+  ],
+  "permission_vocabulary": [
+    "create",
+    "update",
+    "delete",
+    "read",
+    "execute",
+    "assign",
+    "audit",
+    "export",
+    "approve"
+  ],
+  "resource_vocabulary": ["project", "workflow", "user", "group"],
+  "subject_vocabulary": ["user", "group"],
+  "relation_vocabulary": ["owner", "member", "auditor"],
+  "machine_decisions": [
+    {
+      "name": "exact_allowlist_match",
+      "xfcc": "Hash=fixture;URI=spiffe://cluster.local/ns/auth-test/sa/caller",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/caller",
+      "expected_spiffe": "spiffe://cluster.local/ns/auth-test/sa/caller",
+      "expected_allowed": true
+    },
+    {
+      "name": "explicit_service_account_wildcard",
+      "xfcc": "URI=spiffe://cluster.local/ns/auth-test/sa/caller",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/*",
+      "expected_spiffe": "spiffe://cluster.local/ns/auth-test/sa/caller",
+      "expected_allowed": true
+    },
+    {
+      "name": "wrong_trust_domain",
+      "xfcc": "URI=spiffe://outside.invalid/ns/auth-test/sa/caller",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/*",
+      "expected_spiffe": "spiffe://outside.invalid/ns/auth-test/sa/caller",
+      "expected_allowed": false
+    },
+    {
+      "name": "wrong_namespace",
+      "xfcc": "URI=spiffe://cluster.local/ns/other/sa/caller",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/*",
+      "expected_spiffe": "spiffe://cluster.local/ns/other/sa/caller",
+      "expected_allowed": false
+    },
+    {
+      "name": "wrong_service_account",
+      "xfcc": "URI=spiffe://cluster.local/ns/auth-test/sa/other",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/caller",
+      "expected_spiffe": "spiffe://cluster.local/ns/auth-test/sa/other",
+      "expected_allowed": false
+    },
+    {
+      "name": "malformed_uri",
+      "xfcc": "URI=https://cluster.local/ns/auth-test/sa/caller",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/*",
+      "expected_spiffe": null,
+      "expected_allowed": false
+    },
+    {
+      "name": "multiple_uri_values_are_ambiguous",
+      "xfcc": "URI=spiffe://cluster.local/ns/auth-test/sa/caller,URI=spiffe://cluster.local/ns/auth-test/sa/other",
+      "allowlist": "spiffe://cluster.local/ns/auth-test/sa/*",
+      "expected_spiffe": null,
+      "expected_allowed": false
+    }
+  ],
+  "http_decisions": {
+    "unauthenticated": {
+      "status": 401,
+      "detail": "Missing or invalid Authorization header",
+      "challenge": "Bearer"
+    },
+    "forbidden": {
+      "status": 403,
+      "detail": "Access denied"
+    }
+  },
+  "dry_run_diagnostics": {
+    "mode": "optional_verify_dry_run",
+    "missing": "missing",
+    "verified": "verified",
+    "machine_verified": "machine_verified",
+    "machine_invalid": "machine_invalid",
+    "role_allowed": "allowed",
+    "role_denied": "denied",
+    "permission_allowed": "allowed:1/1",
+    "permission_denied": "denied:1/1",
+    "permission_bypass": "bypass-role",
+    "resource_filter": "bypassed-dry-run:accessible=2"
+  }
+}

@@ -1,0 +1,508 @@
+id: no-single-call-function
+
+invalid:
+  - |
+    export const typedScope = (database: Database): Scope => scoped<ScopedDatabase>(database);
+
+  - |
+    export const genericScope = <Database>(database: Database) => scoped(database);
+
+  - |
+    export const runListenerCliFromArgv = async () => {
+      await runListenerCli();
+    };
+
+  - |
+    function forwardClick(value: string) {
+      sendClick(value);
+    }
+
+  - |
+    const stopRunner = async (runnerId: string) => {
+      await stopRunnerById(runnerId);
+    };
+
+  - |
+    const startWorkWithUnusedContext = async (context: WorkContext): Promise<void> => {
+      await startWork();
+    };
+
+  - |
+    const startWorkWithUnusedSyncContext = (context: WorkContext): void => {
+      startWork();
+    };
+
+  - |
+    const stop = async function (runnerId: string) {
+      await stopRunnerById(runnerId);
+    };
+
+  - |
+    function startCli() {
+      return runCli();
+    }
+
+  - |
+    async function loadCli(): Promise<Cli> {
+      return await createCli();
+    }
+
+  - |
+    const start = () => {
+      runtime.start();
+    };
+
+  - |
+    const startNow = () => runtime.start();
+
+  - |
+    const stopRuntime = async (runtime: Runtime) => {
+      await runtime.stop();
+    };
+
+  - |
+    const stopTask = async (task: Task) => await task.stop();
+
+  - |
+    const clickHandler = () => sendClick();
+
+  - |
+    const forwardBareClick = value => {
+      sendClick(value);
+    };
+
+  - |
+    class ListenerService {
+      async stop(runnerId: string) {
+        await stopRunnerById(runnerId);
+      }
+    }
+
+  # A default-exported forwarding arrow has no declarator to hang off. Only
+  # no-tiny-top-level-functions caught this shape; it moved here when that rule
+  # was retired.
+  - |
+    export default () => compute();
+
+  - |
+    export default async (runnerId: string) => await stopRunnerById(runnerId);
+
+  # An object literal whose methods only return another call is the "service
+  # object" smell. Previously only no-single-return-function caught this shape;
+  # it moved here when that rule was retired.
+  - |
+    const service = {
+      getThing(id: string) {
+        return backend.getThing(id);
+      }
+    };
+
+  - |
+    const store = {
+      list() {
+        return backend.list();
+      }
+    };
+
+  - |
+    const remote = {
+      async fetchThing(id: string) {
+        return await backend.fetchThing(id);
+      }
+    };
+
+  - |
+    const forwarder = {
+      stop(task: Task) {
+        return task.stop();
+      }
+    };
+
+  - |
+    function forwardClickWithLeadingComment(value: string) {
+      // Forward the click unchanged.
+      sendClick(value);
+    }
+
+  - |
+    const stopRunnerWithTrailingComment = async (runnerId: string) => {
+      // Forward the runner identifier unchanged.
+      await stopRunnerById(runnerId);
+      // Keep runner shutdown centralized.
+    };
+
+  - |
+    const startWithEmptyStatements = () => {
+      ;
+      runtime.start();
+      ;
+    };
+
+  - |
+    const commentedService = {
+      getThing(id: string) {
+        // Forward the lookup unchanged.
+        ;
+        return backend.getThing(id);
+        ;
+        // Preserve the service boundary.
+      }
+    };
+
+  - |
+    class TaskController {
+      halt(task: Task) {
+        return task.stop();
+      }
+    }
+
+  - |
+    class AsyncTaskController {
+      async halt(task: Task) {
+        return await task.stop();
+      }
+    }
+
+  - |
+    const taskController = {
+      halt(task: Task) {
+        return task.stop();
+      },
+    };
+
+  - |
+    const asyncTaskController = {
+      async halt(task: Task) {
+        return await task.stop();
+      },
+    };
+
+valid:
+  - |
+    export const resultOf = <Schema extends TSchema>(schema: Schema) =>
+      Type.Unsafe<Static<Schema> | Result<Static<Schema>, EvlogError>>(schema);
+
+  - |
+    const listener = {
+      start() {
+        runListenerCli();
+      },
+    };
+
+  - |
+    async function runListenerCli() {
+      const program = createListenerCommand();
+      await program.parseAsync(Bun.argv, { from: "node" });
+    }
+
+  - |
+    export const command = program.action(async () => {
+      await runListenerCli();
+    });
+
+  - |
+    export const sendMail = async (message: SmtpMessage) => {
+      await transport.sendMail({
+        from: env.SMTP_FROM,
+        to: message.to,
+        subject: message.subject,
+        text: message.text,
+        html: message.html,
+      });
+    };
+
+  - |
+    const stopAfterReport = async (runtime: Runtime, task: Task) => {
+      const stopped = await runtime.stop(task);
+      await reportStop(stopped);
+    };
+
+  - |
+    class DerivedListener extends BaseListener {
+      constructor() {
+        super();
+      }
+    }
+
+  - |
+    class Mailer {
+      async send(message: SmtpMessage) {
+        await transport.sendMail({
+          from: env.SMTP_FROM,
+          to: message.to,
+          subject: message.subject,
+          text: message.text,
+          html: message.html,
+        });
+      }
+    }
+
+  - |
+    class SecretStore {
+      async remove(taskId: string) {
+        await kubernetesApi().deleteNamespacedSecret({ name: taskId }).catch((error) => {
+          if (error.code === 404) {
+            return;
+          }
+          throw error;
+        });
+      }
+    }
+
+  - |
+    const secretStore = {
+      async remove(taskId: string) {
+        await kubernetesApi().deleteNamespacedSecret({ name: taskId }).catch((error) => {
+          if (error.code === 404) {
+            return;
+          }
+          throw error;
+        });
+      },
+    };
+
+  - |
+    const restoreInstallations = (db: Database, backup: InstallationBackup[]) => {
+      return db.transaction(async (transaction) => {
+        await transaction.delete(githubAppInstallations);
+        if (backup.length > 0) {
+          await transaction.insert(githubAppInstallations).values(backup);
+        }
+      });
+    };
+
+  - |
+    const stopNormalizedRunner = (runnerId: string) => {
+      stopRunnerById(normalizeRunnerId(runnerId));
+    };
+
+  - |
+    const stopLoggedRunner = async (runnerId: string) => {
+      logger.info({ runnerId });
+      await stopRunnerById(runnerId);
+    };
+
+  - |
+    const stopThenReport = async (runtime: Runtime) => {
+      await runtime.stop();
+      reportStop();
+    };
+
+  - |
+    const startThenMark = () => {
+      runtime.start();
+      started = true;
+    };
+
+  - |
+    const markThenStart = () => {
+      started = false;
+      runtime.start();
+    };
+
+  - |
+    const listedStore = {
+      list() {
+        auditList();
+        return backend.list();
+      },
+    };
+
+  - |
+    const removingStore = {
+      remove(id: string) {
+        auditRemoval(id);
+        return backend.remove(id);
+      },
+    };
+
+  - |
+    const stopByReceiver = value => {
+      value.stop();
+    };
+
+  - |
+    const returnStop = value => {
+      return stop(value);
+    };
+
+  - |
+    const returnReceiverStop = value => {
+      return value.stop();
+    };
+
+  - |
+    const stopByReceiverAsync = async value => {
+      await value.stop();
+    };
+
+  - |
+    const returnStopAsync = async value => {
+      return await stop(value);
+    };
+
+  - |
+    const returnReceiverStopAsync = async value => {
+      return await value.stop();
+    };
+
+  - |
+    const bareReceiverExpression = function (argument: WorkItem) {
+      argument.work();
+    };
+
+  - |
+    const returnedReceiverExpression = function (argument: WorkItem) {
+      return argument.work();
+    };
+
+  - |
+    const awaitedReceiverExpression = async function (argument) {
+      await argument.work();
+    };
+
+  - |
+    const returnedAwaitedReceiverExpression = async function (argument: WorkItem) {
+      return await argument.work();
+    };
+
+  - |
+    const asyncArrow = async () => {
+      startWork();
+    };
+
+  - |
+    class AsyncClass {
+      async forward(argument: WorkItem) {
+        return argument.work();
+      }
+    }
+
+  - |
+    const asyncObject = {
+      async forward(argument: WorkItem) {
+        return argument.work();
+      },
+    };
+
+  - |
+    const typedReceiverStore = {
+      typed(argument: WorkItem): WorkResult {
+        return argument.work();
+      },
+    };
+
+  - |
+    const untypedAsyncReceiverStore = {
+      async untyped(argument) {
+        return await argument.work();
+      },
+    };
+
+  - |
+    const stopTaskWithRuntime = (runtime: Runtime, task: Task) => {
+      runtime.stop(task);
+    };
+
+  - |
+    const maybeStopRunner = (runnerId?: string) => {
+      stopRunnerById(runnerId);
+    };
+
+  - |
+    const stopDefaultRunner = (runnerId = defaultRunnerId) => {
+      stopRunnerById(runnerId);
+    };
+
+  - |
+    const stopFirstRunner = (...runnerIds: string[]) => {
+      stopRunnerById(runnerIds[0]);
+    };
+
+  - |
+    const stopSelectedRunner = ({ runnerId }: StopInput) => {
+      stopRunnerById(runnerId);
+    };
+
+  - |
+    function runLabeledCommand() {
+      run: runCli();
+    }
+
+  - |
+    function runWhenReady() {
+      if (runtime.ready) {
+        runCli();
+      }
+    }
+
+  - |
+    function forwardGeneric<T>(value: T) {
+      sendClick(value);
+    }
+
+  - |
+    const forwardGenericArrow = <T>(value: T) => {
+      sendClick(value);
+    };
+
+  - |
+    const namedForwarder = function forwardNamed(value: string) {
+      sendClick(value);
+    };
+
+  - |
+    class CurrentValue {
+      get value() {
+        return backend.getValue();
+      }
+    }
+
+  - |
+    class CurrentValueWriter {
+      set value(next: string) {
+        backend.setValue(next);
+      }
+    }
+
+  - |
+    class StaticLoader {
+      static load() {
+        return backend.load();
+      }
+    }
+
+  - |
+    class GenericLoader {
+      load<T>(value: T) {
+        return backend.load(value);
+      }
+    }
+
+  - |
+    class GeneratorLoader {
+      *load() {
+        return backend.load();
+      }
+    }
+
+  - |
+    const accessorLoader = {
+      get value() {
+        return backend.getValue();
+      },
+    };
+
+  - |
+    const genericLoader = {
+      load<T>(value: T) {
+        return backend.load(value);
+      },
+    };
+
+  - |
+    const generatorLoader = {
+      *load() {
+        return backend.load();
+      },
+    };

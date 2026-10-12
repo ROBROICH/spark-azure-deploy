@@ -1,15 +1,22 @@
 import type { EwmsFailedFileReviewResult } from './ewmsFileReviewResult';
 
 export type FailureReason = {
-  labelKey?: string;
+  labelKey: string;
   tooltipKey?: string;
-  fallback?: string;
+};
+
+// Raw failure text can carry internal workflow names, so an unmapped code
+// resolves to the generic label instead of being shown.
+const UNKNOWN_FAILURE_REASON: FailureReason = {
+  labelKey: 'fileReviewPage.failureReasons.unknown',
 };
 
 const FAILURE_REASON_LABEL_KEYS_BY_CODE: Partial<Record<string, string>> = {
+  DUPLICATE_FILE: 'fileReviewPage.failureReasons.duplicate',
   DUPLICATE_FILE_DETECTED: 'fileReviewPage.failureReasons.duplicate',
   FILE_NOT_FOUND: 'fileReviewPage.failureReasons.fileNotFound',
   INVALID_FILENAME: 'fileReviewPage.failureReasons.invalidFilename',
+  NO_PROCESSABLE_FILES: 'fileReviewPage.failureReasons.noProcessableFiles',
   RENAME_FAILED: 'fileReviewPage.failureReasons.renameFailed',
   UNSUPPORTED_FILETYPE: 'fileReviewPage.failureReasons.unsupportedFiletype',
   UPLOAD_FAILED: 'fileReviewPage.failureReasons.uploadFailed',
@@ -68,9 +75,7 @@ export const getFailureReason = (
   const message = getFailedReviewMessage(file);
 
   if (!code) {
-    return {
-      labelKey: 'fileReviewPage.failureReasons.unknown',
-    };
+    return UNKNOWN_FAILURE_REASON;
   }
 
   const labelKey =
@@ -86,7 +91,5 @@ export const getFailureReason = (
     };
   }
 
-  return {
-    fallback: message ?? code,
-  };
+  return UNKNOWN_FAILURE_REASON;
 };

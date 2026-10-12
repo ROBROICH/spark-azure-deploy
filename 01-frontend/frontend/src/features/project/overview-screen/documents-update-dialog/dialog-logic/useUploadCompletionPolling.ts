@@ -1,7 +1,4 @@
-import {
-  type WorkflowStatusEnum,
-  type ZipApprovalStatus,
-} from '@/api-clients/dms-module';
+import { type WorkflowStatusEnum } from '@/api-clients/backend';
 import { useProcessingFilesQuery } from '@/features/project/data/file-processing/useProcessingFilesQuery';
 import { isFailedWorkflowStatus } from '@/features/project/data/file-processing/processingFileStatuses';
 import { useEffect, useState, useSyncExternalStore } from 'react';
@@ -15,8 +12,6 @@ const UPLOAD_COMPLETION_TERMINAL_STATUSES: ReadonlySet<WorkflowStatusEnum> =
   new Set<WorkflowStatusEnum>(['COMPLETED', 'REQUIRES_APPROVAL']);
 
 const DEFAULT_TIMEOUT_POLLS = 20;
-const FAILED_APPROVAL_STATUSES: ReadonlySet<ZipApprovalStatus> =
-  new Set<ZipApprovalStatus>(['FAILED_APPROVE']);
 
 type UseUploadCompletionPollingParams = {
   zipFileId: string | null;
@@ -147,8 +142,8 @@ export const useUploadCompletionPolling = (
 
   const zipFile = processingFiles.find((file) => file.id === zipFileId) ?? null;
   const status: WorkflowStatusEnum | undefined = zipFile?.workflowStatus;
-  const approvalStatus: ZipApprovalStatus | null | undefined =
-    zipFile?.approvalStatus;
+  const approvalStatus = zipFile?.approvalStatus ?? null;
+  const workflowFailureCode = zipFile?.workflowFailureCode ?? null;
 
   const pollingSessionKey = enabled
     ? `${projectId ?? ''}:${zipFileId ?? ''}`
@@ -195,7 +190,7 @@ export const useUploadCompletionPolling = (
   const isProcessingFailed =
     isError ||
     isFailedWorkflowStatus(status) ||
-    FAILED_APPROVAL_STATUSES.has(approvalStatus ?? 'APPROVED') ||
+    approvalStatus === 'FAILED_APPROVE' ||
     hasTimedOut;
   const isProcessingComplete =
     zipFile !== null &&
@@ -207,5 +202,6 @@ export const useUploadCompletionPolling = (
     isProcessingFailed,
     terminalStatus: status,
     terminalApprovalStatus: approvalStatus,
+    terminalWorkflowFailureCode: workflowFailureCode,
   };
 };

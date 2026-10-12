@@ -6,7 +6,7 @@ describe('parseEwmsFileReviewResult', () => {
     const result = parseEwmsFileReviewResult({
       successful: [
         {
-          file_id: '971d7533-6ba7-4f3d-a5e3-3f92c2e693a9',
+          fileId: '971d7533-6ba7-4f3d-a5e3-3f92c2e693a9',
           filename: 'contains-invalid-files/ABC-S8689_8243804475-typed.pdf',
           action: 'INGEST',
         },
@@ -22,7 +22,7 @@ describe('parseEwmsFileReviewResult', () => {
 
     expect(result.successful).toEqual([
       {
-        file_id: '971d7533-6ba7-4f3d-a5e3-3f92c2e693a9',
+        fileId: '971d7533-6ba7-4f3d-a5e3-3f92c2e693a9',
         filename: 'contains-invalid-files/ABC-S8689_8243804475-typed.pdf',
         action: 'INGEST',
       },

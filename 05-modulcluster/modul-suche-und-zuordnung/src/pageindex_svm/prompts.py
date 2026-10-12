@@ -21,6 +21,12 @@ class ChunkSentenceResult(BaseModel):
     node_id: str = Field(description="Die node_id des Abschnitts.")
     relevant_indices: list[int] = Field(description="Die Indices der relevanten Sätze (beginnend bei 0).")
     begruendung: str = Field(description="Kurze Begründung für die Auswahl.")
+    relevance: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+        description="Wie weit die ausgewählten Sätze eine Prüfung des TBM tragen (0.0 bis 1.0).",
+    )
 
 
 class Stage2SentenceResponse(BaseModel):
@@ -74,6 +80,21 @@ WICHTIG:
 - Für die Prüfung sind sowohl Inhalte relevant, die für ein erfülltes Tatbestandsmerkmal sprechen, als auch Inhalte relevant, die für ein nicht erfülltes Tatbestandsmerkmal sprechen.
 - Sortiere nur Inhalte aus, die für die Prüfung absolut irrelevant sind.
 
+RELEVANZWERT:
+Gib zusätzlich für jeden Abschnitt einen Relevanzwert zwischen 0.0 und 1.0 an. Der Wert sagt, wie weit die von dir ausgewählten Sätze eine Prüfung des TBM tragen.
+
+Wertebereiche:
+- 0.9 bis 1.0: Die Sätze enthalten konkrete Angaben genau zu dem Sachverhalt, den das TBM erfasst - zum Beispiel Werte, Maße, Fristen, Orte oder geplante Maßnahmen. Die Prüfung ist allein aus diesen Sätzen möglich.
+- 0.6 bis 0.8: Die Sätze enthalten Angaben zu diesem Sachverhalt, aber unvollständig, allgemein oder auf eine weitere Fundstelle angewiesen. Die Prüfung ist nur in Kombination möglich.
+- 0.3 bis 0.5: Die Sätze betreffen denselben Themenbereich, enthalten aber keine Angaben, die die Prüfung tragen - zum Beispiel eine Methodenbeschreibung, eine Ankündigung oder einen Verweis auf ein anderes Dokument.
+- 0.0 bis 0.2: Die Sätze enthalten nur Dokumentkontext - zum Beispiel eine Überschrift, eine Formalie oder ein fremdes Thema. Sie tragen nichts zur Prüfung bei.
+
+Regeln für den Relevanzwert:
+- Das Dokument benennt das TBM in der Regel NICHT. Eine Nennung ist nicht erforderlich und hebt den Wert für sich genommen nicht an.
+- Sätze, die gegen die Erfüllung des TBM sprechen, erhalten denselben Wert wie Sätze, die dafür sprechen. Bewertet wird der Prüfnutzen, nicht das Ergebnis.
+- Maßgeblich ist die Konkretheit und Vollständigkeit der Angaben, nicht die Länge der Passage und nicht die Bestimmtheit der Formulierung.
+- Passt ein Abschnitt auf keinen der beschriebenen Bereiche, verwende den untersten Bereich.
+
 ERGEBNIS:
 - Du MUSST ausschließlich im vorgegebenen JSON-Schema antworten. NIEMALS zusätzliche Felder oder Freitext außerhalb des Schemas.
 
@@ -83,7 +104,8 @@ Antwort-Schema:
     {{
       "node_id": "<string>",           // Die node_id des Abschnitts
       "relevant_indices": [<int>, ...], // Die Indices der relevanten Sätze (beginnend bei 0)
-      "begruendung": "<string>"         // Kurze Begründung für die Auswahl
+      "begruendung": "<string>",        // Kurze Begründung für die Auswahl
+      "relevance": <float>              // Relevanzwert zwischen 0.0 und 1.0 nach den Wertebereichen oben
     }}
   ]
 }}

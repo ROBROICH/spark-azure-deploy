@@ -70,12 +70,12 @@ const getReviewFiles = (
   }
 
   const successfulFiles = fileReview.successful.map((file) => ({
-    id: `${file.file_id}:success`,
+    id: `${file.fileId}:success`,
     name: getEwmsPathDisplayName(file.filename),
     size: getReviewFileSize(file),
   }));
   const failedFiles = fileReview.failed.map((file) => ({
-    id: `${file.file_id ?? file.filename}:error`,
+    id: `${file.fileId ?? file.filename}:error`,
     name: getEwmsPathDisplayName(file.filename),
     size: getReviewFileSize(file),
     failureReason: getFailureReason(file),
@@ -152,9 +152,7 @@ const FailedReviewList = (props: FailedReviewListProps) => {
                   : undefined
               }
             >
-              {file.failureReason.labelKey
-                ? t(file.failureReason.labelKey)
-                : file.failureReason.fallback}
+              {t(file.failureReason.labelKey)}
             </EwmsFailureReasonBadge>
           </li>
         ))}

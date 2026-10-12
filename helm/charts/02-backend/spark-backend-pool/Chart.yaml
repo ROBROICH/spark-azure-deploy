@@ -1,0 +1,15 @@
+apiVersion: v2
+name: spark-backend-pool
+description: >-
+  One independently scaled pool (Deployment + Service, optional HPA, KEDA
+  ScaledObject and PodMonitoring) of the SPARK Workflow backend modulith. The
+  backend-services umbrella references this chart once per pool through
+  dependency aliases; the alias is the pool's identity (API_POOL). Image,
+  configuration, secrets and probes are shared through global.backend.
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

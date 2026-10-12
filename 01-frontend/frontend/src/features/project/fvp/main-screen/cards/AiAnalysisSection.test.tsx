@@ -1,5 +1,5 @@
 import { TooltipProvider } from '@/features/ui/tooltip/Tooltip';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, within } from '@testing-library/react';
 import {
   afterAll,
   afterEach,
@@ -14,7 +14,7 @@ import type { FvpCategoryState } from '@/features/project/fvp/data/useFvpCategor
 import { AiAnalysisSection } from './AiAnalysisSection';
 
 const testWorkflow = {
-  workflow_start_time: undefined,
+  workflowStartTime: null,
 };
 
 const makeProgress = (
@@ -29,6 +29,9 @@ const makeProgress = (
   return {
     status,
     data: null,
+    failureCode: null,
+    hasResult: isDone,
+    hasReadError: false,
     isDone,
     isLoading,
     isRunning,
@@ -46,15 +49,23 @@ vi.mock('react-i18next', () => ({
 
 // The section now owns the task -> result-card mapping, so stub each card to a
 // recognizable marker. A task slot only renders its card once every dependency
-// workflow is done, so these markers stay absent while a slot is pending.
+// workflow is done, so these markers stay absent while a slot is pending. Each
+// stub renders its status slot so a failure badge on a result stays visible.
+type ResultCardStubProps = { statusAddon?: ReactNode };
 vi.mock('./TableOfContentsResultCard', () => ({
-  TableOfContentsResultCard: () => <div>tableOfContents result</div>,
+  TableOfContentsResultCard: (props: ResultCardStubProps) => (
+    <div>tableOfContents result{props.statusAddon}</div>
+  ),
 }));
 vi.mock('./RequiredDocumentsResultCard', () => ({
-  RequiredDocumentsResultCard: () => <div>required documents result</div>,
+  RequiredDocumentsResultCard: (props: ResultCardStubProps) => (
+    <div>required documents result{props.statusAddon}</div>
+  ),
 }));
 vi.mock('./PlausibilityResultCard', () => ({
-  PlausibilityResultCard: () => <div>plausibility result</div>,
+  PlausibilityResultCard: (props: ResultCardStubProps) => (
+    <div>plausibility result{props.statusAddon}</div>
+  ),
 }));
 
 const baseProgress = {
@@ -74,6 +85,7 @@ const projectId = 'project-1';
 const baseWorkflow = {
   disableThresholdPercentage: 500,
   isAiAnalysisComplete: false,
+  isAiAnalysisIncomplete: false,
   isAiAnalysisRunning: false,
   isStartBlockedBySystemLoad: false,
   isStartButtonDisabled: false,
@@ -343,5 +355,121 @@ describe('AiAnalysisSection', () => {
     expect(
       screen.getAllByText('redesign.aiAnalysis.progress.remainingTime.hours:1'),
     ).toHaveLength(2);
+  });
+
+  describe('failed categories', () => {
+    it('marks the empty task card as failed when a category failed without a result', () => {
+      renderWithTooltipProvider(
+        <AiAnalysisSection
+          workflow={{
+            ...baseWorkflow,
+            isAiAnalysisIncomplete: true,
+            progress: {
+              ...baseProgress,
+              tableOfContents: makeProgress({
+                status: 'failed',
+                failureCode: 'ANALYSIS_TIMED_OUT',
+              }),
+            },
+          }}
+          projectId={projectId}
+          onStartClick={() => undefined}
+        />,
+      );
+
+      expect(
+        screen.getByRole('button', {
+          name: 'processingFailure.areas.tableOfContents',
+        }),
+      ).toBeTruthy();
+      expect(
+        screen.getByText('redesign.aiAnalysis.cards.tableOfContents.title'),
+      ).toBeTruthy();
+      expect(screen.queryByText('tableOfContents result')).toBeNull();
+    });
+
+    it('keeps a succeeded category result and marks the analysis incomplete when another failed', () => {
+      renderWithTooltipProvider(
+        <AiAnalysisSection
+          workflow={{
+            ...baseWorkflow,
+            isAiAnalysisIncomplete: true,
+            progress: {
+              tableOfContents: makeProgress({
+                status: 'failed',
+                failureCode: 'ANALYSIS_FAILED',
+              }),
+              requiredDocuments: makeProgress({ status: 'ready' }),
+              plausibility: makeProgress({ status: 'ready' }),
+            },
+          }}
+          projectId={projectId}
+          onStartClick={() => undefined}
+        />,
+      );
+
+      expect(screen.getByText('required documents result')).toBeTruthy();
+      expect(screen.getByText('plausibility result')).toBeTruthy();
+      expect(screen.getByText('redesign.aiAnalysis.incomplete')).toBeTruthy();
+    });
+
+    it('marks an earlier result as failed and keeps that result visible', () => {
+      renderWithTooltipProvider(
+        <AiAnalysisSection
+          workflow={{
+            ...baseWorkflow,
+            isAiAnalysisIncomplete: true,
+            progress: {
+              ...baseProgress,
+              plausibility: makeProgress({
+                status: 'failed',
+                failureCode: 'ANALYSIS_FAILED',
+                hasResult: true,
+              }),
+            },
+          }}
+          projectId={projectId}
+          onStartClick={() => undefined}
+        />,
+      );
+
+      const earlierResult = screen.getByText('plausibility result');
+      expect(
+        within(earlierResult).getByRole('button', {
+          name: 'processingFailure.areas.plausibility',
+        }),
+      ).toBeTruthy();
+    });
+
+    it('shows the result card with the failure badge when the result read of a failed category failed', () => {
+      renderWithTooltipProvider(
+        <AiAnalysisSection
+          workflow={{
+            ...baseWorkflow,
+            isAiAnalysisIncomplete: true,
+            progress: {
+              ...baseProgress,
+              tableOfContents: makeProgress({
+                status: 'failed',
+                failureCode: 'ANALYSIS_FAILED',
+                hasReadError: true,
+              }),
+            },
+          }}
+          projectId={projectId}
+          onStartClick={() => undefined}
+        />,
+      );
+
+      const resultCard = screen.getByText('tableOfContents result');
+      expect(
+        within(resultCard).getByRole('button', {
+          name: 'processingFailure.areas.tableOfContents',
+        }),
+      ).toBeTruthy();
+      expect(
+        screen.queryByText('redesign.aiAnalysis.cards.tableOfContents.title'),
+      ).toBeNull();
+    });
   });
 });

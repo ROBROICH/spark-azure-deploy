@@ -8,15 +8,13 @@ from db_services_shared.models.db.database import (
 )
 from temporal.observability import (
     ObservabilityConfig,
-    TracingMode,  # noqa: F401
+    TracingMode,
     setup_observability,
 )
 
 from begruendungen_db.worker_env import ENV
 
-if (sys.gettrace() is not None
-    or "debugpy" in sys.modules
-    or "pydevd" in sys.modules):
+if sys.gettrace() is not None or "debugpy" in sys.modules or "pydevd" in sys.modules:
     setup_observability(
         ObservabilityConfig(
             service_name=ENV.OTEL_SERVICE_NAME,
@@ -32,16 +30,14 @@ elif "pytest" not in sys.modules:
         )
     )
 
-import asyncio  # noqa: E402
+import asyncio
 
-from temporal.s3_payload_storage import S3PayloadStorage  # noqa: E402
-from temporal.worker import start_temporal_worker  # noqa: E402
-from temporal.workflows.begruendungen.update_begruendungen import (  # noqa: E402
-    TASK_QUEUE,
-)
+from temporal.registry import BEGRUENDUNGEN_UPDATE_WORKFLOW
+from temporal.s3_payload_storage import S3PayloadStorage
+from temporal.worker import start_temporal_worker
 
-from begruendungen_db.config import app_config  # noqa: E402
-from begruendungen_db.workflows import make_activities, workflows  # noqa: E402
+from begruendungen_db.config import app_config
+from begruendungen_db.workflows import make_activities, workflows
 
 
 async def start_worker() -> None:
@@ -58,7 +54,7 @@ async def start_worker() -> None:
         host=ENV.TEMPORAL.HOST,
         workflows=workflows,
         activities=make_activities(sessionmaker=get_async_session_factory()),
-        task_queue=TASK_QUEUE,
+        task_queue=BEGRUENDUNGEN_UPDATE_WORKFLOW.task_queue,
         storage=storage,
     )
 

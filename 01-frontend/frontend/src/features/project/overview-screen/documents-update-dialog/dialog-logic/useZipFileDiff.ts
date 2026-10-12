@@ -1,7 +1,7 @@
 import {
-  getFileDiffV2FilesFileIdDiffGet,
+  v1DocumentManagementGetFileDiff as getFileDiff,
   type FileDiffResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
 import { useQuery } from '@tanstack/react-query';
 
 /**
@@ -18,8 +18,8 @@ export const useZipFileDiff = (zipFileId: string | null) => {
         if (!zipFileId) {
           return null;
         }
-        const { data: diff } = await getFileDiffV2FilesFileIdDiffGet({
-          path: { file_id: zipFileId },
+        const { data: diff } = await getFileDiff({
+          path: { fileId: zipFileId },
         });
         return diff ?? null;
       },

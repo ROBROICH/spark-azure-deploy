@@ -1,3 +1,7 @@
+---
+ruleId: nodes/references/node-ref-first-examples
+---
+
 # Node Ref-First Examples
 
 ## Bad Example

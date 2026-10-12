@@ -71,7 +71,7 @@ const getParentSignatureParts = (summary: NodeSummary) => {
   return Array.from(
     new Set([
       ...summary.parents.map((parent) => toCompositeKey(parent)),
-      ...(summary.frontend_parent_ids ?? []),
+      ...(summary.frontendParentIds ?? []),
     ]),
   ).sort();
 };
@@ -79,9 +79,9 @@ const getParentSignatureParts = (summary: NodeSummary) => {
 const createStructureSignature = (summary: NodeSummary) => {
   return [
     summary.id,
-    summary.node_type,
+    summary.nodeType,
     toCompositeKey(summary),
-    summary.is_outdated ? 'outdated' : 'current',
+    summary.isOutdated ? 'outdated' : 'current',
     getParentSignatureParts(summary).join(','),
   ].join('|');
 };

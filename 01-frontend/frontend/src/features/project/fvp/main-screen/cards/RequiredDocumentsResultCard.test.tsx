@@ -84,6 +84,29 @@ describe('RequiredDocumentsResultCard error state', () => {
     ).toBeNull();
   });
 
+  it('keeps the status addon visible when the read fails', () => {
+    useHintsMock.mockReturnValue({
+      hints: [],
+      totalRequired: 0,
+      processedCount: 0,
+      openCount: 0,
+      isLoading: false,
+      isError: true,
+    });
+
+    render(
+      <TooltipProvider>
+        <RequiredDocumentsResultCard
+          projectId="p1"
+          statusAddon={<button type="button">failure chip</button>}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(screen.getByRole('button', { name: 'failure chip' })).toBeTruthy();
+    expect(screen.getByRole('alert')).toBeTruthy();
+  });
+
   it('renders the normal summary when the read succeeds', () => {
     useHintsMock.mockReturnValue({
       hints: [

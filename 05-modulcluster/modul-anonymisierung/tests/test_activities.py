@@ -2,7 +2,6 @@
 
 import shutil
 from io import BytesIO
-from pathlib import Path
 from unittest.mock import patch
 
 import pikepdf
@@ -38,6 +37,63 @@ def _create_test_pdf_bytes(text: str = "Max Mustermann wohnt in Berlin.") -> byt
     return buf.getvalue()
 
 
+def _add_hidden_pii(pdf_data: bytes) -> bytes:
+    """Add metadata, an annotation, and an attachment to a test PDF."""
+    with pikepdf.open(BytesIO(pdf_data)) as pdf:
+        pdf.docinfo["/Author"] = "Max Mustermann"
+        xmp = (
+            b'<?xpacket begin="\xef\xbb\xbf"?>'
+            b'<x:xmpmeta xmlns:x="adobe:ns:meta/">'
+            b'<rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">'
+            b'<rdf:Description xmlns:dc="http://purl.org/dc/elements/1.1/" '
+            b'dc:creator="max@example.de"/>'
+            b'</rdf:RDF></x:xmpmeta><?xpacket end="w"?>'
+        )
+        metadata = pdf.make_stream(xmp)
+        metadata.Type = pikepdf.Name.Metadata
+        metadata.Subtype = pikepdf.Name.XML
+        pdf.Root.Metadata = metadata
+        annotation = pdf.make_indirect(
+            pikepdf.Dictionary(
+                Type=pikepdf.Name.Annot,
+                Subtype=pikepdf.Name.Text,
+                Rect=pikepdf.Array([100, 700, 120, 720]),
+                T="Max Mustermann",
+                Contents="Vertraulicher Kommentar",
+            )
+        )
+        pdf.pages[0].Annots = pikepdf.Array([annotation])
+        pdf.attachments["personenakte.txt"] = b"IBAN DE0012345678"
+        with BytesIO() as output:
+            pdf.save(output)
+            return output.getvalue()
+
+
+def _assert_hidden_data_removed(pdf_data: bytes) -> None:
+    """Assert that standard hidden-data containers are absent."""
+    with pikepdf.open(BytesIO(pdf_data)) as pdf:
+        assert "/Info" not in pdf.trailer
+        assert "/Metadata" not in pdf.Root
+        assert all("/Annots" not in page.obj for page in pdf.pages)
+        assert len(pdf.attachments) == 0
+
+
+def _visible_text(pdf_data: bytes) -> str:
+    """Extract visible text from all pages."""
+    doc = pdfium.PdfDocument(pdf_data)
+    try:
+        result = []
+        for index in range(len(doc)):
+            page = doc[index]
+            textpage = page.get_textpage()
+            result.append(textpage.get_text_range())
+            textpage.close()
+            page.close()
+        return "".join(result)
+    finally:
+        doc.close()
+
+
 def _noop_ocr(input_path, output_path, pages, **kwargs):
     """Mock OCR that copies input to output (skips actual Tesseract)."""
     shutil.copy(input_path, output_path)
@@ -55,7 +111,7 @@ class TestApplyRedactionsActivity:
     @patch("src.services.ocr.run_ocrmypdf", side_effect=_noop_ocr)
     def test_redacts_pii_terms(self, _mock_ocr) -> None:
         """PII terms should be redacted from the PDF."""
-        pdf_data = _create_test_pdf_bytes("Max Mustermann wohnt in Berlin.")
+        pdf_data = _add_hidden_pii(_create_test_pdf_bytes("Max Mustermann wohnt in Berlin."))
         inp = ApplyRedactionsInput(
             pdf_data=pdf_data,
             pii_terms=["Max Mustermann"],
@@ -77,10 +133,12 @@ class TestApplyRedactionsActivity:
         textpage.close()
         page.close()
         doc.close()
+        _assert_hidden_data_removed(result.redacted_pdf)
 
-    def test_no_pii_passthrough(self) -> None:
-        """Without PII terms, PDF should pass through unchanged."""
-        pdf_data = _create_test_pdf_bytes("Kein personenbezogener Inhalt.")
+    def test_no_pii_still_sanitizes_hidden_data(self) -> None:
+        """Hidden data is removed even when no visible PII terms exist."""
+        pdf_data = _add_hidden_pii(_create_test_pdf_bytes("Kein personenbezogener Inhalt."))
+        expected_text = _visible_text(pdf_data)
         inp = ApplyRedactionsInput(
             pdf_data=pdf_data,
             pii_terms=[],
@@ -92,6 +150,20 @@ class TestApplyRedactionsActivity:
         assert result.matches_found == 0
         assert result.error_pages == []
         assert len(result.redacted_pdf) > 0
+        assert result.redacted_pdf != pdf_data
+        _assert_hidden_data_removed(result.redacted_pdf)
+        assert _visible_text(result.redacted_pdf) == expected_text
+
+    def test_no_matching_term_still_sanitizes_hidden_data(self) -> None:
+        """Hidden data is removed when supplied PII terms have no page hit."""
+        pdf_data = _add_hidden_pii(_create_test_pdf_bytes("Kein Treffer auf dieser Seite."))
+
+        result = apply_redactions(
+            ApplyRedactionsInput(pdf_data=pdf_data, pii_terms=["Nicht vorhanden"])
+        )
+
+        assert result.matches_found == 0
+        _assert_hidden_data_removed(result.redacted_pdf)
 
     def test_error_token_counted(self) -> None:
         """Error tokens should record error page but not crash."""

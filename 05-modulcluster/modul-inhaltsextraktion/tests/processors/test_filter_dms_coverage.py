@@ -541,32 +541,10 @@ class TestFilterRecurringElementsEdgeCases:
 from src.utils.dms_utils import (  # noqa: E402
     DmsUploadInput,
     ListFilesInput,
-    _json_default,
     delete_file,
     list_files,
     upload_file,
 )
-
-
-class TestJsonDefault:
-    """Test _json_default serializer helper."""
-
-    def test_uuid_serialization(self) -> None:
-        """Test that UUIDs are serialized to their string representation."""
-        uid = UUID("12345678-1234-5678-1234-567812345678")
-        result = _json_default(uid)
-        assert result == "12345678-1234-5678-1234-567812345678"
-
-    def test_datetime_serialization(self) -> None:
-        """Test that datetimes are serialized to ISO format strings."""
-        dt = datetime(2024, 1, 15, 10, 30, 0)
-        result = _json_default(dt)
-        assert result == "2024-01-15T10:30:00"
-
-    def test_unsupported_type_raises(self) -> None:
-        """Test that unsupported types raise TypeError."""
-        with pytest.raises(TypeError, match="not JSON serializable"):
-            _json_default(set())
 
 
 class TestUploadFileErrorPaths:

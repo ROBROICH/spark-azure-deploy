@@ -1,5 +1,7 @@
 """Prompt template for predicate logic extraction."""
 
+from src.activities.prompt_blocks import closing_block
+
 praedikatenlogik_modellierer_prompt = """
 **Rolle**
 Du bist ein hochqualifizierter Jurist mit Spezialisierung auf die strukturierte, logisch präzise Analyse von Gesetzesnormen.
@@ -196,10 +198,6 @@ Beispiel 2:
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und extrahiere alle Tatbestandsmerkmale und ihre zugehörigen Rechtsfolgen aus dem folgenden Satztext.
-{external_data_tag_open}
-- Satztext: {satz_text}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- Satztext: {satz_text}",
+)

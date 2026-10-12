@@ -1,0 +1,151 @@
+{{- /*
+SpiceDB relationships: restore a `zed backup` file once SpiceDB accepts
+connections (post-install/post-upgrade; conflict strategy touch). Acts once:
+the request (dump location + runId) is recorded as the comment of
+spicedb.markerDatabase (the SpiceDB datastore database, which db-init only
+creates) and an identical request is skipped.
+*/ -}}
+{{- if and (eq (toString .Values.spicedb.restore) "true") (not .Values.teardown.enabled) }}
+{{- $url := tpl (toString .Values.spicedb.dump) . | required "db-init: spicedb.restore is set but spicedb.dump is empty" }}
+{{- include "db-init.checkDump" (dict "root" . "what" "spicedb.dump" "url" $url) }}
+{{- $marker := tpl (toString (required "db-init: spicedb.markerDatabase is required" .Values.spicedb.markerDatabase)) . }}
+{{- $actionId := printf "spicedb|%s|%s" (regexReplaceAll "\\?.*$" $url "") (toString (.Values.runId | default "")) | sha256sum | trunc 16 }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "db-init.fullname" . }}-spicedb-restore
+  namespace: {{ include "db-init.namespace" . }}
+  labels:
+    {{- include "db-init.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: {{ .Values.spicedb.backoffLimit }}
+  activeDeadlineSeconds: {{ .Values.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "db-init.labels" . | nindent 8 }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "db-init.fullname" . }}
+      {{- include "db-init.podSecurity" . | nindent 6 }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: check-marker
+          image: {{ .Values.images.postgres }}
+          {{- with include "db-init.containerSecurity" . }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          command: [bash, -ceu]
+          args:
+            - |
+              current=$(psql -X -tA -d postgres -c "SELECT shobj_description(oid, 'pg_database') FROM pg_database WHERE datname = '${MARKER_DB//\'/\'\'}'")
+              if [ "$current" = "spicedb-restore:$ACTION_ID" ]; then
+                echo "request $ACTION_ID already applied — nothing to do (change runId to repeat it)"
+                touch /work/skip
+              fi
+          env:
+            {{- with include "db-init.homeEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            {{- include "db-init.pgEnv" . | nindent 12 }}
+            - name: MARKER_DB
+              value: {{ $marker | quote }}
+            - name: ACTION_ID
+              value: {{ $actionId | quote }}
+          volumeMounts:
+            {{- with include "db-init.tmpMount" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: work
+              mountPath: /work
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+        {{- include "db-init.fetchContainer" (dict "root" . "url" $url "skipFile" "/work/skip") | nindent 8 }}
+        - name: restore
+          image: {{ .Values.images.zedDebug }}
+          {{- with include "db-init.containerSecurity" . }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          command: [sh, -ceu]
+          args:
+            - |
+              [ -f /work/skip ] && exit 0
+              # retry until SpiceDB answers (touch makes a repeated restore idempotent)
+              waited=0
+              until zed backup restore /work/dump --conflict-strategy touch; do
+                [ "$waited" -lt "$WAIT_SECONDS" ] || { echo "SpiceDB at $ZED_ENDPOINT did not accept the restore within ${WAIT_SECONDS}s"; exit 1; }
+                sleep 15; waited=$((waited + 15))
+              done
+              echo "restored SpiceDB relationships from ${DUMP_URL%%\?*}"
+          env:
+            {{- with include "db-init.homeEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: DUMP_URL
+              value: {{ $url | quote }}
+            - name: ZED_ENDPOINT
+              value: {{ tpl (toString .Values.spicedb.endpoint) . | quote }}
+            - name: ZED_INSECURE
+              value: {{ .Values.spicedb.insecure | quote }}
+            - name: WAIT_SECONDS
+              value: {{ .Values.spicedb.waitSeconds | quote }}
+            - name: ZED_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.spicedb.tokenSecret.name }}
+                  key: {{ .Values.spicedb.tokenSecret.key }}
+          volumeMounts:
+            {{- with include "db-init.tmpMount" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: work
+              mountPath: /work
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      containers:
+        - name: record-marker
+          image: {{ .Values.images.postgres }}
+          {{- with include "db-init.containerSecurity" . }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          command: [bash, -ceu]
+          args:
+            - |
+              [ -f /work/skip ] && exit 0
+              # psql interpolates :"var" / :'var' only in input, not in -c
+              echo "COMMENT ON DATABASE :\"db\" IS :'marker';" |
+                psql -X -v ON_ERROR_STOP=1 -q -d postgres -v db="$MARKER_DB" -v marker="spicedb-restore:$ACTION_ID"
+          env:
+            {{- with include "db-init.homeEnv" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            {{- include "db-init.pgEnv" . | nindent 12 }}
+            - name: MARKER_DB
+              value: {{ $marker | quote }}
+            - name: ACTION_ID
+              value: {{ $actionId | quote }}
+          volumeMounts:
+            {{- with include "db-init.tmpMount" . }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: work
+              mountPath: /work
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        {{- with include "db-init.tmpVolume" . }}
+        {{- . | nindent 8 }}
+        {{- end }}
+        - name: work
+          emptyDir:
+            sizeLimit: {{ .Values.workVolume.sizeLimit }}
+{{- end }}

@@ -1,0 +1,29 @@
+{{- /*
+Istio: deny /metrics on the application port for every spark-backend pool
+(selected by app.kubernetes.io/part-of). Scrapes reach the metrics through
+the sidecar's merged Prometheus endpoint instead.
+*/ -}}
+{{- $policy := (((.Values.global | default dict).backend | default dict).denyMetricsPolicy | default dict) }}
+{{- if $policy.enabled }}
+{{- $backend := .Values.global.backend }}
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: {{ $policy.name | default (printf "%s-spark-backend-deny-metrics%s" .Release.Name (include "backend-services.stageSuffix" .)) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "backend-services.namespace" . }}
+  labels:
+    {{- include "backend-services.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: spark-backend
+  action: DENY
+  rules:
+    - to:
+        - operation:
+            paths:
+              - /metrics
+              - /metrics/*
+            ports:
+              - {{ $backend.containerPort | default 8000 | quote }}
+{{- end }}

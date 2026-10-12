@@ -15,7 +15,7 @@ The *Modul Risikohinweiser* analyzes chapters of a *Planfeststellungsbeschluss* 
 
 ### Overview
 
-The *Modul Risikohinweiser* is a Temporal worker that registers a single workflow (`RiskCheckerWorkflow`) on the `risikohinweiser` task queue. It takes a `PFBChapter` as input and produces a `RiskFinderOutput` via the four-stage pipeline. All LLM calls are routed through the shared **LLM-Proxy**, and large payloads are offloaded to **MinIO (S3)** via the shared `temporal` workspace package.
+The *Modul Risikohinweiser* is a Temporal worker that registers a single workflow (`RiskCheckerWorkflow`) on the `risikohinweiser` task queue. It takes a `PFBChapter` as input and produces a `RiskFinderOutput` via the four-stage pipeline. All LLM calls are routed through the shared **LLM-Proxy**, and large payloads are offloaded to **VersityGW (S3)** via the shared `temporal` workspace package.
 
 ### Workflow Overview
 
@@ -84,7 +84,7 @@ Risk severity is rated on a scale of **1 (low) to 10 (very high)**:
 | Service | Purpose |
 |---------|---------|
 | **Temporal** | Asynchronous workflow orchestration |
-| **MinIO / S3-compatible storage** | Large-payload storage for Temporal |
+| **VersityGW / S3-compatible storage** | Large-payload storage for Temporal |
 | **LLM-Proxy** / shared LLM gateway | Unified model access for LLM calls |
 
 ## Output Schema
@@ -157,7 +157,7 @@ modul-risikohinweiser/
 - Python `>=3.13, <3.14`
 - `uv` package manager
 - Docker & Docker Compose
-- Access to platform services (Temporal, MinIO, LLM-Proxy) from the monorepo root
+- Access to platform services (Temporal, VersityGW, LLM-Proxy) from the monorepo root
 
 ### Environment Variables
 
@@ -173,9 +173,9 @@ For local development, provide the values through `.env`. In deployed environmen
 | `TEMPORAL_HOST` | Temporal frontend address | `localhost:7233` | yes |
 | `TEMPORAL_LLM_MAX_PER_SECOND` | Token-bucket cap on LLM activities per second | `3` | yes |
 | `TEMPORAL_S3_BUCKET_NAME` | S3 bucket for large Temporal payloads | `temporal-payloads` | yes |
-| `TEMPORAL_S3_ENDPOINT_URL` | S3/MinIO endpoint | `http://localhost:9000` | yes |
-| `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | `minioadmin` *(local default)* | yes |
-| `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | `minioadmin` *(local default)* | yes |
+| `TEMPORAL_S3_ENDPOINT_URL` | S3/VersityGW endpoint | `http://localhost:9000` | yes |
+| `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | generated root `.env` | yes |
+| `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | generated root `.env` | yes |
 | `TEMPORAL_S3_REGION` | S3 region | `eu-west-1` | yes |
 | `OTEL_SERVICE_NAME` | OpenTelemetry service name | `risikohinweiser` | yes |
 | `OTEL_ENDPOINT` | OpenTelemetry collector gRPC endpoint | `http://localhost:4317` | yes |
@@ -223,7 +223,7 @@ Workflow Type: `RiskCheckerWorkflow`
 
 #### In Production
 
-Start Temporal workers and ensure Temporal, MinIO, LLM-Proxy, and the DMS are available. Trigger workflows via backend orchestration or Temporal UI.
+Start Temporal workers and ensure Temporal, VersityGW, LLM-Proxy, and the DMS are available. Trigger workflows via backend orchestration or Temporal UI.
 
 ## Monitoring
 

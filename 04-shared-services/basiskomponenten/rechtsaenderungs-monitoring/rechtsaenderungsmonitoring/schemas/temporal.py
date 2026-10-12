@@ -4,7 +4,7 @@ from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field
-from temporal.workflows.rechtsaenderungs_monitoring.types import Bundesland, FeedEntry, Source
+from temporal.contracts import Bundesland, FeedEntry, RechtsaenderungenSource
 
 from rechtsaenderungsmonitoring.schemas.db import BaseNorm, DocType
 
@@ -16,7 +16,7 @@ class ParseEntryInput(BaseModel):
     the activity uses it to decide whether to extract or skip an entry.
     """
 
-    source: Source
+    source: RechtsaenderungenSource
     location: Bundesland | None = None
     entry: FeedEntry
     overwrite: bool = False

@@ -1,0 +1,15 @@
+{{- if .Values.podMonitoring.enabled }}
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: {{ .Values.podMonitoring.name | default (include "spark-backend-pool.fullname" .) }}
+  namespace: {{ include "spark-backend-pool.namespace" . }}
+  labels:
+    {{- include "spark-backend-pool.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "spark-backend-pool.selectorLabels" . | nindent 6 }}
+  endpoints:
+    {{- toYaml (required "podMonitoring.endpoints is required" .Values.podMonitoring.endpoints) | nindent 4 }}
+{{- end }}

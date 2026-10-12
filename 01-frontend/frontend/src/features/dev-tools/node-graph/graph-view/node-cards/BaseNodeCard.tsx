@@ -40,9 +40,9 @@ export function BaseNodeCard(props: BaseNodeCardProps) {
         <div className="flex items-start gap-2">
           <div
             className="size-3 rounded-full"
-            style={{ backgroundColor: getNodeTypeColor(node.node_type) }}
+            style={{ backgroundColor: getNodeTypeColor(node.nodeType) }}
           />
-          <CardTitle className="text-sm">{node.node_type}</CardTitle>
+          <CardTitle className="text-sm">{node.nodeType}</CardTitle>
           <div className="ml-auto flex items-center gap-1">
             <Badge variant="secondary" className="text-[10px]">
               {node.id.slice(0, 8)}

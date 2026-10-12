@@ -1,0 +1,6 @@
+schemaVersion: 1
+id: material-completeness-review
+title: Themenübersicht und themenbezogene materielle Vollständigkeitsprüfung
+openSpecCapabilities:
+  - mvp-overview
+  - mvp-topic-detail

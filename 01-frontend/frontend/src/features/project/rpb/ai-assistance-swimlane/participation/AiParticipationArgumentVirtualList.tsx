@@ -25,13 +25,13 @@ export const AiParticipationArgumentVirtualList = (
   });
 
   const toggleInBeschluss = (argument: RpbArgumentNode) => {
-    if (!canMutate || !argument.is_valid_argument) {
+    if (!canMutate || !argument.isValidArgument) {
       return;
     }
 
     transact(() => {
       update(argument, (draft) => {
-        draft.in_vae = !argument.in_vae;
+        draft.inVae = !argument.inVae;
       });
     });
   };

@@ -3,6 +3,7 @@
 import asyncio
 import io
 import logging
+import math
 from datetime import timedelta
 from typing import Any
 
@@ -33,19 +34,33 @@ def _iter_pdf_image_xobjects(pdf: pikepdf.Pdf, *, deduplicate: bool = False) -> 
         List of pikepdf.Stream objects representing images.
     """
     seen_objgens: set[tuple[int, int]] = set()
+    visited_forms: set[tuple[int, int]] = set()
     image_objects: list[pikepdf.Stream] = []
-    for page in pdf.pages:
-        resources = page.get("/Resources")
+
+    def _collect(resources: Any) -> None:
+        """Collect images from a /Resources dict, descending into form XObjects.
+
+        Map and plan exports (ArcGIS, QGIS, AutoCAD) routinely wrap page content
+        in form XObjects, so images nested there must be found too.
+        """
         if not resources:
-            continue
+            return
         xobjects = resources.get("/XObject")
         if not xobjects:
-            continue
+            return
         for key in xobjects.keys():
             obj = xobjects[key]
             if not isinstance(obj, pikepdf.Stream):
                 continue
-            if obj.get("/Subtype") != pikepdf.Name.Image:
+            subtype = obj.get("/Subtype")
+            if subtype == pikepdf.Name.Form:
+                objgen = obj.objgen
+                if objgen in visited_forms:  # guard against cyclic references
+                    continue
+                visited_forms.add(objgen)
+                _collect(obj.get("/Resources"))
+                continue
+            if subtype != pikepdf.Name.Image:
                 continue
             if deduplicate:
                 objgen = obj.objgen
@@ -53,6 +68,9 @@ def _iter_pdf_image_xobjects(pdf: pikepdf.Pdf, *, deduplicate: bool = False) -> 
                     continue
                 seen_objgens.add(objgen)
             image_objects.append(obj)
+
+    for page in pdf.pages:
+        _collect(page.get("/Resources"))
     return image_objects
 
 
@@ -88,8 +106,8 @@ def _decompress_pil_image(pdfimage: Any, pixel_count: int) -> Any:
         Image.MAX_IMAGE_PIXELS = original_max_pixels
 
 
-def _compress_single_image(obj: pikepdf.Stream, max_dim: int, min_dim: int, max_pixels: int, quality: int) -> bool:
-    """Compress a single PDF image XObject in-place. Returns True if compressed."""
+def _compress_single_image(obj: pikepdf.Stream, max_pixels: int, quality: int) -> bool:
+    """Resize an image to the pixel budget in-place. Returns True if resized."""
     from PIL import Image
 
     pdfimage = pikepdf.PdfImage(obj)
@@ -97,19 +115,18 @@ def _compress_single_image(obj: pikepdf.Stream, max_dim: int, min_dim: int, max_
     height = pdfimage.height
     pixel_count = width * height
 
-    if width < min_dim and height < min_dim:
-        return False
-    if width <= max_dim and height <= max_dim and pixel_count <= max_pixels:
+    if pixel_count <= max_pixels:
         return False
 
     with _pil_lock:
         img = _decompress_pil_image(pdfimage, pixel_count)
-        if img.mode in ("CMYK", "RGBA", "P", "LA"):
+        if img.mode != "RGB":
             img = img.convert("RGB")
 
-        scale = min(max_dim / width, max_dim / height)
-        new_width = int(width * scale)
-        new_height = int(height * scale)
+        # The axis bounds keep extremely thin images within budget at one pixel high or wide.
+        scale = min(math.sqrt(max_pixels / pixel_count), max_pixels / width, max_pixels / height)
+        new_width = max(1, int(width * scale))
+        new_height = max(1, int(height * scale))
         img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
         jpeg_buffer = io.BytesIO()
@@ -131,14 +148,14 @@ def _compress_pdf_images_sync(pdf_bytes: bytes) -> bytes:
     Synchronous helper to downscale oversized embedded images in a PDF.
 
     Iterates all image XObjects in the PDF, downscales those exceeding
-    PDF_COMPRESSION_MAX_IMAGE_DIMENSION using Pillow, and replaces the
+    PDF_COMPRESSION_MAX_IMAGE_PIXELS using Pillow, and replaces the
     raw image stream in-place using pikepdf.
 
     Args:
         pdf_bytes: Raw PDF bytes
 
     Returns:
-        Compressed PDF bytes, or original bytes if compression fails or produces a larger file
+        Resized PDF bytes, or original bytes if no images could be resized.
     """
     pdf = pikepdf.open(io.BytesIO(pdf_bytes))
     try:
@@ -147,19 +164,27 @@ def _compress_pdf_images_sync(pdf_bytes: bytes) -> bytes:
         logger.info(f"PDF compression: found {len(image_objects)} unique images across {len(pdf.pages)} pages")
 
         compressed_count = 0
+        skipped_count = 0
         for obj in image_objects:
             try:
                 if _compress_single_image(
                     obj,
-                    cfg.PDF_COMPRESSION_MAX_IMAGE_DIMENSION,
-                    cfg.PDF_COMPRESSION_MIN_IMAGE_DIMENSION,
                     cfg.PDF_COMPRESSION_MAX_IMAGE_PIXELS,
                     cfg.PDF_COMPRESSION_JPEG_QUALITY,
                 ):
                     compressed_count += 1
             except Exception:
+                skipped_count += 1
                 logger.debug("Skipping image that failed compression", exc_info=True)
                 continue
+
+        if skipped_count:
+            # Unsupported codecs (JPEG2000, JBIG2) are common in map scans and
+            # would otherwise reach docling-serve at full size unnoticed.
+            logger.warning(
+                f"PDF compression: {skipped_count} of {len(image_objects)} images could not be "
+                f"compressed and are passed through at original size"
+            )
 
         if compressed_count == 0:
             return pdf_bytes
@@ -169,10 +194,6 @@ def _compress_pdf_images_sync(pdf_bytes: bytes) -> bytes:
         result = out_buf.getvalue()
     finally:
         pdf.close()
-
-    # Graceful fallback: return original if compression made file larger
-    if len(result) >= len(pdf_bytes):
-        return pdf_bytes
 
     return result
 
@@ -184,7 +205,7 @@ async def _compress_pdf_images(
     """
     Compress oversized embedded images in a PDF to reduce memory pressure on docling-serve.
 
-    Skips compression if disabled by config or if the PDF is below the size threshold.
+    Leaves images within the pixel budget unchanged, regardless of PDF file size.
     Runs CPU-intensive work in asyncio.to_thread().
 
     Args:
@@ -238,15 +259,12 @@ async def _compress_pdf_images(
         )
 
     new_size_mb = len(result_bytes) / (1024 * 1024)
-    was_compressed = len(result_bytes) < len(pdf_bytes)
+    was_compressed = result_bytes != pdf_bytes
 
     if was_compressed:
-        activity.logger.info(
-            f"PDF compressed: {file_size_mb:.2f}MB -> {new_size_mb:.2f}MB "
-            f"({(1 - new_size_mb / file_size_mb) * 100:.1f}% reduction)"
-        )
+        activity.logger.info(f"PDF images resized to pixel budget: {file_size_mb:.2f}MB -> {new_size_mb:.2f}MB")
     else:
-        activity.logger.info("Compression did not reduce file size, using original")
+        activity.logger.info("No oversized images were resized")
 
     return CompressPdfImagesOutput(
         pdf_bytes=result_bytes,

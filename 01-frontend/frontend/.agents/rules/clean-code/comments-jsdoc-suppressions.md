@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/comments-jsdoc-suppressions
+---
+
 # Comments, JSDoc, and Suppressions
 
 Use when code changes comments, TODOs, JSDoc, lint disables, TypeScript suppressions, or AI-looking explanation blocks.

@@ -1,0 +1,34 @@
+suite: db-init teardown
+release: {name: rel, namespace: ci}
+values: [../ci/teardown-values.yaml]
+tests:
+  - it: renders only the teardown Job
+    template: templates/teardown.yaml
+    asserts:
+      - isKind: {of: Job}
+
+  - it: renders no init Job in teardown mode
+    template: templates/jobs.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: refuses without confirm
+    template: templates/teardown.yaml
+    set:
+      teardown.confirm: ''
+    asserts:
+      - failedTemplate: {errorPattern: teardown.confirm must repeat global.stage.name}
+
+  - it: refuses a confirm for another stage
+    template: templates/teardown.yaml
+    set:
+      teardown.confirm: other
+    asserts:
+      - failedTemplate: {errorPattern: teardown.confirm must repeat global.stage.name}
+
+  - it: refuses an object prefix outside the stage
+    template: templates/teardown.yaml
+    set:
+      teardown.objectPrefixes: [gs://bucket/other/]
+    asserts:
+      - failedTemplate: {errorPattern: does not match prefixPattern}

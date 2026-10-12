@@ -189,6 +189,7 @@ class MarkdownBuilder:
         doc_json: dict[str, Any],
         images_meta: list[dict[str, Any]],
         tables_meta: list[dict[str, Any]],
+        skip_picture_refs: set[str] | None = None,
     ) -> str:
         """
         Build custom markdown from docling JSON structure.
@@ -207,6 +208,10 @@ class MarkdownBuilder:
             doc_json: Document JSON from doc.export_to_dict()
             images_meta: Our extracted image metadata (with self_ref)
             tables_meta: Our extracted table metadata (with self_ref)
+            skip_picture_refs: Pictures deliberately left without an image --
+                recurring page furniture, or a crop that could not be produced.
+                They are skipped rather than falling through to the positional
+                lookup, which would attach a different picture's file.
 
         Returns:
             Custom markdown string with page markers
@@ -222,7 +227,7 @@ class MarkdownBuilder:
             tables_by_index=dict(enumerate(tables_meta)),
             texts_with_picture_parent=furniture.texts_with_picture_parent,
             furniture_table_refs=furniture.furniture_table_refs,
-            furniture_picture_refs=furniture.furniture_picture_refs,
+            furniture_picture_refs=furniture.furniture_picture_refs | (skip_picture_refs or set()),
             furniture_text_refs_by_position=furniture.furniture_text_refs_by_position,
         )
 

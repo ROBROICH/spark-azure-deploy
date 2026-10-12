@@ -1,18 +1,18 @@
-import { getRequiredDocumentTypesProjectIdRequiredDocumentTypesGetOptions } from '@/api-clients/fcs-module/@tanstack/react-query.gen';
-import type {
-  CategoryRequiredDocumentsResponse,
-  RequiredDocumentTypesResponse,
-} from '@/api-clients/fcs-module/types.gen';
+import { v1FormalCompletenessGetRequiredDocumentTypesOptions as getRequiredDocumentTypesOptions } from '@/api-clients/backend/@tanstack/react-query.gen';
+import type { RequiredDocumentTypesResponse } from '@/api-clients/backend/types.gen';
 import {
   requiredDocumentSchema,
   type RequiredDocument,
 } from '../schemas/requiredDocument.schema';
 
+type CategoryRequiredDocumentsResponse =
+  RequiredDocumentTypesResponse['categories'][number];
+
 export const getRequiredDocumentTypesResponseQueryOptions = (
   projectId: string,
 ) =>
-  getRequiredDocumentTypesProjectIdRequiredDocumentTypesGetOptions({
-    path: { project_id: projectId },
+  getRequiredDocumentTypesOptions({
+    path: { projectId: projectId },
   });
 
 export const flattenRequiredDocuments = (
@@ -25,8 +25,8 @@ export const flattenRequiredDocuments = (
     items.push(
       requiredDocumentSchema.parse({
         projectId,
-        id: category.category_id,
-        name: category.category_name,
+        id: category.categoryId,
+        name: category.categoryName,
         parentId: null,
         isCategory: true,
         origin: null,
@@ -34,16 +34,16 @@ export const flattenRequiredDocuments = (
       }),
     );
 
-    category.required_documents.forEach((document) => {
+    category.requiredDocuments.forEach((document) => {
       items.push(
         requiredDocumentSchema.parse({
           projectId,
-          id: document.document_type_id,
-          name: document.document_name,
-          parentId: category.category_id,
+          id: document.documentTypeId,
+          name: document.documentName,
+          parentId: category.categoryId,
           isCategory: false,
           origin: document.origin,
-          isResolved: document.is_resolved,
+          isResolved: document.isResolved,
         }),
       );
     });
@@ -58,10 +58,10 @@ export const getRequiredDocumentTypeNameMap = (
   const typeIdToName = new Map<string, string>();
 
   for (const category of response.categories) {
-    for (const requiredDocument of category.required_documents) {
+    for (const requiredDocument of category.requiredDocuments) {
       typeIdToName.set(
-        requiredDocument.document_type_id,
-        requiredDocument.document_name,
+        requiredDocument.documentTypeId,
+        requiredDocument.documentName,
       );
     }
   }

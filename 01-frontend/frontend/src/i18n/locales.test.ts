@@ -76,18 +76,17 @@ describe.each(getLocaleNamespaces())(
 );
 
 describe('Accessibility locale content', () => {
-  it('keeps review, creation, and exception dates aligned between locales', () => {
-    expect(resources.de.Accessibility.conformance.review).toContain('Mai 2026');
-    expect(resources.en.Accessibility.conformance.review).toContain('May 2026');
-
-    expect(resources.de.Accessibility.creation.text).toContain('26.05.2026');
-    expect(resources.en.Accessibility.creation.text).toContain('26 May 2026');
-
-    expect(resources.de.Accessibility.conformance.exceptionsIntro).toContain(
-      '25.05.2025',
+  it('keeps review and creation dates aligned between locales', () => {
+    expect(resources.de.Accessibility.conformance.review).toContain(
+      'zwischen Juni und September 2026',
     );
-    expect(resources.en.Accessibility.conformance.exceptionsIntro).toContain(
-      '25 May 2025',
+    expect(resources.en.Accessibility.conformance.review).toContain(
+      'between June and September 2026',
+    );
+
+    expect(resources.de.Accessibility.creation.text).toContain('06.10.2026');
+    expect(resources.en.Accessibility.creation.text).toContain(
+      '6 October 2026',
     );
   });
 });

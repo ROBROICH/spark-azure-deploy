@@ -10,7 +10,7 @@ export type NormTypeBadgeDescriptor =
   | { kind: 'key'; value: NormTypeBadgeKey }
   | { kind: 'label'; value: string };
 
-const capitalizeFirstWord = (label: string) => {
+export const capitalizeFirstWord = (label: string) => {
   const trimmedLabel = label.trim();
 
   if (!trimmedLabel) {

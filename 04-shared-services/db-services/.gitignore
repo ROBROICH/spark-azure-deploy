@@ -3,3 +3,4 @@
 */cached/*
 
 **/*.chunks.pkl
+**/chunk-cache/

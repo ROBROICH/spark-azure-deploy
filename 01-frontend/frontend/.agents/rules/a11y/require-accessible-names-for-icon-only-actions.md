@@ -1,3 +1,7 @@
+---
+ruleId: a11y/require-accessible-names-for-icon-only-actions
+---
+
 # Require Accessible Names for Icon-Only Actions
 
 - Icon-only buttons and controls must have an explicit accessible name.

@@ -9,15 +9,24 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => key }),
 }));
 
-// Mock SelectMenu primitives so tests run without Radix portal issues.
-// SelectMenuRoot exposes a test button that calls onValueChange to simulate selection.
-vi.mock('@/features/ui/select-menu/SelectMenu', () => ({
-  SelectMenuRoot: (props: {
+// Mock ActionMenu primitives so tests run without Radix portal issues.
+// ActionMenuRadioGroup exposes test buttons that call onValueChange to simulate selection.
+vi.mock('@/features/ui/action-menu/ActionMenu', () => ({
+  ActionMenu: (props: { children: ReactNode }) => (
+    <div data-testid="action-menu">{props.children}</div>
+  ),
+  ActionMenuTrigger: (props: { children: ReactNode; asChild?: boolean }) => (
+    <>{props.children}</>
+  ),
+  ActionMenuContent: (props: { children: ReactNode }) => (
+    <div data-testid="action-menu-content">{props.children}</div>
+  ),
+  ActionMenuRadioGroup: (props: {
     value: string;
     onValueChange: (v: string) => void;
     children: ReactNode;
   }) => (
-    <div data-testid="select-root" data-value={props.value}>
+    <div data-testid="radio-group" data-value={props.value}>
       <button
         type="button"
         data-testid="pick-option-a"
@@ -35,12 +44,7 @@ vi.mock('@/features/ui/select-menu/SelectMenu', () => ({
       {props.children}
     </div>
   ),
-  SelectMenuTrigger: (props: { children: ReactNode; asChild?: boolean }) => (
-    <>{props.children}</>
-  ),
-  SelectMenuContent: () => null,
-  SelectMenuViewport: () => null,
-  SelectMenuOption: () => null,
+  ActionMenuRadioItem: () => null,
 }));
 
 afterEach(() => cleanup());
@@ -111,7 +115,7 @@ describe('FilterPillSelect — queryValue mapping', () => {
     expect(onValueChange).toHaveBeenCalledWith('query-b');
   });
 
-  it('passes the matching option.value (not queryValue) to the select root so Radix marks it selected', () => {
+  it('passes the matching option.value (not queryValue) to the radio group so Radix marks it selected', () => {
     render(
       <FilterPillSelect
         icon={<span>icon</span>}
@@ -121,9 +125,9 @@ describe('FilterPillSelect — queryValue mapping', () => {
       />,
     );
 
-    // The select root receives option-a (the Radix-visible value), not query-a (the queryValue).
+    // The radio group receives option-a (the Radix-visible value), not query-a (the queryValue).
     // Without this mapping the popup would show no option as checked.
-    expect(screen.getByTestId('select-root')).toHaveAttribute(
+    expect(screen.getByTestId('radio-group')).toHaveAttribute(
       'data-value',
       'option-a',
     );

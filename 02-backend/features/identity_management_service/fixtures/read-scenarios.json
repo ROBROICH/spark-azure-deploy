@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "authClaims": {
+    "completeAdmin": {
+      "sub": "30000000-0000-0000-0000-000000000001",
+      "email": "ada.admin@example.test",
+      "givenName": "Ada",
+      "familyName": "Admin",
+      "roles": ["admin"]
+    },
+    "optionalNamesUser": {
+      "sub": "30000000-0000-0000-0000-000000000002",
+      "email": "unnamed.user@example.test",
+      "roles": ["user"]
+    },
+    "completeService": {
+      "sub": "30000000-0000-0000-0000-000000000003",
+      "email": "fixture.service@example.test",
+      "givenName": "Fixture",
+      "familyName": "Service",
+      "roles": ["service"]
+    },
+    "missingEmail": {
+      "sub": "30000000-0000-0000-0000-000000000004",
+      "givenName": "Missing",
+      "familyName": "Email",
+      "roles": ["user"]
+    },
+    "unsupportedRole": {
+      "sub": "30000000-0000-0000-0000-000000000005",
+      "email": "viewer@example.test",
+      "givenName": "Unsupported",
+      "familyName": "Viewer",
+      "roles": ["viewer"]
+    }
+  },
+  "me": {
+    "cases": [
+      { "id": "complete-admin", "profile": "focused", "token": "completeAdmin" },
+      { "id": "optional-names-user", "profile": "focused", "token": "optionalNamesUser" },
+      { "id": "complete-service", "profile": "focused", "token": "completeService" },
+      { "id": "missing-current-user", "profile": "bulk" },
+      { "id": "missing-email", "profile": "focused", "token": "missingEmail" },
+      { "id": "missing-credential", "profile": "focused" },
+      { "id": "invalid-credential", "profile": "focused", "token": "invalidCredential" },
+      { "id": "unsupported-role", "profile": "focused", "token": "unsupportedRole" }
+    ]
+  },
+  "users": {
+    "listAll": {
+      "expectedCount": 103,
+      "expectedWithoutRole": 101,
+      "first": {
+        "userId": "20000000-0000-0000-0000-000000000001",
+        "email": "fixture-page-000@example.test",
+        "firstName": "Page",
+        "lastName": "Fixture 000",
+        "role": null
+      },
+      "tail": [
+        {
+          "userId": "10000000-0000-0000-0000-000000000001",
+          "email": "alice@example.test",
+          "firstName": "Alice",
+          "lastName": "Fixture",
+          "role": "user"
+        },
+        {
+          "userId": "10000000-0000-0000-0000-000000000002",
+          "email": "carol@example.test",
+          "firstName": "Carol",
+          "lastName": "Fixture",
+          "role": "user"
+        },
+        {
+          "userId": "10000000-0000-0000-0000-000000000007",
+          "email": "optional-names@example.test",
+          "firstName": null,
+          "lastName": null,
+          "role": null
+        }
+      ],
+      "excludedUserIds": [
+        "10000000-0000-0000-0000-000000000003",
+        "10000000-0000-0000-0000-000000000004",
+        "10000000-0000-0000-0000-000000000005",
+        "10000000-0000-0000-0000-000000000006"
+      ]
+    },
+    "search": { "query": "alice" },
+    "noMatch": { "query": "nobody" },
+    "providerError": { "query": "provider-error" }
+  }
+}

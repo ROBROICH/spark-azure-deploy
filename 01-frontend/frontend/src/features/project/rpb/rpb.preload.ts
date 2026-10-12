@@ -27,7 +27,7 @@ import {
   RPB_PARTICIPATION_SONSTIGE_SUBTOPIC_ID,
 } from './ai-assistance-swimlane/participation/rpbParticipationArguments';
 
-const TOPIC_PRELOAD_NODE_TYPES = new Set<NodeSummary['node_type']>([
+const TOPIC_PRELOAD_NODE_TYPES = new Set<NodeSummary['nodeType']>([
   'absatz',
   'dokument',
   'norm',
@@ -36,17 +36,18 @@ const TOPIC_PRELOAD_NODE_TYPES = new Set<NodeSummary['node_type']>([
   'topic_norm',
 ]);
 
-const SATZ_BEWERTUNG_PRELOAD_NODE_TYPES = new Set<NodeSummary['node_type']>([
+const SATZ_BEWERTUNG_PRELOAD_NODE_TYPES = new Set<NodeSummary['nodeType']>([
   'bewertung',
   'bewertung_kapitel',
   'bewertung_quelle',
 ]);
 
-const RECHTSMETHODIK_PRELOAD_NODE_TYPES = new Set<NodeSummary['node_type']>([
-  'adressat',
+const RECHTSMETHODIK_PRELOAD_NODE_TYPES = new Set<NodeSummary['nodeType']>([
   'atomares_tbm',
   'auslegungsvorschlag',
   'bestimmter_rechtsbegriff',
+  'ermessensart',
+  'ermessensspielraum',
   'expliziter_verweis',
   'legaldefinition',
   'rechtsfolge',
@@ -69,7 +70,7 @@ const getProjectWideRpbRefs = (
 ) => {
   return [...getNodesByType(index, 'vae_node')].map((summary) => ({
     id: summary.id,
-    node_type: summary.node_type,
+    nodeType: summary.nodeType,
   }));
 };
 
@@ -82,7 +83,7 @@ const getSatzBewertungScopedRpbRefs = (
   }
 
   return getDescendantNodeRefs(index, satzId).filter((nodeRef) =>
-    SATZ_BEWERTUNG_PRELOAD_NODE_TYPES.has(nodeRef.node_type),
+    SATZ_BEWERTUNG_PRELOAD_NODE_TYPES.has(nodeRef.nodeType),
   );
 };
 
@@ -95,7 +96,7 @@ const getTopicScopedRpbRefs = (
   }
 
   return getDescendantNodeRefs(index, topicId).filter((nodeRef) =>
-    TOPIC_PRELOAD_NODE_TYPES.has(nodeRef.node_type),
+    TOPIC_PRELOAD_NODE_TYPES.has(nodeRef.nodeType),
   );
 };
 
@@ -108,7 +109,7 @@ const getTopicNormScopedRpbRefs = (
   }
 
   return getDescendantNodeRefs(index, topicNormId).filter((nodeRef) =>
-    TOPIC_PRELOAD_NODE_TYPES.has(nodeRef.node_type),
+    TOPIC_PRELOAD_NODE_TYPES.has(nodeRef.nodeType),
   );
 };
 
@@ -128,7 +129,7 @@ const getParticipationSubtopicScopedRpbRefs = (
 
     return getRpbSonstigeArgumentRefs(index, {
       id: topicId,
-      node_type: 'topic',
+      nodeType: 'topic',
     });
   }
 
@@ -139,10 +140,10 @@ const getParticipationSubtopicScopedRpbRefs = (
   return [
     {
       id: participationSubtopicId,
-      node_type: 'subtopic',
+      nodeType: 'subtopic',
     } satisfies NodeRefByType<'subtopic'>,
     ...getDescendantNodeRefs(index, participationSubtopicId).filter(
-      (nodeRef) => nodeRef.node_type === 'argument',
+      (nodeRef) => nodeRef.nodeType === 'argument',
     ),
   ];
 };
@@ -154,42 +155,42 @@ const getSearchScopedRpbRefs = (search: RpbSearch) => {
   if (search.outlineNodeId) {
     refs.push({
       id: search.outlineNodeId,
-      node_type: 'vae_node',
+      nodeType: 'vae_node',
     });
   }
 
   if (search.topicId) {
     refs.push({
       id: search.topicId,
-      node_type: 'topic',
+      nodeType: 'topic',
     });
   }
 
   if (search.topicNormId) {
     refs.push({
       id: search.topicNormId,
-      node_type: 'topic_norm',
+      nodeType: 'topic_norm',
     });
   }
 
   if (search.satzId) {
     refs.push({
       id: search.satzId,
-      node_type: 'satz',
+      nodeType: 'satz',
     });
   }
 
   if (search.rechtsmethodikSatzId) {
     refs.push({
       id: search.rechtsmethodikSatzId,
-      node_type: 'satz',
+      nodeType: 'satz',
     });
   }
 
   if (search.previewDocumentId) {
     refs.push({
       id: search.previewDocumentId,
-      node_type: 'dokument',
+      nodeType: 'dokument',
     });
   }
 
@@ -199,7 +200,7 @@ const getSearchScopedRpbRefs = (search: RpbSearch) => {
   ) {
     refs.push({
       id: search.participationSubtopicId,
-      node_type: 'subtopic',
+      nodeType: 'subtopic',
     });
   }
 
@@ -209,7 +210,7 @@ const getSearchScopedRpbRefs = (search: RpbSearch) => {
   ) {
     refs.push({
       id: search.feedbackTargetId,
-      node_type: search.feedbackTargetType,
+      nodeType: search.feedbackTargetType,
     });
   }
 
@@ -221,7 +222,7 @@ const getFirstParentRefByType = (
   nodeType: NodeTypeLiteral,
 ) => {
   return summary?.parents.find(
-    (parent): parent is NodeRef => parent.node_type === nodeType,
+    (parent): parent is NodeRef => parent.nodeType === nodeType,
   );
 };
 
@@ -246,13 +247,13 @@ const getRechtsmethodikScopedRefs = (
     index,
     search.rechtsmethodikSatzId,
   ).filter((nodeRef) =>
-    RECHTSMETHODIK_PRELOAD_NODE_TYPES.has(nodeRef.node_type),
+    RECHTSMETHODIK_PRELOAD_NODE_TYPES.has(nodeRef.nodeType),
   );
 
   return dedupeNodeRefs([
     {
       id: search.rechtsmethodikSatzId,
-      node_type: 'satz',
+      nodeType: 'satz',
     },
     ...(absatzRef ? [absatzRef] : []),
     ...(normRef ? [normRef] : []),
@@ -285,7 +286,7 @@ type RpbFeedbackTargetRef = NodeRefByType<RpbFeedbackTargetNodeType>;
 const isRpbFeedbackTargetRef = (
   nodeRef: NodeRef,
 ): nodeRef is RpbFeedbackTargetRef => {
-  return isRpbFeedbackTargetNodeType(nodeRef.node_type);
+  return isRpbFeedbackTargetNodeType(nodeRef.nodeType);
 };
 
 export const collectRpbFeedbackPreloadRefs = (

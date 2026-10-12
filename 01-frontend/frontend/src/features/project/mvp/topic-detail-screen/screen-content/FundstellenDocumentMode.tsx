@@ -19,7 +19,7 @@ const hasTopicNormParent = (
   norm: NodePayloadByType<'norm'>,
   topicNormIds: ReadonlySet<string>,
 ) => {
-  return norm.frontend_parent_ids.some((parentId) => {
+  return norm.frontendParentIds.some((parentId) => {
     const parentRef = getStoredParentRefByType(parentId, 'topic_norm');
 
     return parentRef !== null && topicNormIds.has(parentRef.id);
@@ -87,7 +87,7 @@ const FundstellenDocumentModeContent = (props: {
   const { fundstellenCards, selectedDocument } = props;
   const { topicName } = route.useParams();
   const { t } = useTranslation('MvpRedesign');
-  const topicRef = { id: topicName, node_type: 'topic' as const };
+  const topicRef = { id: topicName, nodeType: 'topic' as const };
   const topicNormRefs = useDescendants('topic_norm', topicRef);
   const topicNormIds = new Set(
     topicNormRefs.map((topicNormRef) => topicNormRef.id),
@@ -96,7 +96,7 @@ const FundstellenDocumentModeContent = (props: {
     new Map(
       fundstellenCards.map((card) => [
         card.normId,
-        { id: card.normId, node_type: 'norm' as const },
+        { id: card.normId, nodeType: 'norm' as const },
       ]),
     ).values(),
   );
@@ -104,8 +104,8 @@ const FundstellenDocumentModeContent = (props: {
   const gesetzRefs = Array.from(
     new Map(
       documentCardNorms.map((norm) => [
-        norm.gesetz_id,
-        { id: norm.gesetz_id, node_type: 'gesetz' as const },
+        norm.gesetzId,
+        { id: norm.gesetzId, nodeType: 'gesetz' as const },
       ]),
     ).values(),
   );
@@ -117,7 +117,7 @@ const FundstellenDocumentModeContent = (props: {
   const normLabelById = new Map(
     documentCardNorms.map((norm) => [
       norm.id,
-      getNormSelectionLabel(norm, gesetzJurabkById.get(norm.gesetz_id) ?? null),
+      getNormSelectionLabel(norm, gesetzJurabkById.get(norm.gesetzId) ?? null),
     ]),
   );
   const isTopicNormByResolvedNormId = new Map(
@@ -151,7 +151,7 @@ const FundstellenDocumentModeContent = (props: {
         <FundstellenNormGroupCardWithWorkflow
           key={card.normId}
           documentId={selectedDocument?.id}
-          documentFileId={selectedDocument?.dms_file_id}
+          documentFileId={selectedDocument?.dmsFileId}
           fundstellenNormGroupCard={card}
           normLabel={normLabelById.get(card.normId)}
           isExternal={

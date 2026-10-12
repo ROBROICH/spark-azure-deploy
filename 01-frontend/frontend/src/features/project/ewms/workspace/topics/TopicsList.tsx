@@ -20,12 +20,10 @@ const getSubtopicArguments = (
   subtopicId: string,
 ) => {
   if (subtopicId === EWMS_UNASSIGNED_SUBTOPIC_SELECTION) {
-    return argumentsList.filter((argument) => !argument.sub_topic_id);
+    return argumentsList.filter((argument) => !argument.subTopicId);
   }
 
-  return argumentsList.filter(
-    (argument) => argument.sub_topic_id === subtopicId,
-  );
+  return argumentsList.filter((argument) => argument.subTopicId === subtopicId);
 };
 
 export const TopicsList = (props: TopicsListProps) => {

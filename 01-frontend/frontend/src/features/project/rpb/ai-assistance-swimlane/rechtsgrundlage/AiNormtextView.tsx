@@ -62,7 +62,7 @@ export const AiNormtextView = (props: AiNormtextViewProps) => {
         {topicNorm ? (
           <LawChangeIndicator
             jurabk={topicNorm.jurabk}
-            paragraphNr={topicNorm.paragraph_nr}
+            paragraphNr={topicNorm.paragraphNr}
             onOpen={(lawChange) => {
               navigate({
                 to: '.',

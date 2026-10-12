@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pikepdf
 import pytest
 
-from src.services.ocr import run_ocrmypdf
+from src.services.ocr import OcrTimeoutError, run_ocrmypdf
 from src.services.pdf_extractor import extract_all_texts
 
 
@@ -75,16 +75,13 @@ class TestExtractAllTexts:
         mock_run_ocr.assert_called_once_with(pdf_path, [0], "deu")
 
     @patch("src.services.pdf_extractor._run_ocr_to_bytes", side_effect=RuntimeError("OCR boom"))
-    def test_ocr_failure_returns_empty_text(self, _mock_ocr, tmp_path) -> None:
-        """OCR failure logs warning and returns empty text for those pages."""
+    def test_ocr_failure_is_propagated(self, _mock_ocr, tmp_path) -> None:
+        """OCR failure aborts extraction instead of returning unprocessed pages."""
         pdf_path = str(tmp_path / "blank.pdf")
         _create_blank_pdf(pdf_path)
 
-        page_lines_list, enriched = extract_all_texts(pdf_path)
-
-        assert len(page_lines_list) == 1
-        # Blank page text is empty
-        assert all(not line.strip() for line in page_lines_list[0])
+        with pytest.raises(RuntimeError, match="OCR boom"):
+            extract_all_texts(pdf_path)
 
 
 class TestRunOcrmypdf:
@@ -102,12 +99,14 @@ class TestRunOcrmypdf:
 
         with (
             patch("src.services.ocr.shutil.which", return_value="/usr/bin/ocrmypdf"),
-            patch("src.services.ocr.subprocess.run", side_effect=fake_ocr_subprocess),
+            patch("src.services.ocr.subprocess.run", side_effect=fake_ocr_subprocess) as mock_run,
+            patch("src.services.ocr.ENV.OCR_TIMEOUT_SECONDS", 321),
         ):
             run_ocrmypdf(pdf_path, output_path, [0])
 
         assert output_path.exists()
         assert output_path.stat().st_size > 0
+        assert mock_run.call_args.kwargs["timeout"] == 321
 
     def test_ocr_binary_not_found(self, tmp_path) -> None:
         """Missing ocrmypdf binary raises FileNotFoundError."""
@@ -132,3 +131,19 @@ class TestRunOcrmypdf:
         ):
             with pytest.raises(RuntimeError, match="ocrmypdf exited with 1"):
                 run_ocrmypdf(pdf_path, tmp_path / "out.pdf", [0])
+
+    def test_ocr_subprocess_timeout(self, tmp_path) -> None:
+        """A hanging OCR process is aborted after the configured timeout."""
+        pdf_path = str(tmp_path / "test.pdf")
+        _create_text_pdf(pdf_path)
+
+        with (
+            patch("src.services.ocr.shutil.which", return_value="/usr/bin/ocrmypdf"),
+            patch("src.services.ocr.ENV.OCR_TIMEOUT_SECONDS", 321),
+            patch(
+                "src.services.ocr.subprocess.run",
+                side_effect=subprocess.TimeoutExpired("ocrmypdf", 321),
+            ),
+            pytest.raises(OcrTimeoutError, match="exceeded timeout of 321 seconds"),
+        ):
+            run_ocrmypdf(pdf_path, tmp_path / "out.pdf", [0])

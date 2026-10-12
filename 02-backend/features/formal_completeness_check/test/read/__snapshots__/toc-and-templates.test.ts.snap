@@ -1,0 +1,123 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/toc-notes HTTP read contract snapshots success status, newest-first notes, resolution, and soft deletion 1`] = `
+{
+  "body": {
+    "notes": [
+      {
+        "content": "Neuere bereits geprüfte Inhaltsverzeichnis-Notiz",
+        "createdAt": "2026-01-02T10:06:00Z",
+        "id": "91000000-0000-4000-8000-000000000001",
+        "isResolved": true,
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "updatedAt": "2026-01-02T10:07:00Z",
+      },
+      {
+        "content": "Ältere noch offene Inhaltsverzeichnis-Notiz",
+        "createdAt": "2026-01-02T10:05:00Z",
+        "id": "91000000-0000-4000-8000-000000000002",
+        "isResolved": false,
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "updatedAt": "2026-01-02T10:05:00Z",
+      },
+    ],
+    "status": "success",
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/toc-notes HTTP read contract snapshots no-table and no-result states 1`] = `
+[
+  {
+    "body": {
+      "notes": [],
+      "status": "no_inhaltsverzeichnis_found",
+    },
+    "status": 200,
+  },
+  {
+    "body": {
+      "notes": [],
+      "status": null,
+    },
+    "status": 200,
+  },
+]
+`;
+
+exports[`GET /{project_id}/toc-notes HTTP read contract snapshots the unknown project response 1`] = `
+{
+  "body": {
+    "detail": "Project 10000000-0000-4000-8000-000000000004 not found",
+  },
+  "status": 404,
+}
+`;
+
+exports[`GET /{project_type_id}/template-categories HTTP read contract snapshots nested category ordering, expected counts, and soft deletion 1`] = `
+{
+  "body": [
+    {
+      "id": "a1000000-0000-4000-8000-000000000001",
+      "name": "A Pflichtunterlagen",
+      "projectTypeId": "30000000-0000-4000-8000-000000000001",
+      "templateDocumentTypes": [
+        {
+          "description": "Förmlicher Antrag",
+          "expectedCount": 1,
+          "id": "b1000000-0000-4000-8000-000000000001",
+          "name": "Antrag",
+        },
+        {
+          "description": "Planunterlage des Vorhabens",
+          "expectedCount": 2,
+          "id": "b1000000-0000-4000-8000-000000000002",
+          "name": "Lageplan",
+        },
+      ],
+    },
+    {
+      "id": "a1000000-0000-4000-8000-000000000002",
+      "name": "B Weitere Unterlagen",
+      "projectTypeId": "30000000-0000-4000-8000-000000000001",
+      "templateDocumentTypes": [
+        {
+          "description": "Kann mehrfach oder gar nicht vorkommen",
+          "expectedCount": null,
+          "id": "b1000000-0000-4000-8000-000000000003",
+          "name": "Optionale Anlage",
+        },
+      ],
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_type_id}/template-categories HTTP read contract snapshots empty and separately scoped project types 1`] = `
+[
+  {
+    "body": [],
+    "status": 200,
+  },
+  {
+    "body": [
+      {
+        "id": "a1000000-0000-4000-8000-000000000004",
+        "name": "Anderer Vorhabentyp",
+        "projectTypeId": "30000000-0000-4000-8000-000000000002",
+        "templateDocumentTypes": [
+          {
+            "description": "Gehört nicht zum getesteten Vorhabentyp",
+            "expectedCount": 1,
+            "id": "b1000000-0000-4000-8000-000000000006",
+            "name": "Andere Unterlage",
+          },
+        ],
+      },
+    ],
+    "status": 200,
+  },
+]
+`;

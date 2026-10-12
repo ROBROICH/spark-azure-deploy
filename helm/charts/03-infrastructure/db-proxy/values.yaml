@@ -1,0 +1,173 @@
+# =============================================================================
+# db-proxy — base values
+# =============================================================================
+#
+# In-cluster PostgreSQL endpoints for databases on a server outside the
+# cluster. Nothing renders by default; an environment switches on what it
+# needs:
+#
+#   cloudSqlProxy  Cloud SQL Auth Proxy in front of a Google Cloud SQL
+#                  instance. Clients connect in plaintext to the Service on
+#                  5432; the proxy connects to the instance over TLS and
+#                  authenticates with the pod's Google identity (Workload
+#                  Identity, or the node's service account) — it needs
+#                  roles/cloudsql.client.
+#   pgbouncer      PgBouncer (session mode by default) connecting straight to
+#                  the server over TLS. For clients that need session
+#                  semantics — e.g. schema migrations taking session-level
+#                  advisory locks, which a transaction-mode pooler in front of
+#                  the server does not support.
+#
+# Clients reach the components at
+#   <name>.<namespace>.svc.cluster.local:5432
+# with <name> = cloudSqlProxy.name / pgbouncer.name (default
+# <fullname>-cloudsql-proxy / <fullname>-pgbouncer).
+# =============================================================================
+
+global:
+  stage:
+    name: ''
+
+# Override chart name used in labels.
+nameOverride: ''
+
+# Override fully qualified resource name.
+fullnameOverride: ''
+
+# Target namespace. Precedence: this key, then global.namespaceOverride, then
+# the release namespace (-n).
+namespaceOverride: ''
+
+# Stage name appended to generated resource names as a suffix (e.g. "-my-env");
+# propagated via global.stage.name inside an umbrella.
+stage:
+  name: ''
+
+# Pull secrets for private registries (list of names or {name} maps), merged
+# after global.imagePullSecrets.
+imagePullSecrets: []
+
+# ServiceAccount of both components (no API token is mounted). The Cloud SQL
+# Auth Proxy uses its Google identity: on GKE with Workload Identity, bind a
+# Google service account through annotations, e.g.
+#   iam.gke.io/gcp-service-account: <gsa>@<project>.iam.gserviceaccount.com
+# Without Workload Identity the proxy uses the node's service account.
+serviceAccount:
+  create: true
+  name: ''
+  annotations: {}
+
+# Extra annotations / labels on the pods of both components (maps), e.g.
+# sidecar.istio.io/inject: "false" to keep the pods out of a service mesh.
+podAnnotations: {}
+podLabels: {}
+
+# Restricted Pod Security Standard: non-root, RuntimeDefault seccomp, no
+# privilege escalation, every capability dropped, read-only root filesystem.
+# Single keys are overridden per component (podSecurityContext /
+# securityContext).
+podSecurityContext:
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ── Cloud SQL Auth Proxy ─────────────────────────────────────────────────────
+cloudSqlProxy:
+  enabled: false
+  # Service / Deployment name; empty = <fullname>-cloudsql-proxy.
+  name: ''
+  # Instance connection name <project>:<region>:<instance> (required).
+  instanceConnectionName: ''
+  # Connect to the instance's private IP (the cluster must reach its VPC).
+  privateIp: true
+  # Port of the Service and of the proxy's listener.
+  port: 5432
+  replicaCount: 2
+  image:
+    registry: ''
+    repository: gcr.io/cloud-sql-connectors/cloud-sql-proxy
+    tag: '2.25.4'
+    digest: ''
+    pullPolicy: IfNotPresent
+  # Health checks and Prometheus metrics on this port (/startup, /liveness,
+  # /readiness, /metrics).
+  httpPort: 9090
+  # Time the proxy keeps serving open connections after SIGTERM; the pod's
+  # grace period is this plus 30 seconds.
+  maxSigtermDelaySeconds: 30
+  # Further proxy flags (list), e.g. --auto-iam-authn.
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
+  # Spread the replicas over nodes (soft constraint).
+  spreadAcrossNodes: true
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  podSecurityContext: {}
+  securityContext: {}
+
+# ── PgBouncer ────────────────────────────────────────────────────────────────
+pgbouncer:
+  enabled: false
+  # Service / Deployment name; empty = <fullname>-pgbouncer.
+  name: ''
+  # The PostgreSQL server (required: host).
+  server:
+    host: ''
+    port: 5432
+    # server_tls_sslmode: TLS towards the server.
+    sslmode: require
+  port: 5432
+  replicaCount: 2
+  image:
+    registry: ''
+    repository: ghcr.io/cloudnative-pg/pgbouncer
+    tag: '1.25.1'
+    digest: ''
+    pullPolicy: IfNotPresent
+  # The image's pgbouncer user (uid/gid 998/996 in the default image).
+  runAsUser: 998
+  runAsGroup: 996
+  # Credentials PgBouncer accepts and forwards: a Secret (in the chart
+  # namespace) with an auth file ("<user>" "<password>" per line; the
+  # password plain or as SCRAM secret), e.g. materialized by an
+  # ExternalSecret template. Required.
+  auth:
+    type: scram-sha-256
+    existingSecret: ''
+    key: userlist.txt
+  poolMode: session
+  maxClientConn: 200
+  defaultPoolSize: 20
+  serverIdleTimeout: 300
+  # Startup parameters PgBouncer ignores instead of rejecting the client.
+  ignoreStartupParameters: [extra_float_digits, options]
+  logConnections: false
+  # Further [pgbouncer] settings (map, rendered as key = value).
+  extraSettings: {}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      memory: 128Mi
+  spreadAcrossNodes: true
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+  podSecurityContext: {}
+  securityContext: {}

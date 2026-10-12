@@ -4,17 +4,18 @@ import asyncio
 from collections.abc import Awaitable
 from datetime import timedelta
 from typing import Any
+from uuid import uuid4
 
 from temporal import sliding_window
-from temporal.workflows.rechtsmethodik.types import (
-    WENN_DANN,
-    Absatz,
+from temporal.contracts import (
     AtomaresTBM,
     Rechtsbegriffe,
+    SatzKategorie,
     Verweise,
 )
 from temporalio import workflow
 
+from src.absatz import Absatz
 from src.workflows.norm_workflow.norm_types import (
     NormDekonstruktionWorkflowOutput,
     NormDekonstruktionWorkflowSatzOutput,
@@ -106,11 +107,11 @@ class TatbestandsAnalyseWorkflow:
             satz_nr=satz.satz_nr,
             markers=satz.markers,
             satz_text=satz.satz_text,
-            norm_typ_lvl_1=satz.norm_typ_lvl_1,
-            norm_typ_lvl_2=satz.norm_typ_lvl_2,
+            norm_typ_lvl1=satz.norm_typ_lvl1,
+            norm_typ_lvl2=satz.norm_typ_lvl2,
         )
 
-        if satz.norm_typ_lvl_2 != WENN_DANN:
+        if satz.norm_typ_lvl2 != SatzKategorie.WENN_DANN:
             return base_output
 
         if not satz.atomare_tatbestandsmerkmale and not satz.rechtsfolge:
@@ -124,8 +125,8 @@ class TatbestandsAnalyseWorkflow:
             satz_nr=satz.satz_nr,
             markers=satz.markers,
             satz_text=satz.satz_text,
-            norm_typ_lvl_1=satz.norm_typ_lvl_1,
-            norm_typ_lvl_2=satz.norm_typ_lvl_2,
+            norm_typ_lvl1=satz.norm_typ_lvl1,
+            norm_typ_lvl2=satz.norm_typ_lvl2,
             tatbestandsmerkmale=satz.tatbestandsmerkmale,
             atomare_tatbestandsmerkmale=final_a_tbms,
             rechtsfolge=final_rf,
@@ -249,6 +250,7 @@ def _assemble_atomare_tbms(
     """Combine per-TBM results into AtomaresTBM objects."""
     return [
         AtomaresTBM(
+            id=uuid4(),
             text=a_tbm,
             verweise=verweis_output_tbms[ind],
             prueffrage=pf_output[ind].prueffrage,

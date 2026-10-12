@@ -2,9 +2,31 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Accordion } from '@/features/ui/accordion/Accordion';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest';
 import type { RpbOutlineTreeNode } from '../outline/rpbOutlineTree';
 import { OutlineNodeItem } from './OutlineNodeItem';
+
+// Stub `matchMedia` for `useBelowLg`; tests target the compact code path.
+beforeAll(() => {
+  vi.stubGlobal('matchMedia', (query: string) => ({
+    matches: true,
+    media: query,
+    onchange: null,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  }));
+});
 
 const mocks = vi.hoisted(() => ({
   canToggleOutlineNodeCheckedMock: vi.fn(),
@@ -15,6 +37,9 @@ const mocks = vi.hoisted(() => ({
 const translations: Record<string, string> = {
   'gliederung.role.assignee.markLabel': 'Abschließen',
   'gliederung.role.assignee.markedLabel': 'Abgeschlossen',
+  'gliederung.role.assignee.unmarkLabel': 'Abschluss aufheben',
+  'gliederung.role.assignee.actionsMenuAriaLabel':
+    'Aktionen für Kapitel {{chapter}}',
   'gliederung.role.assignee.markTooltip': 'Kapitel als abgeschlossen markieren',
   'gliederung.role.assignee.unmarkTooltip':
     'Markierung als abgeschlossen aufheben',
@@ -30,6 +55,9 @@ const translations: Record<string, string> = {
   'gliederung.role.assignee.unconfirmMark': 'Aufheben',
   'gliederung.role.leader.markLabel': 'Freigeben',
   'gliederung.role.leader.markedLabel': 'Freigegeben',
+  'gliederung.role.leader.unmarkLabel': 'Freigabe aufheben',
+  'gliederung.role.leader.actionsMenuAriaLabel':
+    'Aktionen für Kapitel {{chapter}}',
   'gliederung.role.leader.markTooltip': 'Kapitel als freigegeben markieren',
   'gliederung.role.leader.unmarkTooltip': 'Freigabe aufheben',
   'gliederung.role.leader.assigneeCompletedAriaLabel':
@@ -50,7 +78,16 @@ const translations: Record<string, string> = {
 
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => translations[key] ?? key,
+    t: (key: string, options?: Record<string, string>) => {
+      const template = translations[key] ?? key;
+      if (!options) {
+        return template;
+      }
+      return Object.entries(options).reduce(
+        (acc, [name, value]) => acc.replaceAll(`{{${name}}}`, value),
+        template,
+      );
+    },
   }),
 }));
 
@@ -90,15 +127,15 @@ const createOutlineNode = (
 ): RpbOutlineTreeNode => ({
   children: [],
   vaeNode: {
-    checked_by_assignee: false,
-    checked_by_leader: false,
+    checkedByAssignee: false,
+    checkedByLeader: false,
     id: 'outline-node',
-    is_deleted: false,
-    is_hidden: false,
+    isDeleted: false,
+    isHidden: false,
     order: 1,
-    parent_vae_node_id: null,
+    parentVaeNodeId: null,
     title: 'Outline node',
-    topic_id: 'topic-1',
+    topicId: 'topic-1',
     ...overrides,
   },
 });
@@ -132,7 +169,7 @@ describe('OutlineNodeItem', () => {
     mocks.toggleOutlineNodeCheckedMock.mockReset();
   });
 
-  it('renders a disabled unchecked button for read-only unchecked rows', () => {
+  it('renders a disabled action trigger for read-only unchecked rows', () => {
     mocks.canToggleOutlineNodeCheckedMock.mockReturnValue(false);
 
     renderOutlineNodeItem();
@@ -142,10 +179,9 @@ describe('OutlineNodeItem', () => {
         name: /Thema nicht zugewiesen/u,
       }),
     ).toBeDisabled();
-    expect(screen.getByText('Abschließen')).toBeVisible();
   });
 
-  it('explains disabled assignee buttons with an assignment tooltip', () => {
+  it('explains disabled action triggers with an assignment tooltip', () => {
     mocks.canToggleOutlineNodeCheckedMock.mockReturnValue(false);
 
     renderOutlineNodeItem();
@@ -164,12 +200,12 @@ describe('OutlineNodeItem', () => {
     );
   });
 
-  it('renders a disabled checked button for read-only checked rows', () => {
+  it('renders a disabled action trigger for read-only checked rows', () => {
     mocks.canToggleOutlineNodeCheckedMock.mockReturnValue(false);
 
     renderOutlineNodeItem({
       node: createOutlineNode({
-        checked_by_assignee: true,
+        checkedByAssignee: true,
       }),
     });
 
@@ -178,15 +214,15 @@ describe('OutlineNodeItem', () => {
         name: /Thema nicht zugewiesen/u,
       }),
     ).toBeDisabled();
-    expect(screen.getByText('Abgeschlossen')).toBeVisible();
+    expect(screen.getByTestId('outline-checked-indicator')).toBeInTheDocument();
   });
 
-  it('reflects assignee checked state for disabled assignee buttons', () => {
+  it('reflects assignee unchecked state for disabled assignee triggers', () => {
     mocks.canToggleOutlineNodeCheckedMock.mockReturnValue(false);
 
     renderOutlineNodeItem({
       node: createOutlineNode({
-        checked_by_leader: true,
+        checkedByLeader: true,
       }),
     });
 
@@ -195,22 +231,23 @@ describe('OutlineNodeItem', () => {
         name: /Thema nicht zugewiesen/u,
       }),
     ).toBeDisabled();
-    expect(screen.getByText('Abschließen')).toBeVisible();
-    expect(screen.queryByText('Freigegeben')).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId('outline-checked-indicator'),
+    ).not.toBeInTheDocument();
   });
 
-  it('renders the assignee check button permanently for permitted rows', () => {
+  it('renders the assignee action trigger permanently for permitted rows', () => {
     renderOutlineNodeItem();
 
-    const button = screen.getByRole('button', {
+    const trigger = screen.getByRole('button', {
       name: /Kapitel als abgeschlossen markieren/u,
     });
 
-    expect(button).toBeVisible();
-    expect(button.parentElement).not.toHaveClass('opacity-0');
+    expect(trigger).toBeVisible();
+    expect(trigger.parentElement).not.toHaveClass('opacity-0');
   });
 
-  it('does not open confirmation from disabled read-only buttons', async () => {
+  it('does not open confirmation from disabled read-only triggers', async () => {
     const user = userEvent.setup();
     mocks.canToggleOutlineNodeCheckedMock.mockReturnValue(false);
     renderOutlineNodeItem();
@@ -221,16 +258,17 @@ describe('OutlineNodeItem', () => {
       }),
     );
 
+    expect(screen.queryByRole('menuitemcheckbox')).not.toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(mocks.toggleOutlineNodeCheckedMock).not.toHaveBeenCalled();
   });
 
-  it('renders Freigeben for leaders even before assignee completion', () => {
+  it('renders the Freigeben trigger for leaders even before assignee completion', () => {
     renderOutlineNodeItem({
       canApproveFinalDecision: true,
       node: createOutlineNode({
-        checked_by_assignee: false,
-        checked_by_leader: false,
+        checkedByAssignee: false,
+        checkedByLeader: false,
       }),
     });
 
@@ -242,12 +280,12 @@ describe('OutlineNodeItem', () => {
     expect(screen.queryByText('In Bearbeitung')).not.toBeInTheDocument();
   });
 
-  it('shows assignee completion beside Freigeben for leaders while approval is pending', () => {
+  it('shows assignee completion beside the leader trigger while approval is pending', () => {
     renderOutlineNodeItem({
       canApproveFinalDecision: true,
       node: createOutlineNode({
-        checked_by_assignee: true,
-        checked_by_leader: false,
+        checkedByAssignee: true,
+        checkedByLeader: false,
       }),
     });
 
@@ -266,12 +304,16 @@ describe('OutlineNodeItem', () => {
     renderOutlineNodeItem({
       canApproveFinalDecision: false,
       node: createOutlineNode({
-        checked_by_assignee: true,
-        checked_by_leader: false,
+        checkedByAssignee: true,
+        checkedByLeader: false,
       }),
     });
 
-    expect(screen.getByText('Abgeschlossen')).toBeVisible();
+    expect(
+      screen.getByRole('button', {
+        name: /Markierung als abgeschlossen aufheben/u,
+      }),
+    ).toBeVisible();
     expect(
       screen.queryByRole('img', {
         name: /vom Bearbeitenden als abgeschlossen markiert/u,
@@ -283,12 +325,16 @@ describe('OutlineNodeItem', () => {
     renderOutlineNodeItem({
       canApproveFinalDecision: true,
       node: createOutlineNode({
-        checked_by_assignee: true,
-        checked_by_leader: true,
+        checkedByAssignee: true,
+        checkedByLeader: true,
       }),
     });
 
-    expect(screen.getByText('Freigegeben')).toBeVisible();
+    expect(
+      screen.getByRole('button', {
+        name: /Freigabe aufheben/u,
+      }),
+    ).toBeVisible();
     expect(
       screen.queryByRole('img', {
         name: /vom Bearbeitenden als abgeschlossen markiert/u,
@@ -301,8 +347,8 @@ describe('OutlineNodeItem', () => {
     renderOutlineNodeItem({
       canApproveFinalDecision: true,
       node: createOutlineNode({
-        checked_by_assignee: false,
-        checked_by_leader: false,
+        checkedByAssignee: false,
+        checkedByLeader: false,
       }),
     });
 
@@ -310,6 +356,9 @@ describe('OutlineNodeItem', () => {
       screen.getByRole('button', {
         name: /Kapitel als freigegeben markieren/u,
       }),
+    );
+    await user.click(
+      screen.getByRole('menuitemcheckbox', { name: 'Freigeben' }),
     );
     await user.click(screen.getByRole('button', { name: 'Freigeben' }));
 

@@ -4,7 +4,7 @@ A Temporal-orchestrated pipeline that processes citizen objections (_Einwendunge
 
 ## Core Features
 
-- **Argument Extraction:** Per-document workflow that splits objection submissions into individual arguments via LLM
+- **Argument Extraction:** Splits objection submissions into individual arguments via LLM
 - **Argument Classification:** Maps each argument to one or more topics from a configurable taxonomy
 - **Batch Orchestration:** Batch workflows iterate over many documents with bounded parallelism
 - **Temporal Workflow Orchestration:** Durable execution with automatic retries and S3 large-payload storage
@@ -69,10 +69,10 @@ sequenceDiagram
 
 | Workflow | Description |
 |----------|-------------|
-| `ArgumentExtractionWorkflow` | Per-document: extracts individual arguments from one objection submission. |
-| `ArgumentExtractionBatchWorkflow` | Orchestrates `ArgumentExtractionWorkflow` across objection documents. |
-| `ArgumentClassificationWorkflow` | Classifies arguments against the provided topic taxonomy. |
-| `ArgumentClassificationBatchWorkflow` | Runs classification across all extracted arguments. |
+| `ArgumentExtractionWorkflow` | Entry point: splits the processed objection documents into batches and runs `ArgumentExtractionSingleBatchWorkflow` for each batch as a child workflow. |
+| `ArgumentExtractionSingleBatchWorkflow` | Extracts and grounds the individual arguments of one batch of documents (LLM). |
+| `ArgumentClassificationWorkflow` | Entry point: splits the extracted arguments into batches and runs `ArgumentClassificationSingleBatchWorkflow` for each batch as a child workflow. |
+| `ArgumentClassificationSingleBatchWorkflow` | Classifies one batch of arguments against the provided topic taxonomy (LLM). |
 
 ### Dependencies
 
@@ -82,9 +82,8 @@ sequenceDiagram
 | **Temporal** | Workflow orchestration and scheduling |
 | **LLM-Proxy** | Unified LLM API gateway (shared Temporal activity) |
 | **Modul Inhaltsextraktion** | Preprocessed text extraction data |
-| **Dienst Dokumentenmanagementsystem** | Document storage |
 | **Dienst Einwendungsverwaltung** | Stores extracted arguments and classification results |
-| **S3 / MinIO** | Large payload storage for Temporal (>2 MB payloads) |
+| **S3 / VersityGW** | Large payload storage for Temporal (>2 MB payloads) |
 
 ## Project Structure
 
@@ -110,11 +109,9 @@ sequenceDiagram
 
 | Variable | Description | Default | Required |
 |----------|-------------|---------|----------|
-| `LITELLM_BASE_URL` | LiteLLM-Proxy base URL | — | yes |
-| `LITELLM_MASTER_KEY` | LiteLLM-Proxy master/API key | — | yes |
-| `LITELLM_MODEL_NAME` | LLM model identifier (routed via LiteLLM-Proxy) | — | yes |
+| `LITELLM_MODEL_NAME` | LLM model identifier; selects the shared LLM worker queue | — | yes |
 | `TEMPORAL_HOST` | Temporal server address | — | yes |
-| `TEMPORAL_LLM_MAX_PER_SECOND` | Token-bucket rate limit for LLM activities *(deployment-set)* | `4` | no |
+| `TEMPORAL_JOB_SERVICE_URL` | Base URL of the Temporal job service for workflow status tracking | — | yes |
 | `TEMPORAL_S3_BUCKET_NAME` | S3 bucket for large payload storage | — | yes |
 | `TEMPORAL_S3_ENDPOINT_URL` | S3 endpoint URL | — | yes |
 | `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | — | yes |

@@ -1,0 +1,6 @@
+# ci: the inputs gateway-routes requires.
+global:
+  stage: {name: ci}
+domain: ci.example.com
+auth:
+  keycloakHost: keycloak.example.com

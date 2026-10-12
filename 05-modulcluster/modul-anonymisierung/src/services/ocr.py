@@ -10,6 +10,10 @@ from src.env import ENV
 logger = logging.getLogger(__name__)
 
 
+class OcrTimeoutError(RuntimeError):
+    """Raised when the OCR subprocess exceeds its configured runtime limit."""
+
+
 def run_ocrmypdf(
     input_path: str | Path,
     output_path: str | Path,
@@ -49,7 +53,17 @@ def run_ocrmypdf(
         cmd += ["--optimize", str(optimize)]
     cmd += [str(input_path), str(output_path)]
 
-    result = subprocess.run(cmd, capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=ENV.OCR_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise OcrTimeoutError(
+            f"ocrmypdf exceeded timeout of {ENV.OCR_TIMEOUT_SECONDS} seconds"
+        ) from exc
 
     if result.returncode not in (0, 4):
         logger.error("ocrmypdf failed (exit %d): %s", result.returncode, result.stderr[:500])

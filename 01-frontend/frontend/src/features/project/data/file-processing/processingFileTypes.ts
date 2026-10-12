@@ -1,4 +1,4 @@
-import type { ZipFileResponse } from '@/api-clients/dms-module';
+import type { ZipFileResponse } from '@/api-clients/backend';
 
 export type ProcessingFileType = Extract<
   ZipFileResponse['type'],

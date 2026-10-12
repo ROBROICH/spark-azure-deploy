@@ -1,18 +1,19 @@
 import {
-  confirmUploadV2FilesConfirmUploadPost,
-  generateUploadUrlV2FilesGenerateUploadUrlPost,
-  getZipFileV2ZipFilesZipFileIdGet,
-  startFileProcessingV2FilesStartFileProcessingPost,
-  type ConfirmUploadV2FilesConfirmUploadPostResponse,
-  type FileUploadUrlResponse,
-  type StartFileProcessingResponse,
+  v1DocumentManagementConfirmFileUpload as confirmFileUpload,
+  v1DocumentManagementGenerateFileUploadUrl as generateFileUploadUrl,
+  v1DocumentManagementGetZipFile as getZipFile,
+  v1DocumentManagementStartFileProcessing as startFileProcessing,
+  type V1DocumentManagementConfirmFileUploadResponse as ConfirmFileUploadResponse,
+  type UploadUrlResponse,
+  type V1DocumentManagementStartFileProcessingResponse as StartFileProcessingResponse,
   type WorkflowStatusEnum,
   type ZipFileResponse,
-} from '@/api-clients/dms-module';
+} from '@/api-clients/backend';
+import { isFailedWorkflowStatus } from '@/features/project/data/file-processing/processingFileStatuses';
 import { uploadFileToStorage } from '@/features/shared/remote-files/uploadFileToStorage';
 import {
   COMPLETED_TEMPORAL_WORKFLOW_STATUS,
-  FAILED_TEMPORAL_WORKFLOW_STATUSES,
+  isFailedTemporalWorkflowStatus,
   loadTemporalWorkflow,
   sleep,
 } from '../data/temporalWorkflowPolling';
@@ -28,12 +29,6 @@ const PROCESSING_WORKFLOW_STATUSES: WorkflowStatusEnum[] = [
   'PENDING',
   'RUNNING',
   'CONTINUED_AS_NEW',
-];
-const FAILED_WORKFLOW_STATUSES: WorkflowStatusEnum[] = [
-  'FAILED',
-  'CANCELED',
-  'TERMINATED',
-  'TIMED_OUT',
 ];
 const COMPLETED_WORKFLOW_STATUS: WorkflowStatusEnum = 'COMPLETED';
 
@@ -66,10 +61,6 @@ type ClientResult<TData> = {
   error?: unknown;
 };
 
-const isZipFileResponse = (
-  response: ConfirmUploadV2FilesConfirmUploadPostResponse,
-): response is ZipFileResponse => 'workflowStatus' in response;
-
 export type EwmsZipUploadResult = {
   completedUpload: ZipFileResponse;
   fileReview: EwmsFileReviewResult;
@@ -83,13 +74,12 @@ const startEwmsZipProcessing = async (params: {
   projectId: string;
 }): Promise<StartFileProcessingResponse> => {
   const { fileId, projectId } = params;
-  const processingResponse =
-    (await startFileProcessingV2FilesStartFileProcessingPost({
-      body: {
-        fileId,
-        projectId,
-      },
-    })) as ClientResult<StartFileProcessingResponse>;
+  const processingResponse = (await startFileProcessing({
+    body: {
+      fileId,
+      projectId,
+    },
+  })) as ClientResult<StartFileProcessingResponse>;
 
   if (processingResponse.error) {
     throw new Error(
@@ -107,17 +97,24 @@ const startEwmsZipProcessing = async (params: {
   return processingResponse.data;
 };
 
+/**
+ * Returns null while Temporal has not exposed a result yet. A present but
+ * invalid result is a contract violation and fails immediately.
+ */
 const parseLoadedEwmsFileReviewResult = (
   workflow: Awaited<ReturnType<typeof loadTemporalWorkflow>>,
 ): EwmsFileReviewResult | null => {
-  if (workflow.result === undefined || workflow.result === null) {
+  if (workflow.result === null) {
     return null;
   }
 
   try {
     return parseEwmsFileReviewResult(workflow.result);
-  } catch {
-    throw new Error('EWMS file review result is invalid.');
+  } catch (error) {
+    throw new Error(
+      `EWMS file review result is invalid: ${getUploadErrorMessage(error, 'unknown validation error')}`,
+      { cause: error },
+    );
   }
 };
 
@@ -153,7 +150,7 @@ const loadEwmsFileReviewResult = async (
       return fileReview;
     }
 
-    if (FAILED_TEMPORAL_WORKFLOW_STATUSES.includes(latestWorkflow.status)) {
+    if (isFailedTemporalWorkflowStatus(latestWorkflow.status)) {
       throw new Error(
         `EWMS file review workflow ended with status ${latestWorkflow.status}.`,
       );
@@ -180,9 +177,9 @@ const pollEwmsZipWorkflow = async (
     await sleep(ZIP_WORKFLOW_POLL_INTERVAL_MS);
 
     // eslint-disable-next-line no-await-in-loop -- each request depends on the previous workflow status before deciding whether to continue.
-    const zipFileResponse = (await getZipFileV2ZipFilesZipFileIdGet({
+    const zipFileResponse = (await getZipFile({
       path: {
-        zip_file_id: confirmedUpload.id,
+        zipFileId: confirmedUpload.id,
       },
     })) as ClientResult<ZipFileResponse>;
 
@@ -206,7 +203,7 @@ const pollEwmsZipWorkflow = async (
     return latestZipFile;
   }
 
-  if (FAILED_WORKFLOW_STATUSES.includes(latestZipFile.workflowStatus)) {
+  if (isFailedWorkflowStatus(latestZipFile.workflowStatus)) {
     throw new Error(
       `EWMS ZIP workflow ended with status ${latestZipFile.workflowStatus}.`,
     );
@@ -228,14 +225,13 @@ export const uploadEwmsZip = async (params: {
   projectId: string;
 }): Promise<EwmsZipUploadResult> => {
   const { file, onProcessingStarted, projectId } = params;
-  const uploadTargetResponse =
-    (await generateUploadUrlV2FilesGenerateUploadUrlPost({
-      body: {
-        type: 'ewms_zip',
-        projectId,
-        filename: file.name,
-      },
-    })) as ClientResult<FileUploadUrlResponse>;
+  const uploadTargetResponse = (await generateFileUploadUrl({
+    body: {
+      type: 'ewms_zip',
+      projectId,
+      filename: file.name,
+    },
+  })) as ClientResult<UploadUrlResponse>;
   const { data: uploadTarget, error: uploadTargetError } = uploadTargetResponse;
 
   if (uploadTargetError) {
@@ -257,13 +253,13 @@ export const uploadEwmsZip = async (params: {
     uploadUrl: uploadTarget.uploadUrl,
   });
 
-  const confirmUploadResponse = (await confirmUploadV2FilesConfirmUploadPost({
+  const confirmUploadResponse = (await confirmFileUpload({
     body: {
       type: 'ewms_zip',
       projectId,
       filename: file.name,
     },
-  })) as ClientResult<ConfirmUploadV2FilesConfirmUploadPostResponse>;
+  })) as ClientResult<ConfirmFileUploadResponse>;
   const { data: confirmedUpload, error: confirmUploadError } =
     confirmUploadResponse;
 
@@ -280,7 +276,7 @@ export const uploadEwmsZip = async (params: {
     throw new Error('EWMS ZIP confirm upload response is empty.');
   }
 
-  if (!isZipFileResponse(confirmedUpload)) {
+  if (!('workflowStatus' in confirmedUpload)) {
     throw new Error('EWMS ZIP confirm upload did not return a ZIP file.');
   }
 
@@ -291,6 +287,9 @@ export const uploadEwmsZip = async (params: {
   await onProcessingStarted?.(processingWorkflow);
 
   const completedUpload = await pollEwmsZipWorkflow(confirmedUpload);
+  if (!processingWorkflow.workflowId) {
+    throw new Error('EWMS ZIP processing did not start a workflow.');
+  }
   const fileReview = await loadEwmsFileReviewResult(
     processingWorkflow.workflowId,
   );

@@ -1,0 +1,18 @@
+# ci: cross-namespace backends (ReferenceGrants), landing page and Temporal authorization on.
+global:
+  stage: {name: ci}
+domain: ci.example.com
+gateway:
+  sectionName: https-ci
+  httpSectionName: http-ci
+cors:
+  allowOrigins: [https://dashboard.ci.example.com]
+backendNamespace: backend
+temporalWebService: temporal-web
+landing:
+  enabled: true
+  service: landingpage
+temporalAuthorization:
+  enabled: true
+auth:
+  keycloakHost: keycloak.example.com

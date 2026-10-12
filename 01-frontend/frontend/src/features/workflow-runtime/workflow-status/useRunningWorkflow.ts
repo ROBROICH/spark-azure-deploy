@@ -3,6 +3,7 @@ import { getRouteApi } from '@tanstack/react-router';
 import { useEffect, useSyncExternalStore } from 'react';
 import {
   getMatchingWorkflows,
+  getWorkflowCollectionRequest,
   normalizeWorkflowValue,
   RUNNING_WORKFLOW_STATUSES,
 } from './workflowStatus.helpers';
@@ -35,7 +36,10 @@ export const useRunningWorkflow = (options: UseRunningWorkflowOptions = {}) => {
   const { workflowsManager } = route.useLoaderData();
   const { matchIdsInWorkflowId, refetchNodeSummariesOnSuccess, workflowType } =
     options;
-  const runningWorkflowsCollection = workflowsManager.getRunningCollection();
+  const runningWorkflowsCollection = workflowsManager.getCollection({
+    ...getWorkflowCollectionRequest({ workflowType, matchIdsInWorkflowId }),
+    executionStatus: 'Running',
+  });
   const {
     data: runningWorkflows = [],
     isError,
@@ -65,13 +69,20 @@ export const useRunningWorkflow = (options: UseRunningWorkflowOptions = {}) => {
     matchingObservedStartedWorkflows.length > 0;
   const latestRunningWorkflow =
     matchingRunningWorkflows.at(0) ?? matchingObservedStartedWorkflows.at(0);
+  const runningWorkflowIds = [
+    ...new Set(
+      [...matchingRunningWorkflows, ...matchingObservedStartedWorkflows].map(
+        (workflow) => workflow.workflowId,
+      ),
+    ),
+  ].sort();
 
   // eslint-disable-next-line no-restricted-syntax -- registers matching running workflows so project-level completion observation survives feature unmounts.
   useEffect(() => {
     for (const workflow of matchingRunningWorkflows) {
-      workflowsManager.observeRunningWorkflow(workflow.workflow_id, {
+      workflowsManager.observeRunningWorkflow(workflow.workflowId, {
         refetchNodeSummariesOnSuccess: shouldRefetchNodeSummariesOnSuccess,
-        workflowType: workflow.workflow_type,
+        workflowType: workflow.workflowType,
       });
     }
   }, [
@@ -85,6 +96,7 @@ export const useRunningWorkflow = (options: UseRunningWorkflowOptions = {}) => {
     isLoading,
     isRunning,
     latestRunningWorkflow,
+    runningWorkflowIds,
     observeStarted: (workflowId: string) =>
       workflowsManager.observeStartedWorkflow(workflowId, {
         refetchNodeSummariesOnSuccess: shouldRefetchNodeSummariesOnSuccess,

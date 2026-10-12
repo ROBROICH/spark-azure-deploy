@@ -1,4 +1,4 @@
-import { createClient } from '@/api-clients/pls-module/client/client.gen';
+import { createClient } from '@/api-clients/backend/client/client.gen';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { isHandledProjectVersionConflictError } from '@/integrations/api-clients/projectVersionConflictHandledError';
 import {
@@ -82,7 +82,7 @@ describe('configureProjectVersionConflictInterceptors (direct)', () => {
       { detail: 'Project version is locked' },
       conflictResponse(),
       new Request('https://example.test'),
-      { path: { project_id: 'project-1' } },
+      { path: { projectId: 'project-1' } },
     );
     unsubscribe();
 
@@ -171,7 +171,7 @@ describe('configureProjectVersionConflictInterceptors (direct)', () => {
     it.each([
       {
         name: 'path option',
-        options: { path: { project_id: 'project-path' } },
+        options: { path: { projectId: 'project-path' } },
         expected: 'project-path',
       },
       {
@@ -273,7 +273,7 @@ describe('configureProjectVersionConflictInterceptors (direct)', () => {
         { code: 'VersionNotLatestError', projectId: 'evil-project' },
         conflictResponse(),
         new Request('https://example.test'),
-        { path: { project_id: 'trusted-project' } },
+        { path: { projectId: 'trusted-project' } },
       );
       unsubscribe();
 

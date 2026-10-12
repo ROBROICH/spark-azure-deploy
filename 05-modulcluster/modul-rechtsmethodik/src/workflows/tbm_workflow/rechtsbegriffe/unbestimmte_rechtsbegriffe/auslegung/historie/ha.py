@@ -1,10 +1,10 @@
 """Agent for historische Auslegung."""
 
-from temporal.utils import sliding_window
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     Auslegungsvorschlag,
     UnbestimmterRechtsbegriff,
 )
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

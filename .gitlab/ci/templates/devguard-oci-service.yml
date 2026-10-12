@@ -12,14 +12,21 @@ spec:
       type: string
     base_image_dev:
       type: string
+      default: ""
     base_image:
       type: string
+      default: ""
+    build_needs:
+      type: array
+      default: []
+      description: "Additional jobs providing artifacts for the image build context"
 ---
 default:
   retry: 2
 
 include:
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/generate-tag.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/generate-tag.yml"
+    integrity: "sha256-YTjqjjneus9HmFpKK81rnq4XNSz7jHLKZncGBJVjkYc="
     inputs:
       stage: "oci-image"
       job_suffix: "$[[ inputs.job_suffix ]]"
@@ -30,7 +37,8 @@ include:
       upstream_version: "0"
       image_path: "$CI_REGISTRY_IMAGE"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/container-scanning.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/container-scanning.yml"
+    integrity: "sha256-0B2iR4u9UxwIOUZN1ZrySqqEIz2DKtTPshWZ+Yz0rP8="
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
@@ -42,7 +50,7 @@ include:
       pull_policy: "if-not-present"
       image_tag: "$IMAGE_TAG"
       fetch_image_from_registry: "true"
-      fail_on_risk: "high"
+      fail_on_risk: "critical"
       fail_on_cvss: "critical"
       ignore_external_references: "true"
       ignore_upstream_attestations: "true"
@@ -53,7 +61,8 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/sign-oci-image.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/sign-oci-image.yml"
+    integrity: "sha256-i7i44t3cGBALcRQrO9s7SyzIOv6O/DDZ9zdju66kqaY="
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
@@ -69,7 +78,8 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
-  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.14.0/templates/attest.yml"
+  - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/attest.yml"
+    integrity: "sha256-FgADhqcFFHCzDAgGCqznPnvACaINRZDceCrGM1c5u8s="
     inputs:
       devguard_asset_name: "$DEVGUARD_ASSET_NAME"
       devguard_api_url: "$DEVGUARD_API_URL"
@@ -83,6 +93,9 @@ include:
         - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
         - "devguard:container_scanning$[[ inputs.job_suffix ]]"
+      dependencies:
+        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+        - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
       attestations:
         - source: "$DEVGUARD_API_URL/api/v1/organizations/$DEVGUARD_ASSET_NAME/refs/COMMIT_REF/artifacts/ARTIFACT_NAME/sbom.json/"
           predicate_type: "https://cyclonedx.org/bom"
@@ -96,13 +109,13 @@ include:
 devguard:build_oci_image$[[ inputs.job_suffix ]]:
   stage: "oci-image"
   needs:
-    - "devguard:generate_tag$[[ inputs.job_suffix ]]"
-  dependencies:
-    - "devguard:generate_tag$[[ inputs.job_suffix ]]"
+    - job: "devguard:generate_tag$[[ inputs.job_suffix ]]"
+      artifacts: true
+    - $[[ inputs.build_needs ]]
   variables:
     GIT_STRATEGY: fetch
   image:
-    name: registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.27.3-devguard-scanner-v1.3.1@sha256:2966ade3c7d565ae56c48cfa50d5df6e36a5371f4173606eb4de57558186433d
+    name: registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.28.3-devguard-scanner-v1.12.4@sha256:07b0db85f1fe98a8ce05cc1855649d9e758cea3ebb40e98b6282148b48c1a350
     pull_policy: if-not-present
     entrypoint:
       - ""

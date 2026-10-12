@@ -17,25 +17,6 @@ vi.mock('@tanstack/react-router', () => ({
   useNavigate: () => vi.fn(),
 }));
 
-vi.mock('@/features/project/comments/data/read-model/useComments', () => ({
-  useComments: () => ({
-    comments: [
-      {
-        id: 'comment-1',
-        projectId: 'project-1',
-        title: 'Comment to delete',
-        content: 'Body',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        processStep: 'unsorted',
-      },
-    ],
-    isLoading: false,
-    isError: false,
-    refetch: vi.fn(),
-  }),
-}));
-
 vi.mock('@/features/project/comments/data/actions/commentActions', () => ({
   removeComment: vi.fn(),
 }));
@@ -44,16 +25,9 @@ afterEach(() => cleanup());
 
 describe('Comments DeleteDialog accessibility', () => {
   it('wires the dialog description to the body copy via aria-describedby', () => {
-    render(<DeleteDialog canMutateProject />);
+    render(<DeleteDialog canMutateProject items={[]} />);
 
-    const dialog = screen.getByRole('dialog');
-    const describedBy = dialog.getAttribute('aria-describedby');
-    expect(describedBy).toBeTruthy();
-
-    // The id must point at the rendered description paragraph so screen readers
-    // announce the destructive-action body copy.
-    const description = document.getElementById(describedBy ?? '');
-    expect(description).toHaveTextContent(
+    expect(screen.getByRole('dialog')).toHaveAccessibleDescription(
       'Sidebar.commentDeleteDialog.description',
     );
   });

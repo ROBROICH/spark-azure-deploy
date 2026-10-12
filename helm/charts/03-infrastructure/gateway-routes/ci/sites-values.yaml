@@ -1,0 +1,44 @@
+# ci: two domains with listeners per hostname, a second dashboard host, an
+# extra site, Temporal and the landing page in their own namespaces.
+global:
+  stage: {name: ci}
+domain: ci.example.com
+hosts:
+  api: [api.ci.example.com, api.ci.example.org]
+  dashboard: [dashboard.ci.example.com, dashboard.ci.example.org]
+gateway:
+  sectionNames:
+    api: [https-api, https-api-org]
+    dashboard: [https-dashboard, https-dashboard-org]
+    temporal: https-temporal
+    objections: [https-objections]
+    manual: [https-manual]
+  httpSectionName: [http-api, http-dashboard]
+backendNamespaces:
+  frontend: web
+  frontend-objections: web
+  manual: web
+  temporal: temporal
+  landingpage: web
+temporalWebService: temporal-web
+landing:
+  enabled: true
+extraDashboards:
+  objections:
+    hosts: [objections.ci.example.com]
+    frontend: {chart: frontend-objections}
+    landing: true
+extraSites:
+  manual:
+    hosts: [manual.ci.example.com]
+    chart: manual
+auth:
+  keycloakHost: keycloak.example.com
+extraRoutes:
+  dashboard-token:
+    group: dashboard
+    hosts: [dashboard.ci.example.com]
+    sectionNames: [https-dashboard]
+    matches: [{method: GET, path: {type: Exact, value: /api/token}}]
+    rewrite: /token
+    chart: project-logic-service

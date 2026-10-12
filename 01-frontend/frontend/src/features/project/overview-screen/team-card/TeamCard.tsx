@@ -1,4 +1,4 @@
-import { replaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostMutation } from '@/api-clients/identity-management-module/@tanstack/react-query.gen';
+import { v1IdentityReplaceProjectAssignmentsMutation as replaceProjectAssignmentsMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { useGraph } from '@/db/nodes/hooks/useGraph';
 import { useLiveNodes } from '@/db/nodes/hooks/useLiveNodes';
 import { useOrganizationUsers } from '@/features/access-control/organization-users/organizationUsers.collection';
@@ -52,7 +52,7 @@ export const TeamCard = () => {
   const { getNodesByType } = useGraph();
   const topicRefs = getNodesByType('topic').map((topic) => ({
     id: topic.id,
-    node_type: topic.node_type,
+    nodeType: topic.nodeType,
   }));
   const { data: topics, isLoading: areTopicsLoading } = useLiveNodes(topicRefs);
   const { transact, update } = useAction();
@@ -63,9 +63,7 @@ export const TeamCard = () => {
     isError: isProjectError,
   } = useProject(verfahrenId);
   const usersQuery = useOrganizationUsers();
-  const replaceProjectAssignmentsMutation = useMutation(
-    replaceProjectAssignmentsAssignProjectsProjectIdAssignmentsPostMutation(),
-  );
+  const replaceAssignments = useMutation(replaceProjectAssignmentsMutation());
 
   const owners = project?.owners ?? [];
   const members = project?.members ?? [];
@@ -116,14 +114,10 @@ export const TeamCard = () => {
   };
 
   const replaceProjectAssignments = async (assignments: ProjectAssignments) => {
-    const response = await replaceProjectAssignmentsMutation.mutateAsync({
-      path: { project_id: verfahrenId },
+    await replaceAssignments.mutateAsync({
+      path: { projectId: verfahrenId },
       body: toProjectAssignmentsRequest(assignments),
     });
-
-    if (response.success !== true) {
-      throw new Error('Project assignment update failed');
-    }
   };
 
   const replaceUserTopicAssignments = async (params: TopicAssignments) => {
@@ -143,8 +137,8 @@ export const TeamCard = () => {
         }
 
         update(topic, (draft) => {
-          draft.mvp_assignees = assigneeUpdate.mvpAssignees;
-          draft.updated_at = new Date().toISOString();
+          draft.mvpAssignees = assigneeUpdate.mvpAssignees;
+          draft.updatedAt = new Date().toISOString();
         });
       }
     });

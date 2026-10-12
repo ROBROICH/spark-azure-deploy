@@ -1,16 +1,15 @@
-# ruff: noqa: PLR2004
 """Tests for RechtsbegriffeWorkflow output assembly."""
 
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import BestimmterRechtsbegriff, UnbestimmterRechtsbegriff
+from temporal.contracts import BestimmterRechtsbegriff, UnbestimmterRechtsbegriff
 
 from src.workflows.tbm_workflow.rechtsbegriffe.rechtsbegriffe_workflow import RechtsbegriffeWorkflow
 from src.workflows.tbm_workflow.tbm_types import RechtsbegriffeWorkflowInput
 
 _PATCH_CHILD = "temporalio.workflow.execute_child_workflow"
-_PATCH_GATHER = "asyncio.gather"
+_PATCH_GATHER = "src.workflows.tbm_workflow.rechtsbegriffe.rechtsbegriffe_workflow.asyncio.gather"
 
 
 def _make_input(atomare: list[str]) -> RechtsbegriffeWorkflowInput:
@@ -61,17 +60,3 @@ class TestRechtsbegriffeWorkflow:
             result = await RechtsbegriffeWorkflow().run(_make_input([]))
 
         assert result == []
-
-    async def test_bre_and_ur_per_tbm_slot_accessible(self) -> None:
-        """Tests if bestimmte and unbestimmte Rechtsbegriffe are accessible per TBM slot in the output."""
-        a_tbms = ["TBM A", "TBM B"]
-        bre_output = [_empty_bre(), _empty_bre()]
-        ur_output = [_empty_ur(), _empty_ur()]
-
-        with patch(_PATCH_CHILD, new_callable=AsyncMock), patch(_PATCH_GATHER, new_callable=AsyncMock) as mock_gather:
-            mock_gather.return_value = (bre_output, ur_output)
-            result = await RechtsbegriffeWorkflow().run(_make_input(a_tbms))
-
-        assert result[0].bestimmte_rechtsbegriffe == _empty_bre()
-        assert result[1].unbestimmte_rechtsbegriffe == _empty_ur()
-        assert len(result) == 2

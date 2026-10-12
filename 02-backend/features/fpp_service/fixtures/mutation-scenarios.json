@@ -1,0 +1,37 @@
+{
+  "allowedDomain": "files.fpp-test.example",
+  "entryDate": "2026-07-17",
+  "complete": {
+    "company": "FPP Vertreter GmbH",
+    "country": "DEU",
+    "address": "Prüfstraße 17a",
+    "postalCode": "10117",
+    "location": "Berlin",
+    "addressAddition": "Hinterhaus",
+    "email": "vertretung@example.invalid",
+    "phone": "+49-30-123456",
+    "fax": "+49-30-654321"
+  },
+  "fallback": {
+    "email": "fallback@example.invalid",
+    "phone": "+49-30-777777"
+  },
+  "states": ["02", "03"],
+  "files": [
+    {
+      "fileType": "PLANUNTERLAGEN",
+      "fileUrl": "https://files.fpp-test.example/plan-primary.zip",
+      "fileName": "plan-primary.zip"
+    },
+    {
+      "fileType": "PLANUNTERLAGEN",
+      "fileUrl": "https://files.fpp-test.example/plan-fallback-name.zip",
+      "fileName": null
+    },
+    {
+      "fileType": "ERGAENZENDE_UNTERLAGEN",
+      "fileUrl": "https://files.fpp-test.example/supplement.pdf",
+      "fileName": "supplement.pdf"
+    }
+  ]
+}

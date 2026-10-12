@@ -30,7 +30,6 @@ function ExistingFeedbackFormContent(props: {
 }) {
   const { feedbackRef, initialRating, namespace, onClose, targetRef } = props;
   const { data: feedback } = useNode(feedbackRef);
-  const { userId } = useCurrentUser();
   const { transact, update, delete: deleteNode } = useAction();
   const { t } = useTranslation(namespace);
 
@@ -55,7 +54,6 @@ function ExistingFeedbackFormContent(props: {
         draft.rating = nextFeedback.rating;
         draft.reason = nextFeedback.reason;
         draft.text = nextFeedback.text;
-        draft.user_id = userId;
       });
     });
 
@@ -138,7 +136,7 @@ function CreateFeedbackFormContent(props: {
 
   return (
     <FeedbackForm
-      key={`${targetRef.node_type}:${targetRef.id}:new`}
+      key={`${targetRef.nodeType}:${targetRef.id}:new`}
       namespace={namespace}
       initialRating={initialRating}
       initialReason={null}

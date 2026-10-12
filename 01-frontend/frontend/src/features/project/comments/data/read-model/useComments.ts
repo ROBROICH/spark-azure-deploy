@@ -1,27 +1,38 @@
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { eq, useLiveInfiniteQuery } from '@tanstack/react-db';
 
-import { commentsCollection } from '../collections/comments.collection';
+import {
+  COMMENTS_PAGE_SIZE,
+  commentsCollection,
+} from '../collections/comments.collection';
 
 export const useComments = (projectId: string) => {
-  const { data, isLoading, isError } = useLiveQuery((q) =>
-    q
-      .from({ items: commentsCollection })
-      .where(({ items }) => eq(items.projectId, projectId)),
+  const {
+    data,
+    isLoading,
+    isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useLiveInfiniteQuery(
+    (q) =>
+      q
+        .from({ items: commentsCollection })
+        .where(({ items }) => eq(items.projectId, projectId))
+        .orderBy(({ items }) => items.createdAt, 'asc')
+        .orderBy(({ items }) => items.id, 'asc'),
+    { pageSize: COMMENTS_PAGE_SIZE },
+    [projectId],
   );
-
-  // Sort by creation date (oldest first, newest at bottom)
-  const sortedItems = [...data].sort((a, b) => {
-    const dateA = new Date(a.createdAt).getTime();
-    const dateB = new Date(b.createdAt).getTime();
-    return dateA - dateB;
-  });
 
   const refetchComments = () => commentsCollection.utils.refetch();
 
   return {
-    comments: sortedItems,
+    comments: data,
     isLoading,
     isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
     refetch: refetchComments,
   };
 };

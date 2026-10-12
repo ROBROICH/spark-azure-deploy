@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
         'dev.designSystem': 'Design System',
         'dev.nodes': 'Nodes Dev Tools',
         'pages.accessibility': 'Erklärung zur Barrierefreiheit',
+        'pages.administration': 'Administration',
         'pages.changelog': 'Changelog',
         'pages.dashboard': 'Dashboard',
         'pages.loading': 'Laden',
@@ -37,6 +38,7 @@ const mocks = vi.hoisted(() => ({
         'dev.designSystem': 'Design System',
         'dev.nodes': 'Nodes Dev Tools',
         'pages.accessibility': 'Accessibility Statement',
+        'pages.administration': 'Administration',
         'pages.changelog': 'Changelog',
         'pages.dashboard': 'Dashboard',
         'pages.loading': 'Loading',
@@ -101,6 +103,17 @@ describe('AppRouteDocumentTitle', () => {
     expect(document.title).toBe('Existing project title');
   });
 
+  it('leaves administration detail titles to the detail route owner', () => {
+    document.title = 'Existing administration detail title';
+    mocks.routerState.matches = [
+      { params: {}, routeId: '/administration/$projectTypeId' },
+    ];
+
+    render(<AppRouteDocumentTitle />);
+
+    expect(document.title).toBe('Existing administration detail title');
+  });
+
   it('updates the document title when the active language changes', () => {
     mocks.routerState.matches = [{ params: {}, routeId: '/verfahren/' }];
     const { rerender } = render(<AppRouteDocumentTitle />);
@@ -111,6 +124,18 @@ describe('AppRouteDocumentTitle', () => {
     rerender(<AppRouteDocumentTitle />);
 
     expect(document.title).toBe('Projects Overview | SPARK Workflow');
+  });
+
+  it('writes the administration title in both supported languages', () => {
+    mocks.routerState.matches = [{ params: {}, routeId: '/administration/' }];
+    const { rerender } = render(<AppRouteDocumentTitle />);
+
+    expect(document.title).toBe('Administration | SPARK Workflow');
+
+    mocks.language = 'en';
+    rerender(<AppRouteDocumentTitle />);
+
+    expect(document.title).toBe('Administration | SPARK Workflow');
   });
 
   it('writes the not found title for unknown non-project routes', () => {

@@ -37,6 +37,7 @@ export const DocumentDiffStep = () => {
     expandedPaths,
     selectableTotal,
     selectedCount,
+    hasIncludedChanges,
     toggleKey,
     toggleAll,
     toggleFolder,
@@ -106,7 +107,7 @@ export const DocumentDiffStep = () => {
             disabled={
               isLoading ||
               isError ||
-              selectedCount === 0 ||
+              !hasIncludedChanges ||
               isActionPending ||
               !zipFileId
             }

@@ -1,37 +1,15 @@
 {
   "title": "Accessibility Statement",
   "introduction": {
-    "applicationPrefix": "This accessibility statement applies to the SPARK Workflow application published at",
+    "applicationPrefix": "This accessibility statement applies to the BMDS application published at",
     "applicationSuffix": ".",
     "legalBasis": "As a public body within the meaning of Directive (EU) 2016/2102, we endeavour to make our websites and mobile applications accessible in accordance with the provisions of the Federal Disability Equality Act (BGG) and the Accessible Information Technology Ordinance (BITV 2.0), which implements Directive (EU) 2016/2102."
   },
   "conformance": {
     "heading": "Compliance Status",
     "requirements": "The accessibility requirements arise from §§ 3 paragraphs 1 to 4 and 4 of BITV 2.0, issued on the basis of § 12d BGG.",
-    "review": "Compliance with the requirements was reviewed in May 2026 on the basis of the statutory requirements and global standards (EN 301 549, BITV 2.0).",
-    "result": "Based on the review, the website is partially compliant with the aforementioned requirements due to the following exceptions.",
-    "exceptionsIntro": "As of 25 May 2025, the following content is not yet fully accessible:",
-    "exceptions": {
-      "visualHeadings": "Some visually recognizable headings have not been marked up as headings.",
-      "lists": "Some lists have not been marked up as lists.",
-      "formLabels": "Some form fields do not have a technically associated label.",
-      "autocomplete": "Technical completion aids are not sufficiently supported (autocomplete function).",
-      "textContrast": "The contrast between text and background color is sometimes insufficient.",
-      "graphicContrast": "The contrast requirements for graphical content are sometimes not met.",
-      "zoom": "After increasing the text size with the browser zoom function, some website content and functions cannot be used.",
-      "skipLinks": "The page structure is not fully represented by skip links or other mechanisms for bypassing areas.",
-      "keyboardFocus": "When navigating by keyboard, the focus is sometimes not clearly visible or not visible at all.",
-      "keyboardScreenreaderControls": "Some functions and controls cannot be operated as expected with the keyboard or screen reader (e.g. editor, document directory).",
-      "timeLimit": "There is a time limit that cannot be extended or deactivated.",
-      "formErrorsDetectable": "Error messages in forms cannot be identified by assistive technologies.",
-      "formErrorsPersistent": "Error messages in forms disappear before the errors have been corrected.",
-      "controlNameRoleValue": "For some controls, the required information on name, role, or value cannot be identified by assistive technologies.",
-      "pdf": "Not all PDF documents are accessible."
-    }
-  },
-  "reason": {
-    "heading": "Reason",
-    "text": "The “SPARK Workflow” application is currently under development. We are actively working on the known barriers. Some of the listed content may already have been resolved at this point. We endeavour to remove all barriers for people with disabilities as quickly as possible."
+    "review": "Compliance with the requirements was reviewed by ITZBund on the basis of an assessment carried out between June and September 2026 in accordance with the statutory requirements and global standards (EN 301 549, BITV 2.0).",
+    "result": "Based on the review, the website is compliant with the aforementioned requirements and therefore conforms to BITV."
   },
   "feedback": {
     "heading": "Contact and Feedback Option",
@@ -41,7 +19,7 @@
   },
   "creation": {
     "heading": "Creation Date",
-    "text": "This statement was created on 26 May 2026."
+    "text": "This statement was created on 6 October 2026."
   },
   "arbitration": {
     "heading": "Arbitration Procedure",

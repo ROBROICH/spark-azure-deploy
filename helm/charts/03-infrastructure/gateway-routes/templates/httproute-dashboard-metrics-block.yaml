@@ -1,0 +1,32 @@
+{{- /*
+Backend-less rules block the /metrics paths reachable through the dashboard /api proxies.
+*/ -}}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $site.prefix }}-metrics-block-route
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $site.group) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $site.hosts | nindent 4 }}
+  rules:
+    - matches:
+        - path:
+            type: Exact
+            value: /api/identity/metrics
+        - path:
+            type: PathPrefix
+            value: /api/identity/metrics/
+        - path:
+            type: Exact
+            value: /api/fpp/v1/metrics
+        - path:
+            type: PathPrefix
+            value: /api/fpp/v1/metrics/
+{{- end }}

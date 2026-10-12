@@ -27,7 +27,7 @@ export function SidebarHeader(props: React.ComponentProps<'div'>) {
       data-slot="sidebar-header"
       data-sidebar="header"
       className={cn(
-        'flex min-h-0 flex-col justify-center gap-1 overflow-hidden p-1',
+        'flex min-h-0 flex-col justify-center gap-1 overflow-hidden p-1 sidebar-reflow:shrink-0',
         className,
       )}
       {...restProps}
@@ -108,7 +108,7 @@ export function SidebarContent(props: React.ComponentProps<'div'>) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-1 group-data-[collapsible=icon]:overflow-hidden',
+        'flex min-h-0 flex-1 flex-col gap-1 overflow-auto p-1 group-data-[collapsible=icon]:overflow-hidden sidebar-reflow:flex-none',
         className,
       )}
       {...restProps}

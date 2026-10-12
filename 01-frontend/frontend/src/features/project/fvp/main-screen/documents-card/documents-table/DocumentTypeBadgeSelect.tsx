@@ -8,17 +8,24 @@ import {
   ActionMenuRadioItem,
   ActionMenuTrigger,
 } from '@/features/ui/action-menu/ActionMenu';
+import { isUncertainAssignmentConfidence } from '@/features/project/fvp/main-screen/data/assignmentConfidence';
 import { AI_SPARKLES_CHIP_BACKGROUND } from '@/features/ui/ai/AiSparklesChip';
 import { AiSparklesIcon } from '@/features/ui/ai/AiSparklesIcon';
+import { InfoTooltip } from '@/features/ui/info-tooltip/InfoTooltip';
 import { cn } from '@/features/ui/style/cn';
-import { Check, ChevronDown, Link, Plus } from 'lucide-react';
+import { Check, ChevronDown, Link, Plus, TriangleAlert } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BadgeSelect, type BadgeSelectVariant } from './BadgeSelect';
 import { MENU_ITEM_CLASSES, MENU_ITEM_SELECTED_CLASSES } from './menuStyles';
 
 export type DocumentTypeStatus =
   | { kind: 'unlinked' }
-  | { kind: 'ai_suggestion'; label: string; selectedTypeId: string }
+  | {
+      kind: 'ai_suggestion';
+      label: string;
+      selectedTypeId: string;
+      confidence: number | null;
+    }
   | { kind: 'linked'; label: string; selectedTypeId: string };
 
 type DocumentTypeBadgeSelectProps = {
@@ -175,6 +182,10 @@ export const DocumentTypeBadgeSelect = (
   };
 
   if (status.kind === 'ai_suggestion') {
+    const assignmentUncertainLabel = t(
+      'DocumentTypeDropdown.assignmentUncertain',
+    );
+
     return (
       <div className="inline-flex w-fit items-center gap-1 rounded-[8px] bg-neutral-50 p-1">
         <span
@@ -218,6 +229,15 @@ export const DocumentTypeBadgeSelect = (
             </ActionMenuContent>
           </ActionMenu>
         )}
+        {isUncertainAssignmentConfidence(status.confidence) ? (
+          <InfoTooltip
+            icon={TriangleAlert}
+            ariaLabel={assignmentUncertainLabel}
+            content={assignmentUncertainLabel}
+            className="size-5 text-warning-600"
+            iconClassName="size-3.5"
+          />
+        ) : null}
         {onConfirm && (
           <button
             type="button"

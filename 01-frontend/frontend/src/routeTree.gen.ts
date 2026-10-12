@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RouteRemountRouteImport } from './routes/route-remount'
+import { Route as AdministrationIndexRouteImport } from './routes/administration/index'
+import { Route as AdministrationProjectTypeIdRouteImport } from './routes/administration/$projectTypeId'
 import { Route as BarrierefreiheitIndexRouteImport } from './routes/barrierefreiheit/index'
 import { Route as ChangelogIndexRouteImport } from './routes/changelog/index'
 import { Route as DesignSystemIndexRouteImport } from './routes/design-system/index'
@@ -42,6 +44,17 @@ const RouteRemountRoute = RouteRemountRouteImport.update({
   path: '/route-remount',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdministrationIndexRoute = AdministrationIndexRouteImport.update({
+  id: '/administration/',
+  path: '/administration/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdministrationProjectTypeIdRoute =
+  AdministrationProjectTypeIdRouteImport.update({
+    id: '/administration/$projectTypeId',
+    path: '/administration/$projectTypeId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const BarrierefreiheitIndexRoute = BarrierefreiheitIndexRouteImport.update({
   id: '/barrierefreiheit/',
   path: '/barrierefreiheit/',
@@ -162,6 +175,8 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/route-remount': typeof RouteRemountRoute
   '/verfahren/$verfahrenId': typeof VerfahrenVerfahrenIdRouteRouteWithChildren
+  '/administration/$projectTypeId': typeof AdministrationProjectTypeIdRoute
+  '/administration/': typeof AdministrationIndexRoute
   '/barrierefreiheit/': typeof BarrierefreiheitIndexRoute
   '/changelog/': typeof ChangelogIndexRoute
   '/design-system/': typeof DesignSystemIndexRoute
@@ -185,6 +200,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/route-remount': typeof RouteRemountRoute
+  '/administration/$projectTypeId': typeof AdministrationProjectTypeIdRoute
+  '/administration': typeof AdministrationIndexRoute
   '/barrierefreiheit': typeof BarrierefreiheitIndexRoute
   '/changelog': typeof ChangelogIndexRoute
   '/design-system': typeof DesignSystemIndexRoute
@@ -207,6 +224,8 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/route-remount': typeof RouteRemountRoute
   '/verfahren/$verfahrenId': typeof VerfahrenVerfahrenIdRouteRouteWithChildren
+  '/administration/$projectTypeId': typeof AdministrationProjectTypeIdRoute
+  '/administration/': typeof AdministrationIndexRoute
   '/barrierefreiheit/': typeof BarrierefreiheitIndexRoute
   '/changelog/': typeof ChangelogIndexRoute
   '/design-system/': typeof DesignSystemIndexRoute
@@ -233,6 +252,8 @@ export interface FileRouteTypes {
     | '/'
     | '/route-remount'
     | '/verfahren/$verfahrenId'
+    | '/administration/$projectTypeId'
+    | '/administration/'
     | '/barrierefreiheit/'
     | '/changelog/'
     | '/design-system/'
@@ -256,6 +277,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/route-remount'
+    | '/administration/$projectTypeId'
+    | '/administration'
     | '/barrierefreiheit'
     | '/changelog'
     | '/design-system'
@@ -277,6 +300,8 @@ export interface FileRouteTypes {
     | '/'
     | '/route-remount'
     | '/verfahren/$verfahrenId'
+    | '/administration/$projectTypeId'
+    | '/administration/'
     | '/barrierefreiheit/'
     | '/changelog/'
     | '/design-system/'
@@ -302,6 +327,8 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RouteRemountRoute: typeof RouteRemountRoute
   VerfahrenVerfahrenIdRouteRoute: typeof VerfahrenVerfahrenIdRouteRouteWithChildren
+  AdministrationProjectTypeIdRoute: typeof AdministrationProjectTypeIdRoute
+  AdministrationIndexRoute: typeof AdministrationIndexRoute
   BarrierefreiheitIndexRoute: typeof BarrierefreiheitIndexRoute
   ChangelogIndexRoute: typeof ChangelogIndexRoute
   DesignSystemIndexRoute: typeof DesignSystemIndexRoute
@@ -323,6 +350,20 @@ declare module '@tanstack/react-router' {
       path: '/route-remount'
       fullPath: '/route-remount'
       preLoaderRoute: typeof RouteRemountRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/administration/': {
+      id: '/administration/'
+      path: '/administration'
+      fullPath: '/administration/'
+      preLoaderRoute: typeof AdministrationIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/administration/$projectTypeId': {
+      id: '/administration/$projectTypeId'
+      path: '/administration/$projectTypeId'
+      fullPath: '/administration/$projectTypeId'
+      preLoaderRoute: typeof AdministrationProjectTypeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/barrierefreiheit/': {
@@ -555,6 +596,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RouteRemountRoute: RouteRemountRoute,
   VerfahrenVerfahrenIdRouteRoute: VerfahrenVerfahrenIdRouteRouteWithChildren,
+  AdministrationProjectTypeIdRoute: AdministrationProjectTypeIdRoute,
+  AdministrationIndexRoute: AdministrationIndexRoute,
   BarrierefreiheitIndexRoute: BarrierefreiheitIndexRoute,
   ChangelogIndexRoute: ChangelogIndexRoute,
   DesignSystemIndexRoute: DesignSystemIndexRoute,

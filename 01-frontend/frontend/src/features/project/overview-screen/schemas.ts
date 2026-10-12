@@ -2,20 +2,12 @@ import {
   type ApplicantStepValues,
   type ProjectDetailsValues,
   createApplicantSchema,
-  createProjectDetailsSchema,
 } from '@/features/project/data/project-details-form/projectForm.schema';
 import { z } from 'zod';
 
 export type EditProjectValues = ProjectDetailsValues;
 
 export type EditApplicantValues = ApplicantStepValues;
-
-export function editProjectSchema(
-  t: (key: string) => string,
-  existingInternalProjectNumbers: Iterable<string> = [],
-) {
-  return createProjectDetailsSchema(t, existingInternalProjectNumbers);
-}
 
 export const editApplicantSchema = createApplicantSchema;
 

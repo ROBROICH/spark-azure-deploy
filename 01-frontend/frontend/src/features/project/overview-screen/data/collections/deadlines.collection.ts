@@ -1,25 +1,44 @@
 import {
-  createDeadlineDeadlinesPost,
-  deleteDeadlineDeadlinesDeadlineIdDelete,
-  listDeadlinesDeadlinesGet,
-  updateDeadlineDeadlinesDeadlineIdPatch,
-  type CreateDeadlineRequest,
+  v1ProjectLogicCreateDeadline as createDeadline,
+  v1ProjectLogicDeleteDeadline as deleteDeadline,
+  v1ProjectLogicListDeadlines as listDeadlines,
+  type V1ProjectLogicCreateDeadlineData as CreateDeadlineData,
   type DeadlineResponse,
-  type UpdateDeadlineRequest,
-} from '@/api-clients/pls-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
-import { createCollection } from '@tanstack/react-db';
-import {
-  getProjectIdFromCollectionOptions,
-  getProjectScopedCollectionQueryKey,
-} from '@/features/project/data/collections/projectScopedCollection';
+import { BasicIndex, createCollection } from '@tanstack/react-db';
+import { getProjectIdFromCollectionOptions } from '@/features/project/data/collections/projectScopedCollection';
+
+type CreateDeadlineRequest = CreateDeadlineData['body'];
+
+const deadlineToCreatePayload = (
+  item: DeadlineResponse,
+): CreateDeadlineRequest => ({
+  projectId: item.projectId,
+  deadlineType: item.deadlineType,
+  startAt: item.startAt,
+  endAt: item.endAt,
+  legalBasis: item.legalBasis,
+});
+
+export const invalidateDeadlineReads = async () => {
+  await Promise.all([
+    queryClient.invalidateQueries({ queryKey: ['deadlines'] }),
+    queryClient.invalidateQueries({ queryKey: ['deadline-detail'] }),
+    queryClient.invalidateQueries({ queryKey: ['calendar-deadlines'] }),
+    queryClient.invalidateQueries({ queryKey: ['deadline-dates'] }),
+    queryClient.invalidateQueries({ queryKey: ['upcoming-deadline'] }),
+  ]);
+};
 
 export const deadlinesCollection = createCollection(
   queryCollectionOptions({
     id: 'deadlines',
     syncMode: 'on-demand',
-    queryKey: (opts) => getProjectScopedCollectionQueryKey('deadlines', opts),
+    autoIndex: 'eager',
+    defaultIndexType: BasicIndex,
+    queryKey: ['deadlines'],
     queryFn: async (ctx): Promise<DeadlineResponse[]> => {
       const projectId = getProjectIdFromCollectionOptions(
         ctx.meta?.loadSubsetOptions as Record<string, unknown>,
@@ -28,8 +47,12 @@ export const deadlinesCollection = createCollection(
         return [];
       }
 
-      const { data } = await listDeadlinesDeadlinesGet({
-        query: { project_id: projectId },
+      const { data } = await listDeadlines({
+        query: {
+          projectId,
+          limit: ctx.meta?.loadSubsetOptions?.limit ?? 50,
+          offset: ctx.meta?.loadSubsetOptions?.offset ?? 0,
+        },
       });
       if (!data) {
         throw new Error('Failed to fetch deadlines');
@@ -41,8 +64,8 @@ export const deadlinesCollection = createCollection(
     onInsert: async ({ transaction }) => {
       const results = await Promise.all(
         transaction.mutations.map(async (mutation) => {
-          const { data } = await createDeadlineDeadlinesPost({
-            body: mutation.modified as CreateDeadlineRequest,
+          const { data } = await createDeadline({
+            body: deadlineToCreatePayload(mutation.modified),
           });
           if (!data) {
             throw new Error('Failed to create deadline');
@@ -50,28 +73,19 @@ export const deadlinesCollection = createCollection(
           return data;
         }),
       );
+      await invalidateDeadlineReads();
       return results;
-    },
-    onUpdate: async ({ transaction }) => {
-      const { original, changes } = transaction.mutations[0];
-      const { data } = await updateDeadlineDeadlinesDeadlineIdPatch({
-        path: { deadline_id: original.id },
-        body: changes as UpdateDeadlineRequest,
-      });
-      if (!data) {
-        throw new Error('Failed to update deadline');
-      }
-      return data;
     },
     onDelete: async ({ transaction }) => {
       await Promise.all(
         transaction.mutations.map(async (mutation) => {
-          await deleteDeadlineDeadlinesDeadlineIdDelete({
-            path: { deadline_id: mutation.key },
+          await deleteDeadline({
+            path: { deadlineId: mutation.key },
             throwOnError: true,
           });
         }),
       );
+      await invalidateDeadlineReads();
     },
   }),
 );

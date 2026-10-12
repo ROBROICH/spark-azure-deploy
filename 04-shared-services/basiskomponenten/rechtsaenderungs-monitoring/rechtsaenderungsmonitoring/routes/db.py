@@ -16,9 +16,6 @@ from rechtsaenderungsmonitoring.schemas.api import (
 from rechtsaenderungsmonitoring.schemas.db import Norm
 
 db_router = APIRouter(
-    dependencies=[
-        Depends(require_role(allowed_roles=[OidcRoles.SERVICE])),
-    ],
     responses={404: {"description": "No results found for given criteria"}},
 )
 

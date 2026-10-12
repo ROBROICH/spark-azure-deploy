@@ -1,0 +1,86 @@
+apiVersion: v2
+name: agent-services
+description: Umbrella chart for SPARK Workflow agent layer — AI modules and shared agent infrastructure
+type: application
+version: 0.3.0
+appVersion: "1.0.0"
+dependencies:
+  - name: modul-anonymisierung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-anonymisierung"
+    condition: modul-anonymisierung.enabled
+  - name: modul-bewertung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-bewertung"
+    condition: modul-bewertung.enabled
+  - name: modul-einwendungsmanagement
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-einwendungsmanagement"
+    condition: modul-einwendungsmanagement.enabled
+  - name: modul-formale-pruefung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-formale-pruefung"
+    condition: modul-formale-pruefung.enabled
+  - name: gesetze-normen-db-service
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/gesetze-normen-db-service"
+    condition: gesetze-normen-db-service.enabled
+  - name: gesetzesbegruendung-db-service
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/gesetzesbegruendung-db-service"
+    condition: gesetzesbegruendung-db-service.enabled
+  - name: modul-inhaltsextraktion-sachverhalt
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-inhaltsextraktion-sachverhalt"
+    condition: modul-inhaltsextraktion-sachverhalt.enabled
+  - name: jura-db-service
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/jura-db-service"
+    condition: jura-db-service.enabled
+  - name: llm-client
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client.enabled
+  - name: modul-plausibilitaet-pruefung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-plausibilitaet-pruefung"
+    condition: modul-plausibilitaet-pruefung.enabled
+  - name: rechtsaenderungs-monitoring
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/rechtsaenderungs-monitoring"
+    condition: rechtsaenderungs-monitoring.enabled
+  - name: modul-rechtsmethodik
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-rechtsmethodik"
+    condition: modul-rechtsmethodik.enabled
+  - name: modul-suche-und-zuordnung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-suche-und-zuordnung"
+    condition: modul-suche-und-zuordnung.enabled
+  # Temporal workers of the law-DB services and rechtsaenderungs-monitoring:
+  # second instances of the same charts (worker command, no Service), off by
+  # default.
+  - name: gesetze-normen-db-service
+    alias: gesetze-normen-db-worker
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/gesetze-normen-db-service"
+    condition: gesetze-normen-db-worker.enabled
+  - name: gesetzesbegruendung-db-service
+    alias: gesetzesbegruendung-db-worker
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/gesetzesbegruendung-db-service"
+    condition: gesetzesbegruendung-db-worker.enabled
+  - name: jura-db-service
+    alias: jura-db-worker
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/jura-db-service"
+    condition: jura-db-worker.enabled
+  - name: rechtsaenderungs-monitoring
+    alias: rechtsaenderungs-monitoring-worker
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/rechtsaenderungs-monitoring"
+    condition: rechtsaenderungs-monitoring-worker.enabled
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

@@ -50,7 +50,6 @@ class WortlautWordExtractorAgentWorkflow:
         ]
 
         if ENV.WIKTIONARY.ENABLED:
-
             async def _process(pair: tuple[WortlautProcessor, str]) -> None:
                 """Invoke LLM to extract interpretable words from a single term."""
                 entry, word = pair

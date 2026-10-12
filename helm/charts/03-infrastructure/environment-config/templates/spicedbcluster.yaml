@@ -1,0 +1,38 @@
+{{- if .Values.spicedb.enabled -}}
+{{- $cfg := .Values.spicedb.config | default dict }}
+# SpiceDBCluster CR — reconciled by the cluster-wide spicedb-operator into a
+# Deployment, Service, migrations Job and the required RBAC in
+# spicedb.namespace (default: the chart namespace).
+# spec.secretName names the Secret (spicedb.secretName) whose keys
+# preshared_key + datastore_uri the operator expects.
+apiVersion: authzed.com/v1alpha1
+kind: SpiceDBCluster
+metadata:
+  name: {{ .Values.spicedb.name }}
+  namespace: {{ .Values.spicedb.namespace | default (include "environment-config.namespace" .) }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  {{- if .Values.spicedb.channel }}
+  channel: {{ .Values.spicedb.channel | quote }}
+  {{- end }}
+  secretName: {{ .Values.spicedb.secretName }}
+  config:
+    datastoreEngine: {{ $cfg.datastoreEngine | default "postgres" }}
+    logLevel: {{ $cfg.logLevel | default "info" }}
+    replicas: {{ $cfg.replicas | default 1 }}
+    {{- with $cfg.image }}
+    image: {{ . }}
+    {{- end }}
+    {{- with $cfg.imagePullSecrets }}
+    imagePullSecrets:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with $cfg.extraConfig }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.spicedb.patches }}
+  patches:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/references/cohesive-feature-owner-examples
+---
+
 # Cohesive Feature Owner Examples
 
 ## Bad Example

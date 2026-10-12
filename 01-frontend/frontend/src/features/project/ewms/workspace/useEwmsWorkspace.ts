@@ -31,7 +31,7 @@ const route = getRouteApi('/verfahren/$verfahrenId/ewms/');
 const asBeteiligungsEingangRef = (
   id: string | null | undefined,
 ): NodeRefByType<'beteiligungs_eingang'> | null =>
-  id ? { id, node_type: 'beteiligungs_eingang' } : null;
+  id ? { id, nodeType: 'beteiligungs_eingang' } : null;
 
 const getVisibleArguments = (
   allArguments: EwmsArgumentNode[],
@@ -39,7 +39,7 @@ const getVisibleArguments = (
 ) => {
   const visibleEntryIds = new Set(objectionItems.map((item) => item.entry.id));
   return sortEwmsArguments(allArguments).filter((argument) =>
-    visibleEntryIds.has(argument.beteiligungs_eingang_id),
+    visibleEntryIds.has(argument.beteiligungsEingangId),
   );
 };
 
@@ -194,7 +194,7 @@ export const useEwmsWorkspace = () => {
   const { verfahrenId } = route.useParams();
   const tab = routeTab === undefined ? DEFAULT_EWMS_TAB : routeTab;
   const selectedArgumentRef = selectedArgumentId
-    ? ({ id: selectedArgumentId, node_type: 'argument' } as const)
+    ? ({ id: selectedArgumentId, nodeType: 'argument' } as const)
     : null;
   const data = useEwmsWorkspaceData({
     selectedObjectionId,

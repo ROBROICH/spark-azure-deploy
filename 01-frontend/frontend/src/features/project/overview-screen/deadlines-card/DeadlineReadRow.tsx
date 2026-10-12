@@ -1,4 +1,4 @@
-import { type DeadlineResponse } from '@/api-clients/pls-module';
+import { type DeadlineResponse } from '@/api-clients/backend';
 import { cn } from '@/features/ui/style/cn';
 import { formatDate } from '@/i18n/formatDate';
 

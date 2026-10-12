@@ -159,30 +159,29 @@ The worker task queue is fixed by the shared Temporal workflow contract.
 
    Task Queue: `formale-pruefung`
 
-   **LLMMatchingWorkflow** — `project_id` must reference a DMS project with the completed process of *Modul Inhaltsextraktion*. `document_ids` is optional (subset classification).  
+   **LLMMatchingWorkflow** — `projectId` must reference a DMS project with the completed process of *Modul Inhaltsextraktion*. `documentIds` is optional (subset classification).  
    `data/document_types_sample.json` contains sample document types you can use to call the workflow. Adjust these to your use case.
 
    ```json
    {
-      "project_id": "00000000-0000-0000-0000-000000000000",
-      "document_types": [
+      "projectId": "00000000-0000-0000-0000-000000000000",
+      "documentTypes": [
          {
             "category": "Category (e.g. Allgemeiner Teil)",
-            "document_type_name": "Document Type (e.g. Erläuterungsbericht)",
-            "document_type_description": "A very precise description.",
-            "expected_count": null
+            "documentTypeName": "Document Type (e.g. Erläuterungsbericht)",
+            "documentTypeDescription": "A very precise description.",
+            "expectedCount": null
          }
       ],
-      "document_ids": null,
-      "diplan_preprocessing": false
+      "documentIds": null
    }
    ```
 
    **InhaltsverzeichnisMatchingWorkflow:**
    ```json
    {
-      "project_id": "00000000-0000-0000-0000-000000000000",
-      "document_types": [...]
+      "projectId": "00000000-0000-0000-0000-000000000000",
+      "documentTypes": [...]
    }
    ```
 

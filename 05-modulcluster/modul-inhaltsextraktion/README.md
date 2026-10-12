@@ -22,6 +22,11 @@ A Temporal-orchestrated pipeline for extracting content and metadata from docume
 
 Built on **Temporal** with clear separation between workflows (orchestration) and activities (I/O). All LLM / embedding calls are routed through **LLM-Proxy**. Large data uses a pass-by-reference pattern (DMS file IDs) to avoid Temporal payload limits.
 
+PDF preprocessing preserves embedded image resolution up to
+`PDF_COMPRESSION_MAX_IMAGE_PIXELS` (80 million pixels by default). Larger images
+are resized proportionally to that budget. PDF file size alone does not lower
+image resolution.
+
 ### Workflow Overview
 
 ```mermaid
@@ -121,7 +126,7 @@ sequenceDiagram
 | **Dienst Dokumentenmanagementsystem** | Document storage (upload / download via signed URLs) | Yes      |
 | **Docling-serve**                     | PDF-to-Markdown conversion                           | Yes      |
 | **LibreOffice UNO**                   | Office format (DOCX / PPTX) to PDF conversion        | Yes      |
-| **S3 / MinIO**                        | Large payload storage for Temporal (>2MB payloads)   | Yes      |
+| **S3 / VersityGW**                        | Large payload storage for Temporal (>2MB payloads)   | Yes      |
 | **Vektordatenbank**                   | Vector database for semantic search indexing         | Yes      |
 | **Prometheus + Grafana**              | Monitoring and dashboards                            | Optional |
 
@@ -129,7 +134,7 @@ sequenceDiagram
 
 ```
 ├── main.py                 # Temporal worker entry point
-├── scripts/                 # Utility scripts (DMS upload, smoke tests)
+├── scripts/                 # Operational inspection and cleanup utilities
 ├── Dockerfile               # Docker image definition
 ├── docker-compose.yml       # Local docker compose configuration
 ├── k8s/                     # Kubernetes manifests (Kustomize overlays)
@@ -216,9 +221,9 @@ sequenceDiagram
 
    | Variable                 | Description               |
    | ------------------------ | ------------------------- |
-   | `KEYCLOAK_CLIENT_ID`     | OAuth2 client ID          |
-   | `KEYCLOAK_CLIENT_SECRET` | OAuth2 client secret      |
-   | `KEYCLOAK_TOKEN_URL`     | OAuth2 token endpoint URL |
+   | `OIDC_CLIENT_ID`     | OAuth2 client ID          |
+   | `OIDC_CLIENT_SECRET` | OAuth2 client secret      |
+   | `OIDC_TOKEN_URL`     | OAuth2 token endpoint URL |
 
    </details>
 

@@ -100,8 +100,8 @@ class TestWorkerMain:
         mock_storage_cls.assert_called_once_with(
             bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
             endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
-            access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
-            secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY,
+            access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID.get_secret_value(),
+            secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY.get_secret_value(),
             region=ENV.TEMPORAL.S3_REGION,
         )
 

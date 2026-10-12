@@ -17,6 +17,8 @@ export type AiReferenceAggregateCardRow = {
   href?: string;
   id: string;
   isSelected?: boolean;
+  /** Rendered next to the title, inside the interactive area. Must not be interactive itself. */
+  afterTitle?: ReactNode;
   meta: ReactNode;
   onClick?: (event: MouseEvent<HTMLElement>) => void;
   title: ReactNode;
@@ -67,8 +69,13 @@ const renderRowContent = (row: AiReferenceAggregateCardRow) => {
       <span className="flex shrink-0 items-center rounded-[4px] p-1 text-slate-600">
         <ScanSearch className="size-3" aria-hidden="true" />
       </span>
-      <span className="min-w-0 flex-1 truncate text-[11px] leading-[14px] font-medium tracking-[0.02em] text-slate-700">
-        {row.title}
+      {/* Truncation sits on the text, not on the group, so a marker after the
+          title stays visible however long the title is. */}
+      <span className="flex min-w-0 flex-1 items-center gap-1">
+        <span className="truncate text-[11px] leading-[14px] font-medium tracking-[0.02em] text-slate-700">
+          {row.title}
+        </span>
+        {row.afterTitle}
       </span>
       <span className="shrink-0 text-[11px] leading-[14px] tracking-[0.02em] text-slate-700">
         {row.meta}

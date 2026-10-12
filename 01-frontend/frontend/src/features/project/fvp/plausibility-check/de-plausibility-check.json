@@ -68,7 +68,8 @@
       "irrelevant": "Irrelevante",
       "open": "Offen",
       "requested": "Nachgefordert"
-    }
+    },
+    "weaklySupported": "Schwach belegt – bitte am Original prüfen"
   },
   "StepBar": {
     "plausibilityCheck": "Plausibilitätsprüfung"

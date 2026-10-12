@@ -1,0 +1,19 @@
+{{- if .Values.monitoring.enabled }}
+# Namespace-wide scrape config for Google Managed Prometheus (GMP managed
+# collection is on by default on Autopilot). The empty selector matches every
+# pod in the namespace; endpoints come from values because the GMP schema
+# requires a port per endpoint. Pods without a matching port are simply not
+# scraped (see monitoring.endpoints in values.yaml for the covered ports).
+apiVersion: monitoring.googleapis.com/v1
+kind: PodMonitoring
+metadata:
+  name: spark-workloads
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+spec:
+  # Empty label selector — every pod in the namespace.
+  selector: {}
+  endpoints:
+    {{- toYaml .Values.monitoring.endpoints | nindent 4 }}
+{{- end }}

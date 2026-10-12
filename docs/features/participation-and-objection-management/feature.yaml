@@ -1,0 +1,5 @@
+schemaVersion: 1
+id: participation-and-objection-management
+title: Behörden- und Öffentlichkeitsbeteiligung und Einwendungsmanagement
+openSpecCapabilities:
+  - ewms

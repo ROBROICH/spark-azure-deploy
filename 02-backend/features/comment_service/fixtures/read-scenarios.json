@@ -1,0 +1,11 @@
+{
+  "projects": {
+    "populated": "02ce791b-d5ed-4125-b2cf-dadffb218ad9",
+    "empty": "11568214-f430-486c-9035-8fa364b2f552",
+    "other": "a629ab98-ba7b-4abe-8786-22f7cac17b12"
+  },
+  "comments": {
+    "ordered": ["f1e4f737-270f-4067-8371-abb1ef3d0781", "09eb9df7-0a88-46ff-8cf8-f15b8812f8db"],
+    "otherProject": "af344910-52f1-46e2-93e2-2056fde4db3c"
+  }
+}

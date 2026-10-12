@@ -1,0 +1,318 @@
+{
+  "schemaVersion": 1,
+  "realm": "fixture",
+  "clientId": "identity-fixture-client",
+  "scenarios": {
+    "listUsers": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/admin/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000002" }]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/user/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000001" }]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [
+              {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "username": "fixture-alice",
+                "enabled": true,
+                "email": "alice@example.test",
+                "firstName": "Alice",
+                "lastName": "Fixture"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000002",
+                "username": "fixture-carol",
+                "enabled": true,
+                "email": "carol@example.test",
+                "firstName": "Carol",
+                "lastName": "Fixture"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000003",
+                "username": "fixture-disabled",
+                "enabled": false,
+                "email": "disabled@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000004",
+                "username": "service-account-fixture-client",
+                "enabled": true,
+                "email": "service@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000005",
+                "username": "admin",
+                "enabled": true,
+                "email": "admin@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000006",
+                "username": "fixture-incomplete",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "searchUsers": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100", "search": "alice" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [
+              {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "username": "fixture-alice",
+                "enabled": true,
+                "email": "alice@example.test",
+                "firstName": "Alice",
+                "lastName": "Fixture"
+              }
+            ]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/admin/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": { "status": 200, "json": [] }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/user/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000001" }]
+          }
+        }
+      ]
+    },
+    "readUsers": {
+      "calls": [
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/admin/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000002" }]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/user/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000001" }]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100" },
+          "requiresAuthorization": true,
+          "response": { "status": 200, "generatedUserPage": { "start": 0, "count": 100 } }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "100", "max": "100" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [
+              {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "username": "fixture-alice",
+                "enabled": true,
+                "email": "alice@example.test",
+                "firstName": "Alice",
+                "lastName": "Fixture"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000002",
+                "username": "fixture-carol",
+                "enabled": true,
+                "email": "carol@example.test",
+                "firstName": "Carol",
+                "lastName": "Fixture"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000007",
+                "username": "fixture-optional-names",
+                "enabled": true,
+                "email": "optional-names@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000003",
+                "username": "fixture-disabled",
+                "enabled": false,
+                "email": "disabled@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000004",
+                "username": "service-account-fixture-client",
+                "enabled": true,
+                "email": "service@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000005",
+                "username": "admin",
+                "enabled": true,
+                "email": "admin@example.test"
+              },
+              {
+                "id": "10000000-0000-0000-0000-000000000006",
+                "username": "fixture-incomplete",
+                "enabled": true
+              }
+            ]
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100", "search": "alice" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [
+              {
+                "id": "10000000-0000-0000-0000-000000000001",
+                "username": "fixture-alice",
+                "enabled": true,
+                "email": "alice@example.test",
+                "firstName": "Alice",
+                "lastName": "Fixture"
+              }
+            ]
+          }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/admin/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": { "status": 200, "json": [] }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/roles/user/users",
+          "query": { "briefRepresentation": "true", "max": "-1" },
+          "requiresAuthorization": true,
+          "response": {
+            "status": 200,
+            "json": [{ "id": "10000000-0000-0000-0000-000000000001" }]
+          }
+        },
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100", "search": "nobody" },
+          "requiresAuthorization": true,
+          "response": { "status": 200, "json": [] }
+        },
+        {
+          "method": "POST",
+          "path": "/realms/fixture/protocol/openid-connect/token",
+          "form": {
+            "grant_type": "client_credentials",
+            "client_id": "identity-fixture-client",
+            "client_secret": "$runtime"
+          },
+          "response": { "status": 200, "runtimeAccessToken": true }
+        },
+        {
+          "method": "GET",
+          "path": "/admin/realms/fixture/users",
+          "query": { "first": "0", "max": "100", "search": "provider-error" },
+          "requiresAuthorization": true,
+          "response": { "status": 503, "json": { "detail": "fixture provider unavailable" } }
+        }
+      ]
+    }
+  }
+}

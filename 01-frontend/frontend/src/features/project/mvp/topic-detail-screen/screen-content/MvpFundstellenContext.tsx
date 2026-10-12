@@ -19,7 +19,7 @@ const useMvpFundstellenContextLogic = (
   params: MvpFundstellenProviderParams,
 ) => {
   const { index } = useGraph();
-  const topicRef = { id: params.topicId, node_type: 'topic' as const };
+  const topicRef = { id: params.topicId, nodeType: 'topic' as const };
   const fundstellenRefs = useDescendants('fundstelle', topicRef);
   const {
     documentIdsWithFundstellen,

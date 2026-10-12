@@ -7,7 +7,7 @@ ENV_FILE="$REPO_ROOT/.env"
 if [[ -f "$ENV_FILE" ]]; then
   echo ".env already exists. Refusing to overwrite it."
   echo "Delete .env yourself if you intentionally want to regenerate local secrets."
-  echo "Regenerating .env also requires wiping Docker volumes because Postgres, MinIO, Temporal, and SpiceDB persist credentials."
+  echo "Regenerating .env also requires wiping Docker volumes because Postgres, Temporal, and SpiceDB persist credentials."
   exit 1
 fi
 
@@ -44,13 +44,6 @@ prompt_required() {
   done
 }
 
-prompt_optional() {
-  local prompt="$1"
-  local value
-  read -r -p "$prompt: " value
-  echo "$value"
-}
-
 prompt_secret() {
   local prompt="$1"
   local value
@@ -65,75 +58,30 @@ prompt_secret() {
   done
 }
 
-prompt_optional_secret() {
-  local prompt="$1"
-  local value
-  read -r -s -p "$prompt: " value
-  echo >&2
-  echo "$value"
-}
-
 echo "Creating $ENV_FILE"
 echo "These values are shared local secrets. Keep .env ignored and private."
 echo "If you regenerate this file later, wipe Docker volumes before restarting the stack."
 echo
 
-local_user_email="$(prompt_default "Login email for the local Keycloak user" "spark@example.com")"
-local_user_password="$(prompt_secret "Login password for the local Keycloak user")"
-local_user_first_name="$(prompt_default "First name of the local Keycloak user" "Spark")"
-local_user_last_name="$(prompt_default "Last name of the local Keycloak user" "User")"
-local_user_id="$(uuid)"
+local_user_email="${LOCAL_USER_EMAIL:-$(prompt_default "Login email for the local Keycloak user" "spark@example.com")}"
+local_user_password="${LOCAL_USER_PASSWORD:-$(prompt_secret "Login password for the local Keycloak user")}"
+local_user_first_name="${LOCAL_USER_FIRST_NAME:-$(prompt_default "First name of the local Keycloak user" "Spark")}"
+local_user_last_name="${LOCAL_USER_LAST_NAME:-$(prompt_default "Last name of the local Keycloak user" "User")}"
+local_user_id="${LOCAL_USER_ID:-$(uuid)}"
 
-litellm_base_url="$(prompt_required "LiteLLM/OpenAI-compatible base URL")"
-litellm_master_key="$(prompt_secret "LiteLLM master key")"
-litellm_text_model="$(prompt_required "LiteLLM chat model")"
-litellm_embedding_model="$(prompt_required "LiteLLM embedding model")"
-litellm_visual_model="$(prompt_required "LiteLLM vision/multimodal model (image + PDF-page analysis, e.g. for Inhaltsextraktion)")"
-
-docling_protocol="$(prompt_default "Docling protocol" "https")"
-docling_host="$(prompt_required "Docling host")"
-docling_port="$(prompt_default "Docling port" "443")"
-docling_ocr_engine="$(prompt_default "Docling OCR engine" "easyocr")"
-docling_token_url="$(prompt_optional "Docling OAuth token URL (leave empty for unauthenticated Docling)")"
-docling_client_id="$(prompt_optional "Docling OAuth client ID (leave empty for unauthenticated Docling)")"
-docling_client_secret="$(prompt_optional_secret "Docling OAuth client secret (leave empty for unauthenticated Docling)")"
-docling_base_url="${docling_protocol}://${docling_host}"
-if [[ "$docling_port" != "80" && "$docling_port" != "443" ]]; then
-  docling_base_url="${docling_base_url}:${docling_port}"
-fi
+litellm_base_url="${LITELLM_BASE_URL:-$(prompt_required "LiteLLM/OpenAI-compatible base URL")}"
+litellm_master_key="${LITELLM_MASTER_KEY:-$(prompt_secret "LiteLLM master key")}"
+litellm_text_model="${LITELLM_TEXT_MODEL:-$(prompt_required "LiteLLM chat model")}"
+litellm_embedding_model="${LITELLM_EMBEDDING_MODEL:-$(prompt_required "LiteLLM embedding model")}"
+litellm_vlm_model="${LITELLM_VLM_MODEL:-$(prompt_required "LiteLLM vision model")}"
 
 db_password="$(secret)"
 s3_access_key_id="spark-local-$(openssl rand -hex 4)"
 s3_secret_access_key="$(secret)"
 spicedb_token="$(secret)"
-keycloak_bootstrap_admin_password="$(secret)"
-local_keycloak_client_secret="$(secret)"
+oidc_bootstrap_admin_password="$(secret)"
+local_oidc_client_secret="$(secret)"
 oauth2_proxy_cookie_secret="$(secret)"
-injection_model_token="$(secret)"
-
-# Browser-facing base URLs.
-# When WEB_HOST is set, the stack runs behind a reverse proxy that publishes every port at
-# https://<port>-$WEB_HOST and authenticates requests, blocking cross-origin CORS preflight. So
-# in that case we (a) point every browser-facing URL at the public host and (b) serve object
-# storage same-origin through the frontend (oauth2-proxy) instead of a separate MinIO port, so
-# uploads/downloads are not cross-origin. Locally we keep plain localhost and direct MinIO.
-# WEB_HOST is not always inherited by non-login shells, so fall back to PID 1's environment.
-web_host="${WEB_HOST:-$(tr '\0' '\n' < /proc/1/environ 2>/dev/null | sed -n 's/^WEB_HOST=//p')}"
-if [[ -n "$web_host" ]]; then
-  frontend_public_url="https://3000-${web_host}"
-  keycloak_public_url="https://9090-${web_host}"
-  # Same-origin as the frontend: presigned URLs are served via oauth2-proxy's /dms-local/ route.
-  s3_public_url="https://3000-${web_host}"
-  temporal_ui_public_url="https://8233-${web_host}"
-  cookie_secure="true"
-  echo "Detected reverse-proxy deployment (WEB_HOST=$web_host); using public https://<port>-\$WEB_HOST URLs."
-else
-  frontend_public_url="http://localhost:3000"
-  keycloak_public_url="http://localhost:9090"
-  s3_public_url="http://localhost:9000"
-  temporal_ui_public_url="http://localhost:8233"
-  cookie_secure="false"
-fi
 
 cat > "$ENV_FILE" <<EOF
 # Generated by scripts/create_secrets.sh. Do not commit this file.
@@ -143,19 +91,9 @@ DB_PASSWORD=$db_password
 S3_ACCESS_KEY_ID=$s3_access_key_id
 S3_SECRET_ACCESS_KEY=$s3_secret_access_key
 AUTH_SPICE_DB_TOKEN=$spicedb_token
-KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD=$keycloak_bootstrap_admin_password
-LOCAL_KEYCLOAK_CLIENT_SECRET=$local_keycloak_client_secret
+OIDC_BOOTSTRAP_ADMIN_PASSWORD=$oidc_bootstrap_admin_password
+LOCAL_OIDC_CLIENT_SECRET=$local_oidc_client_secret
 OAUTH2_PROXY_COOKIE_SECRET=$oauth2_proxy_cookie_secret
-INJECTION_MODEL_TOKEN=$injection_model_token
-
-# Browser-facing base URLs. Localhost by default, or https://<port>-\$WEB_HOST behind
-# a reverse proxy. Consumed by docker-compose.yaml (Keycloak hostname + oauth2-proxy) and
-# process-compose.yaml (frontend). Regenerate .env after switching between plain-localhost and reverse-proxy setups.
-FRONTEND_PUBLIC_URL=$frontend_public_url
-KEYCLOAK_PUBLIC_URL=$keycloak_public_url
-S3_PUBLIC_URL=$s3_public_url
-TEMPORAL_UI_PUBLIC_URL=$temporal_ui_public_url
-OAUTH2_PROXY_COOKIE_SECURE=$cookie_secure
 
 # Local Keycloak login user (seeded by the keycloak-bootstrap container)
 LOCAL_USER_ID=$local_user_id
@@ -169,23 +107,16 @@ LITELLM_BASE_URL=$litellm_base_url
 LITELLM_MASTER_KEY=$litellm_master_key
 LITELLM_TEXT_MODEL=$litellm_text_model
 LITELLM_EMBEDDING_MODEL=$litellm_embedding_model
-LITELLM_VISUAL_MODEL=$litellm_visual_model
+LITELLM_VLM_MODEL=$litellm_vlm_model
 
-# External Docling endpoint
-DOCLING_PROTOCOL=$docling_protocol
-DOCLING_HOST=$docling_host
-DOCLING_PORT=$docling_port
-DOCLING_BASE_URL=$docling_base_url
-DOCLING_OCR_ENGINE=$docling_ocr_engine
+# Docling Serve endpoint started by Process Compose
+DOCLING_PROTOCOL=http
+DOCLING_HOST=localhost
+DOCLING_PORT=5001
+DOCLING_BASE_URL=http://localhost:5001
+DOCLING_OCR_ENGINE=easyocr
 DOCLING_TIMEOUT=600
 EOF
-
-# Empty values break URL validation in workers, so only write the Docling
-# OAuth settings when Docling actually requires OAuth.
-if [[ -n "$docling_token_url" ]]; then
-  printf 'DOCLING_TOKEN_URL=%s\nDOCLING_CLIENT_ID=%s\nDOCLING_CLIENT_SECRET=%s\n' \
-    "$docling_token_url" "$docling_client_id" "$docling_client_secret" >> "$ENV_FILE"
-fi
 
 chmod 600 "$ENV_FILE"
 echo "Created $ENV_FILE"

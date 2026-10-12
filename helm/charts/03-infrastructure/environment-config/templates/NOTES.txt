@@ -1,0 +1,33 @@
+environment-config deployed to namespace {{ .Release.Namespace }} (stage: {{ include "environment-config.effectiveStageName" . | default "<unset>" }}).
+
+{{- if and (not .Values.namespace.create) .Values.namespace.labels }}
+
+NAMESPACE LABEL REMINDER
+------------------------
+namespace.create is false, so this chart did NOT create/label the Namespace.
+When the namespace was created by `helm … --create-namespace` (or by ArgoCD
+with CreateNamespace=true), namespace.labels are missing and must be applied
+manually or by ArgoCD (managedNamespaceMetadata):
+
+  kubectl label namespace {{ .Release.Namespace }}{{ range $k, $v := .Values.namespace.labels }} {{ $k }}={{ $v }}{{ end }} --overwrite
+
+Shared-service NetworkPolicies select environment namespaces by these labels —
+without them, cross-namespace allows do not match.
+{{- end }}
+
+{{- if and .Values.serviceAccount.create .Values.gcp.projectId (not .Values.gcp.serviceAccountEmail) }}
+
+NOTE: gcp.projectId is set but gcp.serviceAccountEmail is empty — the
+ServiceAccount "{{ include "environment-config.serviceAccountName" . }}" carries no
+GKE Workload Identity binding. If the workloads use Google APIs, set e.g.:
+  gcp:
+    serviceAccountEmail: spark-{{ include "environment-config.effectiveStageName" . | default "<env>" }}@{{ .Values.gcp.projectId }}.iam.gserviceaccount.com
+{{- end }}
+
+{{- if .Values.otel.enabled }}
+
+Traces: point workloads at
+  OTEL_ENDPOINT=otel-collector.{{ .Release.Namespace }}.svc.cluster.local:4317
+{{- end }}
+
+Policy variant rendered: {{ if .Values.mesh.enabled }}Cloud Service Mesh (STRICT mTLS + AuthorizationPolicies){{ else if .Values.networkPolicy.enabled }}Dataplane V2 NetworkPolicies (no mesh){{ else }}none{{ end }}.

@@ -3,10 +3,7 @@ import type {
   ApplicantStepValues,
   ProjectStepValues,
 } from '@/features/project/data/project-details-form/projectForm.schema';
-import {
-  buildCreateProjectBody,
-  isDuplicateInternalProjectNumber,
-} from './CreateProjectForm.helpers';
+import { buildCreateProjectBody } from './CreateProjectForm.helpers';
 
 const step1: ProjectStepValues = {
   name: '  Test project  ',
@@ -97,17 +94,5 @@ describe('buildCreateProjectBody', () => {
 
     expect(body.company).toBeNull();
     expect(body.phone).toBeNull();
-  });
-});
-
-describe('isDuplicateInternalProjectNumber', () => {
-  it('matches case-insensitively after trimming', () => {
-    expect(isDuplicateInternalProjectNumber(['AZ-001'], '  az-001 ')).toBe(
-      true,
-    );
-  });
-
-  it('treats a blank candidate as non-duplicate', () => {
-    expect(isDuplicateInternalProjectNumber(['AZ-001'], '   ')).toBe(false);
   });
 });

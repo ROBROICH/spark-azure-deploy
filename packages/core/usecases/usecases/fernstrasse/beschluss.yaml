@@ -1,0 +1,1290 @@
+nodes:
+  - id: 00000000-0000-4000-8000-000000000001
+    parent_vae_node_id: null
+    title: Entscheidung
+    text: ""
+    topic: null
+    order: 0
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000002
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000001
+    title: Feststellung des Plans
+    text: ""
+    topic: null
+    order: 1
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000003
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: Planunterlagen
+    text: ""
+    topic: null
+    order: 2
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000004
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000003
+    title: Planfestgestellte Unterlagen
+    text: ""
+    topic: null
+    order: 3
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000005
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000003
+    title: Unterlagen zur Information
+    text: ""
+    topic: null
+    order: 4
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000006
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: Eingeschlossene Entscheidungen
+    text: ""
+    topic: null
+    order: 5
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000007
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: Nebenbestimmungen
+    text: ""
+    topic: Nebenbestimmungen
+    order: 6
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000008
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: Zusagen der Vorhabenträgerin
+    text: ""
+    topic: Zusagen der Vorhabenträgerin
+    order: 7
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000009
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: >-
+      Entscheidungen über Stellungnahmen, Einwendungen und Anträge
+    text: ""
+    topic: null
+    order: 8
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000002
+    title: Entschädigungen
+    text: ""
+    topic: Entschädigungen
+    order: 9
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000001
+    title: Wasserrechtliche Erlaubnis
+    text: ""
+    topic: Wasserrechtliche Erlaubnisse
+    order: 10
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000c
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000001
+    title: Straßenrechtliche Entscheidung
+    text: ""
+    topic: Straßenrechtliche Entscheidungen
+    order: 11
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000d
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000001
+    title: Sofortige Vollziehbarkeit
+    text: ""
+    topic: Sofortige Vollziehbarkeit
+    order: 12
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000e
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000001
+    title: Kostenentscheidung
+    text: ""
+    topic: null
+    order: 13
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000000f
+    parent_vae_node_id: null
+    title: Begründung
+    text: ""
+    topic: null
+    order: 14
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000010
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000000f
+    title: Sachverhalt
+    text: ""
+    topic: null
+    order: 15
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000011
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000010
+    title: Gegenstand und Beschreibung des Vorhabens
+    text: ""
+    topic: Gegenstand des Vorhabens
+    order: 16
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000012
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000010
+    title: Planungsstufen
+    text: ""
+    topic: Planungsstufen
+    order: 17
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000013
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000012
+    title: Bedarfsplan
+    text: ""
+    topic: null
+    order: 18
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000014
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000012
+    title: Raumordnung
+    text: ""
+    topic: null
+    order: 19
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000015
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000012
+    title: Linienbestimmung
+    text: ""
+    topic: Linienbestimmung
+    order: 20
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000016
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000010
+    title: Antrag
+    text: ""
+    topic: null
+    order: 21
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000017
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000016
+    title: Ausgangsverfahren
+    text: ""
+    topic: null
+    order: 22
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000018
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000016
+    title: 1. Planänderung
+    text: ""
+    topic: null
+    order: 23
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000019
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000016
+    title: 2. Planänderung
+    text: ""
+    topic: null
+    order: 24
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001a
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000000f
+    title: Rechtliche Würdigung
+    text: ""
+    topic: null
+    order: 25
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001b
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Verfahrensrechtliche Würdigung
+    text: ""
+    topic: null
+    order: 26
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001c
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001b
+    title: Planfeststellungsbedürfnis
+    text: ""
+    topic: Notwendigkeit des Planfeststellungsverfahrens
+    order: 27
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001d
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001b
+    title: Zuständigkeit
+    text: ""
+    topic: Zuständigkeit
+    order: 28
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001b
+    title: Verfahren
+    text: ""
+    topic: Verfahren
+    order: 29
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000001f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Umweltverträglichkeitsprüfung
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 30
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000020
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001f
+    title: Allgemeines
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 31
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000021
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001f
+    title: Zusammenfassende Darstellung der Umweltauswirkungen
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 32
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000022
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000021
+    title: Beschreibung des Untersuchungsraums und der Untersuchungsmethodik
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 33
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000023
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000021
+    title: Beschreibung der Schutzgüter
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 34
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000024
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: >-
+      Schutzgut Menschen, insbesondere menschliche Gesundheit
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 35
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000025
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: >-
+      Schutzgut Tiere, Pflanzen und die biologische Vielfalt
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 36
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000026
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Fläche
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 37
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000027
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Boden
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 38
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000028
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Wasser
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 39
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000029
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Luft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 40
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Klima
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 41
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut Landschaft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 42
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002c
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000023
+    title: Schutzgut kulturelles Erbe und sonstige Sachgüter
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 43
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002d
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000021
+    title: Beschreibung der Umweltauswirkungen
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 44
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: >-
+      Schutzgut Menschen, insbesondere menschliche Gesundheit
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 45
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000002f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: >-
+      Schutzgut Tiere, Pflanzen und die biologische Vielfalt
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 46
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000030
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Fläche
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 47
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000031
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Boden
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 48
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000032
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Wasser
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 49
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000033
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Luft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 50
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000034
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Klima
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 51
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000035
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut Landschaft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 52
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000036
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Schutzgut kulturelles Erbe und sonstige Sachgüter
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 53
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000037
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000002d
+    title: Wechselwirkungen
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 54
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000038
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001f
+    title: Bewertung der Umweltauswirkungen
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 55
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000039
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: >-
+      Schutzgut Menschen, insbesondere menschliche Gesundheit
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 56
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: >-
+      Schutzgut Tiere, Pflanzen und die biologische Vielfalt
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 57
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Fläche
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 58
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003c
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Boden
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 59
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003d
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Wasser
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 60
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003e
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Luft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 61
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000003f
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Klima
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 62
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000040
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut Landschaft
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 63
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000041
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Schutzgut kulturelles Erbe und sonstige Sachgüter
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 64
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000042
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000038
+    title: Gesamtbewertung
+    text: ""
+    topic: Umweltverträglichkeitsprüfung
+    order: 65
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000043
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001f
+    title: Berücksichtigung in der Zulassungsentscheidung
+    text: ""
+    topic: null
+    order: 66
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000044
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001f
+    title: Überwachungsmaßnahmen
+    text: ""
+    topic: Überwachungsmaßnahmen zur Einhaltung umweltbezogener Bestimmungen
+    order: 67
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000045
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Materiell-rechtliche Würdigung
+    text: ""
+    topic: null
+    order: 68
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000046
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000045
+    title: Planrechtfertigung
+    text: ""
+    topic: Planrechtfertigung
+    order: 69
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000047
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000046
+    title: Bedarf
+    text: ""
+    topic: Planrechtfertigung
+    order: 70
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000048
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000046
+    title: Abschnittsweise Planfeststellung
+    text: ""
+    topic: Planrechtfertigung
+    order: 71
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000049
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000045
+    title: Planungsalternativen
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 72
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Maßstab
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 73
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Grobanalyse
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 74
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004c
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Großräumiger Trassenvergleich
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 75
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004d
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Kleinräumiger Trassenvergleich
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 76
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004e
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Ausbaukonzeption
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 77
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000004f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000004e
+    title: Bundesfernstraße
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 78
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000050
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000004e
+    title: Knotenpunkte
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 79
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000051
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000049
+    title: Bauwerke und Anlagen
+    text: ""
+    topic: Fachplanerische Alternativenprüfung
+    order: 80
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000052
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000045
+    title: Planleitsätze und Abwägung
+    text: ""
+    topic: Planungsleitsätze
+    order: 81
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000053
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Raumordnung
+    text: ""
+    topic: Raumordnung
+    order: 82
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000054
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000053
+    title: Ziele der Raumordnung
+    text: ""
+    topic: Raumordnung
+    order: 83
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000055
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000053
+    title: Grundsätze der Raumordnung
+    text: ""
+    topic: Raumordnung
+    order: 84
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000056
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Bauleitplanung
+    text: ""
+    topic: Bauleitplanung
+    order: 85
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000057
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000056
+    title: Flächennutzungsplan
+    text: ""
+    topic: Bauleitplanung
+    order: 86
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000058
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000056
+    title: Bebauungsplan
+    text: ""
+    topic: Bauleitplanung
+    order: 87
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000059
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Immissionsschutz
+    text: ""
+    topic: Immissionsschutz
+    order: 88
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Trennungsgebot
+    text: ""
+    topic: Immissionsschutz
+    order: 89
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Verkehrslärm
+    text: ""
+    topic: >-
+      Immissionsschutz: Verkehrslärm
+    order: 90
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005c
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000005b
+    title: Verkehrsprognose
+    text: ""
+    topic: >-
+      Immissionsschutz: Verkehrslärm
+    order: 91
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005d
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000005b
+    title: Lärmauswirkung
+    text: ""
+    topic: >-
+      Immissionsschutz: Verkehrslärm
+    order: 92
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000005b
+    title: Lärmschutzmaßnahmen
+    text: ""
+    topic: >-
+      Immissionsschutz: Verkehrslärm
+    order: 93
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000005f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000005b
+    title: Entschädigung
+    text: ""
+    topic: >-
+      Immissionsschutz: Verkehrslärm
+    order: 94
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000060
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Auswirkungen auf das nachgeordnete Straßennetz
+    text: ""
+    topic: Immissionsschutz
+    order: 95
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000061
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Baulärm
+    text: ""
+    topic: >-
+      Immissionsschutz: Baulärm
+    order: 96
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000062
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Luftschadstoffe
+    text: ""
+    topic: >-
+      Immissionsschutz: Luftschadstoffe
+    order: 97
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000063
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000059
+    title: Erschütterungen
+    text: ""
+    topic: >-
+      Immissionsschutz: Erschütterungen
+    order: 98
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000064
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Naturschutz
+    text: ""
+    topic: Naturschutzrecht
+    order: 99
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000065
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Aussagekraft der Kartierdaten
+    text: ""
+    topic: Naturschutzrecht
+    order: 100
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000066
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Natura-2000 Gebiete
+    text: ""
+    topic: FFH-Verträglichkeit / Natura 2000
+    order: 101
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000067
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Nationale Schutzgebiete und -objekte
+    text: ""
+    topic: Naturschutzrecht
+    order: 102
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000068
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Gesetzlicher Biotopschutz
+    text: ""
+    topic: Naturschutzrecht
+    order: 103
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000069
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Artenschutz
+    text: ""
+    topic: Artenschutzrecht
+    order: 104
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000064
+    title: Naturschutzrechtliche Eingriffsregelung
+    text: ""
+    topic: Naturschutzrechtliche Eingriffsregelung
+    order: 105
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006b
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000006a
+    title: Vermeidung und Minimierung
+    text: ""
+    topic: Naturschutzrechtliche Eingriffsregelung
+    order: 106
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006c
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000006a
+    title: Ausgleich und Ersatz
+    text: ""
+    topic: Naturschutzrechtliche Eingriffsregelung
+    order: 107
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006d
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000006a
+    title: Herstellungskontrolle
+    text: ""
+    topic: Naturschutzrechtliche Eingriffsregelung
+    order: 108
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000006a
+    title: Ersatzgeld
+    text: ""
+    topic: Naturschutzrechtliche Eingriffsregelung
+    order: 109
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000006f
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Waldschutz
+    text: ""
+    topic: Waldschutz
+    order: 110
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000070
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Gewässerschutz
+    text: ""
+    topic: null
+    order: 111
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000071
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Gewässerbewirtschaftungsziele
+    text: ""
+    topic: null
+    order: 112
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000072
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000071
+    title: Oberirdische Gewässer
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 113
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000073
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000071
+    title: Grundwasser
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 114
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000074
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Beeinträchtigung von oberirdischen Gewässern und Grundwasser
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 115
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000075
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Überschwemmungsgebiet
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 116
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000076
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Wasserschutzgebiet
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 117
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000077
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Gewässerrandstreifen
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 118
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000078
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000070
+    title: Gewässerausbau
+    text: ""
+    topic: Wasserrahmenrecht
+    order: 119
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000079
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Denkmalschutz
+    text: ""
+    topic: Denkmalschutz
+    order: 120
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: >-
+      Bodenschutz, Altlasten, Abfall
+    text: ""
+    topic: >-
+      Bodenschutz, Altlasten, Abfall
+    order: 121
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Klimaschutz
+    text: ""
+    topic: Klimaschutz
+    order: 122
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007c
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Kommunale Belange
+    text: ""
+    topic: Kommunale Belange
+    order: 123
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007d
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Eigentum
+    text: ""
+    topic: Grunderwerb / Eigentum
+    order: 124
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007e
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Landwirtschaft
+    text: ""
+    topic: null
+    order: 125
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000007f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Allgemeines
+    text: ""
+    topic: Landwirtschaft
+    order: 126
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000080
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Flächeninanspruchnahme
+    text: ""
+    topic: Landwirtschaft
+    order: 127
+    is_hidden: false
+    can_add_child: true
+  - id: 00000000-0000-4000-8000-000000000081
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000080
+    title: Dauerhaft
+    text: ""
+    topic: Landwirtschaft
+    order: 128
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000082
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000080
+    title: Temporär
+    text: ""
+    topic: Landwirtschaft
+    order: 129
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000083
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Existenzgefährdung
+    text: ""
+    topic: Landwirtschaft
+    order: 130
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000084
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Wertminderung
+    text: ""
+    topic: Landwirtschaft
+    order: 131
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000085
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Übernahmeanspruch
+    text: ""
+    topic: Landwirtschaft
+    order: 132
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000086
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Wegenetz
+    text: ""
+    topic: Landwirtschaft
+    order: 133
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000087
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Bewirtschaftungserschwernisse
+    text: ""
+    topic: Landwirtschaft
+    order: 134
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000088
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000007e
+    title: Drainagen
+    text: ""
+    topic: Landwirtschaft
+    order: 135
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000089
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Forstwirtschaft
+    text: ""
+    topic: Forstwirtschaft
+    order: 136
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000008a
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Jagdrecht
+    text: ""
+    topic: Jagdrecht
+    order: 137
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000008b
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000052
+    title: Weitere Belange
+    text: ""
+    topic: null
+    order: 138
+    is_hidden: false
+    can_add_child: true
+  - id: 00000000-0000-4000-8000-00000000008c
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000008b
+    title: Technische Sicherheit
+    text: ""
+    topic: Technische Sicherheit
+    order: 139
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000008d
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000008b
+    title: Brand- und Katastrophenschutz
+    text: ""
+    topic: Brand- und Katastrophenschutz
+    order: 140
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000008e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000008b
+    title: Kampfmittelbeseitigung
+    text: ""
+    topic: Kampfmittelbeseitigung
+    order: 141
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000008f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000008b
+    title: Ver- und Entsorgungsanlagen
+    text: ""
+    topic: Ver- und Entsorgungsanlagen
+    order: 142
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000090
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000045
+    title: Stellungnahmen und Einwendungen
+    text: ""
+    topic: null
+    order: 143
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000091
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000090
+    title: Stellungnahmen
+    text: ""
+    topic: null
+    order: 144
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000092
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000091
+    title: Landkreise
+    text: ""
+    topic: null
+    order: 145
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000093
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000091
+    title: Gemeinden
+    text: ""
+    topic: null
+    order: 146
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000094
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000091
+    title: Träger öffentlicher Belange
+    text: ""
+    topic: null
+    order: 147
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000095
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000090
+    title: Erledigte Einwendungen
+    text: ""
+    topic: null
+    order: 148
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000096
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000090
+    title: Gleichgelagerte Einwendungen
+    text: ""
+    topic: null
+    order: 149
+    is_hidden: false
+    can_add_child: true
+  - id: 00000000-0000-4000-8000-000000000097
+    parent_vae_node_id: 00000000-0000-4000-8000-000000000090
+    title: Gesonderte Einwendungen
+    text: ""
+    topic: null
+    order: 150
+    is_hidden: false
+    can_add_child: true
+  - id: 00000000-0000-4000-8000-000000000098
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Wasserrechtliche Erlaubnis
+    text: ""
+    topic: Wasserrechtliche Erlaubnisse
+    order: 151
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-000000000099
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Straßenrechtliche Entscheidung
+    text: ""
+    topic: Straßenrechtliche Entscheidungen
+    order: 152
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009a
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Gesamtabwägung
+    text: ""
+    topic: Gesamtabwägung
+    order: 153
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009b
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Sofortige Vollziehbarkeit
+    text: ""
+    topic: Sofortige Vollziehbarkeit
+    order: 154
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009c
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000001a
+    title: Kostenentscheidung
+    text: ""
+    topic: Kostenentscheidung
+    order: 155
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009d
+    parent_vae_node_id: null
+    title: Rechtsbehelfsbelehrung
+    text: ""
+    topic: Rechtsbehelfsbelehrung
+    order: 156
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009e
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000009d
+    title: Klage
+    text: ""
+    topic: null
+    order: 157
+    is_hidden: false
+    can_add_child: false
+  - id: 00000000-0000-4000-8000-00000000009f
+    parent_vae_node_id: 00000000-0000-4000-8000-00000000009d
+    title: Sofortige Vollziehbarkeit
+    text: ""
+    topic: Sofortige Vollziehbarkeit
+    order: 158
+    is_hidden: false
+    can_add_child: false

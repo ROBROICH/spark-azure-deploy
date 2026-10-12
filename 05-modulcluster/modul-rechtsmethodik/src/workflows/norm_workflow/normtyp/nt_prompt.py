@@ -1,5 +1,7 @@
 """Prompt template for norm type classification."""
 
+from src.activities.prompt_blocks import closing_block
+
 norm_typ_agent_prompt = """
 **Rolle**
 Du bist ein Jurist mit fundierten Kenntnissen des deutschen Rechtssystems und einem vertieften Verständnis der Abgrenzung zwischen Verfahrensrecht und materiellem Recht. 
@@ -40,10 +42,6 @@ Der Satz legt eine inhaltliche Pflicht fest - nämlich das Erfordernis einer Gen
 
 **Anwendung**
 - Nutze nun anhand der oben beschrieben Beispiele und Definitionen um eine Klassifizierung in "verfahrensrechtlich" oder "materiell-rechtlich" vorzunehmen, basierend auf folgendem Satz: 
-{external_data_tag_open}
-{satz_text}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "{satz_text}",
+)

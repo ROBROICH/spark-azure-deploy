@@ -1,0 +1,85 @@
+# ci: every generic toggle on (except KEDA, mutually exclusive with HPA — see gke).
+image:
+  repository: registry.example.com/spark/app
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+nameOverride: app
+namespaceOverride: apps
+stage:
+  name: ci
+labels:
+  environment: ci
+containerPorts:
+  - {containerPort: 8000, name: http}
+serviceAccount:
+  create: true
+  annotations: {example.com/role: app}
+podAnnotations: {example.com/annotated: "true"}
+podLabels: {example.com/team: platform}
+service:
+  enabled: true
+  port: 80
+  ports:
+    - {port: 80, targetPort: http, name: http}
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {example.com/ingress: "true"}
+  hosts:
+    - host: app.example.com
+      paths: [{path: /, pathType: Prefix}]
+  tls:
+    - {hosts: [app.example.com], secretName: app-tls}
+resources:
+  requests: {cpu: 100m, memory: 128Mi}
+  limits: {memory: 256Mi}
+extraEnv:
+  - {name: EXTRA, value: "1"}
+startupProbe: {httpGet: {path: /health, port: http}, failureThreshold: 30, periodSeconds: 2}
+livenessProbe: {httpGet: {path: /health, port: http}}
+readinessProbe: {httpGet: {path: /health, port: http}}
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+nodeSelector: {kubernetes.io/os: linux}
+tolerations: [{key: dedicated, operator: Equal, value: apps, effect: NoSchedule}]
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector: {matchLabels: {app.kubernetes.io/name: app}}
+volumes: [{name: tmp, emptyDir: {}}]
+volumeMounts: [{name: tmp, mountPath: /tmp}]
+command: [/app/run]
+args: [--verbose]
+extraEnvFrom:
+  - secretRef: {name: '{{ .Release.Name }}-env'}
+initContainers:
+  - {name: init, image: registry.example.com/spark/init:1.0.0, command: [/bin/true]}
+extraContainers:
+  - {name: sidecar, image: registry.example.com/spark/sidecar:1.0.0}
+extraVolumes: [{name: cache, emptyDir: {}}]
+extraVolumeMounts: [{name: cache, mountPath: /cache}]
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector: {matchLabels: {app.kubernetes.io/instance: '{{ .Release.Name }}-app-ci'}}
+priorityClassName: high
+terminationGracePeriodSeconds: 60
+lifecycle:
+  preStop: {sleep: {seconds: 5}}
+extraObjects:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata: {name: '{{ .Release.Name }}-extra'}
+    data: {a: b}
+networkPolicy:
+  enabled: true
+  ingress:
+    - from: [{namespaceSelector: {matchLabels: {kubernetes.io/metadata.name: gateway}}}]
+serviceMonitor:
+  enabled: true

@@ -62,14 +62,14 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
         data: [
           {
             id: 'kapitel-2',
-            node_type: 'bewertung_kapitel',
+            nodeType: 'bewertung_kapitel',
             titel: 'Kapitel B',
             markdown: 'Zweite Begruendung [42]',
             order: 2,
           },
           {
             id: 'kapitel-1',
-            node_type: 'bewertung_kapitel',
+            nodeType: 'bewertung_kapitel',
             titel: 'Kapitel A',
             markdown: 'Erste Begruendung [17]',
             order: 1,
@@ -82,19 +82,19 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
       data: [
         {
           id: 'quelle-1',
-          node_type: 'bewertung_quelle',
-          dokument_id: 'topic-doc-1',
+          nodeType: 'bewertung_quelle',
+          dokumentId: 'topic-doc-1',
           title: 'Beispieldokument A',
-          chunk_ids: ['chunk-1'],
-          page_numbers: [5, 7],
+          chunkIds: ['chunk-1'],
+          pageNumbers: [5, 7],
         },
         {
           id: 'quelle-2',
-          node_type: 'bewertung_quelle',
-          dokument_id: 'topic-doc-1',
+          nodeType: 'bewertung_quelle',
+          dokumentId: 'topic-doc-1',
           title: 'Bearbeiter:',
-          chunk_ids: ['chunk-2'],
-          page_numbers: [11],
+          chunkIds: ['chunk-2'],
+          pageNumbers: [11],
         },
       ],
     };
@@ -104,11 +104,11 @@ vi.mock('@/db/nodes/hooks/useDescendantNodes', () => ({
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (nodeType: string) => {
     if (nodeType === 'satz') {
-      return [{ id: 'satz-1', node_type: 'satz' }];
+      return [{ id: 'satz-1', nodeType: 'satz' }];
     }
 
     if (nodeType === 'absatz') {
-      return [{ id: 'absatz-1', node_type: 'absatz' }];
+      return [{ id: 'absatz-1', nodeType: 'absatz' }];
     }
 
     return [];
@@ -116,14 +116,14 @@ vi.mock('@/db/nodes/hooks/useDescendants', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | null) => {
-    if (nodeRef?.node_type === 'satz') {
+  useNode: (nodeRef: { id: string; nodeType: string } | null) => {
+    if (nodeRef?.nodeType === 'satz') {
       return {
         data: {
           id: 'satz-1',
-          node_type: 'satz',
-          absatz_id: 'absatz-1',
-          satz_nr: '2',
+          nodeType: 'satz',
+          absatzId: 'absatz-1',
+          satzNr: '2',
           position: 99,
           markers: ['3', 'Nr 5'],
           text: 'Der Satztext',
@@ -131,13 +131,13 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
       };
     }
 
-    if (nodeRef?.node_type === 'absatz') {
+    if (nodeRef?.nodeType === 'absatz') {
       return {
         data: {
           id: 'absatz-1',
-          node_type: 'absatz',
-          norm_id: 'norm-1',
-          absatz_nr: '1',
+          nodeType: 'absatz',
+          normId: 'norm-1',
+          absatzNr: '1',
         },
       };
     }
@@ -149,8 +149,8 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
       data: [
         {
           id: 'topic-doc-1',
-          node_type: 'dokument',
-          dms_file_id: 'project-file-1',
+          nodeType: 'dokument',
+          dmsFileId: 'project-file-1',
           filename: 'Beispieldokument A.pdf',
         },
       ],
@@ -174,7 +174,7 @@ describe('AiSatzBewertungFull', () => {
 
     render(
       <AiSatzBewertungFull
-        bewertungRef={{ id: 'bewertung-1', node_type: 'bewertung' }}
+        bewertungRef={{ id: 'bewertung-1', nodeType: 'bewertung' }}
         summaryText={'# Einleitung\n\nKurze Zusammenfassung [17]'}
       />,
     );

@@ -1,4 +1,4 @@
-import type { IdentityResponse } from '@/api-clients/identity-management-module/types.gen';
+import type { IdentityResponse } from '@/api-clients/backend/types.gen';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { SYSTEM_USER_ID } from '@/features/access-control/system-users/systemUsers';
 import {
@@ -8,12 +8,12 @@ import {
 
 const mocks = vi.hoisted(() => ({
   createCollection: vi.fn((options: object) => options),
-  getAllIdentitiesUsersGet: vi.fn(),
+  listIdentities: vi.fn(),
 }));
 
-vi.mock('@/api-clients/identity-management-module', () => ({
-  getAllIdentitiesUsersGet: (...args: unknown[]) =>
-    mocks.getAllIdentitiesUsersGet(...args),
+vi.mock('@/api-clients/backend', () => ({
+  v1IdentityListIdentities: (...args: unknown[]) =>
+    mocks.listIdentities(...args),
 }));
 
 vi.mock('@/integrations/tanstack-query/root-provider', () => ({
@@ -38,7 +38,7 @@ const collectionOptions = organizationUsersCollection as unknown as {
 };
 
 beforeEach(() => {
-  mocks.getAllIdentitiesUsersGet.mockReset();
+  mocks.listIdentities.mockReset();
 });
 
 describe('isAssignableOrganizationUser', () => {
@@ -48,6 +48,8 @@ describe('isAssignableOrganizationUser', () => {
       expect(
         isAssignableOrganizationUser({
           email: 'user@example.com',
+          firstName: null,
+          lastName: null,
           role,
           userId: 'user-1',
         }),
@@ -58,11 +60,12 @@ describe('isAssignableOrganizationUser', () => {
   it.each([
     { role: 'service' as const, label: 'service identities' },
     { role: null, label: 'null-role identities' },
-    { role: undefined, label: 'missing-role identities' },
   ])('filters out $label', ({ role }) => {
     expect(
       isAssignableOrganizationUser({
         email: 'user@example.com',
+        firstName: null,
+        lastName: null,
         role,
         userId: 'user-1',
       }),
@@ -73,6 +76,8 @@ describe('isAssignableOrganizationUser', () => {
     expect(
       isAssignableOrganizationUser({
         email: 'system@example.com',
+        firstName: null,
+        lastName: null,
         role: 'admin',
         userId: SYSTEM_USER_ID,
       }),
@@ -84,10 +89,12 @@ describe('organizationUsersCollection', () => {
   it('loads users with throwOnError and filters to assignable human identities', async () => {
     const assignableUser = {
       email: 'user@example.com',
+      firstName: null,
+      lastName: null,
       role: 'user' as const,
       userId: 'user-1',
     };
-    mocks.getAllIdentitiesUsersGet.mockResolvedValue({
+    mocks.listIdentities.mockResolvedValue({
       data: {
         users: [
           assignableUser,
@@ -112,14 +119,14 @@ describe('organizationUsersCollection', () => {
     await expect(collectionOptions.queryFn()).resolves.toEqual([
       assignableUser,
     ]);
-    expect(mocks.getAllIdentitiesUsersGet).toHaveBeenCalledWith({
+    expect(mocks.listIdentities).toHaveBeenCalledWith({
       throwOnError: true,
     });
   });
 
   it('surfaces organization-user query errors', async () => {
     const error = new Error('identity backend failed');
-    mocks.getAllIdentitiesUsersGet.mockRejectedValue(error);
+    mocks.listIdentities.mockRejectedValue(error);
 
     await expect(collectionOptions.queryFn()).rejects.toBe(error);
   });
@@ -128,6 +135,8 @@ describe('organizationUsersCollection', () => {
     expect(
       collectionOptions.getKey({
         email: 'user@example.com',
+        firstName: null,
+        lastName: null,
         role: 'user',
         userId: 'user-1',
       }),
@@ -138,22 +147,30 @@ describe('organizationUsersCollection', () => {
     expect(
       collectionOptions.schema.parse({
         email: 'admin@example.com',
+        firstName: null,
+        lastName: null,
         role: 'admin',
         userId: 'admin-1',
       }),
     ).toEqual({
       email: 'admin@example.com',
+      firstName: null,
+      lastName: null,
       role: 'admin',
       userId: 'admin-1',
     });
     expect(
       collectionOptions.schema.parse({
         email: 'user@example.com',
+        firstName: null,
+        lastName: null,
         role: 'user',
         userId: 'user-1',
       }),
     ).toEqual({
       email: 'user@example.com',
+      firstName: null,
+      lastName: null,
       role: 'user',
       userId: 'user-1',
     });

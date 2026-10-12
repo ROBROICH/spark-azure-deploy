@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+import { TooltipProvider } from '@/features/ui/tooltip/Tooltip';
 import type { ContradictionListItem } from '../data/read-model/useContradictions';
 import { ContradictionCard } from './ContradictionCard';
 
@@ -43,6 +44,10 @@ vi.mock('react-i18next', () => ({
         return 'Widersprüchliche Angabe';
       }
 
+      if (key === 'redesign.weaklySupported') {
+        return 'Schwach belegt – bitte am Original prüfen';
+      }
+
       return key;
     },
   }),
@@ -56,6 +61,7 @@ const makeContradiction = (): ContradictionListItem => ({
   id: 'contradiction-1',
   title: 'Widerspruchstitel',
   description: 'Die Plausibilitaets-Erklaerung beschreibt den Widerspruch.',
+  rating: null,
   status: 'OPEN',
   occurrences: [
     {
@@ -174,5 +180,89 @@ describe('ContradictionCard', () => {
       leftOccurrenceIndex: undefined,
       rightOccurrenceIndex: undefined,
     });
+  });
+
+  it('shows a weakly-supported warning below 0.6 on both scales', () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <ContradictionCard
+          contradiction={{ ...makeContradiction(), rating: 59 }}
+          index={0}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Schwach belegt – bitte am Original prüfen',
+      }),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole('button', {
+        name: /Widerspruchstitel WA-0001, Offen:/,
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <TooltipProvider>
+        <ContradictionCard
+          contradiction={{ ...makeContradiction(), rating: 0.59 }}
+          index={0}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.getByRole('button', {
+        name: 'Schwach belegt – bitte am Original prüfen',
+      }),
+    ).toBeTruthy();
+  });
+
+  it('hides the weakly-supported warning for confident or missing ratings', () => {
+    const { rerender } = render(
+      <TooltipProvider>
+        <ContradictionCard
+          contradiction={{ ...makeContradiction(), rating: 60 }}
+          index={0}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Schwach belegt – bitte am Original prüfen',
+      }),
+    ).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <ContradictionCard
+          contradiction={{ ...makeContradiction(), rating: 0.6 }}
+          index={0}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Schwach belegt – bitte am Original prüfen',
+      }),
+    ).toBeNull();
+
+    rerender(
+      <TooltipProvider>
+        <ContradictionCard
+          contradiction={{ ...makeContradiction(), rating: null }}
+          index={0}
+        />
+      </TooltipProvider>,
+    );
+
+    expect(
+      screen.queryByRole('button', {
+        name: 'Schwach belegt – bitte am Original prüfen',
+      }),
+    ).toBeNull();
   });
 });

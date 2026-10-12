@@ -1,6 +1,0 @@
-apiVersion: v2
-name: temporal-job-service
-description: A Helm chart for Kubernetes deployment of temporal job service
-type: application
-version: 0.1.0
-appVersion: "1.16.0"

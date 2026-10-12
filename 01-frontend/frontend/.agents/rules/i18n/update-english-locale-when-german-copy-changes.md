@@ -1,3 +1,10 @@
+---
+ruleId: i18n/update-english-locale-when-german-copy-changes
+paths:
+  - "src/**/*.tsx"
+  - "src/features/**/*.json"
+---
+
 # Update English Locale When German Copy Changes
 
 - When changing wording in a German locale file, update the matching English locale entry in the same change, even if no translation key changes.

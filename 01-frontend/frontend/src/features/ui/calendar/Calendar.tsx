@@ -50,7 +50,7 @@ function Calendar({
       weekStartsOn={1}
       showOutsideDays={showOutsideDays}
       className={cn(
-        'bg-background group/calendar rounded-md bg-bg-secondary p-4 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(7)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent',
+        'bg-background group/calendar rounded-md bg-bg-secondary p-4 [--cell-radius:var(--radius-md)] [--cell-size:--spacing(6)] in-data-[slot=card-content]:bg-transparent in-data-[slot=popover-content]:bg-transparent sm:[--cell-size:--spacing(7)]',
         'rtl:**:[.rdp-button\\_next>svg]:rotate-180',
         'rtl:**:[.rdp-button\\_previous>svg]:rotate-180',
         className,
@@ -67,7 +67,7 @@ function Calendar({
         ...formatters,
       }}
       classNames={{
-        root: cn('w-fit', defaultClassNames.root),
+        root: cn('w-fit max-w-full', defaultClassNames.root),
         months: cn(
           'relative flex flex-col gap-4 md:flex-row',
           defaultClassNames.months,
@@ -191,7 +191,10 @@ function Calendar({
           if (orientation === 'left') {
             return (
               <ChevronLeftIcon
-                className={cn('size-4 text-text-primary', chevronClassName)}
+                className={cn(
+                  'size-4 text-text-primary forced-colors:text-[color:CanvasText]',
+                  chevronClassName,
+                )}
                 {...chevronProps}
               />
             );
@@ -200,7 +203,10 @@ function Calendar({
           if (orientation === 'right') {
             return (
               <ChevronRightIcon
-                className={cn('size-4 text-text-primary', chevronClassName)}
+                className={cn(
+                  'size-4 text-text-primary forced-colors:text-[color:CanvasText]',
+                  chevronClassName,
+                )}
                 {...chevronProps}
               />
             );
@@ -208,7 +214,10 @@ function Calendar({
 
           return (
             <ChevronDownIcon
-              className={cn('size-4 text-text-primary', chevronClassName)}
+              className={cn(
+                'size-4 text-text-primary forced-colors:text-[color:CanvasText]',
+                chevronClassName,
+              )}
               {...chevronProps}
             />
           );

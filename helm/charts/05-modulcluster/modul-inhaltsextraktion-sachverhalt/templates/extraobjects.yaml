@@ -1,0 +1,9 @@
+{{- /*
+extraObjects: additional manifests released with the chart (list of maps or
+YAML strings), rendered with tpl — the escape hatch for anything the chart
+does not model.
+*/ -}}
+{{- range .Values.extraObjects }}
+---
+{{ tpl (ternary . (toYaml .) (kindIs "string" .)) $ }}
+{{- end }}

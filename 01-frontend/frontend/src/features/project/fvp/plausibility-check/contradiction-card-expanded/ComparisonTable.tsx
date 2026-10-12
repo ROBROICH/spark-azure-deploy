@@ -1,4 +1,4 @@
-import type { Contradiction } from '@/api-clients/pns-module';
+import type { Contradiction } from '@/api-clients/backend';
 import { getRouteApi, useNavigate } from '@tanstack/react-router';
 import { invariant } from 'es-toolkit/util';
 

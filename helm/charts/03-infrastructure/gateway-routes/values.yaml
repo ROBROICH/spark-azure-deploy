@@ -1,0 +1,278 @@
+# =============================================================================
+# gateway-routes — Helm values (03-infrastructure)
+# =============================================================================
+# Per-environment Envoy Gateway routing (path maps, policies and timeouts;
+# see README.md "Design notes").
+#
+# All resources render into the release namespace (the environment namespace).
+# The Gateway `api-gateway` itself lives in envoy-gateway-system (cluster baseline)
+# and is NOT part of this chart; routes attach to it via parentRefs + the
+# listener's allowedRoutes namespace selector.
+# =============================================================================
+
+global:
+  # Stage/environment name (e.g. my-env, pr-123). Drives:
+  #   - backend Service name suffix  (-<stage>, leaf-chart fullname scheme)
+  #   - default domain               (<stage>.<baseDomain>)
+  #   - default listener sections    (https-<stage> / http-<stage>)
+  #   - default Keycloak realm       (<stage>)
+  # REQUIRED (no default): set by the umbrella / env values file, or via
+  # --set for standalone renders (see README.md).
+  stage:
+    name: ""
+
+# Chart-local stage override (takes precedence over global.stage.name, mirroring
+# the leaf-chart helper precedence). Leave empty in normal use.
+stage:
+  name: ""
+
+# Environment domain, e.g. "env1.example.com".
+# Empty = derived as <stage>.<baseDomain>.
+domain: ""
+
+# Base domain under which the environments of one platform live, e.g.
+# envs.example.com (environments: *.<env>.envs.example.com). Required
+# when domain is empty.
+baseDomain: ""
+
+# Per-service hostname overrides. Empty = <service>.<domain>. Each may be a
+# list: every hostname is served, the first is the primary one (OIDC redirect
+# URL and cookie domain, default CORS origin), e.g. an environment reachable
+# under two domains:
+#   dashboard: [dashboard.env1.example.com, dashboard.env1.example.org]
+hosts:
+  api: ""        # default api.<domain>
+  dashboard: ""  # default dashboard.<domain>
+  temporal: ""   # default temporal.<domain>
+
+# The shared Gateway the routes attach to (lives OUTSIDE this chart).
+# sectionName / httpSectionName empty = https-<stage> / http-<stage>: the
+# Gateway's contract is one https-<env> / http-<env> listener pair per
+# environment — keep these in sync if the listener naming scheme changes.
+#
+# Gateways with listeners per hostname instead: sectionName / httpSectionName
+# may be lists, and sectionNames.<group> sets the https sections of one host
+# group (api, dashboard, temporal, or an extraDashboards / extraSites key):
+#   sectionNames:
+#     api: [https-api, https-api-org]
+#     dashboard: [https-dashboard, https-dashboard-org]
+#   httpSectionName: [http-api, http-dashboard]
+gateway:
+  name: api-gateway
+  namespace: envoy-gateway-system
+  sectionName: ""
+  httpSectionName: ""
+  sectionNames: {}
+
+# Per-environment listeners (Gateway API ListenerSet, v1 since Gateway API
+# v1.5) instead of listener pairs on the shared Gateway. With enabled: true
+# the chart renders a ListenerSet (https + http for the redirect) for
+# `hostname` (default *.<domain>) attached to `gateway`, and every route
+# attaches to it; gateway.sectionName/httpSectionName are then unused.
+# Prerequisite: the Gateway admits ListenerSets from the environment's
+# namespace (spec.allowedListeners.namespaces).
+#   tls.secretName   — TLS Secret in the release namespace (default
+#                      <name>-tls).
+#   tls.certificate  — render a cert-manager Certificate for the hostname into
+#                      that Secret (enabled + issuerRef {name, kind}; a
+#                      wildcard hostname needs a DNS-01 issuer).
+listenerSet:
+  enabled: false
+  name: ""
+  hostname: ""
+  httpsPort: 443
+  httpPort: 80
+  tls:
+    secretName: ""
+    certificate:
+      enabled: false
+      issuerRef:
+        name: ""
+        kind: ClusterIssuer
+
+# Edge authentication (Keycloak).
+auth:
+  # Shared Keycloak host. Used for the OIDC/JWT issuer URLs, the
+  # /api/me userinfo proxy and the Backend/BackendTLSPolicy below.
+  keycloakHost: ""
+  # Realm for this env. Empty = <stage> (one realm per environment).
+  realm: ""
+  # OIDC client in that realm.
+  clientID: envoy-gateway
+  # Secret (in THIS namespace) holding the client secret under key
+  # "client-secret" — created by the environment-config chart.
+  clientSecretName: envoy-gateway-credentials
+  # realm_access.roles values accepted by the api JWT policy.
+  allowedRoles:
+    - user
+    - admin
+  # JWT audiences. Empty = no audience check (the field is omitted).
+  audiences: []
+
+# CORS for the api + dashboard SecurityPolicies.
+# Empty list = the environment's own dashboard origin, https://dashboard.<domain>.
+cors:
+  allowOrigins: []
+  allowMethods: [GET, POST, PUT, DELETE, PATCH, OPTIONS]
+  allowHeaders: [Authorization, Content-Type]
+  allowCredentials: true
+  maxAge: 3600s
+
+# OIDC sessions of the dashboard routes and of the Temporal UI (Envoy Gateway
+# SecurityPolicy oidc): callback/logout paths on the host, scopes, cookie
+# names (distinct per policy: both hosts may share a parent domain),
+# SameSite, access-token and refresh-token lifetimes.
+oidc:
+  dashboard:
+    redirectPath: /app/oauth2/callback
+    logoutPath: /app/logout
+    scopes: [openid, profile, email]
+    cookieNames: {accessToken: dashboard_access_token, idToken: dashboard_id_token}
+    sameSite: Lax
+    tokenTTL: 1800s
+    refreshTokenTTL: 8h
+  temporal:
+    redirectPath: /oauth2/callback
+    logoutPath: /logout
+    scopes: [openid, profile, email]
+    cookieNames: {accessToken: temporal_access_token, idToken: temporal_id_token}
+    sameSite: Lax
+    tokenTTL: 300s
+    refreshTokenTTL: 8h
+
+# Port every leaf-chart Service exposes (all charts default to 80).
+backendServicePort: 80
+
+# Routes per host. Each group renders its HTTPRoutes (and SecurityPolicy):
+#   api      — api.<domain> (JWT) incl. its /metrics block
+#   temporal — temporal.<domain> (Temporal Web UI, OIDC)
+#   redirect — the http → https redirect on the http listener
+# The dashboard host (SPA + dashboard-api + OIDC) is always rendered.
+# A frontend-only environment (preview of a frontend branch against a shared
+# backend) switches api/temporal/redirect off.
+routes:
+  api:
+    enabled: true
+  temporal:
+    enabled: true
+  redirect:
+    enabled: true
+    # true: only this environment's hosts (listeners shared by several
+    # environments, e.g. one http listener for all branch environments)
+    restrictToHosts: false
+
+# Namespace of the backend Services. Empty = the release namespace. Per chart:
+# backendNamespaces.<chart-name> (tpl-expanded). For every foreign namespace
+# the chart renders a ReferenceGrant there (httproutes-from-<release ns>).
+# Example (routes of a preview namespace to a shared backend):
+#   backendNamespace: shared-backend
+#   backendNamespaces:
+#     frontend: "{{ .Release.Namespace }}"
+#     rechtsaenderungs-monitoring: shared-law-db
+#
+# The Temporal Web UI (key temporal) and the landing page (key landingpage)
+# move only with an explicit backendNamespaces entry (backendNamespace does
+# not apply to them), e.g. Temporal in its own namespace:
+#   backendNamespaces:
+#     temporal: temporal
+backendNamespace: ""
+backendNamespaces: {}
+
+# Escape hatch: override the computed backend Service name per leaf chart, e.g.
+#   backendNameOverrides:
+#     project-logic-service: "{{ .Release.Name }}-pls-custom"
+# Values are tpl-expanded. Default naming is {Release.Name}-<chart>-<stage>
+# per the shared leaf-chart fullname helper.
+backendNameOverrides: {}
+
+# Temporal Web UI Service (in THIS namespace, from the temporal wrapper chart
+# 04-shared-services/temporal, which renders "<release>-temporal-web" on port
+# 8080). Empty = "<release>-temporal-web"; override for a differently named
+# Temporal Web UI Service.
+temporalWebService: ""
+temporalWebPort: 8080
+
+# Landing page on the dashboard host apex (mock-landing-app, chart
+# 01-frontend/landingpage — a spark-platform umbrella sibling subchart).
+# The landing-route is deliberately OUTSIDE the OIDC SecurityPolicy (public
+# page; its /app button stays behind OIDC).
+#
+# enabled is the SINGLE apex switch on the dashboard host:
+#   enabled=true  -> httproute-landing serves the landing page at /
+#                    (requires the landingpage subchart deployed; set .service)
+#   enabled=false -> dashboard-route AUTO-redirects apex / -> /app (302), so
+#                    visitors always reach the app; no landing dependency.
+# Exactly one route ever claims Exact-/, driven by this one flag — turning the
+# landing page off can never 404 the apex. Default false = the safe, zero-
+# dependency forward.
+landing:
+  enabled: false
+  # Empty = the landingpage chart's Service name, {release}-landingpage-<stage>
+  # (computed with the shared leaf-chart fullname semantics). Override for a
+  # differently-named landing backend. Only consulted when enabled=true.
+  service: ""
+
+# Optional role gate for the Temporal UI: only tokens whose
+# realm_access.roles contain requiredRole reach it. Disabled by default; when
+# enabled, the realm must carry the role and assign it to operators only.
+temporalAuthorization:
+  enabled: false
+  requiredRole: infra-admin
+
+# Further dashboard hosts (map: key -> settings), e.g. a second frontend of the
+# same environment. Each renders the dashboard routes for its hosts —
+# <key>-route (the SPA under /app from its frontend chart), <key>-api-route,
+# <key>-api-route-extra, <key>-metrics-block-route — and its own OIDC session
+# <key>-oidc-policy (oidc.dashboard settings, cookies <key>_access_token /
+# <key>_id_token; override with oidc). Its hostnames join the default CORS
+# origins.
+#   hosts     list of hostnames (required; the first is the primary one)
+#   frontend  {chart: <frontend chart>} serving the SPA (default frontend);
+#             its Service follows backendNameOverrides / backendNamespaces
+#   landing   true: the landing page also serves this host's apex (with
+#             landing.enabled)
+#   oidc      overrides of oidc.dashboard
+# Listener sections: gateway.sectionNames.<key>. Example:
+#   extraDashboards:
+#     objections:
+#       hosts: [objections.env1.example.com]
+#       frontend: {chart: frontend-objections}
+extraDashboards: {}
+
+# Further hosts that route everything under / to one backend chart's Service
+# behind their own OIDC session (map: key -> settings): route <key>-route,
+# policy <key>-oidc-policy (oidc.temporal settings, cookies
+# <key>_access_token / <key>_id_token).
+#   hosts  list of hostnames (required; the first is the primary one)
+#   chart  backend chart whose Service serves the host (required; follows
+#          backendNameOverrides / backendNamespaces)
+#   port   Service port (default backendServicePort)
+#   oidc   overrides of oidc.temporal
+# Listener sections: gateway.sectionNames.<key>. Example:
+#   extraSites:
+#     manual:
+#       hosts: [manual.env1.example.com]
+#       chart: manual
+extraSites: {}
+
+# Further routes that are NOT behind the chart's OIDC/JWT policies (map: key
+# -> route <key>-route). Opt-in: the backend authenticates these requests
+# itself. Each entry:
+#   group         host group whose hostnames and listener sections it uses:
+#                 api, dashboard, temporal, or an extraDashboards /
+#                 extraSites key (required)
+#   hosts         hostnames instead of the group's (list)
+#   sectionNames  listener sections instead of the group's (list)
+#   matches       Gateway API HTTPRouteMatch list (required)
+#   rewrite       full path the request is rewritten to (ReplaceFullPath)
+#   chart         backend chart whose Service serves it (required; follows
+#                 backendNameOverrides / backendNamespaces)
+#   port          Service port (default backendServicePort)
+# Example — a token endpoint of the backend on the dashboard host:
+#   extraRoutes:
+#     dashboard-token:
+#       group: dashboard
+#       matches: [{method: GET, path: {type: Exact, value: /api/token}}]
+#       rewrite: /token
+#       chart: project-logic-service
+extraRoutes: {}

@@ -1,22 +1,25 @@
 import {
-  createCommentProjectsProjectIdCommentsPost,
-  deleteCommentProjectsProjectIdCommentsCommentIdDelete,
-  getCommentsProjectsProjectIdCommentsGet,
-  updateCommentProjectsProjectIdCommentsCommentIdPatch,
+  v1CommentCreateComment as createComment,
+  v1CommentDeleteComment as deleteComment,
+  v1CommentListComments as listComments,
+  v1CommentUpdateComment as updateComment,
   type CommentResponse,
   type CreateCommentRequest,
   type SourceRef,
   type UpdateCommentRequest,
-} from '@/api-clients/comments-module';
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
 import { queryCollectionOptions } from '@tanstack/query-db-collection';
-import { createCollection } from '@tanstack/react-db';
+import { BasicIndex, createCollection } from '@tanstack/react-db';
 
+import { getProjectIdFromCollectionOptions } from '@/features/project/data/collections/projectScopedCollection';
 import {
-  getProjectIdFromCollectionOptions,
-  getProjectScopedCollectionQueryKey,
-} from '@/features/project/data/collections/projectScopedCollection';
-import type { CommentItem, CommentSourceRef } from '../schemas/comment.schema';
+  commentSourceRefSchema,
+  type CommentItem,
+  type CommentSourceRef,
+} from '../schemas/comment.schema';
+
+export const COMMENTS_PAGE_SIZE = 50;
 
 const fromApiSourceRef = (
   sourceRef?: SourceRef | null,
@@ -24,10 +27,14 @@ const fromApiSourceRef = (
   if (!sourceRef) {
     return undefined;
   }
-  return {
+  const parsed = commentSourceRefSchema.safeParse({
     type: sourceRef.type,
-    itemId: sourceRef.item_id ?? undefined,
-  };
+    itemId: sourceRef.itemId ?? undefined,
+  });
+  if (!parsed.success) {
+    return undefined;
+  }
+  return parsed.data;
 };
 
 const toApiSourceRef = (
@@ -36,28 +43,43 @@ const toApiSourceRef = (
   if (!sourceRef) {
     return undefined;
   }
-  return {
-    type: sourceRef.type,
-    item_id: sourceRef.itemId,
-  };
+  if (sourceRef.type === 'manual') {
+    return { type: 'manual', itemId: sourceRef.itemId ?? null };
+  }
+  if (!sourceRef.itemId) {
+    return undefined;
+  }
+  return { type: sourceRef.type, itemId: sourceRef.itemId };
+};
+
+const parseCommentDate = (value: CommentResponse['createdAt']) => {
+  if (
+    value instanceof Date ||
+    typeof value === 'string' ||
+    typeof value === 'number'
+  ) {
+    return new Date(value);
+  }
+
+  throw new TypeError('Comment response contains an invalid date.');
 };
 
 const commentFromApi = (item: CommentResponse): CommentItem => ({
   id: item.id,
-  projectId: item.project_id,
+  projectId: item.projectId,
   title: item.title,
   content: item.content,
-  createdAt: new Date(item.created_at),
-  updatedAt: new Date(item.updated_at),
-  processStep: item.process_step,
-  sourceRef: fromApiSourceRef(item.source_ref),
+  createdAt: parseCommentDate(item.createdAt),
+  updatedAt: parseCommentDate(item.updatedAt),
+  processStep: item.processStep,
+  sourceRef: fromApiSourceRef(item.sourceRef),
 });
 
 const commentToCreatePayload = (item: CommentItem): CreateCommentRequest => ({
   title: item.title,
   content: item.content,
-  process_step: item.processStep,
-  source_ref: toApiSourceRef(item.sourceRef),
+  processStep: item.processStep,
+  sourceRef: toApiSourceRef(item.sourceRef),
 });
 
 const toPatchPayload = (
@@ -72,10 +94,10 @@ const toPatchPayload = (
     payload.content = changes.content;
   }
   if (typeof changes.processStep === 'string') {
-    payload.process_step = changes.processStep;
+    payload.processStep = changes.processStep;
   }
   if ('sourceRef' in changes) {
-    payload.source_ref = toApiSourceRef(changes.sourceRef) ?? null;
+    payload.sourceRef = toApiSourceRef(changes.sourceRef) ?? null;
   }
 
   return payload;
@@ -85,8 +107,9 @@ export const commentsCollection = createCollection(
   queryCollectionOptions({
     id: 'project-comments',
     syncMode: 'on-demand',
-    queryKey: (opts) =>
-      getProjectScopedCollectionQueryKey('project-comments', opts),
+    autoIndex: 'eager',
+    defaultIndexType: BasicIndex,
+    queryKey: ['project-comments'],
     queryFn: async (ctx): Promise<CommentItem[]> => {
       const projectId = getProjectIdFromCollectionOptions(
         ctx.meta?.loadSubsetOptions as Record<string, unknown>,
@@ -95,13 +118,16 @@ export const commentsCollection = createCollection(
         return [];
       }
 
-      const { data } = await getCommentsProjectsProjectIdCommentsGet({
-        path: { project_id: projectId },
+      const { data } = await listComments({
+        path: { projectId },
+        query: {
+          limit: ctx.meta?.loadSubsetOptions?.limit ?? COMMENTS_PAGE_SIZE,
+          offset: ctx.meta?.loadSubsetOptions?.offset ?? 0,
+        },
       });
       if (!data) {
         throw new Error('Failed to fetch comments');
       }
-
       return data.map(commentFromApi);
     },
     queryClient,
@@ -109,8 +135,8 @@ export const commentsCollection = createCollection(
     onInsert: async ({ transaction }) => {
       const results = await Promise.all(
         transaction.mutations.map(async (mutation) => {
-          const { data } = await createCommentProjectsProjectIdCommentsPost({
-            path: { project_id: mutation.modified.projectId },
+          const { data } = await createComment({
+            path: { projectId: mutation.modified.projectId },
             body: commentToCreatePayload(mutation.modified),
           });
 
@@ -134,14 +160,13 @@ export const commentsCollection = createCollection(
             };
           }
 
-          const { data } =
-            await updateCommentProjectsProjectIdCommentsCommentIdPatch({
-              path: {
-                project_id: mutation.original.projectId,
-                comment_id: mutation.key,
-              },
-              body,
-            });
+          const { data } = await updateComment({
+            path: {
+              projectId: mutation.original.projectId,
+              commentId: mutation.key,
+            },
+            body,
+          });
 
           if (!data) {
             throw new Error('Failed to update comment');
@@ -155,10 +180,10 @@ export const commentsCollection = createCollection(
     onDelete: async ({ transaction }) => {
       await Promise.all(
         transaction.mutations.map(async (mutation) => {
-          await deleteCommentProjectsProjectIdCommentsCommentIdDelete({
+          await deleteComment({
             path: {
-              project_id: mutation.original.projectId,
-              comment_id: mutation.key,
+              projectId: mutation.original.projectId,
+              commentId: mutation.key,
             },
           });
         }),

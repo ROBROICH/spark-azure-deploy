@@ -4,15 +4,24 @@ import { useMemo } from 'react';
 
 type UseReadOnlyDocumentsTreeOptions = {
   documentVersion?: number;
+  name?: string;
 };
 
 export const useReadOnlyDocumentsTree = (
   projectId: string,
   options: UseReadOnlyDocumentsTreeOptions = {},
 ) => {
-  const { files, isLoading, isError } = useProjectFiles(projectId, {
+  const {
+    files,
+    isLoading,
+    isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useProjectFiles(projectId, {
     documentVersion: options.documentVersion,
     enabled: projectId.length > 0,
+    name: options.name,
   });
 
   // eslint-disable-next-line no-restricted-syntax -- treeData is the source of useEffect dependencies in ReadOnlyDocumentsTable (auto-expand). Without memo, the per-render mapper + buildDocumentsTree allocations produce a fresh array each render, causing setExpanded to fire every render and risking React's max-update-depth crash.
@@ -37,6 +46,9 @@ export const useReadOnlyDocumentsTree = (
     treeData,
     isLoading,
     isError,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
     sourceDocumentsCount: files.length,
   };
 };

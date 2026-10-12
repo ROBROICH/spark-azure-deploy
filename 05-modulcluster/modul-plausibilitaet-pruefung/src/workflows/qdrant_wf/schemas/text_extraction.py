@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class TextClaimFormulation(BaseModel):
-    """Legacy single-list claim formulation response."""
+    """Single-list claim response of the table extraction."""
 
     claims: list[str] = Field(
         ...,
@@ -21,6 +21,10 @@ class GroupedClaimItem(BaseModel):
     chunk_id: int = Field(description="1-based index of the source chunk.")
     quotes: list[str] = Field(description="Exact verbatim quotes from the chunk that support this claim.")
     claim: str = Field(description="Atomic, self-contained fact derived from the quotes.")
+    objekt: str = Field(
+        default="",
+        description="Wörtlicher Name oder Kennung des Objekts, über das der Claim eine Aussage macht (max. 60 Zeichen), sonst ''.",
+    )
 
 
 class GroupedExtractionResponse(BaseModel):

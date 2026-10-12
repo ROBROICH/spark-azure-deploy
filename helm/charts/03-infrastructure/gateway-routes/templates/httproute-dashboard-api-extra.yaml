@@ -1,0 +1,35 @@
+{{- /*
+dashboard.<domain>/api/feedback/v1/ and /api/v2/feedback/ proxy (modulith: path
+forwarded unchanged). Deliberately no timeouts on this rule (Envoy Gateway
+defaults apply).
+*/ -}}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: {{ $site.prefix }}-api-route-extra
+  namespace: {{ $.Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  parentRefs:
+    {{- include "gateway-routes.groupParentRefs" (dict "root" $ "group" $site.group) | nindent 4 }}
+  hostnames:
+    {{- include "gateway-routes.hostnameItems" $site.hosts | nindent 4 }}
+  rules:
+    # feedback-service
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /api/feedback/v1/
+        - path:
+            type: PathPrefix
+            value: /api/v2/feedback/
+      backendRefs:
+        - name: {{ include "gateway-routes.backendName" (dict "root" $ "chart" "feedback-service") }}
+          {{- with include "gateway-routes.backendNamespace" (dict "root" $ "chart" "feedback-service") }}
+          namespace: {{ . }}
+          {{- end }}
+          port: {{ $.Values.backendServicePort }}
+{{- end }}

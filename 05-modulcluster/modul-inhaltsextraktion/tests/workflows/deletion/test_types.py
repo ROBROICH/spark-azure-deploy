@@ -2,7 +2,7 @@
 
 from uuid import UUID, uuid4
 
-from temporal.workflows.inhaltsextraktion.types import (
+from temporal.contracts import (
     DeleteDocumentsWorkflowInput,
     DeleteDocumentsWorkflowOutput,
 )

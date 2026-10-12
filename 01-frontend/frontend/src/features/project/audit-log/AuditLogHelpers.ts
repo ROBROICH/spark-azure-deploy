@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import {
   endOfDay,
   isAfter,
@@ -58,10 +58,10 @@ export function buildAuditLogHistoryQuery(params: {
     nextQuery.service = protocolService;
   }
   if (protocolWorkflowRunId) {
-    nextQuery.workflow_run_id = protocolWorkflowRunId;
+    nextQuery.workflowRunId = protocolWorkflowRunId;
     nextQuery.ungrouped = true;
   } else if (protocolRequestId) {
-    nextQuery.request_id = protocolRequestId;
+    nextQuery.requestId = protocolRequestId;
     nextQuery.ungrouped = true;
   }
 

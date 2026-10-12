@@ -1,8 +1,8 @@
-import type { WorkflowsBase } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
+import type { StatusBadgeVariant } from '@/features/ui/status-badge/StatusBadge';
 import { getTemporalWorkflowBaseUrl } from '@/features/shared/config/temporalUi';
 import { formatDateTime } from '@/i18n/formatDate';
 import {
-  FAILED_WORKFLOW_STATUSES,
   RUNNING_WORKFLOW_STATUSES,
   WORKFLOW_TYPE_BEWERTUNG,
   WORKFLOW_TYPE_CHECK_PLAUSIBILITY,
@@ -24,15 +24,14 @@ export const WORKFLOW_STATUS_BADGE_VARIANT = {
   pending: 'warning',
   success: 'success',
   failed: 'error',
-} as const satisfies Record<
-  WorkflowBadgeStatus,
-  'warning' | 'success' | 'error'
->;
+  continued: 'neutral',
+} as const satisfies Record<WorkflowBadgeStatus, StatusBadgeVariant>;
 
 export const WORKFLOW_STATUS_LABEL_KEY: Record<WorkflowBadgeStatus, string> = {
   pending: 'Sidebar.runningWorkflowsPanel.status.pending',
   success: 'Sidebar.runningWorkflowsPanel.status.success',
   failed: 'Sidebar.runningWorkflowsPanel.status.failed',
+  continued: 'Sidebar.runningWorkflowsPanel.status.continued',
 };
 
 /**
@@ -82,7 +81,7 @@ const WORKFLOW_NAME_LABEL_KEY_BY_TYPE: Partial<Record<string, string>> = {
  */
 export const getWorkflowNameLabelKey = (workflow: WorkflowsBase): string =>
   WORKFLOW_NAME_LABEL_KEY_BY_TYPE[
-    normalizeWorkflowValue(workflow.workflow_type)
+    normalizeWorkflowValue(workflow.workflowType)
   ] ?? 'Sidebar.runningWorkflowsPanel.unknownWorkflowType';
 
 const getTimestampValue = (value: string | null | undefined) => {
@@ -134,7 +133,7 @@ export const getWorkflowDurationMs = (args: {
   workflow: WorkflowsBase;
 }) => {
   const { isRunning, now, workflow } = args;
-  const startTimestamp = getTimestampValue(workflow.workflow_start_time);
+  const startTimestamp = getTimestampValue(workflow.workflowStartTime);
 
   if (startTimestamp === null) {
     return null;
@@ -142,7 +141,7 @@ export const getWorkflowDurationMs = (args: {
 
   const endTimestamp = isRunning
     ? now
-    : getTimestampValue(workflow.workflow_close_time);
+    : getTimestampValue(workflow.workflowCloseTime);
 
   if (endTimestamp === null) {
     return null;
@@ -151,28 +150,12 @@ export const getWorkflowDurationMs = (args: {
   return endTimestamp - startTimestamp;
 };
 
-export const getWorkflowBadgeStatus = (
-  workflow: WorkflowsBase,
-): WorkflowBadgeStatus => {
-  const normalizedStatus = normalizeWorkflowValue(workflow.status);
-
-  if (FAILED_WORKFLOW_STATUSES.has(normalizedStatus)) {
-    return 'failed';
-  }
-
-  if (normalizedStatus === 'completed') {
-    return 'success';
-  }
-
-  return 'pending';
-};
-
 export const isWorkflowRunning = (workflow: WorkflowsBase) =>
   RUNNING_WORKFLOW_STATUSES.has(normalizeWorkflowValue(workflow.status));
 
 export const getTemporalWorkflowTimelineUrl = (workflow: WorkflowsBase) => {
-  const workflowId = encodeURIComponent(workflow.workflow_id);
-  const runId = encodeURIComponent(workflow.run_id);
+  const workflowId = encodeURIComponent(workflow.workflowId);
+  const runId = encodeURIComponent(workflow.runId);
 
   return `${getTemporalWorkflowBaseUrl()}/${workflowId}/${runId}`;
 };

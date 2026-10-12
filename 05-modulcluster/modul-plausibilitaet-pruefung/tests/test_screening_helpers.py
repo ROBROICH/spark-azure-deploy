@@ -51,7 +51,10 @@ def _make_resolved_bundle(
         for cid, text in extra_claim_text.items():
             payloads[cid] = ResolvedClaimData(claim_id=cid, chunk_id=f"chunk-{cid}", claim_text=text)
     return ResolvedGroupedScreeningBundle(
-        project_id="p", document_id="d", bundles=bundles, claim_payloads=payloads,
+        project_id="p",
+        document_id="d",
+        bundles=bundles,
+        claim_payloads=payloads,
     )
 
 
@@ -62,12 +65,18 @@ class TestScreenGroupedBundle:
     ) -> None:
         bundles = [
             ScreeningCandidateBundle(
-                project_id="p", document_id="d", chunk_id="c1",
-                claim_id="A", reference_claims=["R1", "R2"],
+                project_id="p",
+                document_id="d",
+                chunk_id="c1",
+                claim_id="A",
+                reference_claims=["R1", "R2"],
             ),
             ScreeningCandidateBundle(
-                project_id="p", document_id="d", chunk_id="c1",
-                claim_id="B", reference_claims=["R1"],
+                project_id="p",
+                document_id="d",
+                chunk_id="c1",
+                claim_id="B",
+                reference_claims=["R1"],
             ),
         ]
         resolved = _make_resolved_bundle(bundles)
@@ -77,16 +86,25 @@ class TestScreenGroupedBundle:
         llm_response = GroupedRiskScreenerResponse(
             results=[
                 GroupedScreeningResultItem(
-                    check_id=1, reference_id=1, rating=threshold + 10,
-                    note="risky", reasoning="long enough reasoning here",
+                    check_id=1,
+                    reference_id=1,
+                    rating=threshold + 10,
+                    note="risky",
+                    reasoning="long enough reasoning here",
                 ),
                 GroupedScreeningResultItem(
-                    check_id=1, reference_id=2, rating=max(threshold - 10, 0),
-                    note="below", reasoning="long enough reasoning here",
+                    check_id=1,
+                    reference_id=2,
+                    rating=max(threshold - 10, 0),
+                    note="below",
+                    reasoning="long enough reasoning here",
                 ),
                 GroupedScreeningResultItem(
-                    check_id=2, reference_id=1, rating=threshold + 5,
-                    note="risky", reasoning="long enough reasoning here",
+                    check_id=2,
+                    reference_id=1,
+                    rating=threshold + 5,
+                    note="risky",
+                    reasoning="long enough reasoning here",
                 ),
             ]
         )
@@ -99,19 +117,22 @@ class TestScreenGroupedBundle:
         assert all(h.rating >= threshold for h in hits)
 
     @pytest.mark.asyncio
-    async def test_returns_empty_when_no_check_claims(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_returns_empty_when_no_check_claims(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Reference appears in bundle but is missing from payloads → no check claim usable.
         bundles = [
             ScreeningCandidateBundle(
-                project_id="p", document_id="d", chunk_id="c1",
-                claim_id="A", reference_claims=["MISSING"],
+                project_id="p",
+                document_id="d",
+                chunk_id="c1",
+                claim_id="A",
+                reference_claims=["MISSING"],
             ),
         ]
         # Drop the only ref from payloads, so check claim has no valid refs.
         resolved = ResolvedGroupedScreeningBundle(
-            project_id="p", document_id="d", bundles=bundles,
+            project_id="p",
+            document_id="d",
+            bundles=bundles,
             claim_payloads={
                 "A": ResolvedClaimData(claim_id="A", chunk_id="c1", claim_text="text-A"),
             },
@@ -125,22 +146,28 @@ class TestScreenGroupedBundle:
         llm_mock.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_skips_bundle_whose_claim_payload_is_missing(
-        self, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    async def test_skips_bundle_whose_claim_payload_is_missing(self, monkeypatch: pytest.MonkeyPatch) -> None:
         bundles = [
             ScreeningCandidateBundle(
-                project_id="p", document_id="d", chunk_id="c1",
-                claim_id="MISSING_CHECK", reference_claims=["R1"],
+                project_id="p",
+                document_id="d",
+                chunk_id="c1",
+                claim_id="MISSING_CHECK",
+                reference_claims=["R1"],
             ),
             ScreeningCandidateBundle(
-                project_id="p", document_id="d", chunk_id="c1",
-                claim_id="A", reference_claims=["R1"],
+                project_id="p",
+                document_id="d",
+                chunk_id="c1",
+                claim_id="A",
+                reference_claims=["R1"],
             ),
         ]
         # Payloads include only A and R1.
         resolved = ResolvedGroupedScreeningBundle(
-            project_id="p", document_id="d", bundles=bundles,
+            project_id="p",
+            document_id="d",
+            bundles=bundles,
             claim_payloads={
                 "A": ResolvedClaimData(claim_id="A", chunk_id="c1", claim_text="text-A"),
                 "R1": ResolvedClaimData(claim_id="R1", chunk_id="cR1", claim_text="text-R1"),
@@ -150,8 +177,11 @@ class TestScreenGroupedBundle:
         llm_response = GroupedRiskScreenerResponse(
             results=[
                 GroupedScreeningResultItem(
-                    check_id=1, reference_id=1, rating=threshold + 1,
-                    note="risky", reasoning="long enough reasoning here",
+                    check_id=1,
+                    reference_id=1,
+                    rating=threshold + 1,
+                    note="risky",
+                    reasoning="long enough reasoning here",
                 ),
             ]
         )
@@ -191,8 +221,10 @@ class TestCheckConflict:
         monkeypatch.setattr(module, "llm_invoke_structured", AsyncMock(return_value=llm_output))
 
         request = ContextCheckerInput(
-            project_id="p", document_id="d",
-            claim_id="claim-A", reference_claim_id="claim-B",
+            project_id="p",
+            document_id="d",
+            claim_id="claim-A",
+            reference_claim_id="claim-B",
             screening_note="note",
         )
         meta = ProjectMetadataResult(

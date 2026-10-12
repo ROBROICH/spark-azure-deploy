@@ -17,20 +17,26 @@ afterAll(() => {
 });
 
 describe('useUploadFileSelection', () => {
-  it('marks valid zip files as queued and invalid files as unsupported-format', () => {
+  it('rejects multiple ZIPs without retaining the first archive', () => {
     const { result } = renderHook(() => useUploadFileSelection());
 
     act(() => {
-      result.current.addFiles([file('docs.zip'), file('report.pdf')]);
+      result.current.addFiles([file('a.zip'), file('b.zip')]);
     });
 
-    const queued = result.current.files.find(
-      (entry) => entry.file.name === 'docs.zip',
-    );
+    expect(result.current.files).toEqual([]);
+  });
+
+  it('marks an unsupported file without queuing it for upload', () => {
+    const { result } = renderHook(() => useUploadFileSelection());
+
+    act(() => {
+      result.current.addFiles([file('report.pdf')]);
+    });
+
     const invalid = result.current.files.find(
       (entry) => entry.file.name === 'report.pdf',
     );
-    expect(queued?.status).toBe('queued');
     expect(invalid?.status).toBe('error');
     expect(invalid?.errorReason).toBe('unsupported-format');
   });
@@ -51,11 +57,26 @@ describe('useUploadFileSelection', () => {
     ).toBe(1);
   });
 
-  it('removes a file by id and leaves the rest of the selection intact', () => {
+  it('preserves the selected ZIP when another archive is added', () => {
+    const { result } = renderHook(() => useUploadFileSelection());
+    act(() => {
+      result.current.addFiles([file('a.zip')]);
+    });
+    let error: ReturnType<typeof result.current.addFiles> = null;
+    act(() => {
+      error = result.current.addFiles([file('b.zip')]);
+    });
+    expect(error).toBe('single-zip-required');
+    expect(result.current.files.map((entry) => entry.file.name)).toEqual([
+      'a.zip',
+    ]);
+  });
+
+  it('removes the selected ZIP', () => {
     const { result } = renderHook(() => useUploadFileSelection());
 
     act(() => {
-      result.current.addFiles([file('a.zip'), file('b.zip')]);
+      result.current.addFiles([file('a.zip')]);
     });
     const targetId = result.current.files.at(0)?.id;
     expect(targetId).toBeDefined();
@@ -64,16 +85,14 @@ describe('useUploadFileSelection', () => {
       result.current.removeFile(targetId as string);
     });
 
-    expect(result.current.files.map((entry) => entry.file.name)).toEqual([
-      'b.zip',
-    ]);
+    expect(result.current.files).toEqual([]);
   });
 
-  it('marks an entry as upload-failed without affecting siblings', () => {
+  it('marks the selected ZIP as upload-failed', () => {
     const { result } = renderHook(() => useUploadFileSelection());
 
     act(() => {
-      result.current.addFiles([file('a.zip'), file('b.zip')]);
+      result.current.addFiles([file('a.zip')]);
     });
     const target = result.current.files.at(0);
     expect(target).toBeDefined();
@@ -84,7 +103,6 @@ describe('useUploadFileSelection', () => {
 
     expect(result.current.files.at(0)?.status).toBe('error');
     expect(result.current.files.at(0)?.errorReason).toBe('upload-failed');
-    expect(result.current.files.at(1)?.status).toBe('queued');
   });
 
   it('accepts uppercase .ZIP filenames as queued (extension check is case-insensitive)', () => {

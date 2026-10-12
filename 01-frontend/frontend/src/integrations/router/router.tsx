@@ -24,7 +24,9 @@ export const router = createRouter({
   defaultPreloadStaleTime: 0,
   defaultNotFoundComponent: () => <NotFound />,
   defaultErrorComponent: ({ error }) => (
-    <ErrorBoundary error={error instanceof Error ? error : new Error(String(error))} />
+    <ErrorBoundary
+      error={error instanceof Error ? error : new Error(String(error))}
+    />
   ),
 });
 

@@ -1,0 +1,92 @@
+{{- /*
+One pre-install/pre-upgrade Job per database that asked for an action
+(values: databases.*). Script: files/db-init.sh.
+*/ -}}
+{{- range $db := include "db-init.databases" . | fromJsonArray }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-db-%s" (include "db-init.fullname" $) ($db.key | lower | replace "_" "-") | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "db-init.namespace" $ }}
+  labels:
+    {{- include "db-init.labels" $ | nindent 4 }}
+    db-init/database: {{ $db.key | quote }}
+  annotations:
+    helm.sh/hook: pre-install,pre-upgrade
+    helm.sh/hook-weight: "0"
+    helm.sh/hook-delete-policy: before-hook-creation
+spec:
+  backoffLimit: {{ $.Values.backoffLimit }}
+  activeDeadlineSeconds: {{ $.Values.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- include "db-init.labels" $ | nindent 8 }}
+        db-init/database: {{ $db.key | quote }}
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "db-init.fullname" $ }}
+      {{- include "db-init.podSecurity" $ | nindent 6 }}
+      {{- with $.Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $db.url }}
+      initContainers:
+        {{- include "db-init.fetchContainer" (dict "root" $ "url" $db.url) | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: db-init
+          image: {{ $.Values.images.postgres }}
+          {{- with include "db-init.containerSecurity" $ }}
+          {{- . | nindent 10 }}
+          {{- end }}
+          command: [bash, /scripts/db-init.sh]
+          env:
+            {{- with include "db-init.homeEnv" $ }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            {{- include "db-init.pgEnv" $ | nindent 12 }}
+            - name: DB_NAME
+              value: {{ $db.name | quote }}
+            - name: DB_OWNER
+              value: {{ $db.owner | quote }}
+            - name: CREATE_MISSING
+              value: {{ $db.create | quote }}
+            - name: DROP_MODE
+              value: {{ $db.drop | quote }}
+            - name: DUMP_FILE
+              value: {{ ternary "/work/dump" "" (ne $db.url "") | quote }}
+            {{- with $db.extensions }}
+            - name: EXTENSIONS
+              value: {{ . | quote }}
+            {{- end }}
+            {{- if or (ne $db.drop "none") $db.url }}
+            - name: ACTION_ID
+              {{- /* signed URLs change on every signing: hash the location only */}}
+              value: {{ printf "%s|%s|%s" $db.drop (regexReplaceAll "\\?.*$" $db.url "") (toString ($.Values.runId | default "")) | sha256sum | trunc 16 | quote }}
+            {{- end }}
+          volumeMounts:
+            {{- with include "db-init.tmpMount" $ }}
+            {{- . | nindent 12 }}
+            {{- end }}
+            - name: work
+              mountPath: /work
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            {{- toYaml $.Values.resources | nindent 12 }}
+      volumes:
+        {{- with include "db-init.tmpVolume" $ }}
+        {{- . | nindent 8 }}
+        {{- end }}
+        - name: work
+          emptyDir:
+            sizeLimit: {{ $.Values.workVolume.sizeLimit }}
+        - name: scripts
+          configMap:
+            name: {{ include "db-init.fullname" $ }}-script
+{{- end }}

@@ -1,3 +1,7 @@
+---
+ruleId: nodes/remove-mocks-after-node-migration
+---
+
 # Remove Mocks After Node Migration
 
 - After a feature or folder is wired to live nodes data, delete the obsolete mock data, mock tree builders, and mock-only prop contracts that are no longer used.
@@ -8,7 +12,7 @@
 ## Why
 
 - Dual data paths rot quickly and make debugging harder.
-- Mock-era names and types keep merging future changes back toward the wrong abstraction.
+- Mock-era names and types keep pulling future changes back toward the wrong abstraction.
 - Cleaning up immediately keeps the migration scoped and reduces follow-up churn.
 
 ## Bad Example

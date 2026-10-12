@@ -10,13 +10,13 @@ const mocks = vi.hoisted(() => ({
   topicNorm: {
     id: 'topic-norm-1',
     jurabk: 'BNatSchG',
-    node_type: 'topic_norm',
-    paragraph_nr: '45a',
+    nodeType: 'topic_norm',
+    paragraphNr: '45a',
   } as {
     id: string;
     jurabk: string;
-    node_type: 'topic_norm';
-    paragraph_nr: string;
+    nodeType: 'topic_norm';
+    paragraphNr: string;
   } | null,
 }));
 
@@ -47,18 +47,18 @@ vi.mock('react-i18next', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
-  useDescendants: () => [{ id: 'norm-1', node_type: 'norm' }],
+  useDescendants: () => [{ id: 'norm-1', nodeType: 'norm' }],
 }));
 
 vi.mock('@/db/nodes/hooks/useNodes', () => ({
-  useNode: (nodeRef: { id: string; node_type: string } | null) => {
-    if (nodeRef?.node_type === 'norm') {
+  useNode: (nodeRef: { id: string; nodeType: string } | null) => {
+    if (nodeRef?.nodeType === 'norm') {
       return {
         data: {
           id: nodeRef.id,
-          node_type: 'norm',
-          paragraph_nr: '45a',
-          paragraph_titel: 'Umgang mit gebietsfremden Arten',
+          nodeType: 'norm',
+          paragraphNr: '45a',
+          paragraphTitel: 'Umgang mit gebietsfremden Arten',
           text: 'Bisheriger Normtext',
         },
       };
@@ -69,8 +69,8 @@ vi.mock('@/db/nodes/hooks/useNodes', () => ({
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
-  useLiveNode: (nodeRef: { id: string; node_type: string } | null) => {
-    if (nodeRef?.node_type === 'topic_norm') {
+  useLiveNode: (nodeRef: { id: string; nodeType: string } | null) => {
+    if (nodeRef?.nodeType === 'topic_norm') {
       return { data: mocks.topicNorm };
     }
 
@@ -113,8 +113,8 @@ describe('AiNormtextView', () => {
     mocks.topicNorm = {
       id: 'topic-norm-1',
       jurabk: 'BNatSchG',
-      node_type: 'topic_norm',
-      paragraph_nr: '45a',
+      nodeType: 'topic_norm',
+      paragraphNr: '45a',
     };
   });
 
@@ -123,7 +123,7 @@ describe('AiNormtextView', () => {
 
     render(
       <AiNormtextView
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       />,
     );
 
@@ -160,7 +160,7 @@ describe('AiNormtextView', () => {
 
     render(
       <AiNormtextView
-        topicNormRef={{ id: 'topic-norm-1', node_type: 'topic_norm' }}
+        topicNormRef={{ id: 'topic-norm-1', nodeType: 'topic_norm' }}
       />,
     );
 

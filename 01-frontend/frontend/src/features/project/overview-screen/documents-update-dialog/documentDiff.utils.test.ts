@@ -1,4 +1,4 @@
-import type { FileDiffResponse } from '@/api-clients/dms-module';
+import type { FileDiffResponse } from '@/api-clients/backend';
 import { describe, expect, it } from 'vitest';
 import {
   buildDefaultSelectedKeys,
@@ -8,26 +8,27 @@ import {
 } from './documentDiff.utils';
 
 const sampleDiff: FileDiffResponse = {
-  new: [{ filename: 'plan-c.pdf', bucket_path: 'bucket/c', sha: 'sha-c' }],
+  new: [{ filename: 'plan-c.pdf', bucketPath: 'bucket/c', sha: 'sha-c' }],
   changed: [
     {
-      file_id: 'file-1',
+      fileId: 'file-1',
       filename: 'plan-a.pdf',
-      bucket_path: 'bucket/a',
-      source_sha: 'sha-a-uploaded',
-      target_sha: 'sha-a-existing',
+      bucketPath: 'bucket/a',
+      sourceSha: 'sha-a-uploaded',
+      targetSha: 'sha-a-existing',
     },
   ],
   renamed: [
     {
-      file_id: 'file-2',
-      old_name: 'plan-b-old.pdf',
-      new_name: 'plan-b.pdf',
+      fileId: 'file-2',
+      oldName: 'plan-b-old.pdf',
+      newName: 'plan-b.pdf',
       sha: 'sha-b',
+      bucketPath: 'bucket/b',
     },
   ],
-  deleted: [{ file_id: 'file-3', filename: 'plan-d.pdf', sha: 'sha-d' }],
-  unchanged: [{ file_id: 'file-4', filename: 'plan-e.pdf', sha: 'sha-e' }],
+  deleted: [{ fileId: 'file-3', filename: 'plan-d.pdf', sha: 'sha-d' }],
+  unchanged: [{ fileId: 'file-4', filename: 'plan-e.pdf', sha: 'sha-e' }],
 };
 
 describe('documentDiff.utils', () => {
@@ -43,15 +44,11 @@ describe('documentDiff.utils', () => {
     expect(trimmed.unchanged).toHaveLength(1);
   });
 
-  it('drops a deselected new file from the trimmed diff', () => {
-    const rows = buildDiffRows(sampleDiff);
-    const selected = buildDefaultSelectedKeys(rows);
-    selected.delete('new:plan-c.pdf');
+  it('always keeps new files in the trimmed diff because the backend must decide every entry', () => {
+    const trimmed = buildTrimmedDiff(sampleDiff, new Set<string>());
 
-    const trimmed = buildTrimmedDiff(sampleDiff, selected);
-
-    expect(trimmed.new).toHaveLength(0);
-    expect(trimmed.unchanged).toHaveLength(1);
+    expect(trimmed.new).toEqual(sampleDiff.new);
+    expect(trimmed.unchanged).toHaveLength(4);
   });
 
   it('demotes a deselected replaced file to unchanged using the existing file sha', () => {
@@ -63,7 +60,7 @@ describe('documentDiff.utils', () => {
 
     expect(trimmed.changed).toHaveLength(0);
     expect(trimmed.unchanged).toContainEqual({
-      file_id: 'file-1',
+      fileId: 'file-1',
       filename: 'plan-a.pdf',
       sha: 'sha-a-existing',
     });
@@ -78,18 +75,20 @@ describe('documentDiff.utils', () => {
 
     expect(trimmed.renamed).toHaveLength(0);
     expect(trimmed.unchanged).toContainEqual({
-      file_id: 'file-2',
+      fileId: 'file-2',
       filename: 'plan-b-old.pdf',
       sha: 'sha-b',
     });
   });
 
-  it('marks unchanged rows as non-selectable and deleted rows as selectable', () => {
+  it('marks unchanged and new rows as non-selectable and deleted rows as selectable', () => {
     const rows = buildDiffRows(sampleDiff);
     const unchangedRow = rows.find((row) => row.changeType === 'unchanged');
+    const newRow = rows.find((row) => row.changeType === 'new');
     const deletedRow = rows.find((row) => row.changeType === 'deleted');
 
     expect(unchangedRow?.selectable).toBe(false);
+    expect(newRow?.selectable).toBe(false);
     expect(deletedRow?.selectable).toBe(true);
   });
 
@@ -102,7 +101,7 @@ describe('documentDiff.utils', () => {
 
     expect(trimmed.deleted).toHaveLength(0);
     expect(trimmed.unchanged).toContainEqual({
-      file_id: 'file-3',
+      fileId: 'file-3',
       filename: 'plan-d.pdf',
       sha: 'sha-d',
     });

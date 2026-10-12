@@ -1,0 +1,37 @@
+{
+  "name": "@spark-workflow/http-host",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrations": "./src/migrations.ts",
+    "./process-output": "./src/process-output.ts"
+  },
+  "scripts": {
+    "test": "bun test --preload @spark-workflow/test-support/evlog-disabled --isolate --dots",
+    "typecheck": "tsgo --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@spark-workflow/postgres-runtime": "workspace:*",
+    "@spark-workflow/resource": "workspace:*",
+    "@spark-workflow/audit-client": "workspace:*",
+    "@spark-workflow/authentification": "workspace:*",
+    "@elysia/openapi": "1.4.15",
+    "@elysia/opentelemetry": "1.4.12",
+    "@sinclair/typebox": "0.34.52",
+    "better-result": "3.0.1",
+    "drizzle-orm": "0.45.2",
+    "effect": "4.0.0-rc.112",
+    "elysia": "1.4.29",
+    "es-toolkit": "catalog:",
+    "evlog": "2.25.0",
+    "serialize-error": "13.0.1"
+  },
+  "devDependencies": {
+    "@spark-workflow/test-support": "workspace:*",
+    "@types/bun": "1.4.0",
+    "@typescript/native-preview": "7.0.0-dev.20260425.1",
+    "typescript": "5.9.3"
+  }
+}

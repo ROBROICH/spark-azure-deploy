@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/types-imports-exports
+---
+
 # Types, Imports, and Exports
 
 Use when code changes type declarations, object shape checks, imports/exports, null handling, or declaration order.
@@ -5,6 +9,9 @@ Use when code changes type declarations, object shape checks, imports/exports, n
 ## Rules
 
 - Use `type` instead of `interface` for handwritten props, state, object types, and app types. This avoids accidental declaration merging and keeps style consistent.
+- For API, request, response, and DTO types, follow
+  `../api-integration/derive-types-from-generated-and-existing-types.md`. That
+  rule owns handwritten wire types.
 - Prefer string/number union types over TypeScript `enum` in handwritten app, feature, test, utility, and shared types. Do not rewrite generated OpenAPI or other generated code solely for enum usage.
 - Use `satisfies` when an object literal must conform to a known shape while preserving inference. Prefer it over broad casts that hide missing or extra fields.
 - Do not create `index.ts` or `index.tsx` barrel files for re-exporting. Import directly from the source file so ownership and import paths stay traceable.

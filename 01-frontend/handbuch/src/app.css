@@ -1,0 +1,156 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/neutral.css";
+@import "fumadocs-ui/css/preset.css";
+@import "fumapress/css/preset.css";
+
+@theme {
+  --font-mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --default-font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+:root {
+  --color-fd-primary: #36349d;
+  --color-fd-primary-foreground: #ffffff;
+  --color-fd-ring: #423ec4;
+}
+
+.dark {
+  --color-fd-primary: #b9b7ff;
+  --color-fd-primary-foreground: #171648;
+  --color-fd-ring: #9d9aff;
+}
+
+.spark-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: max-content;
+}
+
+.spark-brand__logo {
+  display: block;
+  width: auto;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.spark-brand__logo--dark,
+.dark .spark-brand__logo--light {
+  display: none;
+}
+
+.dark .spark-brand__logo--dark {
+  display: block;
+}
+
+.spark-brand__label {
+  padding-inline-start: 0.45rem;
+  border-inline-start: 1px solid var(--color-fd-border);
+  color: var(--color-fd-muted-foreground);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+#nd-docs-layout {
+  --fd-header-height: 3.5rem;
+}
+
+#nd-subnav {
+  display: flex !important;
+}
+
+#nd-subnav [aria-controls="nd-sidebar-mobile"] {
+  display: none;
+}
+
+.spark-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding-inline-end: 0.25rem;
+}
+
+.spark-search-bar {
+  width: clamp(15rem, 38vw, 34rem);
+  height: 2.5rem;
+  padding-inline: 0.875rem;
+  border-color: color-mix(in srgb, var(--color-fd-primary) 28%, var(--color-fd-border));
+  background: color-mix(in srgb, var(--color-fd-primary) 6%, var(--color-fd-background));
+  color: var(--color-fd-foreground);
+  font-weight: 500;
+  box-shadow: 0 1px 3px rgb(30 28 96 / 0.08);
+}
+
+.spark-search-bar:hover {
+  border-color: color-mix(in srgb, var(--color-fd-primary) 55%, var(--color-fd-border));
+  background: color-mix(in srgb, var(--color-fd-primary) 11%, var(--color-fd-background));
+  box-shadow: 0 4px 16px rgb(30 28 96 / 0.12);
+}
+
+#nd-toc {
+  top: var(--fd-docs-row-2);
+  height: calc(var(--fd-docs-height) - var(--fd-docs-row-2));
+}
+
+@media (min-width: 80rem) {
+  #nd-docs-layout {
+    grid-template:
+      "toc header"
+      "toc toc-popover"
+      "toc main" 1fr /
+      var(--fd-toc-width) minmax(0, 1fr) !important;
+  }
+
+  #nd-toc {
+    padding-inline-start: 1.5rem;
+  }
+
+  #nd-page {
+    margin-inline: 0 auto;
+  }
+}
+
+#nd-page > .border-b {
+  display: none;
+}
+
+@media (max-width: 30rem) {
+  .spark-brand__label {
+    display: none;
+  }
+}
+
+@media (max-width: 36rem) {
+  #nd-docs-layout {
+    --fd-header-height: 6.75rem;
+  }
+
+  #nd-subnav {
+    align-items: flex-start;
+    padding-top: 0.75rem;
+  }
+
+  .spark-search-bar {
+    position: absolute;
+    inset-inline: 1rem;
+    bottom: 0.625rem;
+    width: auto;
+  }
+}
+
+.prose img {
+  border: 1px solid var(--color-fd-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 12px 34px rgb(31 29 91 / 0.09);
+}
+
+.handbook-figure {
+  display: block;
+  scroll-margin-top: 6rem;
+}
+
+:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-fd-ring) 78%, white);
+  outline-offset: 3px;
+}

@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
 import pytest
-from temporal.workflows.inhaltsextraktion.types import (
+from temporal.contracts import (
     EnsureQdrantInput,
     Metadata,
     ProcessedDocument,

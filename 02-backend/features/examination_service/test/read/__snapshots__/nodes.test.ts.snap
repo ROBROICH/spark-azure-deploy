@@ -1,0 +1,118 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots bounded current nodes, parent metadata, flags, and deleted exclusion 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [
+          "topic:3fad20bd-d82c-4d88-83d1-0198e8a5b53a",
+          "topic:6f5b1f34-dcc6-4ed7-8d02-3c1e68f8e1b4",
+          "topic:b61fff72-15fc-4b0c-9ea3-e5f5256cf609",
+        ],
+        "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "isOutdated": false,
+        "nodeType": "gesetz",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "topic_norm:9263912d-3e73-4936-900b-1198bd79ac41",
+          "topic_norm:e45cac12-35f3-46b6-80fc-40d70d533135",
+          "topic_norm:efaf36d0-6b1f-4e7f-8309-8e7c927aab6b",
+        ],
+        "id": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+        "isOutdated": false,
+        "nodeType": "norm",
+        "parents": [
+          {
+            "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+            "nodeType": "gesetz",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "topic_norm:8836f757-1f94-4d9e-ad18-c94db7cd9807",
+          "topic_norm:c57553ca-192f-468f-ae05-ea1d0923c6c9",
+          "topic_norm:f4cd9a06-c071-4d46-a198-164c47bc6ba7",
+        ],
+        "id": "96e61655-b310-4ebe-a30d-e3c10f37fed1",
+        "isOutdated": false,
+        "nodeType": "norm",
+        "parents": [
+          {
+            "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+            "nodeType": "gesetz",
+          },
+        ],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots an explicit empty version with zero peer calls 1`] = `
+{
+  "empty": {
+    "body": {
+      "nodes": [],
+    },
+    "status": 200,
+  },
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract omitted version resolves once and equals the explicit current payload 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [
+          "topic:3fad20bd-d82c-4d88-83d1-0198e8a5b53a",
+          "topic:6f5b1f34-dcc6-4ed7-8d02-3c1e68f8e1b4",
+          "topic:b61fff72-15fc-4b0c-9ea3-e5f5256cf609",
+        ],
+        "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "isOutdated": false,
+        "nodeType": "gesetz",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [
+          "topic_norm:9263912d-3e73-4936-900b-1198bd79ac41",
+          "topic_norm:e45cac12-35f3-46b6-80fc-40d70d533135",
+          "topic_norm:efaf36d0-6b1f-4e7f-8309-8e7c927aab6b",
+        ],
+        "id": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+        "isOutdated": false,
+        "nodeType": "norm",
+        "parents": [
+          {
+            "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+            "nodeType": "gesetz",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [
+          "topic_norm:8836f757-1f94-4d9e-ad18-c94db7cd9807",
+          "topic_norm:c57553ca-192f-468f-ae05-ea1d0923c6c9",
+          "topic_norm:f4cd9a06-c071-4d46-a198-164c47bc6ba7",
+        ],
+        "id": "96e61655-b310-4ebe-a30d-e3c10f37fed1",
+        "isOutdated": false,
+        "nodeType": "norm",
+        "parents": [
+          {
+            "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+            "nodeType": "gesetz",
+          },
+        ],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

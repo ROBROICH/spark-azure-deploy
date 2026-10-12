@@ -1,9 +1,12 @@
 """Tests for DMS deletion activities (delete document, cleanup extractions, update summary)."""
 
 import json
+from datetime import UTC, datetime
+from pathlib import PurePosixPath
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import UUID, uuid4
 
+import httpx
 import pytest
 
 from src.activities.deletion import (
@@ -11,6 +14,7 @@ from src.activities.deletion import (
     _delete_single_document_from_dms,
     _update_summary_for_deleted_documents,
 )
+from src.utils.dms_utils import FileObject
 from src.workflows.deletion.types import (
     CleanupContentExtractionsInput,
     DeletionFileInfo,
@@ -36,14 +40,42 @@ def document_file() -> DeletionFileInfo:
     )
 
 
-@pytest.fixture
-def summary_file() -> DeletionFileInfo:
-    """Return a DeletionFileInfo representing a summary.json content extraction."""
-    return DeletionFileInfo(
-        file_id=str(uuid4()),
-        filename="summary.json",
-        file_type="content_extraction",
+def _make_summary_file_object(
+    *,
+    filename: str = "summary.json",
+    created_at: datetime | None = None,
+) -> FileObject:
+    timestamp = created_at or datetime(2026, 1, 1, tzinfo=UTC)
+    return FileObject(
+        id=uuid4(),
+        type="content_extraction",
+        filename=filename,
+        mime_type="application/json",
+        bucket_path=PurePosixPath(filename),
+        created_at=timestamp,
+        updated_at=timestamp,
     )
+
+
+@pytest.fixture
+def summary_file() -> FileObject:
+    return _make_summary_file_object()
+
+
+def _summary_bytes(*document_paths: str) -> bytes:
+    return json.dumps(
+        {
+            "totalDurationSeconds": 1.0,
+            "processedFiles": [
+                {
+                    "documentPath": path,
+                    "documentName": path,
+                    "processedJsonFileId": f"result-{path}",
+                }
+                for path in document_paths
+            ],
+        }
+    ).encode("utf-8")
 
 
 class TestDeleteSingleDocumentFromDms:
@@ -275,12 +307,10 @@ class TestUpdateSummaryForDeletedDocuments:
     """Tests for _update_summary_for_deleted_documents activity."""
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
-    async def test_returns_failed_when_summary_missing(
-        self, mock_list_all_files: AsyncMock, project_id: UUID
-    ) -> None:
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_returns_failed_when_summary_missing(self, mock_list_files: AsyncMock, project_id: UUID) -> None:
         """Test that missing summary.json causes all filenames to be reported as failed."""
-        mock_list_all_files.return_value = []
+        mock_list_files.return_value = []
 
         result = await _update_summary_for_deleted_documents(
             UpdateSummaryInput(
@@ -294,16 +324,16 @@ class TestUpdateSummaryForDeletedDocuments:
 
     @pytest.mark.asyncio
     @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_returns_failed_when_summary_file_not_found(
         self,
-        mock_list_all_files: AsyncMock,
+        mock_list_files: AsyncMock,
         mock_download_file: AsyncMock,
         project_id: UUID,
-        summary_file: DeletionFileInfo,
+        summary_file: FileObject,
     ) -> None:
         """Test that a download failure causes all filenames to be reported as failed."""
-        mock_list_all_files.return_value = [summary_file]
+        mock_list_files.return_value = [summary_file]
         mock_download_file.side_effect = FileNotFoundError("missing")
 
         result = await _update_summary_for_deleted_documents(
@@ -317,26 +347,35 @@ class TestUpdateSummaryForDeletedDocuments:
         assert result.failed == ["doc.pdf"]
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
     @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_updates_summary_and_reuploads_file(
         self,
-        mock_list_all_files: AsyncMock,
+        mock_list_files: AsyncMock,
         mock_download_file: AsyncMock,
         mock_delete_file: AsyncMock,
         mock_upload_file: AsyncMock,
         project_id: UUID,
-        summary_file: DeletionFileInfo,
+        summary_file: FileObject,
     ) -> None:
         """Test that matching entries are removed from summary.json and the file is re-uploaded."""
-        mock_list_all_files.return_value = [summary_file]
+        mock_list_files.return_value = [summary_file]
         summary_data = {
-            "processed_files": [
-                {"document_path": "doc1.pdf", "document_name": "doc1.pdf"},
-                {"document_path": "doc2.pdf", "document_name": "doc2.pdf"},
-            ]
+            "totalDurationSeconds": 1.0,
+            "processedFiles": [
+                {
+                    "documentPath": "doc1.pdf",
+                    "documentName": "doc1.pdf",
+                    "processedJsonFileId": "result-1",
+                },
+                {
+                    "documentPath": "doc2.pdf",
+                    "documentName": "doc2.pdf",
+                    "processedJsonFileId": "result-2",
+                },
+            ],
         }
         mock_download_file.return_value = json.dumps(summary_data).encode("utf-8")
         mock_upload_file.return_value = MagicMock()
@@ -350,7 +389,7 @@ class TestUpdateSummaryForDeletedDocuments:
 
         assert result.success == ["doc1.pdf"]
         assert result.failed == []
-        mock_delete_file.assert_awaited_once_with(UUID(summary_file.file_id))
+        mock_delete_file.assert_awaited_once_with(summary_file.id)
         mock_upload_file.assert_awaited_once()
 
         uploaded_input = mock_upload_file.await_args.args[0]
@@ -358,28 +397,40 @@ class TestUpdateSummaryForDeletedDocuments:
         assert uploaded_input.filename == "summary.json"
         assert uploaded_input.project_id == project_id
         assert uploaded_input.file_type == "content_extraction"
-        assert uploaded_summary["processed_files"] == [{"document_path": "doc2.pdf", "document_name": "doc2.pdf"}]
+        assert uploaded_summary["processedFiles"] == [
+            {
+                "documentName": "doc2.pdf",
+                "documentPath": "doc2.pdf",
+                "processedJsonFileId": "result-2",
+                "sourceFileId": None,
+            }
+        ]
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
     @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
     async def test_returns_failed_when_no_requested_entries_in_summary(
         self,
-        mock_list_all_files: AsyncMock,
+        mock_list_files: AsyncMock,
         mock_download_file: AsyncMock,
         mock_delete_file: AsyncMock,
         mock_upload_file: AsyncMock,
-        summary_file: DeletionFileInfo,
+        summary_file: FileObject,
     ) -> None:
         """Test that filenames not present in the summary are reported as failed."""
-        mock_list_all_files.return_value = [summary_file]
+        mock_list_files.return_value = [summary_file]
         mock_download_file.return_value = json.dumps(
             {
-                "processed_files": [
-                    {"document_path": "other.pdf"},
-                ]
+                "totalDurationSeconds": 1.0,
+                "processedFiles": [
+                    {
+                        "documentPath": "other.pdf",
+                        "documentName": "other.pdf",
+                        "processedJsonFileId": "result-other",
+                    },
+                ],
             }
         ).encode("utf-8")
 
@@ -396,63 +447,167 @@ class TestUpdateSummaryForDeletedDocuments:
         mock_upload_file.assert_not_awaited()
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
     @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
-    async def test_returns_all_requested_as_failed_when_replace_fails(
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_uploads_new_summary_before_deleting_old(
         self,
-        mock_list_all_files: AsyncMock,
+        mock_list_files: AsyncMock,
         mock_download_file: AsyncMock,
         mock_delete_file: AsyncMock,
         mock_upload_file: AsyncMock,
         project_id: UUID,
-        summary_file: DeletionFileInfo,
+        summary_file: FileObject,
     ) -> None:
-        """Test that all requested filenames are failed when the summary replace operation fails."""
-        mock_list_all_files.return_value = [summary_file]
-        mock_download_file.return_value = json.dumps(
-            {
-                "processed_files": [
-                    {"document_path": "doc1.pdf"},
-                    {"document_path": "doc2.pdf"},
-                ]
-            }
-        ).encode("utf-8")
-        mock_delete_file.side_effect = RuntimeError("cannot replace")
+        mock_list_files.return_value = [summary_file]
+        mock_download_file.return_value = _summary_bytes("doc1.pdf", "doc2.pdf")
+        mock_upload_file.return_value = MagicMock(id=uuid4())
+        call_order = MagicMock()
+        call_order.attach_mock(mock_upload_file, "upload_file")
+        call_order.attach_mock(mock_delete_file, "delete_file")
 
-        result = await _update_summary_for_deleted_documents(
-            UpdateSummaryInput(
-                project_id=project_id,
-                deleted_document_filenames=["doc1.pdf", "doc2.pdf"],
-            )
+        await _update_summary_for_deleted_documents(
+            UpdateSummaryInput(project_id=project_id, deleted_document_filenames=["doc1.pdf"])
         )
 
-        assert result.success == []
-        assert result.failed == ["doc1.pdf", "doc2.pdf"]
-        mock_upload_file.assert_not_awaited()
+        assert [name for name, _args, _kwargs in call_order.mock_calls] == ["upload_file", "delete_file"]
 
     @pytest.mark.asyncio
-    @patch("src.activities.deletion.upload_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
     @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
-    @patch("src.activities.deletion._list_all_files", new_callable=AsyncMock)
-    async def test_partially_removed_entries_report_success_and_failure(
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_upload_failure_propagates_and_keeps_old_summary(
         self,
-        mock_list_all_files: AsyncMock,
+        mock_list_files: AsyncMock,
         mock_download_file: AsyncMock,
         mock_delete_file: AsyncMock,
         mock_upload_file: AsyncMock,
-        summary_file: DeletionFileInfo,
+        project_id: UUID,
+        summary_file: FileObject,
+    ) -> None:
+        mock_list_files.return_value = [summary_file]
+        mock_download_file.return_value = _summary_bytes("doc1.pdf", "doc2.pdf")
+        mock_upload_file.side_effect = RuntimeError("DMS upload failed")
+
+        with pytest.raises(RuntimeError, match="DMS upload failed"):
+            await _update_summary_for_deleted_documents(
+                UpdateSummaryInput(project_id=project_id, deleted_document_filenames=["doc1.pdf", "doc2.pdf"])
+            )
+
+        mock_delete_file.assert_not_awaited()
+
+    @pytest.mark.asyncio
+    @patch("src.utils.summary_file.activity")
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_old_summary_delete_failure_after_upload_is_logged_with_traceback(
+        self,
+        mock_list_files: AsyncMock,
+        mock_download_file: AsyncMock,
+        mock_delete_file: AsyncMock,
+        mock_upload_file: AsyncMock,
+        mock_activity: MagicMock,
+        project_id: UUID,
+        summary_file: FileObject,
+    ) -> None:
+        mock_list_files.return_value = [summary_file]
+        mock_download_file.return_value = _summary_bytes("doc1.pdf", "doc2.pdf")
+        mock_delete_file.side_effect = httpx.ConnectError("DMS unreachable")
+
+        result = await _update_summary_for_deleted_documents(
+            UpdateSummaryInput(project_id=project_id, deleted_document_filenames=["doc1.pdf"])
+        )
+
+        assert result.success == ["doc1.pdf"]
+        assert result.failed == []
+        mock_upload_file.assert_awaited_once()
+        mock_activity.logger.exception.assert_called_once()
+
+    @pytest.mark.asyncio
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_unexpected_old_summary_delete_error_propagates(
+        self,
+        mock_list_files: AsyncMock,
+        mock_download_file: AsyncMock,
+        mock_delete_file: AsyncMock,
+        mock_upload_file: AsyncMock,
+        project_id: UUID,
+        summary_file: FileObject,
+    ) -> None:
+        mock_list_files.return_value = [summary_file]
+        mock_download_file.return_value = _summary_bytes("doc1.pdf")
+        mock_delete_file.side_effect = ValueError("bug")
+
+        with pytest.raises(ValueError, match="bug"):
+            await _update_summary_for_deleted_documents(
+                UpdateSummaryInput(project_id=project_id, deleted_document_filenames=["doc1.pdf"])
+            )
+
+    @pytest.mark.asyncio
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_multiple_summaries_read_newest_and_delete_all_old(
+        self,
+        mock_list_files: AsyncMock,
+        mock_download_file: AsyncMock,
+        mock_delete_file: AsyncMock,
+        mock_upload_file: AsyncMock,
+        project_id: UUID,
+    ) -> None:
+        older = _make_summary_file_object(created_at=datetime(2026, 1, 1, tzinfo=UTC))
+        newest = _make_summary_file_object(created_at=datetime(2026, 2, 1, tzinfo=UTC))
+        other = _make_summary_file_object(filename="doc1/page_1.json")
+        mock_list_files.return_value = [older, other, newest]
+        mock_download_file.return_value = _summary_bytes("doc1.pdf", "doc2.pdf")
+
+        result = await _update_summary_for_deleted_documents(
+            UpdateSummaryInput(project_id=project_id, deleted_document_filenames=["doc1.pdf"])
+        )
+
+        assert result.success == ["doc1.pdf"]
+        mock_download_file.assert_awaited_once_with(newest.id)
+        mock_upload_file.assert_awaited_once()
+        assert [c.args[0] for c in mock_delete_file.await_args_list] == [newest.id, older.id]
+
+    @pytest.mark.asyncio
+    @patch("src.utils.summary_file.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.summary_file.delete_file", new_callable=AsyncMock)
+    @patch("src.activities.deletion.download_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_partially_removed_entries_report_success_and_failure(
+        self,
+        mock_list_files: AsyncMock,
+        mock_download_file: AsyncMock,
+        mock_delete_file: AsyncMock,
+        mock_upload_file: AsyncMock,
+        summary_file: FileObject,
     ) -> None:
         """Test that entries found in the summary are successful and missing ones are failed."""
-        mock_list_all_files.return_value = [summary_file]
+        mock_list_files.return_value = [summary_file]
         mock_download_file.return_value = json.dumps(
             {
-                "processed_files": [
-                    {"document_path": "doc1.pdf"},
-                    {"document_path": "other.pdf"},
-                ]
+                "totalDurationSeconds": 1.0,
+                "processedFiles": [
+                    {
+                        "documentPath": "doc1.pdf",
+                        "documentName": "doc1.pdf",
+                        "processedJsonFileId": "result-1",
+                    },
+                    {
+                        "documentPath": "other.pdf",
+                        "documentName": "other.pdf",
+                        "processedJsonFileId": "result-other",
+                    },
+                ],
             }
         ).encode("utf-8")
         mock_upload_file.return_value = MagicMock()

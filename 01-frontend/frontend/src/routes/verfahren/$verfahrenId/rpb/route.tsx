@@ -1,4 +1,5 @@
 import type { ExaminationDb } from '@/db/nodes/createExaminationDb';
+import { redirectExcludedStepToEwms } from '@/features/project/route/productModeRedirect';
 import { rpbSearchSchema } from '@/features/project/rpb/rpb.search';
 import { ProjectNavbar } from '@/features/project/route-navbar/ProjectNavbar';
 import { ProjectNavbarSkeleton } from '@/features/project/route-navbar/ProjectNavbarSkeleton';
@@ -18,6 +19,9 @@ const loadRpbLayoutRoute = async (loaderContext: {
 };
 
 export const Route = createFileRoute('/verfahren/$verfahrenId/rpb')({
+  beforeLoad: ({ params }) => {
+    redirectExcludedStepToEwms(params.verfahrenId);
+  },
   component: RpbLayout,
   loader: loadRpbLayoutRoute,
   validateSearch: rpbSearchSchema,

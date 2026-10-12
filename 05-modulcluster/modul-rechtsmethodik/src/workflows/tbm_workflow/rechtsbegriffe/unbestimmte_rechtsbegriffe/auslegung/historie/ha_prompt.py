@@ -1,5 +1,7 @@
 """Prompt template for historische Auslegung."""
 
+from src.activities.prompt_blocks import closing_block
+
 ha_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung im öffentlichen Recht. Deine Aufgabe ist es, unbestimmte Rechtsbegriffe nach ihrer Historie auszulegen, d. h. zu interpretieren
@@ -112,13 +114,9 @@ Ausgabe:
 
 **Anwendung**
 Analysiere nun folgende Daten:
-{external_data_tag_open}
-- Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}
-- Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}
-- Juristischer Satz: {satz_text}
-- Quellen: {quellen}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "- Unbestimmter Rechtsbegriff: {unbestimmter_rechtsbegriff}",
+    "- Gesetz, Paragraf, Absatz und Satz, aus dem dieser stammt: {normstelle}",
+    "- Juristischer Satz: {satz_text}",
+    "- Quellen: {quellen}",
+)

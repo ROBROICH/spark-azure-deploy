@@ -32,7 +32,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """run migrations and configure logger on application startup"""
     logger = get_logger("lifespan")
 
-    client = await get_temporal_client(host=app_config.temporal.host)
+    client = await get_temporal_client(host=app_config.temporal.HOST)
     # not reliable yet
     # await ensure_rechtsaenderungen_schedule(client)
 

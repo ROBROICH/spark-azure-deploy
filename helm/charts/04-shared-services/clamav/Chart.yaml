@@ -1,0 +1,23 @@
+apiVersion: v2
+name: clamav
+description: >
+  Cluster-internal antivirus scanning service (clamd + freshclam + Go REST
+  proxy) for one environment. REST API on :6000 (/api/scan,
+  /api/health-check); gRPC disabled. The backend reaches it via
+  CLAMAV_BASE_URL = http://{release}-clamav[-stage]:6000.
+
+  Adapted from the upstream clamav-api chart (appVersion v2.0.0) to the
+  leaf-chart conventions of this tree (mirror: 04-shared-services/unoserver):
+  stage-suffixed resource names, global.serviceAccount /
+  global.namespaceOverride semantics, sorted merged env emission.
+
+  Resources created: StatefulSet, Service (ClusterIP :6000), ConfigMap
+  (clamd.conf, mounted), optional ServiceAccount, optional HPA + PDB (both
+  disabled in the 1-replica default).
+type: application
+version: 0.3.0
+appVersion: "v2.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

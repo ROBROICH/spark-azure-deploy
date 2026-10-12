@@ -1,15 +1,10 @@
 """Table extractor for docling document processing."""
 
 import base64
-import io
 import logging
 from typing import Any
 
-import pypdfium2 as pdfium
-
-from src.config import get_config
-from src.utils.pdfium_lock import _pdfium_lock
-from src.utils.pil_lock import _pil_lock
+from src.providers.docling.page_renderer import PageRenderer
 
 __all__ = ["TableExtractor"]
 
@@ -18,8 +13,7 @@ logger = logging.getLogger(__name__)
 
 def _crop_single_table(
     table_info: dict[str, Any],
-    page_images_cache: dict[int, Any],
-    pdf_doc: pdfium.PdfDocument,
+    renderer: PageRenderer,
     images_bytes: dict[str, bytes],
     output_prefix: str,
 ) -> None:
@@ -29,59 +23,16 @@ def _crop_single_table(
         page_no = table_info.get("page_no", 1)
         table_idx = table_info.get("index", 0)
 
-        page_idx = page_no - 1
-        if page_idx < 0 or page_idx >= len(pdf_doc):
-            logger.warning(f"Invalid page {page_no} for table {table_idx}")
+        img_bytes = renderer.crop_png(page_no, bbox)
+        if img_bytes is None:
+            logger.warning(f"Could not crop table {table_idx} on page {page_no}")
             return
-
-        if page_idx not in page_images_cache:
-            page = pdf_doc[page_idx]
-            scale = get_config().DOCLING_IMAGES_SCALE
-            bitmap = page.render(scale=scale)
-            with _pil_lock:
-                pil_image = bitmap.to_pil()
-            page_images_cache[page_idx] = {
-                "pil_image": pil_image,
-                "pdf_width": page.get_width(),
-                "pdf_height": page.get_height(),
-            }
-
-        page_data = page_images_cache[page_idx]
-        pil_image = page_data["pil_image"]
-        pdf_height = page_data["pdf_height"]
-
-        scale = get_config().DOCLING_IMAGES_SCALE
-        img_width = pil_image.width
-        img_height = pil_image.height
-
-        # Convert bbox from docling format (BOTTOMLEFT origin) to image coords (TOPLEFT)
-        left = bbox.get("l", 0) * scale
-        right = bbox.get("r", 0) * scale
-        top = (pdf_height - bbox.get("t", 0)) * scale
-        bottom = (pdf_height - bbox.get("b", 0)) * scale
-
-        padding = 5
-        left = max(0, left - padding)
-        top = max(0, top - padding)
-        right = min(img_width, right + padding)
-        bottom = min(img_height, bottom + padding)
-
-        if left >= right or top >= bottom:
-            logger.warning(f"Invalid crop region for table {table_idx}: ({left}, {top}, {right}, {bottom})")
-            return
-
-        crop_box = (int(left), int(top), int(right), int(bottom))
-        with _pil_lock:
-            cropped_image = pil_image.crop(crop_box)
-            img_buffer = io.BytesIO()
-            cropped_image.save(img_buffer, format="PNG")
-        img_bytes = img_buffer.getvalue()
 
         img_filename = f"{output_prefix}_p{page_no}_table{table_idx}.png"
         table_info["img_path"] = img_filename
         images_bytes[img_filename] = img_bytes
 
-        logger.debug(f"Cropped table image: {img_filename} ({int(right - left)}x{int(bottom - top)}px)")
+        logger.debug(f"Cropped table image: {img_filename} ({len(img_bytes)} bytes)")
 
     except Exception as e:
         logger.warning(f"Failed to crop table {table_info.get('index', '?')}: {e}")
@@ -228,30 +179,17 @@ class TableExtractor:
         return "".join(html_parts)
 
     @staticmethod
-    def crop_table_images(
-        pdf_bytes: bytes,
-        doc_json: dict[str, Any],
+    def crop_tables(
+        renderer: PageRenderer,
         tables_meta: list[dict[str, Any]],
         images_bytes: dict[str, bytes],
         output_prefix: str,
     ) -> None:
+        """Crop tables that carry no image, using an already open renderer.
+
+        Lets a caller share one set of page renders between tables and
+        pictures.  Must be called inside ``_pdfium_lock``.
         """
-        Crop table images from PDF pages for tables missing images.
-
-        Uses pypdfium2 to render PDF pages and crop table regions based on bbox coordinates.
-        This is used when docling-serve doesn't provide embedded table images.
-
-        For Temporal: This is a CPU-bound operation that should be called within an activity.
-        It modifies tables_meta and images_bytes in-place.
-
-        Args:
-            pdf_bytes: Raw PDF file bytes
-            doc_json: Document JSON with page dimensions
-            tables_meta: Table metadata (modified in-place to add img_path)
-            images_bytes: Image bytes dict (modified in-place to add table images)
-            output_prefix: Prefix for output filenames
-        """
-        # Find tables without images
         tables_without_images: list[dict[str, Any]] = [
             t for t in tables_meta if not t.get("img_path") and t.get("bbox")
         ]
@@ -260,21 +198,7 @@ class TableExtractor:
             return
 
         logger.info(f"Cropping {len(tables_without_images)} table images from PDF pages")
+        for table_info in tables_without_images:
+            _crop_single_table(table_info, renderer, images_bytes, output_prefix)
 
-        try:
-            with _pdfium_lock:
-                pdf_doc = pdfium.PdfDocument(pdf_bytes)
-                page_images_cache: dict[int, Any] = {}  # Cache rendered pages
-
-                for table_info in tables_without_images:
-                    _crop_single_table(table_info, page_images_cache, pdf_doc, images_bytes, output_prefix)
-
-                pdf_doc.close()
-                page_images_cache.clear()
-
-            logger.info(
-                f"Successfully cropped {sum(1 for t in tables_without_images if t.get('img_path'))} table images"
-            )
-
-        except Exception as e:
-            logger.error(f"Failed to open PDF for table cropping: {e}")
+        logger.info(f"Successfully cropped {sum(1 for t in tables_without_images if t.get('img_path'))} table images")

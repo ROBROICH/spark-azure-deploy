@@ -11,15 +11,15 @@ describe('mvpPage.logic', () => {
     const projectDocuments = [
       {
         id: 'topic-document-1',
-        dms_file_id: 'project-document-1',
+        dmsFileId: 'project-document-1',
       },
       {
         id: 'topic-document-2',
-        dms_file_id: 'project-document-2',
+        dmsFileId: 'project-document-2',
       },
       {
         id: 'external-document-3',
-        dms_file_id: 'project-document-3',
+        dmsFileId: 'project-document-3',
       },
     ];
 
@@ -35,7 +35,7 @@ describe('mvpPage.logic', () => {
     const topicDocuments = [
       {
         id: 'topic-document-1',
-        dms_file_id: 'project-document-1',
+        dmsFileId: 'project-document-1',
       },
     ];
 

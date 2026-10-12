@@ -1,6 +1,0 @@
-apiVersion: v2
-name: fpp-service
-description: Helm chart for 02-backend/fpp_service (from kustomize)
-type: application
-version: 0.1.0
-appVersion: "1.0.0"

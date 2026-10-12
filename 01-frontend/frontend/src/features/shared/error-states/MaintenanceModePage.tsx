@@ -13,7 +13,7 @@ export function MaintenanceModePage() {
     >
       <img
         src={`${import.meta.env.BASE_URL}SPARK_OS_Release_06.svg`}
-        alt="SPARK"
+        alt="SPARK Workflow"
         className="w-[200px] shrink-0"
       />
       <div className="flex w-full max-w-[36rem] flex-col gap-4 rounded-xl border border-border-primary bg-neutral-white p-8 shadow-sm">

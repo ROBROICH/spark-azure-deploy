@@ -5,6 +5,7 @@ from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from temporal.contracts import DMSFileResponse
 
 from src.activities.dms_activities import (
     AggregateCheckpointsInput,
@@ -16,7 +17,6 @@ from src.activities.dms_activities import (
 )
 from src.dms.schemas import (
     BaseMetadata,
-    DMSFileResponse,
     ProjectBaseMetadataStatus,
 )
 
@@ -28,9 +28,12 @@ def mock_dms() -> Generator[MagicMock]:
 
 
 def _dms_file(file_id: str = "f1", filename: str = "x.json") -> DMSFileResponse:
-    return DMSFileResponse(
-        id=file_id, type="file", filename=filename,
-        bucketPath="/x", projectId="p",
+    return DMSFileResponse(  # pyrefly: ignore[missing-argument]
+        id=file_id,
+        type="file",
+        filename=filename,
+        bucket_path="/x",
+        project_id="p",
     )
 
 
@@ -52,9 +55,7 @@ class TestFetchProjectMetadata:
     @pytest.mark.asyncio
     async def test_wraps_client_tuple_response(self, mock_dms: MagicMock) -> None:
         meta = BaseMetadata.fallback_unknown("p")
-        mock_dms.get_project_base_metadata = AsyncMock(
-            return_value=(meta, ProjectBaseMetadataStatus.COMPLETE)
-        )
+        mock_dms.get_project_base_metadata = AsyncMock(return_value=(meta, ProjectBaseMetadataStatus.COMPLETE))
         result = await fetch_project_metadata("p")
         assert result.metadata == meta
         assert result.status == ProjectBaseMetadataStatus.COMPLETE
@@ -66,14 +67,20 @@ class TestUploadTemporalCheckpoint:
         mock_dms.upload_temporal_checkpoint = AsyncMock(return_value=_dms_file())
         result = await upload_temporal_checkpoint(
             UploadTemporalCheckpointInput(
-                project_id="p", workflow_id="w", run_id="r",
-                filename="file.json", payload={"x": 1},
+                project_id="p",
+                workflow_id="w",
+                run_id="r",
+                filename="file.json",
+                payload={"x": 1},
             )
         )
         assert result.id == "f1"
         mock_dms.upload_temporal_checkpoint.assert_awaited_once_with(
-            project_id="p", workflow_id="w", run_id="r",
-            filename="file.json", payload={"x": 1},
+            project_id="p",
+            workflow_id="w",
+            run_id="r",
+            filename="file.json",
+            payload={"x": 1},
         )
 
 
@@ -94,14 +101,15 @@ class TestAggregateAndUploadCheckpoints:
 
         result = await aggregate_and_upload_checkpoints(
             AggregateCheckpointsInput(
-                project_id="p", workflow_id="w", run_id="r",
-                filename="agg.json", file_ids=["f1", "f2", "f3"],
+                project_id="p",
+                workflow_id="w",
+                run_id="r",
+                filename="agg.json",
+                file_ids=["f1", "f2", "f3"],
             )
         )
 
         assert result.id == "agg"
         upload_call = mock_dms.upload_temporal_checkpoint.await_args
         assert upload_call is not None
-        assert upload_call.kwargs["payload"] == {
-            "contradictions": [{"id": "a"}, {"id": "b"}, {"id": "c"}]
-        }
+        assert upload_call.kwargs["payload"] == {"contradictions": [{"id": "a"}, {"id": "b"}, {"id": "c"}]}

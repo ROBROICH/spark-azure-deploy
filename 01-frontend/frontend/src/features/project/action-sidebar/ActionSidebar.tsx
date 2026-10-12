@@ -24,6 +24,8 @@ import { ActionSidebarMenuContent } from './ActionSidebarMenuContent';
 import { ActionSidebarPanel } from './ActionSidebarPanel';
 import type { ActionSidebarSearch, SidebarPanel } from './sidebarSearchParams';
 
+export const MOBILE_ACTION_SIDEBAR_ID = 'mobile-action-sidebar';
+
 const route = getRouteApi('/verfahren/$verfahrenId');
 
 type SidebarTriggerRefs = Record<
@@ -214,6 +216,7 @@ export const ActionSidebar = () => {
         onClose={closePanel}
       />
       <Sidebar
+        id={MOBILE_ACTION_SIDEBAR_ID}
         side="right"
         collapsible="icon"
         expandDirection="right-to-left"

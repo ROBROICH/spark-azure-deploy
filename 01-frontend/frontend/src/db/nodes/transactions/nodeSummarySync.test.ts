@@ -16,8 +16,8 @@ const createSummaryCollection = (
   return {
     state: new Map(
       summaries.map((summary) => [
-        `${summary.node_type}:${summary.id}`,
-        { ...summary, compositeKey: `${summary.node_type}:${summary.id}` },
+        `${summary.nodeType}:${summary.id}`,
+        { ...summary, compositeKey: `${summary.nodeType}:${summary.id}` },
       ]),
     ),
     utils: {
@@ -36,29 +36,29 @@ describe('nodeSummarySync', () => {
     const collection = createSummaryCollection([
       {
         id: 'topic-1',
-        node_type: 'topic',
-        parents: [{ id: 'project-1', node_type: 'project' }],
-        frontend_parent_ids: ['old-parent'],
-        is_outdated: true,
+        nodeType: 'topic',
+        parents: [{ id: 'project-1', nodeType: 'project' }],
+        frontendParentIds: ['old-parent'],
+        isOutdated: true,
       },
     ]);
 
     syncUpdatedSummaries(collection, [
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         payload: { name: 'Changed topic' },
-        frontend_parent_ids: ['new-parent'],
+        frontendParentIds: ['new-parent'],
       } as unknown as UpdatedSummaryNode,
     ]);
 
     expect(collection.utils.writeUpsert).toHaveBeenCalledWith([
       expect.objectContaining({
         id: 'topic-1',
-        node_type: 'topic',
-        parents: [{ id: 'project-1', node_type: 'project' }],
-        frontend_parent_ids: ['new-parent'],
-        is_outdated: true,
+        nodeType: 'topic',
+        parents: [{ id: 'project-1', nodeType: 'project' }],
+        frontendParentIds: ['new-parent'],
+        isOutdated: true,
         compositeKey: 'topic:topic-1',
       }),
     ]);
@@ -70,18 +70,18 @@ describe('nodeSummarySync', () => {
     syncInsertedSummaries(collection, [
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         payload: { name: 'New topic' },
-        frontend_parent_ids: ['project-1'],
+        frontendParentIds: ['project-1'],
       } as unknown as InsertedSummaryNode,
     ]);
 
     expect(collection.utils.writeUpsert).toHaveBeenCalledWith([
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         parents: [],
-        frontend_parent_ids: ['project-1'],
+        frontendParentIds: ['project-1'],
         compositeKey: 'topic:topic-1',
       },
     ]);
@@ -90,8 +90,8 @@ describe('nodeSummarySync', () => {
   it('deletes summaries by composite key', () => {
     const collection = createSummaryCollection();
     const deletedNodes: NodeRef[] = [
-      { id: 'topic-1', node_type: 'topic' },
-      { id: 'feedback-1', node_type: 'feedback' },
+      { id: 'topic-1', nodeType: 'topic' },
+      { id: 'feedback-1', nodeType: 'feedback' },
     ];
 
     syncDeletedSummaries(collection, deletedNodes);
@@ -106,7 +106,7 @@ describe('nodeSummarySync', () => {
     const collection = createSummaryCollection([
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         parents: [],
       },
     ]);
@@ -114,14 +114,14 @@ describe('nodeSummarySync', () => {
     syncUpdatedSummaries(collection, [
       {
         id: 'topic-1',
-        node_type: 'topic',
+        nodeType: 'topic',
         payload: { name: 'Changed topic' },
       } as unknown as UpdatedSummaryNode,
     ]);
     syncInsertedSummaries(collection, [
       {
         id: 'topic-2',
-        node_type: 'topic',
+        nodeType: 'topic',
         payload: { name: 'New topic' },
       } as unknown as InsertedSummaryNode,
     ]);
@@ -135,9 +135,9 @@ describe('nodeSummarySync', () => {
     syncUpdatedSummaries(collection, [
       {
         id: 'topic-missing',
-        node_type: 'topic',
+        nodeType: 'topic',
         payload: { name: 'Changed topic' },
-        frontend_parent_ids: ['project-1'],
+        frontendParentIds: ['project-1'],
       } as unknown as UpdatedSummaryNode,
     ]);
 

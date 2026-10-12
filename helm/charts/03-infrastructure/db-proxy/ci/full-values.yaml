@@ -1,0 +1,14 @@
+# ci: both components with example settings.
+global:
+  stage: {name: ci}
+podAnnotations:
+  sidecar.istio.io/inject: "false"
+cloudSqlProxy:
+  enabled: true
+  name: cloudsql-proxy
+  instanceConnectionName: example-project:europe-west4:example-instance
+pgbouncer:
+  enabled: true
+  name: cloudsql-direct
+  server: {host: 10.0.0.5}
+  auth: {existingSecret: pgbouncer-userlist}

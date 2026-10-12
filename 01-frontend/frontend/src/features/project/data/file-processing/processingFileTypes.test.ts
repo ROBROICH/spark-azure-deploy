@@ -1,4 +1,4 @@
-import type { ZipFileResponse } from '@/api-clients/dms-module';
+import type { ZipFileResponse } from '@/api-clients/backend';
 import { describe, expect, it } from 'vitest';
 import { filterProcessingFilesByType } from './processingFileTypes';
 
@@ -12,6 +12,10 @@ const makeZipFile = (
   bucketPath: `${type}/${id}.zip`,
   projectId: 'project-1',
   workflowStatus: 'RUNNING',
+  approvalStatus: null,
+  approvalError: null,
+  workflowFailureCode: null,
+  sourceProjectVersion: null,
   createdAt: '2026-05-19T00:00:00.000Z',
   updatedAt: '2026-05-19T00:00:00.000Z',
 });

@@ -1,0 +1,239 @@
+{
+  "fixtures": [
+    {
+      "name": "rechtsmethodik-bnatschg-44",
+      "kind": "rechtsmethodik",
+      "input": {
+        "jurabk": "BNatSchG",
+        "paragraphNr": "44"
+      },
+      "output": {
+        "gesetz": "Bundesnaturschutzgesetz",
+        "jurabk": "BNatSchG",
+        "standangaben": [],
+        "paragraphNr": "44",
+        "paragraphTitel": "Vorschriften fuer besonders geschuetzte Arten",
+        "paragraphText": "Es ist verboten, wild lebende Tiere zu toeten.",
+        "absaetze": [
+          {
+            "absatzNr": "1",
+            "absatzText": "Zugriffsverbote",
+            "saetze": [
+              {
+                "id": "00000000-0000-4000-8000-000000005401",
+                "satzNr": "1",
+                "markers": [
+                  "Nr. 1"
+                ],
+                "satzText": "Wild lebende Tiere duerfen nicht getoetet werden.",
+                "normTypLvl1": "materiell-rechtlich",
+                "normTypLvl2": "wenn-dann",
+                "tatbestandsmerkmale": [
+                  "wild lebendes Tier",
+                  "Toetung"
+                ],
+                "rechtsfolge": {
+                  "text": "Die Toetung ist verboten.",
+                  "sollensanordnungen": "verbot",
+                  "rechtsfolgenAdressat": "handlungsermächtigung",
+                  "ermessensspielraum": "ermessensentscheidung",
+                  "ermessensart": "entschließungsermessen",
+                  "verweise": {
+                    "explizit": [
+                      {
+                        "gesetz": "BNatSchG",
+                        "paragraphNr": "45",
+                        "absatzNr": null,
+                        "satzNr": null,
+                        "untergliederung": null,
+                        "anhang": null,
+                        "artikel": null,
+                        "richtlinie": null,
+                        "verordnung": null,
+                        "technischeNorm": null,
+                        "verweisTyp": "intern",
+                        "kontext": [
+                          "Ausnahme"
+                        ]
+                      }
+                    ],
+                    "implizit": [
+                      "Artenschutzrechtlicher Zusammenhang"
+                    ]
+                  }
+                },
+                "atomareTatbestandsmerkmale": [
+                  {
+                    "id": "00000000-0000-4000-8000-000000005402",
+                    "text": "wild lebendes Tier",
+                    "verweise": {
+                      "explizit": [
+                        {
+                          "gesetz": null,
+                          "paragraphNr": null,
+                          "absatzNr": null,
+                          "satzNr": null,
+                          "untergliederung": null,
+                          "anhang": null,
+                          "artikel": null,
+                          "richtlinie": null,
+                          "verordnung": null,
+                          "technischeNorm": {
+                            "id": "DIN-ART",
+                            "kurzbeschreibung": "Artenschutzkartierung"
+                          },
+                          "verweisTyp": null,
+                          "kontext": null
+                        },
+                        {
+                          "gesetz": "BImSchG",
+                          "paragraphNr": "5",
+                          "absatzNr": "1",
+                          "satzNr": "1",
+                          "untergliederung": [
+                            {
+                              "typ": "nummer",
+                              "wert": "1"
+                            }
+                          ],
+                          "anhang": null,
+                          "artikel": null,
+                          "richtlinie": null,
+                          "verordnung": null,
+                          "technischeNorm": null,
+                          "verweisTyp": "extern",
+                          "kontext": null
+                        }
+                      ],
+                      "implizit": [
+                        "Schutzpflicht"
+                      ]
+                    },
+                    "prueffrage": "Ist ein wild lebendes Tier betroffen?",
+                    "pruefgegenstand": "Tier",
+                    "rechtsbegriffe": {
+                      "unbestimmteRechtsbegriffe": [
+                        {
+                          "begriff": "wild lebend",
+                          "auslegungsvorschläge": [
+                            {
+                              "auslegungMethode": "wortlaut",
+                              "auslegungsvorschlag": "Nicht domestiziert",
+                              "sources": [
+                                "BNatSchG"
+                              ]
+                            }
+                          ],
+                          "auslegung": "In freier Natur lebend"
+                        }
+                      ],
+                      "bestimmteRechtsbegriffe": [
+                        {
+                          "begriff": "Tier",
+                          "definitions": [
+                            {
+                              "begriff": "Tier",
+                              "definition": "Lebender Organismus",
+                              "source": {
+                                "jurabk": "BNatSchG",
+                                "paragraphNr": "7"
+                              }
+                            }
+                          ],
+                          "selectedDefinition": null
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "formel": null
+              }
+            ]
+          }
+        ],
+        "regelungsgegenstand": "Artenschutz"
+      }
+    },
+    {
+      "name": "satz-bnatschg-44-1",
+      "kind": "satz",
+      "input": {
+        "norm": "Bundesnaturschutzgesetz (BNatSchG) § 44 Vorschriften fuer besonders geschuetzte Arten",
+        "tbm": "wild lebendes Tier, Toetung",
+        "satzId": "00000000-0000-4000-8000-000000005201",
+        "gesetzId": "00000000-0000-4000-8000-000000005202",
+        "normId": "00000000-0000-4000-8000-000000005203",
+        "data": {
+          "gesetz": "Bundesnaturschutzgesetz",
+          "jurabk": "BNatSchG",
+          "paragraph": null,
+          "paragraphNr": "44",
+          "paragraphTitel": "Vorschriften fuer besonders geschuetzte Arten",
+          "absaetze": [
+            {
+              "absatzNr": "1",
+              "absatzText": "Zugriffsverbote",
+              "saetze": [
+                {
+                  "id": "00000000-0000-4000-8000-000000005201",
+                  "satzNr": "1",
+                  "position": 0,
+                  "satzText": "Wild lebende Tiere duerfen nicht getoetet werden.",
+                  "normTypLvl1": "materiell-rechtlich",
+                  "normTypLvl2": "wenn-dann",
+                  "tatbestandsmerkmale": [
+                    "wild lebendes Tier",
+                    "Toetung"
+                  ],
+                  "atomareTatbestandsmerkmale": []
+                }
+              ]
+            }
+          ]
+        },
+        "projectId": "00000000-0000-4000-8000-000000005101",
+        "normdetailId": "00000000-0000-4000-8000-000000005203",
+        "maxConcurrentPageindexSvm": 2,
+        "documentNodes": [
+          {
+            "fileId": "00000000-0000-4000-8000-000000005301",
+            "documentName": "artenschutzbericht.pdf",
+            "nodes": [
+              {
+                "nodeId": "page-index-1",
+                "title": "Artenschutz",
+                "text": "Die Kartierung weist ein betroffenes Tier nach.",
+                "summary": "Kartierung",
+                "chunkIds": [
+                  "00000000-0000-4000-8000-000000005501"
+                ],
+                "pageNumbers": [
+                  3
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "output": {
+        "satzId": "00000000-0000-4000-8000-000000005201",
+        "gesetzId": "00000000-0000-4000-8000-000000005202",
+        "normId": "00000000-0000-4000-8000-000000005203",
+        "originaltexte": [
+          {
+            "nodeId": "page-index-1",
+            "documentId": "00000000-0000-4000-8000-000000005301",
+            "title": "Artenschutz",
+            "text": "Die Kartierung weist ein betroffenes Tier nach.",
+            "chunkIds": [
+              "00000000-0000-4000-8000-000000005501"
+            ],
+            "pageNumbers": [
+              3
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{{- if .Values.keda.enabled }}
+{{- $defaults := ((.Values.global | default dict).backend | default dict).keda | default dict }}
+{{- $keda := mergeOverwrite (deepCopy $defaults) (omit .Values.keda "enabled" "name" "taskQueue" "triggers") }}
+{{- $temporal := $keda.temporal | default dict }}
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: {{ .Values.keda.name | default (include "spark-backend-pool.fullname" .) }}
+  namespace: {{ include "spark-backend-pool.namespace" . }}
+  labels:
+    {{- include "spark-backend-pool.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "spark-backend-pool.fullname" . }}
+  minReplicaCount: {{ $keda.minReplicaCount }}
+  maxReplicaCount: {{ $keda.maxReplicaCount }}
+  pollingInterval: {{ $keda.pollingInterval }}
+  cooldownPeriod: {{ $keda.cooldownPeriod }}
+  {{- with $keda.advanced }}
+  advanced:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  triggers:
+    {{- if .Values.keda.triggers }}
+    {{- toYaml .Values.keda.triggers | nindent 4 }}
+    {{- else }}
+    {{- $queue := required (printf "%s: keda.taskQueue (or keda.triggers) is required" .Chart.Name) .Values.keda.taskQueue }}
+    {{- range $type := list "activity" "workflow" }}
+    {{- $thresholds := get $temporal $type | default dict }}
+    - type: temporal
+      metadata:
+        endpoint: {{ required "global.backend.keda.temporal.endpoint is required" $temporal.endpoint }}
+        namespace: {{ $temporal.namespace | default "default" }}
+        taskQueue: {{ $queue }}
+        queueTypes: {{ $type }}
+        targetQueueSize: {{ $thresholds.targetQueueSize | toString | quote }}
+        activationTargetQueueSize: {{ $thresholds.activationTargetQueueSize | toString | quote }}
+    {{- end }}
+    {{- end }}
+{{- end }}

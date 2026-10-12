@@ -1,0 +1,474 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots current nodes and excludes soft-deleted rows 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000004",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000006",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000007",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000000",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000001",
+            "nodeType": "topic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000003",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000001",
+            "nodeType": "topic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000004",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000002",
+            "nodeType": "subtopic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000004",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots the explicit historical project version 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract omitted version resolves to the same current payload from core 1`] = `
+{
+  "body": {
+    "nodes": [
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000004",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000006",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000007",
+        "isOutdated": false,
+        "nodeType": "file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000000",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000001",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000001",
+            "nodeType": "topic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000003",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000001",
+            "nodeType": "topic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "parents": [
+          {
+            "id": "20000000-0000-4000-8000-000000000004",
+            "nodeType": "file",
+          },
+          {
+            "id": "30000000-0000-4000-8000-000000000002",
+            "nodeType": "subtopic",
+          },
+        ],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000001",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000002",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000003",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+      {
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000004",
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "parents": [],
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots an empty project 1`] = `
+{
+  "body": {
+    "nodes": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`GET /{project_id}/nodes HTTP contract snapshots an invalid explicit version 1`] = `
+{
+  "body": {
+    "nodes": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an empty request 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract parses complete mixed node payloads and snapshots incumbent ordering 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "approvalError": null,
+        "approvalStatus": "APPROVED",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/approved.zip",
+        "createdAt": "2026-01-11T12:00:00Z",
+        "filename": "approved.zip",
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000002",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updateType": "automated",
+        "updatedAt": "2026-01-11T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+      {
+        "addedInVersion": 3,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/reports/alpha.pdf",
+        "createdAt": "2026-01-04T12:00:00Z",
+        "filename": "Alpha Report.pdf",
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000003",
+        "isDeleted": false,
+        "isOutdated": false,
+        "mimeType": "application/pdf",
+        "nodeType": "file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "sourceZipFileId": null,
+        "type": "document",
+        "updateType": "automated",
+        "updatedAt": "2026-01-04T12:00:00Z",
+        "vectorSearchable": null,
+        "version": 1,
+        "workflowId": null,
+        "workflowStatus": null,
+      },
+      {
+        "createdAt": "2026-01-16T12:00:00Z",
+        "fileId": "20000000-0000-4000-8000-000000000003",
+        "frontendParentIds": [],
+        "id": "31000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "file_topic",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "subtopicId": null,
+        "topicId": "30000000-0000-4000-8000-000000000001",
+        "updateType": "automated",
+        "updatedAt": "2026-01-16T12:00:00Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omits unknown, soft-deleted, and cross-project IDs 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an explicit historical lookup 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "addedInVersion": 2,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v1/basis.pdf",
+        "createdAt": "2026-01-01T12:00:00Z",
+        "filename": "basis.pdf",
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "mimeType": "application/pdf",
+        "nodeType": "file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 2,
+        "runId": null,
+        "sourceZipFileId": null,
+        "type": "document",
+        "updateType": "automated",
+        "updatedAt": "2026-01-01T12:00:00Z",
+        "vectorSearchable": false,
+        "version": 1,
+        "workflowId": null,
+        "workflowStatus": null,
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": null,
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v1/bundle.zip",
+        "createdAt": "2026-01-09T12:00:00Z",
+        "filename": "bundle-v2.zip",
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 2,
+        "sourceProjectVersion": 1,
+        "type": "zip",
+        "updateType": "automated",
+        "updatedAt": "2026-01-09T12:00:00Z",
+        "workflowStatus": "PENDING",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omitted version resolves to the same current lookup 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "addedInVersion": 2,
+        "bucketPath": "documents/10000000-0000-4000-8000-000000000001/v2/basis.pdf",
+        "createdAt": "2026-01-02T12:00:00Z",
+        "filename": "basis.pdf",
+        "frontendParentIds": [],
+        "id": "20000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "mimeType": "application/pdf",
+        "nodeType": "file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "runId": null,
+        "sourceZipFileId": null,
+        "type": "document",
+        "updateType": "automated",
+        "updatedAt": "2026-01-02T12:00:00Z",
+        "vectorSearchable": true,
+        "version": 2,
+        "workflowId": null,
+        "workflowStatus": null,
+      },
+      {
+        "approvalError": null,
+        "approvalStatus": "REQUIRES_APPROVAL",
+        "bucketPath": "zips/10000000-0000-4000-8000-000000000001/v2/bundle.zip",
+        "createdAt": "2026-01-10T12:00:00Z",
+        "filename": "bundle-v3.zip",
+        "frontendParentIds": [],
+        "id": "40000000-0000-4000-8000-000000000001",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "zip_file",
+        "projectId": "10000000-0000-4000-8000-000000000001",
+        "projectVersion": 3,
+        "sourceProjectVersion": 2,
+        "type": "zip",
+        "updateType": "automated",
+        "updatedAt": "2026-01-10T12:00:00Z",
+        "workflowStatus": "COMPLETED",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

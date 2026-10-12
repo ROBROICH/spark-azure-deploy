@@ -84,7 +84,7 @@ function getActualNodeRadius(degree: number) {
 }
 
 function getActualNodeLabel(node: NodeSummary) {
-  return `${nodeTypeLabels[node.node_type]} ${node.id.slice(0, 8)}`;
+  return `${nodeTypeLabels[node.nodeType]} ${node.id.slice(0, 8)}`;
 }
 
 function sortNodeSummaries(left: NodeSummary, right: NodeSummary) {
@@ -115,18 +115,18 @@ function groupActualNodesByType(
   const groupedNodes = new Map<NodeTypeLiteral, NodeSummary[]>();
 
   for (const attributes of getNodeSummaries(graph)) {
-    if (!typeNodesByType.has(attributes.node_type)) {
+    if (!typeNodesByType.has(attributes.nodeType)) {
       continue;
     }
 
-    const nodesOfType = groupedNodes.get(attributes.node_type);
+    const nodesOfType = groupedNodes.get(attributes.nodeType);
 
     if (nodesOfType) {
       nodesOfType.push(attributes);
       continue;
     }
 
-    groupedNodes.set(attributes.node_type, [attributes]);
+    groupedNodes.set(attributes.nodeType, [attributes]);
   }
 
   for (const nodes of groupedNodes.values()) {
@@ -162,11 +162,11 @@ export function buildGraphDataLayout(
       const point = getSpiralPoint(index, nodes.length, typeNode);
       const degree = getNodeDegree(graph, node.id);
       const actualNode = {
-        color: getNodeTypeColor(node.node_type),
+        color: getNodeTypeColor(node.nodeType),
         degree,
         id: node.id,
         label: getActualNodeLabel(node),
-        nodeType: node.node_type,
+        nodeType: node.nodeType,
         radius: getActualNodeRadius(degree),
         x: point.x,
         y: point.y,

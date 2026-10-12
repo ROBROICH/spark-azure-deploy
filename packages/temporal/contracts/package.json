@@ -1,0 +1,24 @@
+{
+  "name": "@spark-temporal/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "generate": "bun run scripts/generate.ts",
+    "test": "bun test --preload @spark-workflow/test-support/evlog-disabled --isolate --dots",
+    "typecheck": "tsgo --noEmit --project tsconfig.json"
+  },
+  "dependencies": {
+    "@sinclair/typebox": "0.34.52",
+    "es-toolkit": "catalog:"
+  },
+  "devDependencies": {
+    "@spark-workflow/test-support": "workspace:*",
+    "@types/bun": "1.4.0",
+    "typescript": "5.9.3",
+    "@typescript/native-preview": "7.0.0-dev.20260425.1"
+  }
+}

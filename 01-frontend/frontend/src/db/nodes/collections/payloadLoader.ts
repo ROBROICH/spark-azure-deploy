@@ -1,27 +1,17 @@
 import {
-  batchGetProjectIdBatchNodesPost as dmsBatchGet,
-  type NodeRef as DmsNodeRef,
-} from '@/api-clients/dms-module';
-import {
-  batchGetProjectIdBatchNodesPost as omsBatchGet,
-  type NodeRef as OmsNodeRef,
-} from '@/api-clients/oms-module';
-import {
-  batchGetProjectIdBatchNodesPost as feedbackBatchGet,
-  type NodeRef as FeedbackNodeRef,
-} from '@/api-clients/feedback-module';
-import {
-  batchGetProjectIdBatchNodesPost as vaeBatchGet,
-  type NodeRef as VaeNodeRef,
-} from '@/api-clients/vae-module';
-import {
-  batchGetProjectIdBatchNodesPost as examBatchGet,
-  type NodeRef as ExamNodeRef,
-} from '@/api-clients/examination-module';
-import {
-  batchGetProjectIdBatchNodesPost as plsBatchGet,
-  type NodeRef as PlsNodeRef,
-} from '@/api-clients/pls-module';
+  v1DocumentManagementServiceBatchGetNodes as dmsBatchGet,
+  type V1DocumentManagementServiceNodeRef as DmsNodeRef,
+  v1ObjectionsManagementServiceBatchGetNodes as omsBatchGet,
+  type V1ObjectionsManagementServiceNodeRef as OmsNodeRef,
+  v1FeedbackBatchGetNodes as feedbackBatchGet,
+  type V1FeedbackNodeRef as FeedbackNodeRef,
+  v1AdministrativeFileDraftBatchGetNodes as vaeBatchGet,
+  type V1AdministrativeFileDraftNodeRef as VaeNodeRef,
+  v1ExaminationServiceBatchGetNodes as examBatchGet,
+  type V1ExaminationServiceNodeRef as ExamNodeRef,
+  v1ProjectLogicServiceBatchGetNodes as plsBatchGet,
+  type V1ProjectLogicServiceNodeRef as PlsNodeRef,
+} from '@/api-clients/backend';
 import DataLoader from 'dataloader';
 import { toCompositeKey, type CompositeKey } from '../compositeKey';
 import {
@@ -57,35 +47,35 @@ function groupNodeRefsByBackend(nodeRefs: ReadonlyArray<NodeRef>) {
   const vae: VaeNodeRef[] = [];
 
   for (const nodeRef of nodeRefs) {
-    if (VAE_NODE_TYPES.has(nodeRef.node_type)) {
+    if (VAE_NODE_TYPES.has(nodeRef.nodeType)) {
       vae.push(nodeRef as VaeNodeRef);
       continue;
     }
-    if (PLS_NODE_TYPES.has(nodeRef.node_type as PlsNodeRef['node_type'])) {
+    if (PLS_NODE_TYPES.has(nodeRef.nodeType as PlsNodeRef['nodeType'])) {
       pls.push(nodeRef as PlsNodeRef);
       continue;
     }
-    if (DMS_NODE_TYPES.has(nodeRef.node_type as DmsNodeRef['node_type'])) {
+    if (DMS_NODE_TYPES.has(nodeRef.nodeType as DmsNodeRef['nodeType'])) {
       dms.push(nodeRef as DmsNodeRef);
       continue;
     }
     if (
-      FEEDBACK_NODE_TYPES.has(nodeRef.node_type as FeedbackNodeRef['node_type'])
+      FEEDBACK_NODE_TYPES.has(nodeRef.nodeType as FeedbackNodeRef['nodeType'])
     ) {
       feedback.push(nodeRef as FeedbackNodeRef);
       continue;
     }
-    if (OMS_NODE_TYPES.has(nodeRef.node_type as OmsNodeRef['node_type'])) {
+    if (OMS_NODE_TYPES.has(nodeRef.nodeType as OmsNodeRef['nodeType'])) {
       oms.push(nodeRef as OmsNodeRef);
       continue;
     }
     if (
-      EXAMINATION_NODE_TYPES.has(nodeRef.node_type as ExamNodeRef['node_type'])
+      EXAMINATION_NODE_TYPES.has(nodeRef.nodeType as ExamNodeRef['nodeType'])
     ) {
       exam.push(nodeRef as ExamNodeRef);
       continue;
     }
-    throw new Error(`Unknown node_type: ${nodeRef.node_type}`);
+    throw new Error(`Unknown nodeType: ${nodeRef.nodeType}`);
   }
 
   return { exam, feedback, pls, dms, oms, vae };
@@ -104,12 +94,12 @@ async function fetchGroupedNodePayloads(
   groupedRefs: ReturnType<typeof groupNodeRefsByBackend>,
 ) {
   const { exam, feedback, pls, dms, oms, vae } = groupedRefs;
-  const query = { project_version: projectVersion };
+  const query = { projectVersion: projectVersion };
 
   return Promise.all([
     exam.length > 0
       ? examBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: exam },
           throwOnError: true,
@@ -117,7 +107,7 @@ async function fetchGroupedNodePayloads(
       : null,
     feedback.length > 0
       ? feedbackBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: feedback },
           throwOnError: true,
@@ -125,7 +115,7 @@ async function fetchGroupedNodePayloads(
       : null,
     pls.length > 0
       ? plsBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: pls },
           throwOnError: true,
@@ -133,7 +123,7 @@ async function fetchGroupedNodePayloads(
       : null,
     dms.length > 0
       ? dmsBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: dms },
           throwOnError: true,
@@ -141,7 +131,7 @@ async function fetchGroupedNodePayloads(
       : null,
     oms.length > 0
       ? omsBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: oms },
           throwOnError: true,
@@ -149,7 +139,7 @@ async function fetchGroupedNodePayloads(
       : null,
     vae.length > 0
       ? vaeBatchGet({
-          path: { project_id: projectId },
+          path: { projectId: projectId },
           query,
           body: { nodes: vae },
           throwOnError: true,
@@ -198,7 +188,7 @@ async function loadNodePayloadBatch(
   });
 }
 
-/** Batches NodeRef requests and routes them to the correct backend based on node_type. */
+/** Batches NodeRef requests and routes them to the correct backend based on nodeType. */
 export const createNodeDataLoader = (
   projectId: string,
   projectVersion: number,

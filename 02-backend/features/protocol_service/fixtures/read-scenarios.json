@@ -1,0 +1,37 @@
+{
+  "projects": {
+    "main": "71000000-0000-4000-8000-000000000001",
+    "empty": "71000000-0000-4000-8000-000000000002",
+    "other": "71000000-0000-4000-8000-000000000003",
+    "bulk": "71000000-0000-4000-8000-000000000004"
+  },
+  "groups": {
+    "workflowRunId": "protocol-wf-cross",
+    "requestId": "protocol-req-cross",
+    "singleServiceWorkflowRunId": "protocol-wf-administrative-draft"
+  },
+  "dates": {
+    "inclusiveFrom": "2026-01-01T10:02:00Z",
+    "inclusiveTo": "2026-01-01T10:05:00Z"
+  },
+  "expected": {
+    "ungroupedTotal": 12,
+    "collapsedItems": 6,
+    "workflowItems": 5,
+    "requestItems": 3,
+    "userItems": 5,
+    "agentItems": 7,
+    "dateFilteredTotal": 5,
+    "dateFilteredCollapsedItems": 3,
+    "bulkBoundary": 10000,
+    "bulkOverLimit": 10001,
+    "requestTieOrder": ["formal_completeness", "comment", "document_management"],
+    "workflowTieOrder": [
+      "project_logic",
+      "formal_completeness",
+      "comment",
+      "supplementary",
+      "objections_management"
+    ]
+  }
+}

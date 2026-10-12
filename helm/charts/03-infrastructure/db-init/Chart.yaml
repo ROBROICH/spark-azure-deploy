@@ -1,0 +1,15 @@
+apiVersion: v2
+name: db-init
+description: >-
+  Opt-in database initialization for one SPARK environment: per PostgreSQL
+  database create-if-missing, drop (whole database or all schemas) and
+  restore of a dump fetched from GCS/HTTPS, run as pre-install/pre-upgrade
+  hook Jobs; plus a post-install SpiceDB `zed backup restore`. Renders
+  nothing unless a database asks for an action.
+type: application
+version: 0.4.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

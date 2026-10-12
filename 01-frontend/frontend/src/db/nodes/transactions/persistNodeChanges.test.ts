@@ -10,24 +10,12 @@ const mocks = vi.hoisted(() => ({
   updateVaeNodes: vi.fn(),
 }));
 
-vi.mock('@/api-clients/examination-module', () => ({
-  updateNodesProjectIdUpdatePost: mocks.updateExamNodes,
-}));
-
-vi.mock('@/api-clients/feedback-module', () => ({
-  updateNodesProjectIdUpdatePost: mocks.updateFeedbackNodes,
-}));
-
-vi.mock('@/api-clients/oms-module', () => ({
-  updateNodesProjectIdUpdatePost: mocks.updateOmsNodes,
-}));
-
-vi.mock('@/api-clients/pls-module', () => ({
-  updateNodesProjectIdUpdatePost: mocks.updatePlsNodes,
-}));
-
-vi.mock('@/api-clients/vae-module', () => ({
-  updateNodesProjectIdUpdatePost: mocks.updateVaeNodes,
+vi.mock('@/api-clients/backend', () => ({
+  v1ExaminationServiceUpdateNodes: mocks.updateExamNodes,
+  v1FeedbackUpdateNodes: mocks.updateFeedbackNodes,
+  v1ObjectionsManagementServiceUpdateNodes: mocks.updateOmsNodes,
+  v1ProjectLogicServiceUpdateNodes: mocks.updatePlsNodes,
+  v1AdministrativeFileDraftUpdateNodes: mocks.updateVaeNodes,
 }));
 
 const serviceMocks = [
@@ -54,7 +42,7 @@ describe('persistNodeChanges', () => {
         inserts: [],
         updates: [
           {
-            node_type: 'file',
+            nodeType: 'file',
             id: 'file-1',
             payload: { filename: 'changed.pdf' },
           } as unknown as UpdateNodeAction,
@@ -91,7 +79,7 @@ describe('persistNodeChanges', () => {
       inserts: [],
       updates: [
         {
-          node_type: 'topic',
+          nodeType: 'topic',
           id: 'topic-1',
           payload: { name: 'Changed topic' },
         } as UpdateNodeAction,
@@ -100,13 +88,13 @@ describe('persistNodeChanges', () => {
     });
 
     expect(mocks.updatePlsNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 4 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 4 },
       body: {
         inserts: [],
         updates: [
           {
-            node_type: 'topic',
+            nodeType: 'topic',
             id: 'topic-1',
             payload: { name: 'Changed topic' },
           },
@@ -120,27 +108,27 @@ describe('persistNodeChanges', () => {
   it('routes all supported backend node groups independently', async () => {
     const inserts = [
       {
-        node_type: 'topic',
+        nodeType: 'topic',
         id: 'topic-new',
         payload: { name: 'New topic' },
       } as InsertNodeAction,
       {
-        node_type: 'fundstelle',
+        nodeType: 'fundstelle',
         id: 'fundstelle-new',
         payload: { text: 'Fundstelle' },
       } as InsertNodeAction,
       {
-        node_type: 'feedback',
+        nodeType: 'feedback',
         id: 'feedback-new',
         payload: { comment: 'Feedback' },
       } as unknown as InsertNodeAction,
       {
-        node_type: 'argument',
+        nodeType: 'argument',
         id: 'argument-new',
         payload: { text: 'Argument' },
       } as InsertNodeAction,
       {
-        node_type: 'risks',
+        nodeType: 'risks',
         id: 'risks-new',
         payload: { risks: [] },
       } as unknown as InsertNodeAction,
@@ -155,32 +143,32 @@ describe('persistNodeChanges', () => {
     });
 
     expect(mocks.updatePlsNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 7 },
       body: { inserts: [inserts[0]], updates: [], deletes: [] },
       throwOnError: true,
     });
     expect(mocks.updateExamNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 7 },
       body: { inserts: [inserts[1]], updates: [], deletes: [] },
       throwOnError: true,
     });
     expect(mocks.updateFeedbackNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 7 },
       body: { inserts: [inserts[2]], updates: [], deletes: [] },
       throwOnError: true,
     });
     expect(mocks.updateOmsNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 7 },
       body: { inserts: [inserts[3]], updates: [], deletes: [] },
       throwOnError: true,
     });
     expect(mocks.updateVaeNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 7 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 7 },
       body: { inserts: [inserts[4]], updates: [], deletes: [] },
       throwOnError: true,
     });
@@ -194,12 +182,12 @@ describe('persistNodeChanges', () => {
         inserts: [],
         updates: [
           {
-            node_type: 'topic',
+            nodeType: 'topic',
             id: 'topic-1',
             payload: { name: 'Changed topic' },
           } as UpdateNodeAction,
         ],
-        deletes: [{ node_type: 'file', id: 'file-1' } as NodeRef],
+        deletes: [{ nodeType: 'file', id: 'file-1' } as NodeRef],
       }),
     ).rejects.toThrow('Unsupported node mutation type(s): file');
 
@@ -210,16 +198,16 @@ describe('persistNodeChanges', () => {
 
   it('sends project version as query data and node changes as request body data', async () => {
     const update = {
-      node_type: 'topic',
+      nodeType: 'topic',
       id: 'topic-1',
       payload: { name: 'Changed topic' },
     } as UpdateNodeAction;
     const insert = {
-      node_type: 'topic',
+      nodeType: 'topic',
       id: 'topic-2',
       payload: { name: 'New topic' },
     } as InsertNodeAction;
-    const deleted = { node_type: 'topic', id: 'topic-3' } as NodeRef;
+    const deleted = { nodeType: 'topic', id: 'topic-3' } as NodeRef;
 
     await persistNodeChanges({
       projectId: 'project-1',
@@ -230,8 +218,8 @@ describe('persistNodeChanges', () => {
     });
 
     expect(mocks.updatePlsNodes).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
-      query: { project_version: 12 },
+      path: { projectId: 'project-1' },
+      query: { projectVersion: 12 },
       body: {
         inserts: [insert],
         updates: [update],
@@ -244,16 +232,16 @@ describe('persistNodeChanges', () => {
   it('merges persisted inserted, updated, and deleted arrays from backend responses', async () => {
     mocks.updatePlsNodes.mockResolvedValue({
       data: {
-        inserted: [{ node_type: 'topic', id: 'topic-inserted' }],
-        updated: [{ node_type: 'topic', id: 'topic-updated' }],
-        deleted: [{ node_type: 'topic', id: 'topic-deleted' }],
+        inserted: [null, { nodeType: 'topic', id: 'topic-inserted' }],
+        updated: [{ nodeType: 'topic', id: 'topic-updated' }, null],
+        deleted: [{ nodeType: 'topic', id: 'topic-deleted' }],
       },
     });
     mocks.updateExamNodes.mockResolvedValue({
       data: {
-        inserted: [{ node_type: 'fundstelle', id: 'fundstelle-inserted' }],
-        updated: [{ node_type: 'fundstelle', id: 'fundstelle-updated' }],
-        deleted: [{ node_type: 'fundstelle', id: 'fundstelle-deleted' }],
+        inserted: [{ nodeType: 'fundstelle', id: 'fundstelle-inserted' }],
+        updated: [{ nodeType: 'fundstelle', id: 'fundstelle-updated' }],
+        deleted: [{ nodeType: 'fundstelle', id: 'fundstelle-deleted' }],
       },
     });
 
@@ -264,12 +252,12 @@ describe('persistNodeChanges', () => {
         inserts: [],
         updates: [
           {
-            node_type: 'topic',
+            nodeType: 'topic',
             id: 'topic-1',
             payload: { name: 'Changed topic' },
           } as UpdateNodeAction,
           {
-            node_type: 'fundstelle',
+            nodeType: 'fundstelle',
             id: 'fundstelle-1',
             payload: { text: 'Changed fundstelle' },
           } as UpdateNodeAction,
@@ -278,16 +266,16 @@ describe('persistNodeChanges', () => {
       }),
     ).resolves.toEqual({
       inserted: [
-        { node_type: 'topic', id: 'topic-inserted' },
-        { node_type: 'fundstelle', id: 'fundstelle-inserted' },
+        { nodeType: 'topic', id: 'topic-inserted' },
+        { nodeType: 'fundstelle', id: 'fundstelle-inserted' },
       ],
       updated: [
-        { node_type: 'topic', id: 'topic-updated' },
-        { node_type: 'fundstelle', id: 'fundstelle-updated' },
+        { nodeType: 'topic', id: 'topic-updated' },
+        { nodeType: 'fundstelle', id: 'fundstelle-updated' },
       ],
       deleted: [
-        { node_type: 'topic', id: 'topic-deleted' },
-        { node_type: 'fundstelle', id: 'fundstelle-deleted' },
+        { nodeType: 'topic', id: 'topic-deleted' },
+        { nodeType: 'fundstelle', id: 'fundstelle-deleted' },
       ],
     });
   });

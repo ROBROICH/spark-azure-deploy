@@ -1,4 +1,4 @@
-import type { PlausibilityNoteStatus } from '@/api-clients/pns-module';
+import type { PlausibilityNoteStatus } from '@/api-clients/backend';
 import { contradictionsCollection } from '@/features/project/fvp/data/plausibility/contradictions.collection';
 
 const updateContradictionStatus = (

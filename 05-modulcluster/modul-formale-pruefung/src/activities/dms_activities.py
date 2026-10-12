@@ -2,10 +2,9 @@
 Temporal activities for interacting with the DMS API.
 """
 
-import json
 from typing import Any
 
-from temporal.workflows.formale_pruefung import DMSFileResponse
+from temporal.contracts import DMSFileResponse
 from temporalio import activity
 
 from src.schemas.dms_schemas import (
@@ -83,17 +82,13 @@ async def upload_temporal_checkpoint(
     """
     # Our files are far below 2MB for larger files it needs to be done unsafe in the
     # workflow
-    if isinstance(params.payload, str):
-        final_payload = params.payload
-    else:
-        final_payload = json.dumps(params.payload)
     client = DMSClient()
     return await client.upload_temporal_checkpoint(
         project_id=params.project_id,
         workflow_id=params.workflow_id,
         run_id=params.run_id,
         filename=params.filename,
-        payload=final_payload,
+        payload=params.payload,
     )
 
 

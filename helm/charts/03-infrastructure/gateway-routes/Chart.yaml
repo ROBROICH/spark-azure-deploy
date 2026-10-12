@@ -1,0 +1,14 @@
+apiVersion: v2
+name: gateway-routes
+description: >-
+  Per-environment Envoy Gateway routing for a SPARK environment: HTTPRoutes,
+  SecurityPolicies (OIDC + JWT), Keycloak Backend/BackendTLSPolicy. Deployed INTO
+  the environment namespace. The Gateway `api-gateway` itself lives in
+  envoy-gateway-system and is NOT part of this chart.
+type: application
+version: 0.4.0
+appVersion: "1.0.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

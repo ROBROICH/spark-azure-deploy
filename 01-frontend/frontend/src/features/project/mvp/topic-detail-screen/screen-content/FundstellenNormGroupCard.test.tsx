@@ -47,7 +47,15 @@ vi.mock('react-i18next', () => ({
         return `${String(params?.count ?? 0)} mehr anzeigen`;
       }
 
+      if (key === 'FundstellenReliability.focusCount') {
+        return `Fokus: ${String(params?.focused ?? '')} von ${String(params?.total ?? '')}`;
+      }
+
       const translations = {
+        'FundstellenReliability.notInFocusExplanation':
+          'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+        'FundstellenReliability.unratedExplanation':
+          'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
         'FundstellenNormGroupCard.outdated': 'Veraltet',
         'FundstellenNormGroupCard.refresh': 'Aktualisieren',
         'FundstellenNormGroupCard.showLess': 'Weniger anzeigen',
@@ -211,5 +219,76 @@ describe('FundstellenNormGroupCard', () => {
     });
     expect(openConnectedFileMock).toHaveBeenCalledWith('doc-file-1');
     expect(jumpToConnectedFilePageMock).toHaveBeenCalledWith(3, 'doc-file-1');
+  });
+
+  it('marks only the findings that do not carry the assessment', () => {
+    const fundstellenNormGroupCard: FundstellenNormGroupCardModel = {
+      normId: 'norm-1',
+      entries: [
+        {
+          id: 'fundstelle-1',
+          pageNumber: 3,
+          title: 'Tragende Fundstelle',
+          confidence: 0.9,
+        },
+        {
+          id: 'fundstelle-2',
+          pageNumber: 4,
+          title: 'Ergaenzende Fundstelle',
+          confidence: 0.2,
+        },
+        { id: 'fundstelle-3', pageNumber: 5, title: 'Fundstelle ohne Wert' },
+      ],
+    };
+
+    render(
+      <FundstellenNormGroupCard
+        documentFileId="doc-file-1"
+        fundstellenNormGroupCard={fundstellenNormGroupCard}
+      />,
+    );
+
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
+      }),
+    ).toBeDefined();
+    // The carrying finding stays unmarked, so the mark reads as a deviation.
+    expect(screen.getAllByRole('img')).toHaveLength(2);
+  });
+
+  it('states in the header how many findings carry the assessment', () => {
+    const fundstellenNormGroupCard: FundstellenNormGroupCardModel = {
+      normId: 'norm-1',
+      entries: [
+        {
+          id: 'fundstelle-1',
+          pageNumber: 3,
+          title: 'Tragende Fundstelle',
+          confidence: 0.9,
+        },
+        {
+          id: 'fundstelle-2',
+          pageNumber: 4,
+          title: 'Ergaenzende Fundstelle',
+          confidence: 0.2,
+        },
+        { id: 'fundstelle-3', pageNumber: 5, title: 'Fundstelle ohne Wert' },
+      ],
+    };
+
+    render(
+      <FundstellenNormGroupCard
+        documentFileId="doc-file-1"
+        fundstellenNormGroupCard={fundstellenNormGroupCard}
+      />,
+    );
+
+    expect(screen.getByText('Fokus: 1 von 3')).toBeDefined();
   });
 });

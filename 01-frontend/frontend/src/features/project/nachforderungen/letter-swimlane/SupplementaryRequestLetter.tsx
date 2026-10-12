@@ -1,7 +1,7 @@
 import { Button } from '@/features/ui/button/Button';
 import { SwimlaneHeaderPortal } from '@/features/ui/swimlanes/SwimlaneHeaderPortal';
 import { formatDate } from '@/i18n/formatDate';
-import { eq, useLiveQuery } from '@tanstack/react-db';
+import { useQuery } from '@tanstack/react-query';
 import { getRouteApi } from '@tanstack/react-router';
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
@@ -22,9 +22,8 @@ import {
 import type { MouseEvent } from 'react';
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import { sortByCreatedAtAsc } from '../data/requestItemPresentation';
-import type { RequestItem } from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
+import { v1SupplementaryRequestsGetSupplementaryLetterItems } from '@/api-clients/backend';
+import { requestItemFromApi } from '../data/schemas/requestItem.schema';
 import { exportPdf } from '../export/exportPdf';
 import { exportDocx } from '../export/exportDocx';
 import { ItemSection } from '../export/itemSectionExtension';
@@ -56,17 +55,25 @@ type ToolbarItem =
 export const SupplementaryRequestLetter = () => {
   const { t, i18n } = useTranslation('SupplementaryRequests');
   const { verfahrenId } = route.useParams();
-  const { data: requestItemsData } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, verfahrenId)),
-  );
-  const queriedItems = [...requestItemsData].sort(sortByCreatedAtAsc);
-  const requestItems: ReadonlyArray<RequestItem> = queriedItems;
-
-  const includedItems: RequestItem[] = requestItems.filter(
-    (item) => item.includedInLetter === true,
-  );
+  const {
+    data: includedItems = [],
+    isLoading,
+    isFetching,
+    isSuccess,
+    isError,
+    refetch,
+  } = useQuery({
+    queryKey: ['request-letter', verfahrenId],
+    queryFn: async () => {
+      const { data } = await v1SupplementaryRequestsGetSupplementaryLetterItems(
+        {
+          path: { projectId: verfahrenId },
+          throwOnError: true,
+        },
+      );
+      return data.map(requestItemFromApi);
+    },
+  });
   const initializedRef = useRef(false);
   const prevIncludedIdsRef = useRef<Set<string>>(new Set());
   const editor = useEditor({
@@ -85,7 +92,7 @@ export const SupplementaryRequestLetter = () => {
         // node) rather than the EditorContent wrapper.
         'aria-label': t('SupplementaryRequestLetter.title'),
         class:
-          'focus-ring min-h-full text-neutral-600 [&_h1]:mb-4 [&_h1]:text-[18px] [&_h1]:font-medium [&_h1]:text-brand-950 [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-medium [&_h2]:text-brand-950 [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-sm [&_h3]:font-medium [&_h3]:text-brand-950 [&_p]:mb-2 [&_p]:leading-relaxed [&_ul]:mb-2 [&_ul]:ml-6 [&_ul]:list-disc [&_ol]:mb-2 [&_ol]:ml-6 [&_ol]:list-decimal [&_li]:mb-1',
+          'focus-ring min-h-full text-neutral-600 [overflow-wrap:anywhere] [&_pre]:whitespace-pre-wrap [&_h1]:mb-4 [&_h1]:text-[18px] [&_h1]:font-medium [&_h1]:text-brand-950 [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:text-base [&_h2]:font-medium [&_h2]:text-brand-950 [&_h3]:mb-2 [&_h3]:mt-3 [&_h3]:text-sm [&_h3]:font-medium [&_h3]:text-brand-950 [&_p]:mb-2 [&_p]:leading-relaxed [&_ul]:mb-2 [&_ul]:ml-6 [&_ul]:list-disc [&_ol]:mb-2 [&_ol]:ml-6 [&_ol]:list-decimal [&_li]:mb-1',
       },
     },
   });
@@ -179,7 +186,7 @@ export const SupplementaryRequestLetter = () => {
 
   // eslint-disable-next-line no-restricted-syntax -- TipTap is an imperative API; we must sync content via commands when the included items set changes
   useEffect(() => {
-    if (!editor) {
+    if (!editor || !isSuccess) {
       return;
     }
 
@@ -196,10 +203,10 @@ export const SupplementaryRequestLetter = () => {
 
     initializedRef.current = wasInitialized;
     prevIncludedIdsRef.current = newIds;
-  }, [editor, includedItems, i18n.language, t]);
+  }, [editor, includedItems, isSuccess, i18n.language, t]);
 
   const handleExportPdf = () => {
-    if (!editor) {
+    if (!editor || !isSuccess || isFetching) {
       return;
     }
     exportPdf(
@@ -210,7 +217,7 @@ export const SupplementaryRequestLetter = () => {
   };
 
   const handleExportDocx = () => {
-    if (!editor) {
+    if (!editor || !isSuccess || isFetching) {
       return;
     }
     void exportDocx(editor, t('SupplementaryRequestLetter.export.filename'));
@@ -224,7 +231,10 @@ export const SupplementaryRequestLetter = () => {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <SwimlaneHeaderPortal>
-        <span aria-hidden="true" className="rounded-lg bg-bg-quaternary p-2">
+        <span
+          aria-hidden="true"
+          className="hidden rounded-lg bg-bg-quaternary p-2 lg:inline-flex"
+        >
           <FileText className="size-4" />
         </span>
         <h2 className="flex-1 text-left text-[13px] font-medium tracking-[-0.13px] text-brand-950">
@@ -235,7 +245,7 @@ export const SupplementaryRequestLetter = () => {
           <Button
             variant="primary"
             size="sm"
-            disabled={!hasContent || !editor}
+            disabled={!hasContent || !editor || isFetching || isError}
             onClick={handleExportPdf}
           >
             <Download className="size-4" aria-hidden="true" />
@@ -244,7 +254,7 @@ export const SupplementaryRequestLetter = () => {
           <Button
             variant="primary"
             size="sm"
-            disabled={!hasContent || !editor}
+            disabled={!hasContent || !editor || isFetching || isError}
             onClick={handleExportDocx}
           >
             <Download className="size-4" aria-hidden="true" />
@@ -256,7 +266,7 @@ export const SupplementaryRequestLetter = () => {
       <div
         role="toolbar"
         aria-label={t('SupplementaryRequestLetter.title')}
-        className="flex shrink-0 items-center gap-1 border-b border-border-primary px-4 py-2"
+        className="flex shrink-0 flex-wrap items-center gap-1 border-b border-border-primary px-4 py-2"
       >
         {toolbarItems.map((item, index) =>
           item.kind === 'separator' ? (
@@ -286,8 +296,18 @@ export const SupplementaryRequestLetter = () => {
         )}
       </div>
 
-      <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-4">
-        {hasContent ? (
+      {isError && (
+        <div role="alert" className="p-4">
+          <p>{t('SupplementaryRequestLetter.loadError')}</p>
+          <Button variant="secondary" onClick={() => void refetch()}>
+            {t('RequestListPanel.retry')}
+          </Button>
+        </div>
+      )}
+      <div className="h-0 min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-6 py-4">
+        {isLoading ? (
+          <p role="status">{t('RequestListPanel.loadingAria')}</p>
+        ) : hasContent ? (
           <EditorContent editor={editor} className="h-full" />
         ) : (
           <p className="text-sm text-text-secondary">

@@ -1,0 +1,6 @@
+schemaVersion: 1
+id: formal-completeness-review
+title: Formale Vollständigkeitsprüfung und Plausibilitätsprüfung
+openSpecCapabilities:
+  - fvp
+  - fvp-pp

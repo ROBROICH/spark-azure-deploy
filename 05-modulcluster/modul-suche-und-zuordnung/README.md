@@ -8,13 +8,13 @@ A Temporal worker service that matches legal norm requirements (_Tatbestandsmerk
 - **DB-backed Research** — Queries law databases (**Dienst Gesetzesbegründungsdatenbank**, **Dienst juristische Datenbank**) concurrently and synthesizes a _Legal Evaluation Guideline_ via LLM to guide matching.
 - **PageIndex SVM** — Two-stage LLM pipeline (node selection + sentence-level filtering) that returns the exact sections (Fundstellen) within a matched document that cover the TBM.
 - **Satz Orchestration** — Per-_Satz_ coordinator that runs TBM matching and DB research asynchronously, then fans out PageIndex SVM children for every matched document.
-- **Large-payload S3 Offload** — Temporal payloads exceeding the gRPC size limit are automatically offloaded to MinIO via the shared `temporal` workspace package.
+- **Large-payload S3 Offload** — Temporal payloads exceeding the gRPC size limit are automatically offloaded to VersityGW via the shared `temporal` workspace package.
 
 ## Architecture
 
 ### Overview
 
-The service is a Temporal worker that registers a task queue (`modul-suche-und-zuordnung`) and processes four workflow types. It has no inbound HTTP API, all execution is triggered by other services via the Temporal SDK. Large payloads are transparently offloaded to **MinIO (S3)** by the shared `temporal` workspace package so gRPC size limits are never hit. All LLM calls are proxied through the shared **LLM-Proxy**, and all vector searches go through **Vektordatenbank**.
+The service is a Temporal worker that registers a task queue (`modul-suche-und-zuordnung`) and processes four workflow types. It has no inbound HTTP API, all execution is triggered by other services via the Temporal SDK. Large payloads are transparently offloaded to **VersityGW (S3)** by the shared `temporal` workspace package so gRPC size limits are never hit. All LLM calls are proxied through the shared **LLM-Proxy**, and all vector searches go through **Vektordatenbank**.
 
 ### Workflow Overview
 
@@ -68,15 +68,15 @@ sequenceDiagram
 
 ### Dependencies
 
-| Service                    | Role                                                               |
-| -------------------------- | ------------------------------------------------------------------ |
-| **Temporal** (port 7233)   | Workflow orchestration engine                                      |
-| **MinIO / S3** (port 9000) | Large-payload storage for Temporal                                 |
-| **Vektordatenbank** (port 6333)     | Vector database for chunk retrieval                                |
-| **LLM-Proxy**              | Unified gateway for all LLM calls (SVM, synthesis)                 |
-| **Dienst formale Vollständigkeitsprüfung** (FCS) | Used by `PageIndexSVMWorkflow` |
-| **Dienst Gesetzesbegründungsdatenbank**                | Law commentary database queried by `TBMDBResearchWorkflow`         |
-| **Dienst juristische Datenbank**            | Court judgments database queried by `TBMDBResearchWorkflow`        |
+| Service                                          | Role                                                        |
+| ------------------------------------------------ | ----------------------------------------------------------- |
+| **Temporal** (port 7233)                         | Workflow orchestration engine                               |
+| **VersityGW / S3** (port 9000)                       | Large-payload storage for Temporal                          |
+| **Vektordatenbank** (port 6333)                  | Vector database for chunk retrieval                         |
+| **LLM-Proxy**                                    | Unified gateway for all LLM calls (SVM, synthesis)          |
+| **Dienst formale Vollständigkeitsprüfung** (FCS) | Used by `PageIndexSVMWorkflow`                              |
+| **Dienst Gesetzesbegründungsdatenbank**          | Law commentary database queried by `TBMDBResearchWorkflow`  |
+| **Dienst juristische Datenbank**                 | Court judgments database queried by `TBMDBResearchWorkflow` |
 
 ## Getting Started
 
@@ -85,98 +85,45 @@ sequenceDiagram
 - Python `>=3.13, <3.14`
 - `uv` package manager
 - Docker & Docker Compose
-- Access to the platform services below (started from the monorepo root `docker-compose.yaml`):
+- The platform services below, started from the monorepo root `docker-compose.yaml`:
   - **Temporal** + Temporal UI
-  - **MinIO** with a `temporal-payloads` bucket
-  - **Vektordatenbank** (port-forwarded from the cluster for local development)
-- A reachable shared `llm-client` worker stack (this module dispatches LLM calls via the shared `temporal` workspace package; it does not hold LiteLLM credentials itself)
+  - **VersityGW** with a `temporal-payloads` bucket
+  - **Vektordatenbank**
+- A reachable OpenAI-compatible LiteLLM endpoint. Process Compose starts the local `llm-client` workers; this module does not hold LiteLLM credentials.
 
 ### Environment Variables
 
 Loaded from the environment or `.env.local` by `src/config/env.py`. The `FCS_`, `QDRANT_`, `LAW_DATABASE_`, `LLM_`, and `TEMPORAL_` groups use pydantic-settings nested delimiter `_`.
 
-| Variable | Description | Default | Required |
-|----------|-------------|---------|----------|
-| `TEMPORAL_HOST` | Temporal frontend address | `temporal-frontend.temporal.svc.cluster.local:7233` *(deployment-set; `localhost:7233` locally)* | yes |
-| `TEMPORAL_S3_BUCKET_NAME` | S3 bucket for large Temporal payloads | `temporal-payloads` | yes |
-| `TEMPORAL_S3_ENDPOINT_URL` | S3/MinIO endpoint | `https://s3.<your-domain>` *(deployment-set; `http://localhost:9000` locally)* | yes |
-| `TEMPORAL_S3_ACCESS_KEY_ID` | S3 access key | `minioadmin` *(local)* / from `temporal-s3-secrets` *(deployment-set)* | yes |
-| `TEMPORAL_S3_SECRET_ACCESS_KEY` | S3 secret key | `minioadmin` *(local)* / from `temporal-s3-secrets` *(deployment-set)* | yes |
-| `TEMPORAL_S3_REGION` | S3 region | `my-store` *(deployment-set; `eu-west-1` locally)* | yes |
-| `QDRANT_HOST` | Qdrant host | `qdrant.testing-database.svc.cluster.local` *(deployment-set; `localhost` locally)* | yes |
-| `QDRANT_PORT` | Qdrant port | `6333` | yes |
-| `QDRANT_COLLECTION` | Qdrant collection name | `data` *(deployment-set)* / `minimal_test_Qwen0.6B_bm25_hybrid` *(local)* | yes |
-| `LLM_EMBEDDING_MODEL` | Embedding model name (routed via LiteLLM) | `self-hosted/BAAI/bge-m3` *(deployment-set)* | yes |
-| `LLM_PAGEINDEX_SVM_MODEL_STAGE1` | LLM model for PageIndex SVM stage 1 (node selection) | `self-hosted/gpt-oss-120b` *(deployment-set)* | yes |
-| `LLM_PAGEINDEX_SVM_MODEL_STAGE2` | LLM model for PageIndex SVM stage 2 (sentence filtering) | `self-hosted/gpt-oss-120b` *(deployment-set)* | yes |
-| `LLM_DB_RESEARCH_MODEL` | LLM model for TBM DB-research synthesis | `self-hosted/gpt-oss-120b` *(deployment-set)* | yes |
-| `FCS_BASE_URL` | Dienst formale Vollständigkeitsprüfung URL | `http://fcs-module-test.backend-module.svc.cluster.local` *(deployment-set; `http://localhost:8003` locally)* | yes |
-| `FCS_TIMEOUT` | Dienst formale Vollständigkeitsprüfung request timeout (seconds) | `60` | yes |
-| `LAW_DATABASE_DKE_BASE_URL` | Dienst Gesetzesbegründungsdatenbank base URL (port-forwarded locally) | `http://localhost:15432` | yes |
-| `LAW_DATABASE_UT_BASE_URL` | Dienst juristische Datenbank base URL (port-forwarded locally) | `http://localhost:5555` | yes |
-| `OTEL_SERVICE_NAME` | OpenTelemetry service name | `suche-und-zuordnung` *(deployment-set)* / `modul-suche-und-zuordnung` *(local)* | yes |
-| `OTEL_ENDPOINT` | OpenTelemetry collector gRPC endpoint | `otel-gateway.observability.svc.cluster.local:4317` *(deployment-set; `http://localhost:4317` locally)* | yes |
+| Variable                         | Description                                                      | Default                                                                                                                              | Required |
+| -------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | -------- |
+| `TEMPORAL_HOST`                  | Temporal frontend address                                        | `temporal-frontend.temporal.svc.cluster.local:7233` _(deployment-set; `localhost:7233` locally)_                                     | yes      |
+| `TEMPORAL_S3_BUCKET_NAME`        | S3 bucket for large Temporal payloads                            | `temporal-payloads`                                                                                                                  | yes      |
+| `TEMPORAL_S3_ENDPOINT_URL`       | S3/VersityGW endpoint                                                | `https://s3.<your-domain>` _(deployment-set; `http://localhost:9000` locally)_                                                       | yes      |
+| `TEMPORAL_S3_ACCESS_KEY_ID`      | S3 access key                                                    | generated root `.env` _(local)_ / from `temporal-s3-secrets` _(deployment-set)_                                                               | yes      |
+| `TEMPORAL_S3_SECRET_ACCESS_KEY`  | S3 secret key                                                    | generated root `.env` _(local)_ / from `temporal-s3-secrets` _(deployment-set)_                                                               | yes      |
+| `TEMPORAL_S3_REGION`             | S3 region                                                        | `my-store` _(deployment-set; `eu-west-1` locally)_                                                                                   | yes      |
+| `QDRANT_HOST`                    | Qdrant host                                                      | `qdrant.testing-database.svc.cluster.local` _(deployment-set; `localhost` locally)_                                                  | yes      |
+| `QDRANT_PORT`                    | Qdrant port                                                      | `6333`                                                                                                                               | yes      |
+| `QDRANT_COLLECTION`              | Qdrant collection name                                           | `data` _(deployment-set)_ / `minimal_test_Qwen0.6B_bm25_hybrid` _(local)_                                                            | yes      |
+| `LLM_EMBEDDING_MODEL`            | Embedding model name (routed via LiteLLM)                        | `self-hosted/BAAI/bge-m3` _(deployment-set)_                                                                                         | yes      |
+| `LLM_PAGEINDEX_SVM_MODEL_STAGE1` | LLM model for PageIndex SVM stage 1 (node selection)             | `self-hosted/gpt-oss-120b` _(deployment-set)_                                                                                        | yes      |
+| `LLM_PAGEINDEX_SVM_MODEL_STAGE2` | LLM model for PageIndex SVM stage 2 (sentence filtering)         | `self-hosted/gpt-oss-120b` _(deployment-set)_                                                                                        | yes      |
+| `LLM_DB_RESEARCH_MODEL`          | LLM model for TBM DB-research synthesis                          | `self-hosted/gpt-oss-120b` _(deployment-set)_                                                                                        | yes      |
+| `FCS_BASE_URL`                   | Dienst formale Vollständigkeitsprüfung URL                       | `http://fcs-module-test.backend-module.svc.cluster.local/api/fcs/v1` _(deployment-set; `http://localhost:18002/api/fcs/v1` locally)_ | yes      |
+| `FCS_TIMEOUT`                    | Dienst formale Vollständigkeitsprüfung request timeout (seconds) | `60`                                                                                                                                 | yes      |
+| `LAW_DATABASE_DKE_BASE_URL`      | Dienst Gesetzesbegründungsdatenbank base URL                     | `http://localhost:18021`                                                                                                             | yes      |
+| `LAW_DATABASE_UT_BASE_URL`       | Dienst juristische Datenbank base URL                            | `http://localhost:18022`                                                                                                             | yes      |
+| `OTEL_SERVICE_NAME`              | OpenTelemetry service name                                       | `suche-und-zuordnung` _(deployment-set)_ / `modul-suche-und-zuordnung` _(local)_                                                     | yes      |
+| `OTEL_ENDPOINT`                  | OpenTelemetry collector gRPC endpoint                            | `otel-gateway.observability.svc.cluster.local:4317` _(deployment-set; `http://localhost:4317` locally)_                              | yes      |
 
 ### Running the Module / Service
 
 #### In Development
 
-1. **Install dependencies and activate the virtual environment:**
+Follow the monorepo root [First Local Start](../../README.md#first-local-start). Docker Compose starts the local stateful services. Process Compose starts this worker with the local Qdrant, FCS, law-data, and `llm-client` services. Only the configured LiteLLM endpoint and the Docling port-forward leave the local stack.
 
-   ```bash
-   uv sync
-   source .venv/bin/activate
-   ```
-
-2. **Configure the environment:** Sensible non-secret defaults are already in `.env.local` (committed). Create a `.env` file (gitignored) and set environment-specific secrets:
-
-   ```ini
-   # Required: which Qdrant collection to search against
-   QDRANT_COLLECTION=<your-collection-name>
-   ```
-
-   > **Note on `LITELLM_MASTER_KEY`:** LLM calls are routed through the shared `temporal` workspace package's `llm_invoke` activities and the central llm-client workers, which hold the LiteLLM credentials. This module itself **does not read `LITELLM_*` env vars** (no references in `src/`, and neither key is set in `k8s/base/app.deployment.yaml`).
-
-3. **Start the local platform services** from the monorepo root:
-
-   ```bash
-   # From the monorepo root
-   docker compose up -d temporal temporal-ui minio minio-init temporal-init
-   ```
-
-   If the `temporal-payloads` bucket does not exist, create it via the MinIO console at http://localhost:9001 using the S3 credentials from your `.env` (the Docker-default values are in `.env.local`).
-
-4. **Start the shared LLM client worker** (routes LLM calls to the model providers):
-
-   ```bash
-   # From 04-shared-services/llm/llm-client
-   docker compose up
-   ```
-
-5. **Port-forward all cluster services** (run each in a separate terminal):
-
-   ```bash
-   # Qdrant vector database
-   kubectl port-forward --context <k8s-context> -n testing-database svc/qdrant 6333:6333
-
-   # Dienst Gesetzesbegründungsdatenbank
-   kubectl port-forward --context <k8s-context> -n gesetze-normen-db service/begruendungen-db-test 15432:80
-
-   # Dienst Juristische Datenbank
-   kubectl port-forward --context <k8s-context> -n gesetze-normen-db deployment/jura-db-test 5555:8000
-
-   # FCS (Formal Completeness Check service)
-   kubectl port-forward --context <k8s-context> -n backend-module service/fcs-module-test 8003:80
-   ```
-
-6. **Start the worker:**
-
-   ```bash
-   # From the modul-suche-und-zuordnung directory
-   docker compose up --build
-   ```
-
-7. **Verify** the worker is running by opening the Temporal UI at http://localhost:8233 → **Workers**. The task queue `modul-suche-und-zuordnung` should show an active worker.
+Verify the worker in the [Temporal UI](http://localhost:8233). The task queue `modul-suche-und-zuordnung` should have an active poller.
 
 #### In Production
 
@@ -204,7 +151,7 @@ Loaded from the environment or `.env.local` by `src/config/env.py`. The `FCS_`, 
 ## Troubleshooting
 
 - **Worker does not appear in Temporal UI** — Check that `TEMPORAL_HOST` is reachable from inside the container (`host.docker.internal:7233` for local Docker setups) and that the task queue name matches exactly.
-- **LLM calls fail** — LLM credentials are managed by the shared `llm-client` workers, not this module. Verify those workers are running and that the configured `LLM_*` model names route correctly through LLM-Proxy.
-- **Qdrant connection errors** — For local development, Qdrant must be port-forwarded from the cluster (`kubectl port-forward --context <k8s-context> -n <namespace> svc/qdrant 6333:6333`). Check `QDRANT_HOST` / `QDRANT_PORT` and that `QDRANT_COLLECTION` matches an existing collection.
-- **S3 / MinIO `NoSuchBucket` errors** — Create the `temporal-payloads` bucket via the MinIO console at http://localhost:9001 before starting the worker.
-- **Temporal payload too large** — This is handled automatically by the S3 offload mechanism. If you see unexpected serialization errors, verify that the MinIO endpoint and credentials are correct.
+- **LLM calls fail** — LLM credentials are managed by the `llm-client` workers, not this module. Verify those workers are running and that the configured `LLM_*` model names route correctly through LLM-Proxy.
+- **Qdrant connection errors** — Check that the root Docker Compose stack is healthy, then verify `QDRANT_HOST`, `QDRANT_PORT`, and `QDRANT_COLLECTION`.
+- **S3 / VersityGW `NoSuchBucket` errors** — Start the root Docker Compose stack; VersityGW creates the `temporal-payloads` bucket during startup.
+- **Temporal payload too large** — This is handled automatically by the S3 offload mechanism. If you see unexpected serialization errors, verify that the VersityGW endpoint and credentials are correct.

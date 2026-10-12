@@ -25,10 +25,13 @@ class TestDMSClientUploads:
         def handler(request: httpx.Request) -> httpx.Response:
             path = request.url.path
             if path.endswith("/generate-upload-url"):
-                return httpx.Response(200, json={
-                    "uploadUrl": "https://example/upload",
-                    "mimeType": "application/json",
-                })
+                return httpx.Response(
+                    200,
+                    json={
+                        "uploadUrl": "https://example/upload",
+                        "mimeType": "application/json",
+                    },
+                )
             if path.endswith("/upload"):
                 return httpx.Response(200)
             if path.endswith("/confirm-upload"):
@@ -37,8 +40,11 @@ class TestDMSClientUploads:
 
         install_transport(handler)
         result = await DMSClient().upload_temporal_checkpoint(
-            project_id="p", workflow_id="w", run_id="r",
-            filename="f.json", payload={"x": 1},
+            project_id="p",
+            workflow_id="w",
+            run_id="r",
+            filename="f.json",
+            payload={"x": 1},
         )
 
         assert result.id == "uploaded-id"
@@ -53,10 +59,13 @@ class TestDMSClientUploads:
             seen.append(request.url)
             path = request.url.path
             if path.endswith("/generate-upload-url"):
-                return httpx.Response(200, json={
-                    "uploadUrl": "https://example/upload",
-                    "mimeType": "application/json",
-                })
+                return httpx.Response(
+                    200,
+                    json={
+                        "uploadUrl": "https://example/upload",
+                        "mimeType": "application/json",
+                    },
+                )
             if path.endswith("/upload"):
                 return httpx.Response(200)
             if path.endswith("/confirm-upload"):
@@ -72,8 +81,7 @@ class TestDMSClientUploads:
             )
 
         versioned_urls = [
-            url for url in seen
-            if url.path.endswith("/generate-upload-url") or url.path.endswith("/confirm-upload")
+            url for url in seen if url.path.endswith("/generate-upload-url") or url.path.endswith("/confirm-upload")
         ]
         assert result.id == "uploaded-id"
-        assert [url.params["project_version"] for url in versioned_urls] == ["5", "5"]
+        assert [url.params["projectVersion"] for url in versioned_urls] == ["5", "5"]

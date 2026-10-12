@@ -5,17 +5,35 @@ All functions are pure (no I/O, no Temporal SDK calls) — tested directly.
 """
 
 import pytest
-from temporal.workflows.modul_suche_und_zuordnung.types import (
-    Absatz,
-    AtomaresTBM,
-    Auslegungsvorschlag,
-    BestimmterRechtsbegriff,
-    Definition,
-    DefinitionSource,
-    NormData,
-    Rechtsbegriffe,
-    Satz,
-    UnbestimmterRechtsbegriff,
+from temporal.contracts import (
+    Source as DefinitionSource,
+)
+from temporal.contracts import (
+    SucheZuordnungAbsatz as Absatz,
+)
+from temporal.contracts import (
+    SucheZuordnungAtomaresTBM as AtomaresTBM,
+)
+from temporal.contracts import (
+    SucheZuordnungAuslegungsvorschlag as Auslegungsvorschlag,
+)
+from temporal.contracts import (
+    SucheZuordnungBestimmterRechtsbegriff as BestimmterRechtsbegriff,
+)
+from temporal.contracts import (
+    SucheZuordnungDefinition as Definition,
+)
+from temporal.contracts import (
+    SucheZuordnungNormData as NormData,
+)
+from temporal.contracts import (
+    SucheZuordnungRechtsbegriffe as Rechtsbegriffe,
+)
+from temporal.contracts import (
+    SucheZuordnungSatz as Satz,
+)
+from temporal.contracts import (
+    SucheZuordnungUnbestimmterRechtsbegriff as UnbestimmterRechtsbegriff,
 )
 
 from src.satz_orchestrator_helpers import (

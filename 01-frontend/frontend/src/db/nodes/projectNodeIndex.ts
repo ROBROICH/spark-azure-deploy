@@ -204,7 +204,7 @@ export function getDescendantNodeRefsByType<T extends NodeTypeLiteral>(
   index: ProjectNodeIndex,
   startId: string,
   type: T,
-): (NodeRef & { node_type: T })[] {
+): (NodeRef & { nodeType: T })[] {
   if (!hasNode(index, startId)) {
     return [];
   }
@@ -213,7 +213,7 @@ export function getDescendantNodeRefsByType<T extends NodeTypeLiteral>(
   const cachedRefs = index.refsByStartIdAndType.get(cacheKey);
 
   if (cachedRefs) {
-    return cachedRefs as (NodeRef & { node_type: T })[];
+    return cachedRefs as (NodeRef & { nodeType: T })[];
   }
 
   const refs = getTypedDescendantRefs(
@@ -294,7 +294,7 @@ export function getFirstDescendantNodeRefByType<T extends NodeTypeLiteral>(
   index: ProjectNodeIndex,
   startId: string,
   type: T,
-): (NodeRef & { node_type: T }) | null {
+): (NodeRef & { nodeType: T }) | null {
   if (!hasNode(index, startId)) {
     return null;
   }
@@ -303,7 +303,7 @@ export function getFirstDescendantNodeRefByType<T extends NodeTypeLiteral>(
   const cached = index.firstRefByStartIdAndType.get(cacheKey);
 
   if (cached !== undefined) {
-    return cached as (NodeRef & { node_type: T }) | null;
+    return cached as (NodeRef & { nodeType: T }) | null;
   }
 
   const firstRef = getFirstTypedDescendantRef(
@@ -343,7 +343,7 @@ export function getChildNodes<T extends NodeTypeLiteral>(
   return (index.childrenByNodeId.get(nodeId) ?? []).flatMap((childId) => {
     const child = index.nodeById.get(childId);
 
-    if (type && child?.node_type !== type) {
+    if (type && child?.nodeType !== type) {
       return [];
     }
 

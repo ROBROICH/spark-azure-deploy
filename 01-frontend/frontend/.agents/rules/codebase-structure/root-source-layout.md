@@ -1,3 +1,9 @@
+---
+ruleId: codebase-structure/root-source-layout
+paths:
+  - "src/**"
+---
+
 # Root Source Layout
 
 Use when creating, moving, or reviewing folders directly under `src/`.

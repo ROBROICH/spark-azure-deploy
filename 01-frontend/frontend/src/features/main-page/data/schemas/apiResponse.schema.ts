@@ -1,4 +1,4 @@
-import type { DeadlineResponse } from '@/api-clients/pls-module';
+import type { DeadlineResponse } from '@/api-clients/backend';
 import { z } from 'zod';
 
 /**
@@ -19,7 +19,7 @@ const deadlineResponseSchema = z.object({
   startAt: z.string(),
   endAt: z.string(),
   deadlineType: z.string(),
-  legalBasis: z.string().nullish(),
+  legalBasis: z.string().nullable(),
   createdAt: z.string(),
   updatedAt: z.string(),
 }) satisfies z.ZodType<DeadlineResponse>;

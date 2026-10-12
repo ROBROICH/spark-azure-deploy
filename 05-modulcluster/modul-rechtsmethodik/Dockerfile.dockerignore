@@ -1,6 +1,9 @@
 # Ignore everything by default
 **
 
+# Shared Python image build steps (docker/python-build/README.md)
+!docker/python-build/*.sh
+
 # Root workspace files
 !pyproject.toml
 !uv.lock
@@ -10,11 +13,12 @@
 .venv/**
 
 # Workspace and used shared libraries
-!02-backend/logging
-!04-shared-services/audit-client
-!04-shared-services/temporal
-!04-shared-services/authentification
-!04-shared-services/prompt-injection
+!packages/event-logging
+!packages/audit-client
+!packages/temporal
+!packages/temporal/python/**
+!packages/authentification
+!packages/prompt-injection
 
 # Allow module code
 !05-modulcluster/modul-rechtsmethodik/main.py

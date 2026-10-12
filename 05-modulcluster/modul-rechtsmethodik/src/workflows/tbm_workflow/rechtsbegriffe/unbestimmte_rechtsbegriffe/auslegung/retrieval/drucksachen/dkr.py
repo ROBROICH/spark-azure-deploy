@@ -4,9 +4,10 @@ import asyncio
 from datetime import datetime
 from typing import Any
 
+from temporal.activities.law_db import QueryTopKDRInput
 from temporalio import workflow
 
-from src.activities.law_api_calls import QueryChunksUTInput, QueryTopKDRInput, query_chunks_ut, query_top_k_dr
+from src.activities.law_api_calls import QueryChunksUTInput, query_chunks_ut, query_top_k_dr
 from src.activities.llm_invoke import llm_invoke
 from src.env import ENV
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.auslegung.auslegung_types import (

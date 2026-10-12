@@ -169,15 +169,11 @@ async def _merge_all_enrichment_results(input: MergeAllEnrichmentResultsInput) -
 
     activity.logger.info(f"Merged metadata from sources: {sources} into {len(new_chunks)} chunks")
 
-    # 4. Upload merged chunks to DMS
-    def default(obj: Any) -> Any:
-        """JSON serializer fallback for UUID objects."""
-        if isinstance(obj, UUID):
-            return str(obj)
-        raise TypeError
-
     chunks_json_str = await asyncio.to_thread(
-        lambda: json.dumps([c.model_dump() for c in new_chunks], indent=2, default=default)
+        lambda: json.dumps(
+            [c.model_dump(mode="json", by_alias=True) for c in new_chunks],
+            indent=2,
+        )
     )
 
     merged_chunks_file = await upload_file(

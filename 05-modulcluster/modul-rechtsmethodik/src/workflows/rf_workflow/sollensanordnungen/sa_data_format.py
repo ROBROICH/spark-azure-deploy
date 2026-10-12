@@ -1,7 +1,7 @@
 """Data models for Sollensanordnungen classification."""
 
 from pydantic import BaseModel, ConfigDict, Field
-from temporal.workflows.rechtsmethodik.types import Sollensanordnungen
+from temporal.contracts import Sollensanordnungen
 
 
 class SollensanordnungenAgentOutputFormat(BaseModel):

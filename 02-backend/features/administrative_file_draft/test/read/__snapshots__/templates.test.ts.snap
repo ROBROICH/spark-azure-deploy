@@ -1,0 +1,108 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`Administrative File Draft template read contract GET /templates snapshots the retained Testing template 1`] = `
+{
+  "body": [
+    {
+      "id": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+      "isActive": true,
+      "name": "Default Template",
+      "projectTypeId": "00000000-0000-0000-0000-000000000000",
+      "version": 1,
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`Administrative File Draft template read contract GET /templates snapshots an empty project type 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;
+
+exports[`Administrative File Draft template read contract GET /templates/{template_id} snapshots a found template 1`] = `
+{
+  "body": {
+    "id": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+    "isActive": true,
+    "name": "Default Template",
+    "projectTypeId": "00000000-0000-0000-0000-000000000000",
+    "version": 1,
+  },
+  "status": 200,
+}
+`;
+
+exports[`Administrative File Draft template read contract GET /templates/{template_id}/nodes snapshots roots, children, and order 1`] = `
+{
+  "body": [
+    {
+      "canAddChild": false,
+      "createdAt": "2026-04-21T08:18:13.632Z",
+      "id": "682dd6aa-0500-45c9-a0a1-6edf550e31f4",
+      "isHidden": false,
+      "order": 0,
+      "parentVaeNodeId": null,
+      "sysPeriod": {
+        "bounds": "[)",
+        "empty": false,
+        "lower": "2026-04-21T16:15:39.502Z",
+        "upper": null,
+      },
+      "templateId": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+      "text": "",
+      "title": "Entscheidung",
+      "topic": null,
+      "updatedAt": "2026-04-21T08:18:13.632Z",
+    },
+    {
+      "canAddChild": false,
+      "createdAt": "2026-04-21T08:18:13.632Z",
+      "id": "17212d84-57e0-4397-a31e-448538bb2c32",
+      "isHidden": false,
+      "order": 1,
+      "parentVaeNodeId": "682dd6aa-0500-45c9-a0a1-6edf550e31f4",
+      "sysPeriod": {
+        "bounds": "[)",
+        "empty": false,
+        "lower": "2026-04-21T16:15:39.502Z",
+        "upper": null,
+      },
+      "templateId": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+      "text": "",
+      "title": "Feststellung des Plans",
+      "topic": null,
+      "updatedAt": "2026-04-21T08:18:13.655Z",
+    },
+    {
+      "canAddChild": false,
+      "createdAt": "2026-04-21T08:18:13.632Z",
+      "id": "1d4e58e5-b4dd-4f71-8708-3f8f2a46b5e4",
+      "isHidden": false,
+      "order": 2,
+      "parentVaeNodeId": "17212d84-57e0-4397-a31e-448538bb2c32",
+      "sysPeriod": {
+        "bounds": "[)",
+        "empty": false,
+        "lower": "2026-04-21T16:15:39.502Z",
+        "upper": null,
+      },
+      "templateId": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+      "text": "",
+      "title": "Planunterlagen",
+      "topic": null,
+      "updatedAt": "2026-04-21T08:18:13.658Z",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`Administrative File Draft template read contract GET /templates/{template_id}/nodes snapshots an unknown template 1`] = `
+{
+  "body": [],
+  "status": 200,
+}
+`;

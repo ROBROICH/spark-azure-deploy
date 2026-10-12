@@ -1,0 +1,82 @@
+{{- if .Values.otel.enabled }}
+# Collector configuration: OTLP in, out through every exporter in
+# otel.exporters (empty: the debug exporter). The traces pipeline is always on;
+# metrics/logs only when otel.pipelines.{metrics,logs} is set.
+{{- /* an empty map falls back to the debug exporter (a values default would
+merge into, not be replaced by, an environment's exporters) */ -}}
+{{- $exporters := deepCopy (.Values.otel.exporters | default (dict "debug" (dict "verbosity" "basic"))) }}
+{{- if and (hasKey $exporters "googlecloud") .Values.gcp.projectId }}
+{{- /* gcp.projectId fills in the googlecloud exporter's project */ -}}
+{{- $gc := $exporters.googlecloud | default dict }}
+{{- if not (hasKey $gc "project") }}
+{{- $_ := set $exporters "googlecloud" (merge (dict "project" .Values.gcp.projectId) $gc) }}
+{{- end }}
+{{- end }}
+{{- $names := keys $exporters | sortAlpha }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: {{ include "environment-config.namespace" . }}
+  labels:
+    {{- include "environment-config.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+
+    processors:
+      batch:
+        send_batch_size: 1000
+        timeout: 1s
+
+      # Resource attributes from the environment (env: OTEL_RESOURCE_ATTRIBUTES;
+      # gcp: project, cluster, location, … — only on GCP).
+      resourcedetection:
+        detectors: {{ .Values.otel.resourceDetectors | toJson }}
+        timeout: 10s
+        override: false
+
+      # Stamp the environment namespace on every span so the traces of
+      # environments sharing a backend are separable.
+      transform:
+        error_mode: ignore
+        trace_statements:
+          - context: resource
+            statements:
+              - set(attributes["service.namespace"], "{{ .Release.Namespace }}")
+
+    exporters:
+      {{- toYaml $exporters | nindent 6 }}
+
+    service:
+      extensions: [health_check]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [resourcedetection, transform, batch]
+          exporters: {{ $names | toJson }}
+        {{- if .Values.otel.pipelines.metrics }}
+        # Optional OTLP metrics passthrough (default off).
+        metrics:
+          receivers: [otlp]
+          processors: [resourcedetection, batch]
+          exporters: {{ $names | toJson }}
+        {{- end }}
+        {{- if .Values.otel.pipelines.logs }}
+        # Optional OTLP logs passthrough (default off).
+        logs:
+          receivers: [otlp]
+          processors: [resourcedetection, batch]
+          exporters: {{ $names | toJson }}
+        {{- end }}
+{{- end }}

@@ -3,10 +3,10 @@ import {
   usePlausibilityContradictions,
 } from '@/features/project/fvp/data/plausibility/usePlausibilityContradictions';
 import {
+  DEFAULT_RATING_THRESHOLD,
   EXPECTED_MAX_NORMALIZED_RATING,
-  EXPECTED_MIN_NORMALIZED_RATING,
+  MIN_NORMALIZED_RATING,
   filterContradictions,
-  getLowestUsableContradictionRating,
   hasUsableContradictionRatings,
 } from '../filtering/contradictionFilters';
 
@@ -95,13 +95,9 @@ export const useFilteredContradictions = (props: FilterParams) => {
   const { contradictions, isLoading } = useContradictions(projectId);
   const summary = getContradictionsSummary(contradictions);
   const hasUsableRatings = hasUsableContradictionRatings(contradictions);
-  const lowestRating = getLowestUsableContradictionRating(contradictions);
-  const minimumRating =
-    lowestRating !== undefined
-      ? Math.min(lowestRating, EXPECTED_MIN_NORMALIZED_RATING)
-      : EXPECTED_MIN_NORMALIZED_RATING;
+  const minimumRating = MIN_NORMALIZED_RATING;
   const effectiveRatingThreshold = Math.min(
-    Math.max(ratingThreshold ?? minimumRating, minimumRating),
+    Math.max(ratingThreshold ?? DEFAULT_RATING_THRESHOLD, minimumRating),
     EXPECTED_MAX_NORMALIZED_RATING,
   );
   const filteredContradictions = filterContradictions(contradictions, {

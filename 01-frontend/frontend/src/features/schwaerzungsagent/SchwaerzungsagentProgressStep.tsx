@@ -58,7 +58,7 @@ export const SchwaerzungsagentProgressStep = (
     now,
     startedAt: session.startedAt,
   });
-  const loadPercentage = systemLoad.data?.load_percentage;
+  const loadPercentage = systemLoad.data?.loadPercentage;
   const showSystemLoadCaveat =
     loadPercentage !== undefined &&
     loadPercentage > SYSTEM_LOAD_CAVEAT_THRESHOLD;

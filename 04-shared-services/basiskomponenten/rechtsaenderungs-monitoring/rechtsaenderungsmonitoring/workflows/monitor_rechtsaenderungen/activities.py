@@ -10,8 +10,7 @@ from event_logging import EventAction, EventCategory, EventLogger, EventOutcome
 from event_logging.enums import LogEventDefault
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from sqlmodel import select
-from temporal.workflows.gesetze_normen.types import Bundesland
-from temporal.workflows.rechtsaenderungs_monitoring.types import FeedEntry, Source
+from temporal.contracts import Bundesland, FeedEntry, RechtsaenderungenSource
 from temporalio import activity, workflow
 from temporalio.common import RetryPolicy
 
@@ -41,20 +40,23 @@ def _gn_client() -> "GesetzeNormenDB":
     return GesetzeNormenDB(app_config.gesetze_normen_url)
 
 
-def _get_parser(source: Source, location: Bundesland | None = None) -> RSSParser:
+def _get_parser(
+    source: RechtsaenderungenSource,
+    location: Bundesland | None = None,
+) -> RSSParser:
     """Return the parser for a given feed source."""
 
     match source:
-        case Source.BUND:
-            return BGBLParser()
-        case Source.EU:
+        case RechtsaenderungenSource.BUND:
+            return BGBLParser(app_config.cache_dir)
+        case RechtsaenderungenSource.EU:
             raise NotImplementedError("EU source is not yet supported")
-        case Source.BUNDESLAND:
+        case RechtsaenderungenSource.BUNDESLAND:
             if location is None:
                 raise ValueError("No state parser configured: missing `location` argument")
             try:
                 parser_class = get_parser(location)
-                return parser_class()
+                return parser_class(app_config.cache_dir)
             except Exception as e:
                 raise ValueError(f"Failed to get state parser for location {location}: {e}")
 
@@ -84,7 +86,11 @@ class MonitorRechtsaenderungenActivities:
         ]
 
     @activity.defn(name="fetch_feed_entries")
-    async def _fetch_feed_entries(self, source: Source, location: Bundesland | None = None) -> list[FeedEntry]:
+    async def _fetch_feed_entries(
+        self,
+        source: RechtsaenderungenSource,
+        location: Bundesland | None = None,
+    ) -> list[FeedEntry]:
         parser = _get_parser(source, location)
         entries = await asyncio.to_thread(parser.get_entries)
         return [
@@ -235,7 +241,7 @@ class MonitorRechtsaenderungenActivities:
         )
 
 
-async def fetch_feed_entries(source: Source) -> list[FeedEntry]:
+async def fetch_feed_entries(source: RechtsaenderungenSource) -> list[FeedEntry]:
     return await workflow.execute_activity(
         MonitorRechtsaenderungenActivities._fetch_feed_entries,
         source,

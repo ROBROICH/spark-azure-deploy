@@ -1,15 +1,12 @@
-import type { WorkflowsBase } from '@/api-clients/temporal-jobs-module/types.gen';
+import type { WorkflowsBase } from '@/api-clients/backend/types.gen';
 import type {
   WorkflowBadgeStatus,
+  WorkflowFailure,
   WorkflowSummary,
   WorkflowTypeName,
 } from './workflowStatus.types';
 
-export const RUNNING_WORKFLOW_STATUSES = new Set([
-  'running',
-  'pending',
-  'continued_as_new',
-]);
+export const RUNNING_WORKFLOW_STATUSES = new Set(['running', 'pending']);
 
 export const FAILED_WORKFLOW_STATUSES = new Set([
   'failed',
@@ -34,11 +31,72 @@ export const WORKFLOW_TYPE_EWMS = 'EWMSOrchestratorWorkflow';
 export const WORKFLOW_TYPE_FILE_PROCESSING = 'FileProcessingWorkflow';
 export const WORKFLOW_TYPE_RISIKOHINWEISE = 'risikohinweise';
 
+// Mirrors the backend `workflowId` builder
+// (`agent_orchestration_service/src/temporal/workflow-id.ts`) for runs per norm
+// or outline node.
+export const getTargetWorkflowId = (args: {
+  projectId: string;
+  projectVersion: number;
+  targetId: string;
+  workflowType: string;
+}) =>
+  `${args.workflowType}-${args.projectId}-v${args.projectVersion}-${args.targetId}`;
+
 export const normalizeWorkflowValue = (value: string | null | undefined) =>
   (value ?? '').trim().toLowerCase();
 
+// A failed run without failure details still needs a user-facing cause, so it
+// falls back to the generic catalog code.
+const UNKNOWN_WORKFLOW_FAILURE: WorkflowFailure = {
+  errorCode: 'ANALYSIS_FAILED',
+  branches: [],
+};
+
+/**
+ * @param run - One workflow run, or `undefined` when there is none.
+ * @returns The run's failure when it failed, was canceled, terminated, or timed out; otherwise `null`.
+ */
+export const getRunFailure = (
+  run: WorkflowsBase | undefined,
+): WorkflowFailure | null =>
+  run !== undefined &&
+  FAILED_WORKFLOW_STATUSES.has(normalizeWorkflowValue(run.status))
+    ? (run.failure ?? UNKNOWN_WORKFLOW_FAILURE)
+    : null;
+
+export const toWorkflowStatus = (
+  value: string | null | undefined,
+): WorkflowsBase['status'] => {
+  const status = normalizeWorkflowValue(value);
+  if (status === 'running') {
+    return 'running';
+  }
+  if (status === 'completed') {
+    return 'completed';
+  }
+  if (status === 'failed') {
+    return 'failed';
+  }
+  if (status === 'canceled') {
+    return 'canceled';
+  }
+  if (status === 'terminated') {
+    return 'terminated';
+  }
+  if (status === 'timed_out') {
+    return 'timed_out';
+  }
+  if (status === 'continued_as_new') {
+    return 'continued_as_new';
+  }
+  if (status === 'pending') {
+    return 'pending';
+  }
+  return null;
+};
+
 const getWorkflowStartTime = (workflow: WorkflowsBase) => {
-  const parsedTime = Date.parse(workflow.workflow_start_time ?? '');
+  const parsedTime = Date.parse(workflow.workflowStartTime ?? '');
   return Number.isNaN(parsedTime) ? 0 : parsedTime;
 };
 
@@ -52,7 +110,7 @@ const sortWorkflowsNewestFirst = (
     return timeDifference;
   }
 
-  return right.workflow_id.localeCompare(left.workflow_id);
+  return right.workflowId.localeCompare(left.workflowId);
 };
 
 export const getWorkflowRunKey = (workflow: WorkflowsBase | undefined) => {
@@ -60,7 +118,7 @@ export const getWorkflowRunKey = (workflow: WorkflowsBase | undefined) => {
     return null;
   }
 
-  return `${workflow.workflow_id}:${workflow.workflow_start_time ?? ''}`;
+  return `${workflow.workflowId}:${workflow.workflowStartTime ?? ''}`;
 };
 
 const getWorkflowIdWithoutApiPrefix = (workflowId: string) => {
@@ -115,7 +173,12 @@ const hasWorkflowIdMatchValue = (
   );
 };
 
-const getWorkflowBadgeStatus = (
+/**
+ * A continued execution is closed; its successor owns any ongoing work.
+ * @param workflow - Native execution metadata for the displayed run.
+ * @returns The run's lifecycle badge, independent of successor execution state.
+ */
+export const getWorkflowBadgeStatus = (
   workflow: WorkflowsBase,
 ): WorkflowBadgeStatus => {
   const normalizedStatus = normalizeWorkflowValue(workflow.status);
@@ -126,6 +189,10 @@ const getWorkflowBadgeStatus = (
 
   if (normalizedStatus === 'completed') {
     return 'success';
+  }
+
+  if (normalizedStatus === 'continued_as_new') {
+    return 'continued';
   }
 
   return 'pending';
@@ -172,7 +239,7 @@ const matchesWorkflowType = (
     return true;
   }
 
-  return workflowTypeKeys.has(normalizeWorkflowValue(workflow.workflow_type));
+  return workflowTypeKeys.has(normalizeWorkflowValue(workflow.workflowType));
 };
 
 const matchesWorkflowId = (
@@ -185,24 +252,22 @@ const matchesWorkflowId = (
   }
 
   return hasWorkflowIdMatchValue(
-    workflow.workflow_id,
+    workflow.workflowId,
     matchIdsInWorkflowId,
     workflowIdMatchValue,
   );
 };
 
 export const getWorkflowCollectionRequest = (args: {
-  includeSubWorkflows?: boolean;
+  matchIdsInWorkflowId?: string[];
   workflowType?: WorkflowTypeName | WorkflowTypeName[];
-}) =>
-  args.includeSubWorkflows
-    ? {
-        workflowType: args.workflowType,
-        includeChildren: true,
-      }
-    : {
-        workflowType: args.workflowType,
-      };
+}) => {
+  const targetIds = args.matchIdsInWorkflowId?.slice(1) ?? [];
+  return {
+    workflowType: args.workflowType,
+    targetId: targetIds.length > 0 ? targetIds.join('-') : undefined,
+  };
+};
 
 export const getMatchingWorkflows = (args: {
   matchIdsInWorkflowId?: string[];
@@ -225,7 +290,7 @@ export const getLatestWorkflowsByType = (
   const workflowsByType = new Map<string, WorkflowsBase[]>();
 
   [...workflows].sort(sortWorkflowsNewestFirst).forEach((workflow) => {
-    const workflowTypeKey = normalizeWorkflowValue(workflow.workflow_type);
+    const workflowTypeKey = normalizeWorkflowValue(workflow.workflowType);
 
     if (workflowTypeKey.length === 0) {
       return;

@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from temporal.utils import sliding_window
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
@@ -19,7 +20,6 @@ from src.schemas.llm_matching_schemas import (
     SingleDocumentMatchOutput,
     UnassignedDocumentAnalysisParams,
 )
-from src.utils.sliding_window import sliding_window
 
 LLM_MATCHING_SINGLE_DOCUMENT_WORKFLOW_ID = "llm-matching-single-document"
 

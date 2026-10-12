@@ -1,3 +1,7 @@
+---
+ruleId: api-integration/handle-request-errors-with-user-visible-feedback
+---
+
 # Handle Request Errors with User-Visible Feedback
 
 Request failures that only end up in logs or the console leave users stuck, hide recovery options, and make frontend behavior look unreliable.

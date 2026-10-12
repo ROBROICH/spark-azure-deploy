@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a05-secure-frontend-configuration-links-and-redirects
+---
+
 # OWASP A05: Secure Frontend Configuration, Links, and Redirects
 
 - Covers OWASP A05 Security Misconfiguration.

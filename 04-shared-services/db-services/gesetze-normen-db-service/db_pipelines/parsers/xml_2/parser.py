@@ -32,6 +32,12 @@ from db_pipelines.schemas.db import (
 )
 
 
+# law archives ship the norm xml plus embedded images,
+# some sources also add a suffix-less ``mimetype`` file
+ARCHIVE_SUFFIXES = {".xml", ".jpg", ".jpeg", ".gif", ".png"}
+ARCHIVE_NAMES = {"mimetype"}
+
+
 class XmlProcessor2(BaseProcessor):
     """class for processing laws from XML sources"""
 
@@ -67,7 +73,9 @@ class XmlProcessor2(BaseProcessor):
             output_file.write(response.content)
 
             # Extract zip-file
-            extract_and_validate(zip_path, self.norm_dir)
+            extract_and_validate(
+                zip_path, self.norm_dir, allowed_suffixes=ARCHIVE_SUFFIXES, allowed_names=ARCHIVE_NAMES
+            )
 
     @staticmethod
     def clean_paragraph_nr_text(para_elem: Element) -> tuple[int, str]:

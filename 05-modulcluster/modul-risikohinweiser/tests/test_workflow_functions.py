@@ -7,6 +7,7 @@ from uuid import UUID
 
 import pytest
 from prompt_injection.prompt_defense import EXT_DATA_TAG_CLOSE, EXT_DATA_TAG_OPEN
+from temporal.contracts import RiskFinderOutput
 
 from src.config.env import ENV
 from src.schemas.workflow import (
@@ -14,7 +15,6 @@ from src.schemas.workflow import (
     IntentionAnalysisResponse,
     QualityAnalysisRequest,
     QualityAnalysisResponse,
-    RiskFinderOutput,
     RiskFormulatorFinding,
     RiskFormulatorInput,
     RiskFormulatorResponse,

@@ -98,10 +98,10 @@ describe('FvpTopicAssignmentProvider', () => {
       getDescendants: vi.fn((nodeId: string) =>
         nodeId === 'file-1'
           ? [
-              { id: 'linked-1', node_type: 'dokument' },
-              { id: 'topic-1', node_type: 'topic' },
+              { id: 'linked-1', nodeType: 'dokument' },
+              { id: 'topic-1', nodeType: 'topic' },
             ]
-          : [{ id: 'linked-2', node_type: 'dokument' }],
+          : [{ id: 'linked-2', nodeType: 'dokument' }],
       ),
       isLoadingRequiredGraphData: false,
     });
@@ -123,10 +123,10 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-1',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-1',
-          dms_file_id: 'file-1',
-          frontend_parent_ids: [
+          dmsFileId: 'file-1',
+          frontendParentIds: [
             'norm:norm-1',
             'topic:T-Energiewirtschaft',
             'topic:T-Artenschutz',
@@ -152,7 +152,7 @@ describe('FvpTopicAssignmentProvider', () => {
     );
 
     expect(useLiveNodesMock).toHaveBeenCalledWith([
-      { id: 'linked-1', node_type: 'dokument' },
+      { id: 'linked-1', nodeType: 'dokument' },
     ]);
     expect(screen.getByTestId('selected-topic').textContent).toBe(
       'T-Energiewirtschaft,T-Artenschutz',
@@ -163,13 +163,13 @@ describe('FvpTopicAssignmentProvider', () => {
   it('writes committed topics back to the linked dokument payload', () => {
     const linkedDocument = {
       id: 'linked-1',
-      node_type: 'dokument',
+      nodeType: 'dokument',
       compositeKey: 'dokument:linked-1',
-      dms_file_id: 'file-1',
-      frontend_parent_ids: ['norm:norm-1', 'topic:T-Bestand'],
+      dmsFileId: 'file-1',
+      frontendParentIds: ['norm:norm-1', 'topic:T-Bestand'],
     };
     const updatedDrafts: {
-      frontend_parent_ids: string[];
+      frontendParentIds: string[];
     }[] = [];
 
     useLiveNodesMock.mockReturnValue({
@@ -184,7 +184,7 @@ describe('FvpTopicAssignmentProvider', () => {
         const draft = { ...node };
         updater(draft);
         updatedDrafts.push({
-          frontend_parent_ids: draft.frontend_parent_ids,
+          frontendParentIds: draft.frontendParentIds,
         });
       },
     );
@@ -213,7 +213,7 @@ describe('FvpTopicAssignmentProvider', () => {
     );
     expect(updatedDrafts).toEqual([
       {
-        frontend_parent_ids: ['norm:norm-1', 'topic:T-Artenschutz'],
+        frontendParentIds: ['norm:norm-1', 'topic:T-Artenschutz'],
       },
     ]);
   });
@@ -226,10 +226,10 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-1',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-1',
-          dms_file_id: 'file-1',
-          frontend_parent_ids: ['norm:norm-1', 'topic:T-Bestand'],
+          dmsFileId: 'file-1',
+          frontendParentIds: ['norm:norm-1', 'topic:T-Bestand'],
         },
       ],
       isLoading: false,
@@ -265,10 +265,10 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-1',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-1',
-          dms_file_id: 'file-1',
-          frontend_parent_ids: ['norm:norm-1', 'topic:T-Bestand'],
+          dmsFileId: 'file-1',
+          frontendParentIds: ['norm:norm-1', 'topic:T-Bestand'],
         },
       ],
       isLoading: false,
@@ -308,10 +308,10 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-1',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-1',
-          dms_file_id: 'file-1',
-          frontend_parent_ids: ['norm:norm-1', 'topic:T-Bestand'],
+          dmsFileId: 'file-1',
+          frontendParentIds: ['norm:norm-1', 'topic:T-Bestand'],
         },
       ],
       isLoading: true,
@@ -351,21 +351,21 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-outdated',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-outdated',
-          dms_file_id: 'file-1',
-          is_deleted: false,
-          is_outdated: true,
-          frontend_parent_ids: ['topic:T-Energiewirtschaft'],
+          dmsFileId: 'file-1',
+          isDeleted: false,
+          isOutdated: true,
+          frontendParentIds: ['topic:T-Energiewirtschaft'],
         },
         {
           id: 'linked-deleted',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-deleted',
-          dms_file_id: 'file-1',
-          is_deleted: true,
-          is_outdated: false,
-          frontend_parent_ids: ['topic:T-Artenschutz'],
+          dmsFileId: 'file-1',
+          isDeleted: true,
+          isOutdated: false,
+          frontendParentIds: ['topic:T-Artenschutz'],
         },
       ],
       isLoading: false,
@@ -399,21 +399,21 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-outdated',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-outdated',
-          dms_file_id: 'file-1',
-          is_deleted: false,
-          is_outdated: true,
-          frontend_parent_ids: ['topic:T-Energiewirtschaft'],
+          dmsFileId: 'file-1',
+          isDeleted: false,
+          isOutdated: true,
+          frontendParentIds: ['topic:T-Energiewirtschaft'],
         },
         {
           id: 'linked-active',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-active',
-          dms_file_id: 'file-1',
-          is_deleted: false,
-          is_outdated: false,
-          frontend_parent_ids: ['topic:T-Artenschutz'],
+          dmsFileId: 'file-1',
+          isDeleted: false,
+          isOutdated: false,
+          frontendParentIds: ['topic:T-Artenschutz'],
         },
       ],
       isLoading: false,
@@ -453,10 +453,10 @@ describe('FvpTopicAssignmentProvider', () => {
       data: [
         {
           id: 'linked-1',
-          node_type: 'dokument',
+          nodeType: 'dokument',
           compositeKey: 'dokument:linked-1',
-          dms_file_id: 'file-1',
-          frontend_parent_ids: ['norm:norm-1'],
+          dmsFileId: 'file-1',
+          frontendParentIds: ['norm:norm-1'],
         },
       ],
       isLoading: false,

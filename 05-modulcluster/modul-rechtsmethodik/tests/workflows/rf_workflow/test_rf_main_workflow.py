@@ -3,15 +3,16 @@
 
 import pytest
 from fixtures.bnatschg_44 import RECHTSFOLGE, SATZ_1_NR_1_TEXT
-from temporal.workflows.rechtsmethodik.types import Absatz, Rechtsfolge, SatzKategorie
+from temporal.contracts import Rechtsfolge, SatzKategorie
 
+from src.absatz import Absatz
 from src.workflows.norm_workflow.norm_types import NormDekonstruktionWorkflowSatzOutput
 from src.workflows.rf_workflow.rf_main_workflow import create_rf_absatz, create_rf_satz
 
 
 def _make_satz(
     satz_nr: str = "1",
-    norm_typ_lvl_2: SatzKategorie | None = "wenn-dann",
+    norm_typ_lvl2: SatzKategorie | None = SatzKategorie.WENN_DANN,
     rechtsfolge: str | None = None,
     atomare: list[str] | None = None,
 ) -> NormDekonstruktionWorkflowSatzOutput:
@@ -19,8 +20,8 @@ def _make_satz(
         satz_nr=satz_nr,
         markers=["§ 4 Abs. 1 S. 1"],
         satz_text="Wer eine Anlage betreibt, bedarf einer Genehmigung.",
-        norm_typ_lvl_1="materiell-rechtlich",
-        norm_typ_lvl_2=norm_typ_lvl_2,
+        norm_typ_lvl1="materiell-rechtlich",
+        norm_typ_lvl2=norm_typ_lvl2,
         rechtsfolge=rechtsfolge,
         atomare_tatbestandsmerkmale=atomare,
     )
@@ -37,13 +38,16 @@ def _make_rechtsfolge() -> Rechtsfolge:
 class TestCreateRfSatz:
     def test_preserves_satz_metadata(self) -> None:
         """Tests if Satz metadata (satz_nr, markers, satz_text, norm_typ) is preserved in the output."""
-        satz = _make_satz(satz_nr="3", norm_typ_lvl_2="sonstiges")
+        satz = _make_satz(
+            satz_nr="3",
+            norm_typ_lvl2=SatzKategorie.SONSTIGES,
+        )
         result = create_rf_satz(satz, None)
         assert result.satz_nr == "3"
         assert result.markers == satz.markers
         assert result.satz_text == satz.satz_text
-        assert result.norm_typ_lvl_1 == satz.norm_typ_lvl_1
-        assert result.norm_typ_lvl_2 == "sonstiges"
+        assert result.norm_typ_lvl1 == satz.norm_typ_lvl1
+        assert result.norm_typ_lvl2 == "sonstiges"
 
     def test_rechtsfolge_none_when_not_provided(self) -> None:
         """Tests if rechtsfolge is None in the output when no Rechtsfolge is provided."""
@@ -109,8 +113,8 @@ class TestCreateRfSatzWithRealData:
             satz_nr="1",
             markers=["§ 44 Abs. 1 S. 1"],
             satz_text=SATZ_1_NR_1_TEXT,
-            norm_typ_lvl_1="materiell-rechtlich",
-            norm_typ_lvl_2="wenn-dann",
+            norm_typ_lvl1="materiell-rechtlich",
+            norm_typ_lvl2="wenn-dann",
         )
         result = create_rf_satz(satz, RECHTSFOLGE)
         assert result.rechtsfolge == RECHTSFOLGE
@@ -121,8 +125,8 @@ class TestCreateRfSatzWithRealData:
             satz_nr="1",
             markers=["§ 44 Abs. 1 S. 1"],
             satz_text=SATZ_1_NR_1_TEXT,
-            norm_typ_lvl_1="materiell-rechtlich",
-            norm_typ_lvl_2="wenn-dann",
+            norm_typ_lvl1="materiell-rechtlich",
+            norm_typ_lvl2="wenn-dann",
         )
         result = create_rf_satz(satz, RECHTSFOLGE)
         assert result.rechtsfolge is not None

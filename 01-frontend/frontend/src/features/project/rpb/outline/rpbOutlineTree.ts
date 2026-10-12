@@ -3,16 +3,16 @@ import { invariant } from 'es-toolkit/util';
 
 export type RpbOutlineStructuralNode = Pick<
   NodePayloadByType<'vae_node'>,
-  | 'checked_by_assignee'
-  | 'checked_by_leader'
+  | 'checkedByAssignee'
+  | 'checkedByLeader'
   | 'id'
-  | 'is_deleted'
-  | 'is_hidden'
+  | 'isDeleted'
+  | 'isHidden'
   | 'order'
-  | 'parent_vae_node_id'
+  | 'parentVaeNodeId'
   | 'title'
 > & {
-  topic_id?: string | null;
+  topicId?: string | null;
 };
 
 export type RpbOutlineTreeNode<
@@ -40,7 +40,7 @@ const compareOutlineNodes = (
 };
 
 const isRenderableOutlineNode = (vaeNode: RpbOutlineStructuralNode) => {
-  return !vaeNode.is_deleted && !vaeNode.is_hidden;
+  return !vaeNode.isDeleted && !vaeNode.isHidden;
 };
 
 /**
@@ -70,7 +70,7 @@ export const buildRpbOutlineTree = <TNode extends RpbOutlineStructuralNode>(
       continue;
     }
 
-    const parentId = vaeNode.parent_vae_node_id;
+    const parentId = vaeNode.parentVaeNodeId;
     if (!parentId || parentId === vaeNode.id) {
       roots.push(treeNode);
       continue;
@@ -126,8 +126,8 @@ export const readRelevantCheckedField = (
   canApproveFinalDecision: boolean,
 ) => {
   return canApproveFinalDecision
-    ? vaeNode.checked_by_leader
-    : vaeNode.checked_by_assignee;
+    ? vaeNode.checkedByLeader
+    : vaeNode.checkedByAssignee;
 };
 
 /** Builds a checked-state map for either completion or final-decision approval. */
@@ -224,7 +224,7 @@ export const findRpbOutlineEffectiveTopicId = (
   for (let i = lineage.length - 1; i >= 0; i -= 1) {
     const lineageNode = lineage[i];
     invariant(lineageNode !== undefined, 'Expected outline lineage node');
-    const topicId = lineageNode.vaeNode.topic_id;
+    const topicId = lineageNode.vaeNode.topicId;
     if (topicId) {
       return topicId;
     }
@@ -259,11 +259,11 @@ export const resolveRpbOutlineMutationTopicId = (
       return undefined;
     }
 
-    if (node.topic_id) {
-      return node.topic_id;
+    if (node.topicId) {
+      return node.topicId;
     }
 
-    currentNodeId = node.parent_vae_node_id;
+    currentNodeId = node.parentVaeNodeId;
   }
 
   return null;

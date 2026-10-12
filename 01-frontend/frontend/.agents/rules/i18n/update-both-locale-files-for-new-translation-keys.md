@@ -1,3 +1,10 @@
+---
+ruleId: i18n/update-both-locale-files-for-new-translation-keys
+paths:
+  - "src/**/*.tsx"
+  - "src/features/**/*.json"
+---
+
 # Update Both Locale Files for New Translation Keys
 
 - When adding or changing translation keys, update both language files in the same change.

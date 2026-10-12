@@ -1,0 +1,26 @@
+{
+  "name": "spark-workflow-monorepo",
+  "private": true,
+  "scripts": {
+    "lint": "vp lint 02-backend 04-shared-services packages scripts .gitlab/ci vite.config.ts --format unix && vp run --filter '@spark-workflow/core' lint:usecases && vp run indirection:rules && vp run indirection:check && vp run db:check",
+    "typecheck:scripts": "tsgo --noEmit --project tsconfig.json",
+    "typecheck": "vp run --concurrency-limit 2 --filter './02-backend/apps/*' --filter './02-backend/features/*' --filter './packages/**' --fail-if-no-match typecheck"
+  },
+  "devDependencies": {
+    "@ast-grep/cli": "0.45.0",
+    "@oxlint/plugins": "1.78.0",
+    "@sinclair/typebox": "0.34.52",
+    "@spark-temporal/contracts": "workspace:*",
+    "@spark-temporal/typescript": "workspace:*",
+    "@types/bun": "1.4.0",
+    "@typescript/native-preview": "7.0.0-dev.20260425.1",
+    "build-temporal-workflow": "0.4.0",
+    "bun": "1.4.0",
+    "drizzle-kit": "0.31.10",
+    "exact-mirror": "0.2.7",
+    "oxlint": "1.78.0",
+    "rollup-plugin-sbom": "4.0.1",
+    "vite-plus": "0.2.8"
+  },
+  "packageManager": "pnpm@10.30.2"
+}

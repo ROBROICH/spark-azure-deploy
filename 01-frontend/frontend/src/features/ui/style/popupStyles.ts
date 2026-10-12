@@ -13,14 +13,18 @@ const POPUP_ITEM_BASE_CLASSES =
 const POPUP_ITEM_DISABLED_CLASSES =
   'data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50';
 
+// forced-color-adjust:none on the highlighted item disables the Canvas text
+// backplate that would otherwise hide the HighlightText label in Windows
+// Contrast Mode; we set Highlight/HighlightText explicitly so the backplate
+// isn't needed. Idle items keep auto-adjust and the user's palette.
 const POPUP_ITEM_HIGHLIGHT_CLASSES =
-  'data-[highlighted]:bg-slate-700 data-[highlighted]:text-neutral-white data-[highlighted]:ring-1 data-[highlighted]:ring-white';
+  'data-[highlighted]:bg-slate-700 data-[highlighted]:text-neutral-white data-[highlighted]:ring-1 data-[highlighted]:ring-white forced-colors:data-[highlighted]:bg-[Highlight] forced-colors:data-[highlighted]:text-[color:HighlightText] forced-colors:data-[highlighted]:[forced-color-adjust:none]';
 
 const POPUP_ITEM_CHECKED_CLASSES =
   'data-[state=checked]:bg-slate-500 data-[state=checked]:text-neutral-white data-[highlighted]:data-[state=checked]:ring-1 data-[highlighted]:data-[state=checked]:ring-white/40';
 
 const POPUP_ITEM_SVG_CLASSES =
-  '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg]:text-slate-300 data-[highlighted]:[&_svg]:text-neutral-white data-[state=checked]:[&_svg]:text-neutral-white';
+  '[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg]:text-slate-300 data-[highlighted]:[&_svg]:text-neutral-white data-[state=checked]:[&_svg]:text-neutral-white forced-colors:data-[state=checked]:[&_svg]:text-[color:CanvasText] forced-colors:data-[highlighted]:[&_svg]:text-[color:HighlightText]';
 
 export const POPUP_SELECT_ITEM_CLASSES = [
   POPUP_ITEM_BASE_CLASSES,
@@ -48,7 +52,7 @@ export const POPUP_MENU_CHECKBOX_ITEM_CLASSES = [
 ].join(' ');
 
 export const POPUP_MENU_CHECKBOX_ITEM_SECONDARY_TEXT_CLASSES =
-  'text-neutral-400 group-data-[highlighted]:text-neutral-white group-data-[state=checked]:text-neutral-white';
+  'text-neutral-400 group-data-[highlighted]:text-neutral-white group-data-[state=checked]:text-neutral-white forced-colors:group-data-[highlighted]:text-[color:HighlightText]';
 
 // The glass effect comes only from the border and blur, not the fill (background stays solid Slate/800 via bg-neutral-800).
 // Box shadows:

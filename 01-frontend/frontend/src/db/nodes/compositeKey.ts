@@ -11,7 +11,7 @@ export function toCompositeKey(
   input: NodeRef | NodeRef[],
 ): CompositeKey | CompositeKey[] {
   const toKey = (ref: NodeRef) =>
-    `${ref.node_type}${SEPARATOR}${ref.id}` as CompositeKey;
+    `${ref.nodeType}${SEPARATOR}${ref.id}` as CompositeKey;
   if (Array.isArray(input)) {
     return input.map(toKey);
   }
@@ -25,15 +25,15 @@ export function fromCompositeKey(compositeKey: string): NodeRef {
     throw new Error(`Invalid composite node key: ${compositeKey}`);
   }
 
-  const node_type = compositeKey.slice(0, separatorIndex);
+  const nodeType = compositeKey.slice(0, separatorIndex);
   const id = compositeKey.slice(separatorIndex + 1);
 
-  if (!isNodeTypeLiteral(node_type)) {
-    throw new Error(`Unknown composite node type: ${node_type}`);
+  if (!isNodeTypeLiteral(nodeType)) {
+    throw new Error(`Unknown composite node type: ${nodeType}`);
   }
 
   return {
-    node_type,
+    nodeType,
     id,
   };
 }

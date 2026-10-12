@@ -7,16 +7,18 @@ from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
+from temporal.contracts import DMSFileResponse
 
-from src.dms.schemas import DMSFileResponse
-from src.workflows.check_logic_wf.schemas.cluster_summarizer_schemas import InconsistencyClusters
+from src.config.config import config
+from src.workflows.check_logic_wf.schemas.clustering_schemas import InconsistencyClusters
 from src.workflows.check_logic_wf.schemas.risk_screener_schemas import (
     DocumentBundleResult,
     ScreeningCandidateBundle,
+    ScreeningHit,
 )
 from src.workflows.check_logic_wf.schemas.screening_batch_schemas import ScreeningBatchInput, ScreeningBatchOutput
 from src.workflows.check_logic_wf.single_document_workflow import PlausibilityCheckSingleDocumentWorkflow
-from src.workflows.input_schemas import SingleDocumentWorkflowInputSchema
+from src.workflows.input_schemas import CheckSingleDocumentWorkflowInputSchema
 from src.workflows.qdrant_wf.extraction_batch_workflow import (
     ClaimExtractionBatchWorkflow,
     _extract_table_claims,
@@ -25,6 +27,7 @@ from src.workflows.qdrant_wf.extraction_batch_workflow import (
     _split_by_chars,
     _split_large_table,
 )
+from src.workflows.qdrant_wf.prompts.table_claim_extraction import TABLE_CLAIM_EXTRACTION_SYSTEM_PROMPT
 from src.workflows.qdrant_wf.schemas.text_extraction import (
     GroupedClaimItem,
     GroupedExtractionResponse,
@@ -32,6 +35,7 @@ from src.workflows.qdrant_wf.schemas.text_extraction import (
 from src.workflows.qdrant_wf.schemas.workflow import (
     ExtractionBatchInput,
 )
+from src.workflows.qdrant_wf.workflow import chunks_to_extract
 
 from .conftest import make_chunk_payload, make_claim_payload
 
@@ -65,6 +69,26 @@ class TestGroupTextChunks:
         groups = _group_text_chunks(chunks, group_size=10, max_chars=10_000)
         assert len(groups) == 1
         assert len(groups[0]) == 1
+
+
+class TestTableExtractionSwitch:
+    def _chunks(self) -> list[Any]:
+        return [
+            make_chunk_payload(chunk_id="tab", chunk_type="table"),
+            make_chunk_payload(chunk_id="txt"),
+            make_chunk_payload(chunk_id="img", chunk_type="image"),
+        ]
+
+    def test_tables_skipped_by_default(self) -> None:
+        assert [c.chunk_id for c in chunks_to_extract(self._chunks())] == ["txt"]
+
+    def test_tables_follow_text_when_enabled(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(config.QDRANT_BUILDER, "EXTRACT_TABLES", True)
+        assert [c.chunk_id for c in chunks_to_extract(self._chunks())] == ["txt", "tab"]
+
+    def test_system_prompt_has_plain_json_braces(self) -> None:
+        assert "{{" not in TABLE_CLAIM_EXTRACTION_SYSTEM_PROMPT
+        assert '{"claims": []}' in TABLE_CLAIM_EXTRACTION_SYSTEM_PROMPT
 
 
 class TestSplitLargeTable:
@@ -120,7 +144,7 @@ class TestSplitByChars:
     def test_hard_cut_when_no_tr(self) -> None:
         html = "x" * 500
         result = _split_by_chars(_table_chunk(html), max_chars=200)
-        assert len(result) == 3
+        assert len(result) == 3  # noqa: PLR2004
         all_content = "".join(sub.chunk_content for sub in result)
         assert all_content == html
 
@@ -134,7 +158,7 @@ class TestSplitByChars:
 class TestClaimExtractionBatchWorkflow:
     @pytest.mark.asyncio
     async def test_groups_text_chunks_and_flattens_all_claims(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        import src.workflows.qdrant_wf.extraction_batch_workflow as module
+        import src.workflows.qdrant_wf.extraction_batch_workflow as module  # noqa: PLC0415
 
         sliding_window_inputs: list[list[Any]] = []
 
@@ -166,7 +190,7 @@ class TestClaimExtractionBatchWorkflow:
         assert [claim.claim_id for claim in result.claims] == ["text-1", "text-2", "table-1"]
         # First sliding_window call: 2 chunks grouped into 1 group (batch size = 5)
         assert len(sliding_window_inputs[0]) == 1
-        assert len(sliding_window_inputs[0][0]) == 2  # 2 chunks in the group
+        assert len(sliding_window_inputs[0][0]) == 2  # 2 chunks in the group  # noqa: PLR2004
         # Second sliding_window call: 1 table chunk directly
         assert len(sliding_window_inputs[1]) == 1
 
@@ -174,7 +198,7 @@ class TestClaimExtractionBatchWorkflow:
 class TestClaimExtractionHelpers:
     @pytest.mark.asyncio
     async def test_extract_text_claims_drops_invalid_llm_chunk_ids(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        import src.workflows.qdrant_wf.extraction_batch_workflow as module
+        import src.workflows.qdrant_wf.extraction_batch_workflow as module  # noqa: PLC0415
 
         monkeypatch.setattr(module.workflow, "logger", logging.getLogger("test"))
         monkeypatch.setattr(module.workflow, "uuid4", lambda: "generated-claim-id")
@@ -213,10 +237,12 @@ class TestClaimExtractionHelpers:
                 chunk=make_chunk_payload(chunk_type="text"),
                 model="ionos/gpt-oss-120b",
             )
+
+
 class TestPlausibilityCheckSingleDocumentWorkflow:
     @pytest.mark.asyncio
     async def test_batches_screening_children_and_uploads_checkpoint(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        import src.workflows.check_logic_wf.single_document_workflow as module
+        import src.workflows.check_logic_wf.single_document_workflow as module  # noqa: PLC0415
 
         child_inputs: list[ScreeningBatchInput] = []
         upload_inputs: list[Any] = []
@@ -237,32 +263,19 @@ class TestPlausibilityCheckSingleDocumentWorkflow:
         ) -> Any:
             del kwargs
             activity_name = getattr(activity, "__name__", "")
-            if activity_name == "get_claim_ids":
-                return ["claim-1", "claim-2"]
-            if activity_name == "build_screening_bundles_for_document":
-                return DocumentBundleResult(
-                    bundles=[
-                        ScreeningCandidateBundle(
-                            project_id="proj-1",
-                            document_id="doc-1",
-                            chunk_id=f"chunk-{i}",
-                            claim_id=f"claim-{i}",
-                            reference_claims=[f"ref-{i}"],
-                        )
-                        for i in range(501)
-                    ]
-                )
             if activity_name == "build_clusters":
                 return InconsistencyClusters(clusters=[])
+            if activity_name in ("detect_candidates", "check_overflow_pairs"):
+                return list[ScreeningHit]()
             if activity_name == "upload_temporal_checkpoint":
                 assert arg is not None
                 upload_inputs.append(arg)
-                return DMSFileResponse(
+                return DMSFileResponse(  # pyrefly: ignore[missing-argument]
                     id="file-1",
                     type="file",
                     filename=arg.filename,
-                    bucketPath="/bucket/file-1.json",
-                    projectId="proj-1",
+                    bucket_path="/bucket/file-1.json",
+                    project_id="proj-1",
                 )
             raise AssertionError(f"Unexpected activity {activity_name}, args={args}, arg={arg}")
 
@@ -283,15 +296,34 @@ class TestPlausibilityCheckSingleDocumentWorkflow:
         monkeypatch.setattr(module.workflow, "execute_child_workflow", fake_execute_child_workflow)
         monkeypatch.setattr(module, "sliding_window", fake_sliding_window)
 
-        result = await PlausibilityCheckSingleDocumentWorkflow().run(
-            SingleDocumentWorkflowInputSchema(project_id="proj-1", document_id="doc-1")
+        # Bundles arrive pre-built from the orchestrator, already reduced project-wide.
+        bundle_result = DocumentBundleResult(
+            bundles=[
+                ScreeningCandidateBundle(
+                    project_id="proj-1",
+                    document_id="doc-1",
+                    chunk_id=f"chunk-{i}",
+                    claim_id=f"claim-{i}",
+                    reference_claims=[f"ref-{i}"],
+                )
+                for i in range(501)
+            ]
         )
 
-        assert len(child_inputs) == 3
+        result = await PlausibilityCheckSingleDocumentWorkflow().run(
+            CheckSingleDocumentWorkflowInputSchema(
+                project_id="proj-1",
+                document_id="doc-1",
+                has_claims=True,
+                bundle_result=bundle_result,
+            )
+        )
+
+        assert len(child_inputs) == 3  # noqa: PLR2004
         # 501 unique-chunk bundles packed into groups of 5 → 100 full + 1 partial = 101 groups
         # 101 groups / batch_size=50 → 2 full batches + 1 partial = 3 child workflows
-        assert len(child_inputs[0].bundles) == 50
+        assert len(child_inputs[0].bundles) == 50  # noqa: PLR2004
         total_bundles = sum(len(g.bundles) for ci in child_inputs for g in ci.bundles)
-        assert total_bundles == 501
+        assert total_bundles == 501  # noqa: PLR2004
         assert upload_inputs[0].filename == "plausibility_doc-1_run-123.json"
         assert result.id == "file-1"

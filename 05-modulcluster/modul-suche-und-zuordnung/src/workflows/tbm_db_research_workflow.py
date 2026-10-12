@@ -12,16 +12,11 @@ import logging
 
 from prompt_injection.prompt_defense import wrap_system_prompt
 from pydantic import BaseModel
+from temporal.activities.law_db import QueryKResultsUTInput, QueryTopKDRInput, UTNorm
 from temporal.activities.llm import llm_invoke
 from temporalio import workflow
 
-from src.Activities.law_db_activities import (
-    QueryKResultsUTInput,
-    QueryTopKDRInput,
-    UTNorm,
-    query_k_results_ut,
-    query_top_k_dr,
-)
+from src.Activities.law_db_activities import query_k_results_ut, query_top_k_dr
 from src.config import CONFIG
 from src.config.env import ENV
 from src.tbm_db_research.models import RechtsbegriffEintrag

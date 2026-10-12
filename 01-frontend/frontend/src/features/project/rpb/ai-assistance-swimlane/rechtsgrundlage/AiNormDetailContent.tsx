@@ -1,3 +1,4 @@
+import { ProcessingFailureBadge } from '@/features/project/processing-failure/ProcessingFailureBadge';
 import { useDescendants } from '@/db/nodes/hooks/useDescendants';
 import { useNode } from '@/db/nodes/hooks/useNodes';
 import type { NodeRefByType } from '@/db/nodes/types';
@@ -127,7 +128,7 @@ export const AiNormDetailContent = (props: AiNormDetailContentProps) => {
     hasOutdatedNodeSummary(bewertungQuelleRefs);
   const { canMutateTopic, topicNorm } = useKiTopicNormState();
   const requestTitle = getNormRequestTitle(
-    norm?.paragraph_nr,
+    norm?.paragraphNr,
     topicNorm?.jurabk,
     normRef.id,
   );
@@ -222,10 +223,16 @@ export const AiNormDetailContent = (props: AiNormDetailContentProps) => {
           {getNormLabel(norm)}
         </p>
         <div className="flex items-center gap-2">
+          {refreshAction.failureCode !== null && (
+            <ProcessingFailureBadge
+              area="rpbRating"
+              errorCode={refreshAction.failureCode}
+            />
+          )}
           {topicNorm ? (
             <LawChangeIndicator
               jurabk={topicNorm.jurabk}
-              paragraphNr={topicNorm.paragraph_nr}
+              paragraphNr={topicNorm.paragraphNr}
               onOpen={(lawChange) => handleOpenLawChange(lawChange.id)}
             />
           ) : null}

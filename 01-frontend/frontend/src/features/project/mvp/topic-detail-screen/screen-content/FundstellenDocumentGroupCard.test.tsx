@@ -47,7 +47,15 @@ vi.mock('react-i18next', () => ({
         return `${String(params?.count ?? 0)} mehr anzeigen`;
       }
 
+      if (key === 'FundstellenReliability.focusCount') {
+        return `Fokus: ${String(params?.focused ?? '')} von ${String(params?.total ?? '')}`;
+      }
+
       const translations = {
+        'FundstellenReliability.notInFocusExplanation':
+          'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+        'FundstellenReliability.unratedExplanation':
+          'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
         'FundstellenDocumentGroupCard.outdated': 'Veraltet',
         'FundstellenDocumentGroupCard.showLess': 'Weniger anzeigen',
         'FundstellenDocumentGroupCard.pageNumber': `S. ${String(params?.page ?? '')}`,
@@ -162,7 +170,8 @@ describe('FundstellenDocumentGroupCard', () => {
       />,
     );
 
-    expect(screen.getAllByRole('button')).toHaveLength(7);
+    // Counted by the row name so header controls do not shift the number.
+    expect(screen.getAllByRole('button', { name: /, Seite / })).toHaveLength(6);
     expect(
       screen.getByRole('button', {
         name: 'Fundstelle 1, Seite 1',
@@ -172,9 +181,51 @@ describe('FundstellenDocumentGroupCard', () => {
 
     await user.click(screen.getByRole('button', { name: '1 mehr anzeigen' }));
 
-    expect(screen.getAllByRole('button')).toHaveLength(8);
+    expect(screen.getAllByRole('button', { name: /, Seite / })).toHaveLength(7);
     expect(
       screen.getByRole('button', { name: 'Weniger anzeigen' }),
     ).toBeDefined();
+  });
+
+  it('marks only the findings that do not carry the assessment', () => {
+    const fundstellenDocumentGroupCard: FundstellenDocumentGroupCardModel = {
+      documentId: 'doc-1',
+      entries: [
+        {
+          id: 'fundstelle-1',
+          pageNumber: 4,
+          title: 'Tragende Fundstelle',
+          // The boundary itself carries, so it must stay unmarked.
+          confidence: 0.6,
+        },
+        {
+          id: 'fundstelle-2',
+          pageNumber: 5,
+          title: 'Ergaenzende Fundstelle',
+          confidence: 0.59,
+        },
+        { id: 'fundstelle-3', pageNumber: 6, title: 'Fundstelle ohne Wert' },
+      ],
+    };
+
+    render(
+      <FundstellenDocumentGroupCard
+        documentFileId="resolved-file-1"
+        fundstellenDocumentGroupCard={fundstellenDocumentGroupCard}
+      />,
+    );
+
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine konkreten Angaben zum Sachverhalt.',
+      }),
+    ).toBeDefined();
+    expect(
+      screen.getByRole('img', {
+        name: 'Nicht im Fokus. Keine Einschätzung der KI vorhanden.',
+      }),
+    ).toBeDefined();
+    expect(screen.getAllByRole('img')).toHaveLength(2);
+    expect(screen.getByText('Fokus: 1 von 3')).toBeDefined();
   });
 });

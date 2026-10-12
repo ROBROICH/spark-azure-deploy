@@ -19,7 +19,7 @@ export const AiNormDetailView = () => {
   const topicNormRef = topicNormId
     ? ({
         id: topicNormId,
-        node_type: 'topic_norm',
+        nodeType: 'topic_norm',
       } satisfies NodeRefByType<'topic_norm'>)
     : null;
   const normRefs = useDescendants('norm', topicNormRef);

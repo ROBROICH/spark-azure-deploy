@@ -15,27 +15,27 @@ import { useId } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { removeComment } from '@/features/project/comments/data/actions/commentActions';
-import { useComments } from '@/features/project/comments/data/read-model/useComments';
+import type { CommentItem } from '@/features/project/comments/data/schemas/comment.schema';
 
 // Use the layout route (shared across steps)
 const route = getRouteApi('/verfahren/$verfahrenId');
 
 type DeleteDialogProps = {
   canMutateProject: boolean;
+  items: ReadonlyArray<CommentItem>;
 };
 
 export const DeleteDialog = (props: DeleteDialogProps) => {
-  const { canMutateProject } = props;
+  const { canMutateProject, items } = props;
   const navigate = useNavigate();
   const { t } = useTranslation('Project');
   const { verfahrenId } = route.useParams();
   const { deleteCommentId } = route.useSearch();
-  const { comments } = useComments(verfahrenId);
   const descriptionId = useId();
 
-  const itemToDelete = comments.find((item) => item.id === deleteCommentId);
+  const itemToDelete = items.find((item) => item.id === deleteCommentId);
 
-  const isOpen = !!deleteCommentId && !!itemToDelete;
+  const isOpen = !!deleteCommentId;
 
   const handleClose = () => {
     navigate({
@@ -55,7 +55,7 @@ export const DeleteDialog = (props: DeleteDialogProps) => {
     }
 
     try {
-      await removeComment(deleteCommentId);
+      await removeComment(verfahrenId, deleteCommentId);
     } catch (error) {
       // Keep the dialog open so the user can retry the deletion.
       Sentry.captureException(error);

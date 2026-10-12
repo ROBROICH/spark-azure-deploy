@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "spark-backend-pool values",
+  "type": "object",
+  "properties": {
+    "pool": {"type": "object", "properties": {"worker": {"type": "string"}, "apiPool": {"type": ["string", "null"]}}},
+    "replicaCount": {"type": "integer", "minimum": 0},
+    "resources": {"type": ["object", "null"]},
+    "probes": {"type": ["object", "null"]},
+    "env": {"type": ["array", "null"], "items": {"type": "object", "required": ["name"]}},
+    "autoscaling": {"type": "object", "properties": {"enabled": {"type": "boolean"}, "minReplicas": {"type": "integer", "minimum": 1}, "maxReplicas": {"type": "integer", "minimum": 1}}},
+    "keda": {"type": "object", "properties": {"enabled": {"type": "boolean"}}},
+    "podMonitoring": {"type": "object", "properties": {"enabled": {"type": "boolean"}}},
+    "podSecurity": {"type": ["object", "null"], "properties": {"restricted": {"type": ["boolean", "null"]}}},
+    "terminationGracePeriodSeconds": {"type": ["integer", "null"], "minimum": 0},
+    "global": {
+      "type": "object",
+      "properties": {
+        "backend": {
+          "type": "object",
+          "properties": {
+            "image": {"type": "object", "properties": {"pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}, "digest": {"type": ["string", "null"], "pattern": "^$|^sha256:[a-f0-9]+$"}}},
+            "containerPort": {"type": ["integer", "null"]}
+          }
+        }
+      }
+    }
+  }
+}

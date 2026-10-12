@@ -1,8 +1,8 @@
 import {
-  confirmUploadV2FilesConfirmUploadPost,
-  generateUploadUrlV2FilesGenerateUploadUrlPost,
-  startFileProcessingV2FilesStartFileProcessingPost,
-} from '@/api-clients/dms-module/sdk.gen';
+  v1DocumentManagementConfirmFileUpload as confirmFileUpload,
+  v1DocumentManagementGenerateFileUploadUrl as generateFileUploadUrl,
+  v1DocumentManagementStartFileProcessing as startFileProcessing,
+} from '@/api-clients/backend/sdk.gen';
 import {
   StorageUploadError,
   uploadFileToStorage,
@@ -72,7 +72,7 @@ export const useZipUpload = (): UseZipUploadResult => {
     let stage: UploadZipFailureStage = 'generate-url';
     return Promise.resolve()
       .then(async (): Promise<UploadZipResult> => {
-        const urlResult = await generateUploadUrlV2FilesGenerateUploadUrlPost({
+        const urlResult = await generateFileUploadUrl({
           body: {
             type: 'zip',
             projectId,
@@ -93,7 +93,7 @@ export const useZipUpload = (): UseZipUploadResult => {
         });
 
         stage = 'confirm';
-        const confirmResult = await confirmUploadV2FilesConfirmUploadPost({
+        const confirmResult = await confirmFileUpload({
           body: { type: 'zip', projectId, filename: file.name },
         });
 
@@ -102,10 +102,9 @@ export const useZipUpload = (): UseZipUploadResult => {
         }
 
         stage = 'start-processing';
-        const startResult =
-          await startFileProcessingV2FilesStartFileProcessingPost({
-            body: { fileId: confirmResult.data.id, projectId },
-          });
+        const startResult = await startFileProcessing({
+          body: { fileId: confirmResult.data.id, projectId },
+        });
 
         if (startResult.error) {
           return toSdkErrorResult(stage, startResult);

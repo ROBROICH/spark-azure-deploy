@@ -14,7 +14,7 @@ dependencies = [
     "qdrant-client>=1.15.1,<2",
     # LLM / NLP
     "tiktoken>=0.11.0",
-    # Workflow Orchestration — resolved from 04-shared-services/temporal (workspace).
+    # Workflow Orchestration — resolved from packages/temporal/python (workspace).
     # External builds: install from the repo root with `uv sync --package modul-suche-und-zuordnung`
     # or publish temporal to PyPI and replace the [tool.uv.sources] entry below.
     "temporal",
@@ -22,7 +22,7 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "openai>=2.26.0",
     "json-repair>=0.58.0",
-    # Prompt defence — resolved from 04-shared-services/prompt-injection (workspace).
+    # Prompt defence — resolved from packages/prompt-injection (workspace).
     # Same build requirement as temporal above.
     "prompt-injection",
 ]
@@ -55,7 +55,7 @@ requires = ["setuptools>=84", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.pyrefly]
-search_path = [".", "../../04-shared-services/prompt-injection/src"]
+search_path = [".", "../../packages/prompt-injection/src"]
 project-includes = ["."]
 disable-search-path-heuristics = true
 [tool.pyrefly.errors]
@@ -79,7 +79,6 @@ missing-source-for-stubs = "error"
 deprecated = "error"
 redundant-cast = "error"
 unnecessary-comparison = "error"
-
 
 
 

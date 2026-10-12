@@ -1,4 +1,4 @@
-import { startRisikohinweiseWorkflowWorkflowsRisikohinweisePostMutation } from '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen';
+import { v1AgentOrchestrationStartRisikohinweiseWorkflowMutation as startRisikohinweiseWorkflowMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
 import { useCanMutateProject } from '@/features/access-control/project-permissions/useCanMutateProject';
 import { useHasTopicMutationRights } from '@/features/access-control/topic-permissions/hasTopicMutationRights';
 import {
@@ -49,7 +49,7 @@ export const useRiskWarningsStartAnalysis =
     const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
     const { isBeschlussCommitPending } = useRpbFeatureContext();
     const startRiskAnalysis = useMutation(
-      startRisikohinweiseWorkflowWorkflowsRisikohinweisePostMutation(),
+      startRisikohinweiseWorkflowMutation(),
     );
     const {
       isRunning: isRisikohinweiseWorkflowRunning,

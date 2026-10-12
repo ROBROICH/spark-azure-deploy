@@ -1,0 +1,40 @@
+id: no-unknown-record
+
+invalid:
+  - |
+    const JsonObjectSchema = T.Record(T.String(), T.Unknown());
+
+  - |
+    const JsonObjectSchema = Type.Record(Type.String(), Type.Unknown());
+
+  - |
+    type Dictionary = Record<string, unknown>;
+
+  - |
+    interface Dictionary {
+      [key: string]: unknown;
+    }
+
+  - |
+    type Dictionary = {
+      name: string;
+      [key: string]: unknown;
+    };
+
+valid:
+  - |
+    const JsonObjectSchema = T.Object({ name: T.String() });
+
+  - |
+    const JsonObjectSchema = T.Record(T.String(), HttpJsonSchema);
+
+  - |
+    type Dictionary = Record<string, HttpJson>;
+
+  - |
+    interface Dictionary {
+      [key: string]: HttpJson;
+    }
+
+  - |
+    const value: unknown = await response.json();

@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildAuditLogHistoryQuery,
@@ -9,12 +9,21 @@ import { getAuditLogHistoryItemKey } from './data/auditLogHistory.collection';
 
 const makeHistoryItem = (timestamp: string, entityId: string): HistoryItem => ({
   timestamp,
-  entity_type: 'project',
-  entity_id: entityId,
+  entityType: 'project',
+  entityId: entityId,
   service: 'project_logic',
-  service_label: 'Verfahrensdaten',
-  change_type: 'update',
+  serviceLabel: 'Verfahrensdaten',
+  changeType: 'update',
   source: 'user',
+  actorUserId: null,
+  triggeredByUserId: null,
+  workflowRunId: null,
+  workflowType: null,
+  actionType: null,
+  requestId: null,
+  oldRow: null,
+  newRow: null,
+  groupCount: 1,
 });
 
 afterEach(() => {
@@ -29,7 +38,7 @@ describe('sortHistoryItemsNewestFirst', () => {
 
     expect(
       sortHistoryItemsNewestFirst([oldest, newest, middle]).map(
-        (item) => item.entity_id,
+        (item) => item.entityId,
       ),
     ).toEqual(['newest', 'middle', 'oldest']);
   });
@@ -70,7 +79,7 @@ describe('buildAuditLogHistoryQuery', () => {
       limit: AUDIT_LOG_PAGE_SIZE,
       offset: 0,
       ungrouped: true,
-      workflow_run_id: 'workflow-run-1',
+      workflowRunId: 'workflow-run-1',
     });
   });
 
@@ -87,7 +96,7 @@ describe('buildAuditLogHistoryQuery', () => {
     ).toEqual({
       limit: AUDIT_LOG_PAGE_SIZE,
       offset: 10,
-      request_id: 'request-1',
+      requestId: 'request-1',
       ungrouped: true,
     });
   });
@@ -106,7 +115,7 @@ describe('buildAuditLogHistoryQuery', () => {
       limit: AUDIT_LOG_PAGE_SIZE,
       offset: 0,
       ungrouped: true,
-      workflow_run_id: 'workflow-run-1',
+      workflowRunId: 'workflow-run-1',
     });
   });
 
@@ -162,11 +171,11 @@ describe('getAuditLogHistoryItemKey', () => {
   it('differs when otherwise identical audit events have different request ids', () => {
     const first = {
       ...makeHistoryItem('2025-03-01T08:00:00.000Z', 'entity'),
-      request_id: 'request-1',
+      requestId: 'request-1',
     };
     const second = {
       ...makeHistoryItem('2025-03-01T08:00:00.000Z', 'entity'),
-      request_id: 'request-2',
+      requestId: 'request-2',
     };
 
     expect(getAuditLogHistoryItemKey(first)).not.toEqual(

@@ -1,0 +1,30 @@
+{{- $ns := include "modul-normenermittlung.namespace" . -}}
+{{- $name := include "modul-normenermittlung.fullname" . -}}
+{{ .Chart.Name }} is installed as {{ $name }} in namespace {{ $ns }}.
+{{- if .Values.ingress.enabled }}
+
+Application URL(s):
+{{- range $host := .Values.ingress.hosts }}
+  {{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+  {{- end }}
+{{- end }}
+{{- else if .Values.service.enabled }}
+
+Reach the Service from your machine:
+  kubectl --namespace {{ $ns }} port-forward svc/{{ $name }} 8080:{{ include "modul-normenermittlung.servicePort" . }}
+{{- end }}
+
+Pods:
+  kubectl --namespace {{ $ns }} get pods -l {{ include "modul-normenermittlung.selectorLabels" . | replace ": " "=" | replace "\n" "," | replace "\"" "" }}
+{{- if .Values.service.selector }}
+
+DEPRECATED: service.selector is ignored — the Service always selects the
+chart's own pods. Remove the key from your values.
+{{- end }}
+{{- if and .Values.service.ports (ne (toString .Values.service.port) (toString (first .Values.service.ports).port)) }}
+
+DEPRECATED: service.port ({{ .Values.service.port }}) differs from service.ports[0].port
+({{ (first .Values.service.ports).port }}); the Service and the Ingress use
+service.ports. service.port is only read when service.ports is empty.
+{{- end }}

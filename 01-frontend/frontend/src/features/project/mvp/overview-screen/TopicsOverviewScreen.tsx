@@ -56,7 +56,7 @@ export const TopicsOverviewScreen = () => {
       topicStatus: searchParams.topicStatus,
     }),
   });
-  const overviewTopics = topics.filter((topic) => topic.show_in_mvp !== false);
+  const overviewTopics = topics.filter((topic) => topic.showInMvp !== false);
 
   const deferredSearch = useDeferredValue(search);
   const topicNormsByTopicId = useOverviewTopicNormsByTopicId(
@@ -109,8 +109,8 @@ export const TopicsOverviewScreen = () => {
     try {
       const tx = transact(() => {
         update(topic, (draft) => {
-          draft.mvp_assignees = assignedUserIds.slice(0, MAX_TOPIC_ASSIGNEES);
-          draft.updated_at = new Date().toISOString();
+          draft.mvpAssignees = assignedUserIds.slice(0, MAX_TOPIC_ASSIGNEES);
+          draft.updatedAt = new Date().toISOString();
         });
       });
       await tx.isPersisted.promise;
@@ -120,7 +120,7 @@ export const TopicsOverviewScreen = () => {
     }
   };
   return (
-    <div className="flex w-full flex-1 flex-col overflow-y-auto bg-white px-32 py-8">
+    <div className="flex w-full flex-1 flex-col overflow-y-auto bg-white px-4 py-8 md:px-32">
       <div className="mx-auto flex w-full max-w-container flex-col gap-4">
         <MvpOverviewHeader
           completedTopics={completedTopics}
@@ -138,7 +138,7 @@ export const TopicsOverviewScreen = () => {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4 xl:grid-cols-4">
           {sortedTopics.map((topic) => {
             const topicWritePermission = getTopicWritePermission(
-              topic.mvp_assignees,
+              topic.mvpAssignees,
             );
 
             return (

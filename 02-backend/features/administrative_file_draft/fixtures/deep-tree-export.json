@@ -1,0 +1,20 @@
+{
+  "project": {
+    "id": "10000000-0000-4000-8000-000000000002",
+    "name": "Tiefer Gliederungsbaum",
+    "internalProjectNumber": "AFD-DEPTH-009",
+    "latestVersion": 5
+  },
+  "nodes": [
+    { "id": "21000000-0000-4000-8000-000000000001", "title": "Ebene 1", "text": "", "order": 1, "parentVaeNodeId": null, "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000002", "title": "Ebene 2", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000001", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000003", "title": "Ebene 3", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000002", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000004", "title": "Ebene 4", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000003", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000005", "title": "Ebene 5", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000004", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000006", "title": "Ebene 6", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000005", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000007", "title": "Ebene 7", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000006", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000008", "title": "Ebene 8", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000007", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000009", "title": "Ebene 9", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000008", "projectVersion": 5, "isHidden": false, "isDeleted": false },
+    { "id": "21000000-0000-4000-8000-000000000010", "title": "Ebene 10", "text": "", "order": 1, "parentVaeNodeId": "21000000-0000-4000-8000-000000000009", "projectVersion": 5, "isHidden": false, "isDeleted": false }
+  ]
+}

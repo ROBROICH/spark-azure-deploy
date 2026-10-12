@@ -1,6 +1,9 @@
 """Prompt template for unbestimmte Rechtsbegriffe verification."""
 
-urp_agent_prompt = """
+from src.activities.prompt_blocks import closing_block
+
+urp_agent_prompt = (
+    """
 **Rolle**  
 Du bist ein juristisches Analysemodell, das darauf spezialisiert ist, zwischen bestimmten und unbestimmten Rechtsbegriffen zu unterscheiden.
 
@@ -130,15 +133,14 @@ Dein Ziel ist es, die unbestimmten Rechtsbegriffe, die in einer vorherigen Analy
 
 **Anwendung**  
 Überprüfe die folgenden unbestimmten Rechtsbegriffe anhand der bekannten Liste von bestimmten Rechtsbegriffen:  
-{external_data_tag_open}
-- **Ursprünglich eingestufte unbestimmte Rechtsbegriffe:** {unbestimmte_rechtsbegriffe}  
-- **Bestimmte Rechtsbegriffe:** {bestimmte_rechtsbegriffe}  
-{external_data_tag_close}
-
-**Formatierung**  
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-
+"""
+    + closing_block(
+        "- **Ursprünglich eingestufte unbestimmte Rechtsbegriffe:** {unbestimmte_rechtsbegriffe}  ",
+        "- **Bestimmte Rechtsbegriffe:** {bestimmte_rechtsbegriffe}  ",
+    )
+    + """
 Wichtig:  
 - Wenn der Begriff in der Liste der bestimmten Rechtsbegriffe gefunden wurde, dann `"bestimmt": true` und `"b_ids"` muss mindestens einen Eintrag enthalten.  
 - Wenn der Begriff nicht in der Liste der bestimmten Rechtsbegriffe gefunden wurde, dann `"bestimmt": false` und `"b_ids"` muss eine leere Liste sein. 
 """
+)

@@ -37,7 +37,7 @@ const collectTopicAncestorIds = (
   for (const parentId of index.parentIdsByNodeId.get(startId) ?? []) {
     const parent = index.nodeById.get(parentId);
 
-    if (parent?.node_type === 'topic') {
+    if (parent?.nodeType === 'topic') {
       topicIds.add(parent.id);
     }
 
@@ -107,9 +107,9 @@ const collectFundstelleTopicIdsByAncestorType = (
 
     const ancestor = index.nodeById.get(ancestorId);
 
-    if (ancestor?.node_type === 'dokument' || ancestor?.node_type === 'norm') {
+    if (ancestor?.nodeType === 'dokument' || ancestor?.nodeType === 'norm') {
       const topicIds =
-        ancestor.node_type === 'dokument' ? documentTopicIds : normTopicIds;
+        ancestor.nodeType === 'dokument' ? documentTopicIds : normTopicIds;
       addTopicAncestorIds(
         topicIds,
         index,

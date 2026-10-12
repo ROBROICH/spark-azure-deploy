@@ -5,15 +5,6 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
-class ClaimEntities(BaseModel):
-    """Structured semantic dimensions previously extracted for a claim."""
-
-    space_factor: str
-    reference_object: str
-    reference_attribute: str
-    modality_factor: str
-
-
 class ClaimEvidence(BaseModel):
     """Verbatim source quotes that support an extracted claim."""
 
@@ -40,6 +31,15 @@ class ClaimPayload(BaseModel):
     )
     claim_metadata: ClaimMetadata
     vector: list[float] | None = None
+
+    # Extraction evidence (absent on older claims)
+    instance_identifiers: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Instance identifiers by class found on the claim's page(s) (massnahme, art, bauwerk, ...).",
+    )
+    object_ids: list[str] = Field(default_factory=list, description="Object identifiers found in the carrier chunk.")
+    objekt: str = Field(default="", description="Model-extracted name/identifier of the object the claim is about.")
+    superseded: bool = Field(default=False, description="Claim stems from a superseded edition of its document.")
 
     @property
     def claim_id(self) -> str:
@@ -104,11 +104,6 @@ class ChunkPayload(BaseModel):
     hypothetical_questions: list[str] = Field(default_factory=list)
     vector: list[float] | None = None
 
-
-class ClaimContext(BaseModel):
-    """Lightweight subset of payload fields provided to the LLM prompts."""
-
-    claim_id: str
-    chunk_id: str
-    claim_text: str
-    chunk_text: str
+    # Computed in this module, never written upstream (extraction evidence)
+    instance_identifiers: dict[str, list[str]] = Field(default_factory=dict)
+    object_ids: list[str] = Field(default_factory=list)

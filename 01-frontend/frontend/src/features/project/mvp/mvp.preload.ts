@@ -19,7 +19,7 @@ import type {
 } from '@/db/nodes/types';
 import type { MvpSearch } from './topic-detail-screen/mvp.search';
 
-const TOPIC_DETAIL_PRELOAD_NODE_TYPES = new Set<NodeSummary['node_type']>([
+const TOPIC_DETAIL_PRELOAD_NODE_TYPES = new Set<NodeSummary['nodeType']>([
   'dokument',
   'topic',
   'topic_norm',
@@ -65,14 +65,14 @@ const preloadNodeRefs = async (
 const getNormPayloads = (payloads: ReadonlyArray<NodePayload>) => {
   return payloads.filter(
     (payload): payload is NodePayloadByType<'norm'> =>
-      payload.node_type === 'norm',
+      payload.nodeType === 'norm',
   );
 };
 
 const getFundstellenPayloads = (payloads: ReadonlyArray<NodePayload>) => {
   return payloads.filter(
     (payload): payload is NodePayloadByType<'fundstelle'> =>
-      payload.node_type === 'fundstelle',
+      payload.nodeType === 'fundstelle',
   );
 };
 
@@ -85,7 +85,7 @@ export const collectMvpTopicDetailPreloadRefs = (
   }
 
   const topicScopedRefs = getDescendantNodeRefs(index, topicId).filter(
-    (nodeRef) => TOPIC_DETAIL_PRELOAD_NODE_TYPES.has(nodeRef.node_type),
+    (nodeRef) => TOPIC_DETAIL_PRELOAD_NODE_TYPES.has(nodeRef.nodeType),
   );
 
   return topicScopedRefs;
@@ -99,35 +99,35 @@ export const getSearchScopedTopicDetailRefs = (
   const refs: NodeRef[] = [
     {
       id: topicId,
-      node_type: 'topic',
+      nodeType: 'topic',
     },
   ];
 
   if (search.previewDocumentId) {
     refs.push({
       id: search.previewDocumentId,
-      node_type: 'dokument',
+      nodeType: 'dokument',
     });
   }
 
   if (search.selectedDocumentId) {
     refs.push({
       id: search.selectedDocumentId,
-      node_type: 'dokument',
+      nodeType: 'dokument',
     });
   }
 
   if (search.selectedNormId) {
     refs.push({
       id: search.selectedNormId,
-      node_type: 'norm',
+      nodeType: 'norm',
     });
   }
 
   if (search.detailDocumentId) {
     refs.push({
       id: search.detailDocumentId,
-      node_type: 'topic_norm',
+      nodeType: 'topic_norm',
     });
   }
 
@@ -197,7 +197,7 @@ export const getSearchScopedFundstelleRefs = (
   ) {
     refs.push({
       id: search.feedbackTargetId,
-      node_type: 'fundstelle',
+      nodeType: 'fundstelle',
     });
   }
 
@@ -224,8 +224,8 @@ const getFundstellenScopedNormRefs = (
   }
 
   return fundstellen.map((fundstelle) => ({
-    id: fundstelle.norm_id,
-    node_type: 'norm' as const,
+    id: fundstelle.normId,
+    nodeType: 'norm' as const,
   }));
 };
 
@@ -238,16 +238,16 @@ const getFundstellenScopedDocumentRefs = (
   }
 
   return fundstellen.map((fundstelle) => ({
-    id: fundstelle.dokument_id,
-    node_type: 'dokument' as const,
+    id: fundstelle.dokumentId,
+    nodeType: 'dokument' as const,
   }));
 };
 
 const getNormGesetzRefs = (norms: ReadonlyArray<NodePayloadByType<'norm'>>) => {
   return dedupeNodeRefs(
     norms.map((norm) => ({
-      id: norm.gesetz_id,
-      node_type: 'gesetz' as const,
+      id: norm.gesetzId,
+      nodeType: 'gesetz' as const,
     })),
   );
 };
@@ -273,7 +273,7 @@ export const preloadMvpTopicRouteData = async (
         index,
         fundstellen.map((fundstelle) => ({
           id: fundstelle.id,
-          node_type: 'fundstelle',
+          nodeType: 'fundstelle',
         })),
       ),
     ),

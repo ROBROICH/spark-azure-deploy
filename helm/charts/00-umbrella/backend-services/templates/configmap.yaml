@@ -1,0 +1,19 @@
+{{- /*
+Non-secret configuration shared by every spark-backend pool (envFrom). The
+pools carry a checksum of global.backend.config and roll on every change.
+*/ -}}
+{{- $backend := (.Values.global | default dict).backend | default dict }}
+{{- if and $backend.config (ne (toString $backend.configEnabled) "false") }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "backend-services.configMapName" . }}
+  namespace: {{ include "backend-services.namespace" . }}
+  labels:
+    {{- include "backend-services.labels" . | nindent 4 }}
+data:
+  {{- $data := include "backend-services.renderedConfig" . | fromJson }}
+  {{- range $key := keys $data | sortAlpha }}
+  {{ $key }}: {{ get $data $key | quote }}
+  {{- end }}
+{{- end }}

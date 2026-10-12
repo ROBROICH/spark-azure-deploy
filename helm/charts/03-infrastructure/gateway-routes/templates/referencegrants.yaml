@@ -1,0 +1,72 @@
+{{- /*
+Cross-namespace backends (backendNamespace / backendNamespaces): the routes of
+this release live in the release namespace, so every foreign backend
+namespace needs a ReferenceGrant admitting HTTPRoutes from it, scoped to the
+Services the routes reference. One grant per foreign namespace, named after
+the release namespace so several releases can share a backend namespace (e.g.
+several frontend environments against one shared backend). The Gateway API caps
+spec.to at 16 entries: larger sets are split into further grants suffixed
+-2, -3, … (the first keeps the plain name).
+*/ -}}
+{{- /* backend charts referenced by the routes that are rendered (module
+charts; the dashboard sites' frontends and the extra sites' charts are added
+below) */ -}}
+{{- $charts := list "frontend" "administrative-file-draft" "agent-orchestration-service" "comment-service" "document-management-service" "examination-service" "feedback-service" "formal-completeness-check" "fpp-service" "identity-management-service" "objections-management-service" "plausibility-notes" "project-logic-service" "protocol-service" "rechtsaenderungs-monitoring" "supplementary-requests-service" "temporal-job-service" }}
+{{- range $site := include "gateway-routes.dashboardSites" . | fromJsonArray }}
+{{- $charts = append $charts $site.frontendChart }}
+{{- end }}
+{{- range $site := include "gateway-routes.extraSites" . | fromJsonArray }}
+{{- $charts = append $charts $site.chart }}
+{{- end }}
+{{- range $r := include "gateway-routes.extraRoutes" . | fromJsonArray }}
+{{- $charts = append $charts $r.chart }}
+{{- end }}
+{{- $services := dict }}
+{{- range $chart := $charts | uniq }}
+{{- $ns := include "gateway-routes.backendNamespace" (dict "root" $ "chart" $chart) }}
+{{- if $ns }}
+{{- $_ := set $services $ns (append (get $services $ns | default list) (include "gateway-routes.backendName" (dict "root" $ "chart" $chart))) }}
+{{- end }}
+{{- end }}
+{{- /* Temporal Web UI and landing page: only an explicit backendNamespaces entry moves them */ -}}
+{{- if .Values.routes.temporal.enabled }}
+{{- with include "gateway-routes.explicitBackendNamespace" (dict "root" $ "chart" "temporal") }}
+{{- $_ := set $services . (append (get $services . | default list) (include "gateway-routes.temporalWebService" $)) }}
+{{- end }}
+{{- end }}
+{{- if .Values.landing.enabled }}
+{{- with include "gateway-routes.explicitBackendNamespace" (dict "root" $ "chart" "landingpage") }}
+{{- $_ := set $services . (append (get $services . | default list) (include "gateway-routes.landingService" $)) }}
+{{- end }}
+{{- end }}
+{{- range $ns := keys $services | sortAlpha }}
+{{- $names := get $services $ns | uniq | sortAlpha }}
+{{- $base := printf "httproutes-from-%s" $.Release.Namespace }}
+{{- range $i := until (div (add (len $names) 15) 16 | int) }}
+{{- $chunk := slice $names (mul $i 16 | int) (min (len $names) (mul (add $i 1) 16) | int) }}
+---
+apiVersion: gateway.networking.k8s.io/v1beta1
+kind: ReferenceGrant
+metadata:
+  {{- if eq $i 0 }}
+  name: {{ $base | trunc 63 | trimSuffix "-" }}
+  {{- else }}
+  {{- $suffix := printf "-%d" (add $i 1) }}
+  name: {{ printf "%s%s" ($base | trunc (sub 63 (len $suffix) | int) | trimSuffix "-") $suffix }}
+  {{- end }}
+  namespace: {{ $ns }}
+  labels:
+    {{- include "gateway-routes.labels" $ | nindent 4 }}
+spec:
+  from:
+    - group: gateway.networking.k8s.io
+      kind: HTTPRoute
+      namespace: {{ $.Release.Namespace }}
+  to:
+    {{- range $name := $chunk }}
+    - group: ""
+      kind: Service
+      name: {{ $name }}
+    {{- end }}
+{{- end }}
+{{- end }}

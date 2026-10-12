@@ -268,7 +268,7 @@ const AiAssistanceSwimlaneContent = () => {
             <AiNormtextView
               topicNormRef={{
                 id: panelRoute.topicNormId,
-                node_type: 'topic_norm',
+                nodeType: 'topic_norm',
               }}
             />
           </Suspense>

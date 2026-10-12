@@ -6,6 +6,7 @@
   "arguments": {
     "addArgument": "Neues Argument",
     "approve": "Prüfen",
+    "unapprove": "Prüfung aufheben",
     "acceptClassificationLabel": "Themenvorschlag für Argument {{referenceId}} übernehmen",
     "approveArgumentLabel": "Argument {{referenceId}} prüfen",
     "approved": "Geprüft",
@@ -13,6 +14,9 @@
     "checkAll": "Alle prüfen",
     "checked": "Geprüft",
     "classificationFailed": "Die Argumente konnten nicht klassifiziert werden.",
+    "classificationUncertainBoth": "Themen- und Unterthemenzuordnung unsicher",
+    "classificationUncertainSubtopic": "Unterthemenzuordnung unsicher",
+    "classificationUncertainTopic": "Themenzuordnung unsicher",
     "deleteArgumentLabel": "Argument {{referenceId}} löschen",
     "deleteDialog": {
       "cancel": "Abbrechen",
@@ -66,6 +70,7 @@
       "duplicate": "Duplikat",
       "fileNotFound": "Datei nicht gefunden",
       "invalidFilename": "Dateiname ungültig",
+      "noProcessableFiles": "Keine verarbeitbaren Dateien",
       "renameFailed": "Umbenennen fehlgeschlagen",
       "unsupportedFiletype": "Dateityp nicht unterstützt",
       "uploadFailed": "Upload fehlgeschlagen",
@@ -225,6 +230,7 @@
     "progressBadge_one": "{{checkedCount}} von {{totalCount}} Argument geprüft",
     "progressBadge_other": "{{checkedCount}} von {{totalCount}} Argumenten geprüft",
     "submitAdditionally": "Beteiligungseingänge importieren",
+    "moreActionsAriaLabel": "Weitere Aktionen",
     "tabs": {
       "sender": "Absender",
       "topics": "Themen"

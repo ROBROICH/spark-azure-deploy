@@ -41,9 +41,7 @@ class TestSimpleWrappers:
     @pytest.mark.asyncio
     async def test_delete_document_from_qdrant_delegates(self, mock_qdrant: MagicMock) -> None:
         mock_qdrant.clear_document_claims = AsyncMock()
-        await delete_document_from_qdrant(
-            DocumentActivityInput(project_id="p", document_id="d")
-        )
+        await delete_document_from_qdrant(DocumentActivityInput(project_id="p", document_id="d"))
         mock_qdrant.clear_document_claims.assert_awaited_once_with(project_id="p", document_id="d")
 
     @pytest.mark.asyncio
@@ -62,14 +60,10 @@ class TestFetchAndPrepareChunks:
             make_chunk_payload(chunk_id="short", chunk_content="x"),
             make_chunk_payload(chunk_id="image", chunk_content="x" * 1000, chunk_type="image"),
         ]
-        mock_qdrant.get_chunk_ids_by_document_id = AsyncMock(
-            return_value=["ok", "short", "image"]
-        )
+        mock_qdrant.get_chunk_ids_by_document_id = AsyncMock(return_value=["ok", "short", "image"])
         mock_qdrant.get_chunk_payloads = AsyncMock(return_value=chunks)
 
-        result = await fetch_and_prepare_chunks(
-            DocumentActivityInput(project_id="p", document_id="d")
-        )
+        result = await fetch_and_prepare_chunks(DocumentActivityInput(project_id="p", document_id="d"))
 
         kept_ids = {c.chunk_id for c in result}
         assert kept_ids == {"ok"}
@@ -78,9 +72,13 @@ class TestFetchAndPrepareChunks:
 class TestUploadClaimsToQdrant:
     def _claim(self, claim_id: str = "claim-1", vector: list[float] | None = None) -> ClaimPayload:
         return ClaimPayload(
-            project_id="p", document_id="d", title="t", chunk_id="c1",
+            project_id="p",
+            document_id="d",
+            title="t",
+            chunk_id="c1",
             claim_metadata=ClaimMetadata(
-                claim_id=claim_id, claim_content="text",
+                claim_id=claim_id,
+                claim_content="text",
                 evidence=ClaimEvidence(claim_quotes=["q"]),
             ),
             vector=vector if vector is not None else [0.1] * 4,
@@ -95,9 +93,13 @@ class TestUploadClaimsToQdrant:
     @pytest.mark.asyncio
     async def test_raises_when_any_vector_is_none(self, mock_qdrant: MagicMock) -> None:
         no_vector_claim = ClaimPayload(
-            project_id="p", document_id="d", title="t", chunk_id="c1",
+            project_id="p",
+            document_id="d",
+            title="t",
+            chunk_id="c1",
             claim_metadata=ClaimMetadata(
-                claim_id="c1", claim_content="text",
+                claim_id="c1",
+                claim_content="text",
                 evidence=ClaimEvidence(claim_quotes=["q"]),
             ),
             vector=None,
@@ -106,9 +108,7 @@ class TestUploadClaimsToQdrant:
             await upload_claims_to_qdrant(UploadClaimsInput(claims=[no_vector_claim]))
 
     @pytest.mark.asyncio
-    async def test_upserts_each_claim_with_expected_payload(
-        self, mock_qdrant: MagicMock
-    ) -> None:
+    async def test_upserts_each_claim_with_expected_payload(self, mock_qdrant: MagicMock) -> None:
         mock_qdrant.upsert = AsyncMock()
         claims = [self._claim(claim_id=f"c{i}") for i in range(3)]
         await upload_claims_to_qdrant(UploadClaimsInput(claims=claims))

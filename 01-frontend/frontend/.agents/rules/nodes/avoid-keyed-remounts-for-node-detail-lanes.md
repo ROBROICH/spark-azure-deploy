@@ -1,3 +1,7 @@
+---
+ruleId: nodes/avoid-keyed-remounts-for-node-detail-lanes
+---
+
 # Avoid Keyed Remounts For Node Detail Lanes
 
 - Do not key a whole node-driven lane, tab, or panel `Suspense` boundary on route-backed selection ids when only one detail subtree actually changes.

@@ -9,7 +9,7 @@ import { useCanMutateProject } from '@/features/access-control/project-permissio
 import { requestSidebarSearchUpdate } from '@/features/project/action-sidebar/sidebarSearchParams';
 import { getRouteApi } from '@tanstack/react-router';
 import { Pencil } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ResultCard,
@@ -17,6 +17,7 @@ import {
   type ResultCardHintAction,
 } from './ResultCard';
 import { ResultCardSkeleton } from './ResultCardSkeleton';
+import { ResultCardStatusFallback } from './ResultCardStatusFallback';
 import {
   ResultCardRequestAllButton,
   ResultCardShowMoreButton,
@@ -34,6 +35,7 @@ const route = getRouteApi('/verfahren/$verfahrenId/fvp/documents/');
 
 type RequiredDocumentsResultCardProps = {
   projectId: string;
+  statusAddon?: ReactNode;
 };
 
 type VisibleRequiredDocumentHint = RequiredDocumentHint & {
@@ -48,7 +50,7 @@ const isVisibleRequiredDocumentHint = (
 export const RequiredDocumentsResultCard = (
   props: RequiredDocumentsResultCardProps,
 ) => {
-  const { projectId } = props;
+  const { projectId, statusAddon } = props;
   const { t } = useTranslation('FormalCompletenessCheck');
   const navigate = route.useNavigate();
   const { canMutateProject } = useCanMutateProject({
@@ -66,14 +68,16 @@ export const RequiredDocumentsResultCard = (
   } = useRequiredDocumentHints(projectId);
 
   if (isLoading) {
-    return <ResultCardSkeleton />;
+    return <ResultCardSkeleton statusAddon={statusAddon} />;
   }
 
   if (isError) {
     return (
-      <CollectionErrorAlert
-        onRetry={() => retryRequiredDocumentsReads(projectId)}
-      />
+      <ResultCardStatusFallback statusAddon={statusAddon}>
+        <CollectionErrorAlert
+          onRetry={() => retryRequiredDocumentsReads(projectId)}
+        />
+      </ResultCardStatusFallback>
     );
   }
 
@@ -173,6 +177,7 @@ export const RequiredDocumentsResultCard = (
 
   return (
     <ResultCard
+      statusAddon={statusAddon}
       processed={processedCount}
       total={totalRequired}
       statusTextKey="redesign.requiredDocumentsCard.status.progress"

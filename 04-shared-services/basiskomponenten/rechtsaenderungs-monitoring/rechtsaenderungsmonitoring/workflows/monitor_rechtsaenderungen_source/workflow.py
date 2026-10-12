@@ -6,15 +6,13 @@ activities defined alongside the parent ``monitor_rechtsaenderungen`` package.
 An optional ``entry_titles`` filter narrows the run to a subset of entries.
 """
 
-from temporal.utils import sliding_window
-from temporal.workflows.rechtsaenderungs_monitoring.monitor_rechtsaenderungen_source import (
-    MONITOR_RECHTSAENDERUNGEN_SOURCE_WORKFLOW_ID,
-)
-from temporal.workflows.rechtsaenderungs_monitoring.types import (
+from temporal.contracts import (
     FeedEntry,
     MonitorRechtsaenderungenInput,
     MonitorRechtsaenderungenOutput,
 )
+from temporal.registry import RECHTSAENDERUNGS_MONITORING_SOURCE_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from rechtsaenderungsmonitoring.schemas.temporal import (
@@ -39,7 +37,7 @@ from rechtsaenderungsmonitoring.workflows.monitor_rechtsaenderungen.llm import (
 )
 
 
-@workflow.defn(name=MONITOR_RECHTSAENDERUNGEN_SOURCE_WORKFLOW_ID)
+@workflow.defn(name=RECHTSAENDERUNGS_MONITORING_SOURCE_WORKFLOW.name)
 class MonitorRechtsaenderungenSourceWorkflow:
     """Refresh the configured RSS feed for a single source."""
 

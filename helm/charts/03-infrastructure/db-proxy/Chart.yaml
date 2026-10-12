@@ -1,0 +1,15 @@
+apiVersion: v2
+name: db-proxy
+description: >-
+  In-cluster PostgreSQL endpoints for a SPARK environment whose databases live
+  on a server outside the cluster: a Cloud SQL Auth Proxy (pooled access to a
+  Google Cloud SQL instance) and a PgBouncer in session mode (a direct route
+  to the server for clients that need session semantics, e.g. schema
+  migrations with advisory locks). Both components are opt-in.
+type: application
+version: 0.1.0
+appVersion: "1.25.1"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

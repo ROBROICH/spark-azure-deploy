@@ -145,7 +145,10 @@ function Sidebar(
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <nav aria-label={ariaLabel} className="flex h-full w-full flex-col">
+          <nav
+            aria-label={ariaLabel}
+            className="flex h-full w-full flex-col sidebar-reflow:overflow-y-auto"
+          >
             {children}
           </nav>
         </SheetContent>
@@ -190,7 +193,7 @@ function Sidebar(
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
           className={cn(
-            'flex h-full w-full flex-col bg-slate-100 group-data-[theme=dark]:bg-slate-800',
+            'flex h-full w-full flex-col bg-slate-100 group-data-[theme=dark]:bg-slate-800 sidebar-reflow:overflow-y-auto',
             desktopAnchorSide === 'left'
               ? 'border-r border-slate-200 group-data-[theme=dark]:border-slate-600'
               : 'border-l border-slate-200 group-data-[theme=dark]:border-slate-600',

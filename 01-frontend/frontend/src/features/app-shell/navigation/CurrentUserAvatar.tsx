@@ -12,7 +12,7 @@ export const CurrentUserAvatar = (props: CurrentUserAvatarProps) => {
     <div
       className={cn(
         'flex items-center justify-center',
-        'size-[16px] rounded-full border border-slate-300 bg-slate-100 text-slate-500',
+        'size-[16px] rounded-full border border-slate-300 bg-slate-100 text-slate-500 forced-colors:border-[CanvasText] forced-colors:text-[color:CanvasText]',
         className,
       )}
     >

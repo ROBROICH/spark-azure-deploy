@@ -44,11 +44,11 @@ export const DocumentsSwimlane = (props: DocumentsSwimlaneProps) => {
   const documentsProgressDescriptionId = useId();
   const { canMutateTopic, topicDocuments } = props;
   const selectedNormRef = selectedNormId
-    ? { id: selectedNormId, node_type: 'norm' as const }
+    ? { id: selectedNormId, nodeType: 'norm' as const }
     : null;
   const { data: selectedNorm } = useLiveNode(selectedNormRef);
   const selectedGesetzRef = selectedNorm
-    ? { id: selectedNorm.gesetz_id, node_type: 'gesetz' as const }
+    ? { id: selectedNorm.gesetzId, nodeType: 'gesetz' as const }
     : null;
   const { data: selectedGesetz } = useLiveNode(selectedGesetzRef);
   // eslint-disable-next-line no-restricted-syntax -- ephemeral UI expansion state for the live file tree
@@ -104,7 +104,7 @@ export const DocumentsSwimlane = (props: DocumentsSwimlaneProps) => {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+      <div className="min-h-0 flex-1 overflow-y-auto p-1 md:p-4">
         <Accordion
           value={isRootExpanded ? ['root'] : []}
           onValueChange={(values) => {

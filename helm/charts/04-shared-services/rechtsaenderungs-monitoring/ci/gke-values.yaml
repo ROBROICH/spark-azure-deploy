@@ -1,0 +1,18 @@
+# ci: GKE-specific opt-ins — Workload Identity annotation, GMP PodMonitoring, KEDA.
+image:
+  repository: europe-docker.pkg.dev/example-project/spark/app
+  tag: "1.0.0"
+containerPorts:
+  - {containerPort: 8000, name: http}
+serviceAccount:
+  annotations: {iam.gke.io/gcp-service-account: app@example-project.iam.gserviceaccount.com}
+podMonitoring:
+  enabled: true
+keda:
+  enabled: true
+  minReplicaCount: 0
+  maxReplicaCount: 4
+  triggers:
+    - type: cpu
+      metricType: Utilization
+      metadata: {value: "70"}

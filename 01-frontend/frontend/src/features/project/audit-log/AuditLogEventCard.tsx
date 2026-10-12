@@ -1,4 +1,4 @@
-import type { HistoryItem } from '@/api-clients/protocol-module';
+import type { HistoryItem } from '@/api-clients/backend';
 import { Badge } from '@/features/ui/badge/Badge';
 import { Button } from '@/features/ui/button/Button';
 import { cn } from '@/features/ui/style/cn';
@@ -70,14 +70,14 @@ export function AuditLogEventCard(props: {
               </Badge>
             )}
             <Badge
-              variant={getChangeBadgeVariant(item.change_type)}
+              variant={getChangeBadgeVariant(item.changeType)}
               size="small"
             >
-              {formatChangeType(item.change_type, t)}
+              {formatChangeType(item.changeType, t)}
             </Badge>
             {drilldownGroup ? (
               <Badge variant="primary" size="small">
-                {t('event.groupCount', { count: item.group_count })}
+                {t('event.groupCount', { count: item.groupCount })}
               </Badge>
             ) : null}
           </div>
@@ -88,8 +88,7 @@ export function AuditLogEventCard(props: {
                 {title}
               </h3>
               <p className="mt-1 text-sm text-neutral-600">
-                {item.service_label}
-                {item.service ? ` (${item.service})` : ''}
+                {item.serviceLabel} ({item.service})
               </p>
             </div>
             {drilldownGroup && allowDrilldown ? (
@@ -123,35 +122,35 @@ export function AuditLogEventCard(props: {
           <div className="mt-4 grid grid-cols-2 gap-3 text-sm xl:grid-cols-3">
             <AuditLogMetadataItem
               label={t('fields.entityType')}
-              value={item.entity_type}
+              value={item.entityType}
             />
             <AuditLogMetadataItem
               label={t('fields.entityId')}
-              value={item.entity_id}
+              value={item.entityId}
             />
             <AuditLogMetadataItem
               label={t('fields.actionType')}
-              value={item.action_type}
+              value={item.actionType}
             />
             <AuditLogMetadataItem
               label={t('fields.workflowType')}
-              value={item.workflow_type}
+              value={item.workflowType}
             />
             <AuditLogMetadataItem
               label={t('fields.workflowRunId')}
-              value={item.workflow_run_id}
+              value={item.workflowRunId}
             />
             <AuditLogMetadataItem
               label={t('fields.requestId')}
-              value={item.request_id}
+              value={item.requestId}
             />
             <AuditLogMetadataItem
               label={t('fields.actorUserId')}
-              value={item.actor_user_id}
+              value={item.actorUserId}
             />
             <AuditLogMetadataItem
               label={t('fields.triggeredByUserId')}
-              value={item.triggered_by_user_id}
+              value={item.triggeredByUserId}
             />
           </div>
 
@@ -181,22 +180,22 @@ function getAggregatedHint(
 }
 
 function getDrilldownGroup(item: HistoryItem): AuditLogDrilldownGroup | null {
-  if ((item.group_count ?? 1) <= 1) {
+  if (item.groupCount <= 1) {
     return null;
   }
 
-  if (item.workflow_run_id) {
+  if (item.workflowRunId) {
     return {
-      id: item.workflow_run_id,
-      key: `workflow:${item.workflow_run_id}`,
+      id: item.workflowRunId,
+      key: `workflow:${item.workflowRunId}`,
       type: 'workflow',
     };
   }
 
-  if (item.request_id) {
+  if (item.requestId) {
     return {
-      id: item.request_id,
-      key: `request:${item.request_id}`,
+      id: item.requestId,
+      key: `request:${item.requestId}`,
       type: 'request',
     };
   }
@@ -211,17 +210,17 @@ function getAggregatedTitle(
 ) {
   if (group.type === 'workflow') {
     return t('event.aggregatedTitle', {
-      count: item.group_count,
-      workflow: item.workflow_type ?? item.service_label,
+      count: item.groupCount,
+      workflow: item.workflowType ?? item.serviceLabel,
     });
   }
 
   return t('event.requestAggregatedTitle', {
-    count: item.group_count,
+    count: item.groupCount,
   });
 }
 
-function getChangeBadgeVariant(changeType: HistoryItem['change_type']) {
+function getChangeBadgeVariant(changeType: HistoryItem['changeType']) {
   if (changeType === 'create') {
     return 'success';
   }
@@ -239,12 +238,12 @@ function getEventTitle(
   item: HistoryItem,
   t: (key: string, options?: Record<string, unknown>) => string,
 ) {
-  if (item.change_type === 'action') {
-    return item.action_type ?? t('event.actionTitle');
+  if (item.changeType === 'action') {
+    return item.actionType ?? t('event.actionTitle');
   }
 
   return t('event.changeTitle', {
-    changeType: formatChangeType(item.change_type, t),
-    entityType: item.entity_type,
+    changeType: formatChangeType(item.changeType, t),
+    entityType: item.entityType,
   });
 }

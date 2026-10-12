@@ -1,3 +1,7 @@
+---
+ruleId: nodes/flag-db-nodes-changes-in-review
+---
+
 # Flag `src/db/nodes` Changes in Review
 
 - In code review, treat any production-code diff under `src/db/nodes/**` as an automatic finding, even before you assess whether the implementation is correct.

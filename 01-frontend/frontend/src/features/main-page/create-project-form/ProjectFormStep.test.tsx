@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom/vitest';
+import { client } from '@/api-clients/backend/client.gen';
 import {
   cleanup,
   fireEvent,
@@ -6,7 +7,7 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProjectFormStep } from './ProjectFormStep';
 import {
   PROJECT_NAME_MAX_LENGTH,
@@ -31,8 +32,17 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (key: string) => translations[key] ?? key }),
 }));
 
+const originalClientConfig = client.getConfig();
+beforeEach(() => {
+  client.setConfig({
+    baseUrl: 'http://project-number.test',
+    fetch: () => Promise.resolve(Response.json({ available: true })),
+  });
+});
+
 afterEach(() => {
   cleanup();
+  client.setConfig(originalClientConfig);
 });
 
 const validValues: ProjectStepValues = {
@@ -209,34 +219,43 @@ describe('ProjectFormStep validation timing', () => {
 });
 
 describe('ProjectFormStep duplicate-check gate', () => {
-  it('does not advance on native form submit while the dependency is blocked', () => {
+  it('waits for the server check before advancing from native form submission', async () => {
     const onSubmit = vi.fn();
-
+    let completeCheck!: (response: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      completeCheck = resolve;
+    });
+    const fetch = vi.fn(() => pending);
+    client.setConfig({ fetch });
     const { container } = render(
       <ProjectFormStep
         defaultValues={validValues}
         projectTypes={projectTypes}
-        disableSubmit
         onSubmit={onSubmit}
       />,
     );
 
-    // Native submit (e.g. Enter) bypasses the disabled footer button, so the
-    // gate must be enforced inside the form's submit path.
     fireEvent.submit(getProjectForm(container));
-
+    await waitFor(() => expect(fetch).toHaveBeenCalled());
     expect(onSubmit).not.toHaveBeenCalled();
+    completeCheck(Response.json({ available: true }));
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({ internalProjectNumber: 'AZ-001' }),
+      ),
+    );
   });
 
-  it('blocks the parent-triggered submit handle while the dependency is blocked', () => {
+  it('rejects a duplicate when the wizard invokes the registered submit handle', async () => {
+    client.setConfig({
+      fetch: () => Promise.resolve(Response.json({ available: false })),
+    });
     const onSubmit = vi.fn();
     const exposed: { submit: (() => void) | null } = { submit: null };
-
     render(
       <ProjectFormStep
         defaultValues={validValues}
         projectTypes={projectTypes}
-        disableSubmit
         onSubmit={onSubmit}
         onFormReady={(methods) => {
           exposed.submit = methods.submit;
@@ -245,29 +264,35 @@ describe('ProjectFormStep duplicate-check gate', () => {
     );
 
     exposed.submit?.();
-
+    await waitFor(() =>
+      expect(screen.getByLabelText(/File reference number/)).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      ),
+    );
     expect(onSubmit).not.toHaveBeenCalled();
   });
 
-  it('advances on native form submit once the dependency is ready', async () => {
+  it('does not advance when the server cannot check availability', async () => {
+    client.setConfig({
+      fetch: () => Promise.resolve(new Response(null, { status: 503 })),
+    });
     const onSubmit = vi.fn();
-
     const { container } = render(
       <ProjectFormStep
         defaultValues={validValues}
         projectTypes={projectTypes}
-        disableSubmit={false}
         onSubmit={onSubmit}
       />,
     );
 
     fireEvent.submit(getProjectForm(container));
-
-    await waitFor(() => {
-      expect(onSubmit).toHaveBeenCalledTimes(1);
-    });
-    expect(onSubmit).toHaveBeenCalledWith(
-      expect.objectContaining({ internalProjectNumber: 'AZ-001' }),
+    await waitFor(() =>
+      expect(screen.getByLabelText(/File reference number/)).toHaveAttribute(
+        'aria-invalid',
+        'true',
+      ),
     );
+    expect(onSubmit).not.toHaveBeenCalled();
   });
 });

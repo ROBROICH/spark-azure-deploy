@@ -1,5 +1,7 @@
 """Prompt template for Ermessensart classification."""
 
+from src.activities.prompt_blocks import closing_block
+
 ermessensart_agent_prompt = """
 **Rolle**
 Du bist ein erfahrener Jurist mit Spezialisierung auf verwaltungsrechtliche Ermessensentscheidungen. 
@@ -98,10 +100,6 @@ Daher liegt Entschließungsermessen & Auswahlermessen vor. -> Ermessensart: "bei
 
 **Anwendung**
 Nutze die oben beschriebene Vorgehensweise und klassifiziere die Ermessenart für folgende die Rechtsfolge.
-{external_data_tag_open}
--> Rechtsfolge: {rechtsfolge}
-{external_data_tag_close}
-
-**Formatierung**
-Gib das Ergebnis ausschließlich im JSON-Format zurück. Es darf keine anderen Texte oder Erklärungen enthalten sein. Gib das JSON ohne Markdown-Code-Fences zurück (also ohne ``` oder ```json) - nur reines JSON-Objekt. Halte dich unbedingt an die Format-Anweisungen.
-"""
+""" + closing_block(
+    "-> Rechtsfolge: {rechtsfolge}",
+)

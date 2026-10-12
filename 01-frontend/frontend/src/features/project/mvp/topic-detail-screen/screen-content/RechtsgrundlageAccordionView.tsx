@@ -60,7 +60,7 @@ export const RechtsgrundlageAccordionView = (
               <AccordionItem key={group.id} value={group.id}>
                 <AccordionHeader className="flex" asChild>
                   <div className="flex items-center">
-                    <AccordionTriggerPrimitive className="focus-ring flex flex-1 cursor-pointer items-center gap-2 px-2 py-2 disabled:pointer-events-none disabled:opacity-50">
+                    <AccordionTriggerPrimitive className="focus-ring flex flex-1 cursor-pointer flex-wrap items-center gap-2 px-2 py-2 disabled:pointer-events-none disabled:opacity-50">
                       <AccordionChevron />
                       <span className="flex-1 text-left text-[13px] font-semibold text-[#1E1D49]">
                         {lawGroupLabel}
@@ -79,7 +79,7 @@ export const RechtsgrundlageAccordionView = (
                         lawChanges={lawChanges}
                         norms={group.topicNorms.map((topicNorm) => ({
                           jurabk: topicNorm.jurabk,
-                          paragraphNr: topicNorm.paragraph_nr,
+                          paragraphNr: topicNorm.paragraphNr,
                         }))}
                       />
                     </span>

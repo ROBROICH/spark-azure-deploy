@@ -1,0 +1,49 @@
+{
+  "fixtures": [
+    {
+      "name": "retained-project-initialization",
+      "operation": "project-initialization.start-or-attach-and-describe",
+      "input": {
+        "workflowName": "ProjectInitializationWorkflow",
+        "executionId": "ProjectInitializationWorkflow-1d3e4d64-c48b-45a4-a193-8d14e74dae01-v1",
+        "taskQueue": "project_logic_service",
+        "projectId": "1d3e4d64-c48b-45a4-a193-8d14e74dae01",
+        "projectTypeId": "00000000-0000-0000-0000-000000000000",
+        "projectVersion": 1,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "FAIL"
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "disposition": "started",
+          "workflowStatus": "RUNNING"
+        }
+      }
+    },
+    {
+      "name": "retained-project-deletion",
+      "operation": "project-deletion.start",
+      "input": {
+        "workflowName": "DeleteProjectWorkflow",
+        "executionId": "DeleteProjectWorkflow-1d3e4d64-c48b-45a4-a193-8d14e74dae01-v1",
+        "taskQueue": "project_logic_service",
+        "projectId": "1d3e4d64-c48b-45a4-a193-8d14e74dae01",
+        "projectVersion": 1,
+        "idReusePolicy": "ALLOW_DUPLICATE_FAILED_ONLY",
+        "idConflictPolicy": "USE_EXISTING",
+        "workflowActor": {
+          "actorUserId": "71000000-0000-4000-8000-000000000001",
+          "triggeredByUserId": "71000000-0000-4000-8000-000000000002",
+          "workflowType": "ProjectLogicMutationTest"
+        }
+      },
+      "outcome": {
+        "kind": "return",
+        "value": {
+          "started": true
+        }
+      }
+    }
+  ]
+}

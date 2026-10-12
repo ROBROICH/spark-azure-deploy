@@ -66,7 +66,7 @@ export const ArgumentDetailView = (props: ArgumentDetailViewProps) => {
         if (
           !argument ||
           !canMutateProject ||
-          (argument.topic_id && !hasTopicMutationRights(argument.topic_id))
+          (argument.topicId && !hasTopicMutationRights(argument.topicId))
         ) {
           return false;
         }
@@ -175,8 +175,8 @@ export const ArgumentDetailView = (props: ArgumentDetailViewProps) => {
 
     const tx = transact(() => {
       update(argument, (draft) => {
-        draft.topic_id = nextTopicId || null;
-        draft.sub_topic_id = null;
+        draft.topicId = nextTopicId || null;
+        draft.subTopicId = null;
         draft.status = nextStatusAfterClassificationChange;
       });
     });
@@ -190,7 +190,7 @@ export const ArgumentDetailView = (props: ArgumentDetailViewProps) => {
 
     const tx = transact(() => {
       update(argument, (draft) => {
-        draft.sub_topic_id = nextSubtopicId || null;
+        draft.subTopicId = nextSubtopicId || null;
         draft.status = nextStatusAfterClassificationChange;
       });
     });
@@ -206,8 +206,8 @@ export const ArgumentDetailView = (props: ArgumentDetailViewProps) => {
       update(argument, (draft) => {
         draft.status = EWMS_ARGUMENT_STATUS_SUBTOPIC_REVIEWED;
         if (!isAccepted) {
-          draft.topic_id = null;
-          draft.sub_topic_id = null;
+          draft.topicId = null;
+          draft.subTopicId = null;
         }
       });
     });
@@ -281,6 +281,7 @@ export const ArgumentDetailView = (props: ArgumentDetailViewProps) => {
   return (
     <div className="flex h-full w-full flex-col gap-0">
       <TopicClassificationToolbar
+        argument={argument}
         referenceId={referenceId}
         argumentStatus={argument.status}
         topics={topics}

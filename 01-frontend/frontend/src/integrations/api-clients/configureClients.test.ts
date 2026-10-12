@@ -1,18 +1,5 @@
-import { client as agentOrchestrationClient } from '../../api-clients/agent-orchestration-module/client.gen';
-import { client as commentsClient } from '../../api-clients/comments-module/client.gen';
-import { client as documentClient } from '../../api-clients/dms-module/client.gen';
-import { client as examinationClient } from '../../api-clients/examination-module/client.gen';
-import { client as feedbackClient } from '../../api-clients/feedback-module/client.gen';
-import { client as formalCompletnessCheckClient } from '../../api-clients/fcs-module/client.gen';
-import { client as identityManagementClient } from '../../api-clients/identity-management-module/client.gen';
+import { client as apiClient } from '../../api-clients/backend/client.gen';
 import { client as lawChangesClient } from '../../api-clients/law-changes-module/client.gen';
-import { client as objectionsClient } from '../../api-clients/oms-module/client.gen';
-import { client as projectClient } from '../../api-clients/pls-module/client.gen';
-import { client as pnsClient } from '../../api-clients/pns-module/client.gen';
-import { client as protocolClient } from '../../api-clients/protocol-module/client.gen';
-import { client as supplementaryRequestsClient } from '../../api-clients/supplementary-requests-module/client.gen';
-import { client as temporalJobsClient } from '../../api-clients/temporal-jobs-module/client.gen';
-import { client as vaeClient } from '../../api-clients/vae-module/client.gen';
 import { describe, expect, it, vi } from 'vitest';
 import { subscribeSessionExpired } from '@/features/access-control/current-user/sessionExpired';
 import {
@@ -208,7 +195,9 @@ describe('createAuthRedirectAwareFetch', () => {
   it('does not treat project version conflicts as a global transport concern', async () => {
     const response = new Response(
       JSON.stringify({ detail: 'Project version is not latest' }),
-      { status: 409 },
+      {
+        status: 409,
+      },
     );
     const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(response);
     const wrappedFetch = createAuthRedirectAwareFetch({ fetch: fetchImpl });
@@ -231,31 +220,27 @@ describe('configureClients', () => {
 
     configureClients();
 
-    const clientsWithBasePaths = [
-      [agentOrchestrationClient, '/agent-orchestration/v1'],
-      [commentsClient, '/comment/v1'],
-      [documentClient, '/dms/v1'],
-      [examinationClient, '/examination/v1'],
-      [feedbackClient, '/feedback/v1'],
-      [formalCompletnessCheckClient, '/fcs/v1'],
-      [identityManagementClient, '/identity'],
-      [lawChangesClient, '/law-changes/v1'],
-      [objectionsClient, '/oms/v1'],
-      [projectClient, '/pls/v1'],
-      [pnsClient, '/plausibility-notes/v1'],
-      [protocolClient, '/protocol/v1'],
-      [supplementaryRequestsClient, '/supplementary-requests/v1'],
-      [temporalJobsClient, ''],
-      [vaeClient, '/vae/v1'],
+    const clientsWithBaseUrls = [
+      [apiClient, 'https://api.example.test'],
+      [lawChangesClient, 'https://api.example.test/law-changes/v1'],
     ] as const;
 
-    for (const [client, basePath] of clientsWithBasePaths) {
+    for (const [client, baseUrl] of clientsWithBaseUrls) {
       const config = client.getConfig();
 
-      expect(config.baseUrl).toBe(`https://api.example.test${basePath}`);
+      expect(config.baseUrl).toBe(baseUrl);
       expect(config.credentials).toBe('include');
       expect(config.redirect).toBe('manual');
       expect(config.fetch).toEqual(expect.any(Function));
     }
+  });
+
+  it('does not duplicate the deployed /api gateway prefix', () => {
+    window.__APP_CONFIG__ = { VITE_API_BASE_URL: '/api' };
+
+    configureClients();
+
+    expect(apiClient.getConfig().baseUrl).toBe('');
+    expect(lawChangesClient.getConfig().baseUrl).toBe('/api/law-changes/v1');
   });
 });

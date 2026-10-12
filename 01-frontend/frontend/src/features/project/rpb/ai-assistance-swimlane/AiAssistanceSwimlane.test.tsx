@@ -57,9 +57,9 @@ vi.mock('../workspace-state/RpbOutlineContext', () => ({
       onVaeNodeSelect: vi.fn(),
       selectedTopicId: routeState.search.topicId,
       selectedVaeNode,
-      selectedVaeNodeAssignedTopicId: selectedVaeNode?.topic_id ?? undefined,
+      selectedVaeNodeAssignedTopicId: selectedVaeNode?.topicId ?? undefined,
       selectedVaeNodeMutationTopicId: selectedVaeNode
-        ? (selectedVaeNode.topic_id ?? null)
+        ? (selectedVaeNode.topicId ?? null)
         : undefined,
       selectedVaeNodeId: selectedVaeNode?.id ?? '',
     };
@@ -183,26 +183,26 @@ describe('AiAssistanceSwimlane', () => {
     mocks.useNodesByTypeMock.mockReturnValue({
       data: [
         {
-          checked_by_assignee: false,
-          checked_by_leader: false,
+          checkedByAssignee: false,
+          checkedByLeader: false,
           id: 'topic-root',
-          is_deleted: false,
-          is_hidden: false,
+          isDeleted: false,
+          isHidden: false,
           order: 1,
-          parent_vae_node_id: null,
+          parentVaeNodeId: null,
           title: 'Topic Root',
-          topic_id: 'topic-1',
+          topicId: 'topic-1',
         },
         {
-          checked_by_assignee: false,
-          checked_by_leader: false,
+          checkedByAssignee: false,
+          checkedByLeader: false,
           id: 'topicless-root',
-          is_deleted: false,
-          is_hidden: false,
+          isDeleted: false,
+          isHidden: false,
           order: 2,
-          parent_vae_node_id: null,
+          parentVaeNodeId: null,
           title: 'Topicless Root',
-          topic_id: null,
+          topicId: null,
         },
       ],
     });
@@ -247,15 +247,15 @@ describe('AiAssistanceSwimlane', () => {
     mocks.useNodesByTypeMock.mockReturnValue({
       data: [
         {
-          checked_by_assignee: false,
-          checked_by_leader: false,
+          checkedByAssignee: false,
+          checkedByLeader: false,
           id: 'topicless-root',
-          is_deleted: false,
-          is_hidden: false,
+          isDeleted: false,
+          isHidden: false,
           order: 1,
-          parent_vae_node_id: null,
+          parentVaeNodeId: null,
           title: 'Topicless Root',
-          topic_id: null,
+          topicId: null,
         },
       ],
     });

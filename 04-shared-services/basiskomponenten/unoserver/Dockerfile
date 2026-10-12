@@ -3,7 +3,9 @@
 
 # Pinned Alpine edge: ships LibreOffice 25.8.7.3, which fixes CVE-2026-4430
 # (the >= 25.8.7 patch is only available on edge; 3.23 stable is still 25.8.1.1). See #11.
-FROM alpine:edge@sha256:9a341ff2287c54b86425cbee0141114d811ae69d88a36019087be6d896cef241
+ARG BASE_IMAGE=alpine:edge@sha256:266f29255458134745f2bf588cb23ed1ed1768b96ff2580a05d70a8aba59e145
+
+FROM ${BASE_IMAGE}
 
 # Explicit numeric UID/GID are required by Kubernetes runAsNonRoot enforcement
 ARG UID=100

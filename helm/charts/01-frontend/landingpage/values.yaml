@@ -1,0 +1,196 @@
+# =============================================================================
+# landingpage — base values
+# =============================================================================
+#
+# Minimal chart for the SPARK landing page (mock-landing-app): a scratch-image
+# Go static file server that serves the dashboard host apex.
+#
+# The rendered Service is named {release}-landingpage[-<stage>] — the
+# gateway-routes chart's landing-route points its backendRef at it (the
+# landing.service default there computes exactly this name) and serves
+#   dashboard.<domain>/          index.html
+#   dashboard.<domain>/<asset>   one Exact match per file in public/
+# The landing page is public (deliberately OUTSIDE the OIDC SecurityPolicy);
+# its "Zur Anwendung" button links to the host-relative /app, which stays
+# behind OIDC.
+#
+# Override per environment with a values file of your own:
+#   helm upgrade --install <release> . -f my-values.yaml
+# =============================================================================
+
+
+# Desired pod replicas.
+
+replicaCount: 1
+
+# Container image. If tag is empty, Chart.appVersion is used.
+
+image:
+  # Registry prefixed to repository (empty: global.imageRegistry, used only
+  # when repository names no registry itself).
+  registry: ""
+  repository: <container-registry>/mock-landing-app
+  tag: "10"
+  # Digest pinned next to the tag (e.g. sha256:…).
+  digest: ""
+  pullPolicy: IfNotPresent
+
+# Pull secrets for private registries (list).
+
+imagePullSecrets: []
+
+# Override chart name used in labels.
+
+nameOverride: ''
+
+# Override fully qualified resource name.
+
+fullnameOverride: ''
+
+# Target namespace when set on this chart. Leave empty in base values.yaml.
+# Precedence: chart override, then global.namespaceOverride, then release
+# namespace (-n).
+
+namespaceOverride: ''
+
+# Stage name appended to generated resource names as a suffix (e.g. "-my-env").
+# When this chart is deployed inside an umbrella, the stage is propagated via
+# global.stage.name. Set it here only for standalone installs.
+
+stage:
+  name: ''
+
+# Service classification labels applied to Deployment, Service, ServiceAccount.
+#
+# labels.type        — workload category: frontend | backend | agent
+# labels.environment — environment tag on pods. When deployed inside an
+#                      umbrella, this is provided via global.labels.environment.
+
+labels:
+  type: frontend
+  environment: ''
+
+# Container ports (list). The static server listens on HTTP port 80.
+
+containerPorts:
+- containerPort: 80
+
+# ServiceAccount for the pod (map). When global.serviceAccount.name is set
+# (shared per-namespace KSA), the pod uses that account and no
+# ServiceAccount resource is rendered by this chart.
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ''
+
+# Pod-level automountServiceAccountToken. The static server never talks to the
+# Kubernetes API. This also overrides the SA-level setting when the shared KSA
+# is used.
+
+automountServiceAccountToken: false
+
+# Extra annotations on the pod template (map).
+
+podAnnotations: {}
+
+# Extra labels added to the pod template (map). Pod selectors are set by the
+# chart templates using Kubernetes recommended labels and must not be
+# overridden here.
+
+podLabels: {}
+
+# Pod-level securityContext: non-root. The scratch image ships no user
+# database, so an explicit numeric UID is required for runAsNonRoot; the Go
+# binary and /public assets are world-readable. Binding :80 as non-root needs
+# net.ipv4.ip_unprivileged_port_start=0 in the pod sandbox (containerd's
+# default, e.g. on GKE).
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+# Container-level securityContext: all capabilities dropped; read-only root
+# filesystem (the server only reads the baked-in /public directory and writes
+# nothing).
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+
+# Service exposure (map). Selector is set by templates. Port 80 matches the
+# gateway-routes chart's backendServicePort default.
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 80
+    protocol: TCP
+
+# CPU/memory requests and limits.
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+# Base environment variables injected into the container (list of EnvVar
+# objects). The static server consumes none. Variables from global.env are
+# merged before this list; this list takes precedence on name collisions.
+
+env: []
+
+# Additional environment variables merged after env (list of EnvVar objects).
+
+extraEnv: []
+
+# Probes (maps). Use {} when unset.
+
+startupProbe: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: 80
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# Pod volumes (list). None — the scratch image is fully read-only and the
+# server writes nothing.
+
+volumes: []
+
+# Container volume mounts (list).
+
+volumeMounts: []
+
+# Node selector (map).
+
+nodeSelector: {}
+
+# Pod tolerations (list).
+
+tolerations: []
+
+# Pod affinity rules (map).
+
+affinity: {}

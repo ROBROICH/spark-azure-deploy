@@ -5,19 +5,17 @@ from uuid import UUID
 
 import pytest
 from pydantic import ValidationError
+from temporal.contracts import PFBChapter, RiskFinderOutput, RiskFinding
 
 from src.schemas.workflow import (
     CriteriaDefinitionResponse,
     CriterionRatingItem,
     IntentionAnalysisResponse,
-    PFBChapter,
     QualityAnalysisRequest,
     QualityAnalysisResponse,
     QualityCheckItem,
     QualityCriteria,
     QualityCriterionDefinition,
-    RiskFinderOutput,
-    RiskFinding,
     RiskFormulatorFinding,
     RiskFormulatorInput,
     RiskFormulatorResponse,

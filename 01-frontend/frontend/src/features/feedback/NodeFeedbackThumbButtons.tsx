@@ -25,7 +25,7 @@ export function NodeFeedbackThumbButtons(props: {
         ...prev,
         feedbackRating: nextRating,
         feedbackTargetId: targetRef.id,
-        feedbackTargetType: targetRef.node_type,
+        feedbackTargetType: targetRef.nodeType,
       }),
       replace: true,
       resetScroll: false,

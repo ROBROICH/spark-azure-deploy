@@ -1,0 +1,102 @@
+suite: gateway-routes
+release: {name: rel, namespace: ci}
+values: [../ci/minimal-values.yaml]
+tests:
+  - it: requires a stage or realm
+    template: templates/security-policy-temporal.yaml
+    set:
+      global.stage.name: ''
+    asserts:
+      - failedTemplate: {errorPattern: set auth.realm or global.stage.name}
+
+  - it: derives the API host from the domain
+    template: templates/httproute-api.yaml
+    asserts:
+      - contains: {path: spec.hostnames, content: api.ci.example.com}
+
+  - it: renders no ReferenceGrant for in-namespace backends
+    template: templates/referencegrants.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: splits a cross-namespace ReferenceGrant at 16 Services
+    template: templates/referencegrants.yaml
+    set:
+      backendNamespace: backend
+    asserts:
+      - hasDocuments: {count: 2}
+      - documentIndex: 0
+        equal: {path: metadata.name, value: httproutes-from-ci}
+      - documentIndex: 0
+        lengthEqual: {path: spec.to, count: 16}
+      - documentIndex: 1
+        equal: {path: metadata.name, value: httproutes-from-ci-2}
+      - documentIndex: 1
+        lengthEqual: {path: spec.to, count: 1}
+      - documentIndex: 1
+        equal: {path: metadata.namespace, value: backend}
+
+  - it: keeps one grant when fewer Services are routed elsewhere
+    template: templates/referencegrants.yaml
+    set:
+      backendNamespaces: {frontend: web}
+    asserts:
+      - hasDocuments: {count: 1}
+      - equal: {path: metadata.namespace, value: web}
+
+  - it: attaches routes to the shared Gateway's listener pair by default
+    template: templates/httproute-api.yaml
+    documentIndex: 0
+    asserts:
+      - equal:
+          path: spec.parentRefs
+          value: [{name: api-gateway, namespace: envoy-gateway-system, sectionName: https-ci}]
+
+  - it: renders no ListenerSet by default
+    template: templates/listenerset.yaml
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: attaches routes to the environment's ListenerSet when enabled
+    template: templates/httproute-api.yaml
+    documentIndex: 0
+    set:
+      listenerSet.enabled: true
+    asserts:
+      - equal:
+          path: spec.parentRefs
+          value: [{group: gateway.networking.k8s.io, kind: ListenerSet, name: gateway-listeners, sectionName: https}]
+
+  - it: renders the ListenerSet for the environment's wildcard host
+    template: templates/listenerset.yaml
+    set:
+      listenerSet.enabled: true
+    asserts:
+      - hasDocuments: {count: 1}
+      - equal: {path: spec.parentRef.name, value: api-gateway}
+      - equal: {path: 'spec.listeners[0].hostname', value: '*.ci.example.com'}
+      - equal: {path: 'spec.listeners[0].tls.certificateRefs[0].name', value: gateway-listeners-tls}
+
+  - it: issues the certificate on request and requires an issuer
+    template: templates/listenerset.yaml
+    set:
+      listenerSet: {enabled: true, tls: {certificate: {enabled: true}}}
+    asserts:
+      - failedTemplate: {errorPattern: issuerRef.name is required}
+
+  - it: requires the Keycloak host
+    template: templates/security-policy-temporal.yaml
+    set:
+      auth.keycloakHost: ''
+    asserts:
+      - failedTemplate: {errorPattern: auth.keycloakHost is required}
+
+  - it: takes the dashboard session settings from values
+    template: templates/security-policy-oidc.yaml
+    set:
+      oidc.dashboard.tokenTTL: 900s
+      cors.maxAge: 600s
+    asserts:
+      - equal: {path: spec.oidc.defaultTokenTTL, value: 900s}
+      - equal: {path: spec.cors.maxAge, value: 600s}
+      - equal: {path: spec.oidc.redirectURL, value: https://dashboard.ci.example.com/app/oauth2/callback}

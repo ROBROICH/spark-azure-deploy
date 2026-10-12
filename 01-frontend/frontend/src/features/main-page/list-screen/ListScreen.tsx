@@ -62,10 +62,10 @@ export const ListScreen = () => {
   };
 
   return (
-    <main className="flex min-h-0 min-w-0 flex-1 flex-col items-center overflow-x-clip bg-white">
-      <div className="mx-auto mt-6 flex w-full max-w-container-sm flex-col bg-white p-8">
+    <main className="flex min-h-0 min-w-0 flex-1 flex-col items-center bg-white">
+      <div className="mx-auto mt-6 flex w-full max-w-container-sm flex-col bg-white p-4 sm:p-8">
         <div className="flex flex-col gap-6">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               aria-hidden="true"
               className="rounded-lg bg-bg-quaternary p-2"

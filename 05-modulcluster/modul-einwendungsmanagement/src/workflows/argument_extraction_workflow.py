@@ -8,19 +8,19 @@ using child workflows, ensuring scalability and preventing individual task timeo
 
 from datetime import timedelta
 
-from temporal.utils import sliding_window
-from temporal.workflows.einwendungsmanagement.types import (
-    ARGUMENT_EXTRACTION_WORKFLOW_ID,
+from temporal.contracts import (
     ArgumentExtractionOutput,
     ArgumentExtractionParams,
 )
+from temporal.registry import EINWENDUNGSMANAGEMENT_ARGUMENT_EXTRACTION_WORKFLOW
+from temporal.utils import sliding_window
 from temporalio import workflow
 
 from src.config.config import config
 from src.workflows import ArgumentExtractionSingleBatchWorkflow
 
 
-@workflow.defn(name=ARGUMENT_EXTRACTION_WORKFLOW_ID)
+@workflow.defn(name=EINWENDUNGSMANAGEMENT_ARGUMENT_EXTRACTION_WORKFLOW.name)
 class ArgumentExtractionWorkflow:
     """
     Orchestrates the extraction of arguments from a list of processed documents.

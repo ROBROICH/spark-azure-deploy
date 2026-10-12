@@ -1,11 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { eq, useLiveQuery } from '@tanstack/react-db';
 
-import { requestItemsCollection } from '@/features/project/nachforderungen/data/collections/requestItems.collection';
-import {
-  getRequestItemSourceItemId,
-  getRequestItemSourceType,
-} from '@/features/project/nachforderungen/data/schemas/requestItem.schema';
+import { useRequestSources } from '@/features/project/nachforderungen/data/requestQueries';
 import {
   getTocNotesResponseQueryOptions,
   tocNotesCollection,
@@ -33,24 +29,16 @@ export const useTableOfContentsDocuments = (projectId: string) => {
   );
 
   const {
-    data: requestItems,
+    data: requestSources = [],
     isLoading: requestsLoading,
     isError: requestsError,
-  } = useLiveQuery((q) =>
-    q
-      .from({ items: requestItemsCollection })
-      .where(({ items }) => eq(items.projectId, projectId)),
-  );
+  } = useRequestSources(projectId);
   const requestedIds = new Set(
-    requestItems
-      .filter((item) => {
-        const sourceType = getRequestItemSourceType(item);
-        return (
-          sourceType === 'tableOfContents' || sourceType === 'requiredDocuments'
-        );
-      })
-      .map((item) => getRequestItemSourceItemId(item))
-      .filter((id): id is string => id !== undefined),
+    requestSources.flatMap((ref) =>
+      ref.type === 'tableOfContents' || ref.type === 'requiredDocuments'
+        ? [ref.itemId]
+        : [],
+    ),
   );
 
   const items: TableOfContentsItem[] = tocNotes.map((note) => ({

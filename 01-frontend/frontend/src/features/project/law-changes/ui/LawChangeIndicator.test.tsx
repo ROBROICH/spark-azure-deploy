@@ -94,6 +94,22 @@ describe('LawChangeIndicatorView', () => {
       }),
     ).toBeInTheDocument();
   });
+
+  it('hides silently when the law-changes backend is unavailable', () => {
+    render(
+      <LawChangeIndicatorView
+        jurabk="BNatSchG"
+        paragraphNr="45"
+        isErrorLawChanges
+        isServiceUnavailable
+        lawChanges={[]}
+        onOpen={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
 });
 
 describe('AggregatedLawChangeIndicatorView', () => {
@@ -108,5 +124,19 @@ describe('AggregatedLawChangeIndicatorView', () => {
     expect(
       screen.getByRole('button', { name: 'Rechtsänderung vorhanden' }),
     ).toBeInTheDocument();
+  });
+
+  it('hides silently when the law-changes backend is unavailable', () => {
+    render(
+      <AggregatedLawChangeIndicatorView
+        norms={[{ jurabk: 'BNatSchG', paragraphNr: '45' }]}
+        isErrorLawChanges
+        isServiceUnavailable
+        lawChanges={[]}
+      />,
+    );
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });

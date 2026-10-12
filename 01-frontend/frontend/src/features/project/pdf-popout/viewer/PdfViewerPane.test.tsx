@@ -26,8 +26,6 @@ vi.mock('../PdfPopoutWorkspaceContext', () => ({
     ]),
     connectedFileId: undefined,
     connectedPageJump: null,
-    getPagePosition: vi.fn(),
-    savePagePosition: vi.fn(),
   }),
 }));
 

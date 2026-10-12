@@ -1,0 +1,16 @@
+apiVersion: v2
+name: environment-config
+description: >-
+  Per-environment namespace plumbing for a SPARK environment (testing, branch
+  deployments, demos): the shared Workload Identity ServiceAccount, the
+  values-driven ExternalSecrets, GMP PodMonitoring, the
+  per-namespace otel-collector (traces to Cloud Trace), the NetworkPolicy/mesh
+  policy variants and the SpiceDBCluster CR — each
+  component can be switched off.
+type: application
+version: 0.4.0
+appVersion: "0.1.0"
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

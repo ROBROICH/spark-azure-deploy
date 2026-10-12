@@ -19,10 +19,13 @@ def _claim_record(record_id: str = "c1") -> SimpleNamespace:
     return SimpleNamespace(
         id=record_id,
         payload={
-            "project_id": "p", "document_id": "d", "title": "t",
+            "project_id": "p",
+            "document_id": "d",
+            "title": "t",
             "chunk_id": "k1",
             "claim_metadata": {
-                "claim_id": record_id, "claim_content": "x",
+                "claim_id": record_id,
+                "claim_content": "x",
                 "evidence": {"claim_quotes": ["q"]},
             },
         },
@@ -34,10 +37,15 @@ def _chunk_record(record_id: str = "k1") -> SimpleNamespace:
     return SimpleNamespace(
         id=record_id,
         payload={
-            "project_id": "p", "document_id": "d", "title": "t",
-            "chunk_content": "x", "chunk_id": record_id,
-            "page_numbers": [1], "chunk_type": "text",
-            "toc_path": ["S"], "focus_topic": "t",
+            "project_id": "p",
+            "document_id": "d",
+            "title": "t",
+            "chunk_content": "x",
+            "chunk_id": record_id,
+            "page_numbers": [1],
+            "chunk_type": "text",
+            "toc_path": ["S"],
+            "focus_topic": "t",
         },
         vector=None,
     )
@@ -50,8 +58,10 @@ class TestParsePayloadRecords:
         record.vector = [0.5] * 4
 
         parsed = client._parse_payload_records(
-            records=[record], model_cls=ClaimPayload,
-            with_vectors=True, payload_name="Claim",
+            records=[record],
+            model_cls=ClaimPayload,
+            with_vectors=True,
+            payload_name="Claim",
         )
 
         assert parsed[0].vector == [0.5] * 4
@@ -74,8 +84,10 @@ class TestParsePayloadRecords:
         record.payload["source_file_id"] = "raw-pdf-id"
 
         parsed = client._parse_payload_records(
-            records=[record], model_cls=ChunkPayload,
-            with_vectors=False, payload_name="Chunk",
+            records=[record],
+            model_cls=ChunkPayload,
+            with_vectors=False,
+            payload_name="Chunk",
         )
 
         assert parsed[0].document_id == "raw-pdf-id"
@@ -96,6 +108,7 @@ class TestGetClaimPayloads:
         result = await client.get_claim_payloads(project_id="p", claim_ids=[])
         assert result == []
 
+
 class TestGetRecordPayloads:
     @pytest.mark.asyncio
     async def test_retrieve_dedupes_unique_ids(self) -> None:
@@ -108,7 +121,9 @@ class TestGetRecordPayloads:
 
         client.retrieve = AsyncMock(side_effect=fake_retrieve)  # type: ignore[method-assign]
         await client._get_record_payloads(
-            project_id="p", point_ids=["a", "a", "b"], collection="claims",
+            project_id="p",
+            point_ids=["a", "a", "b"],
+            collection="claims",
         )
 
         assert sorted(captured_ids[0]) == ["a", "b"]
@@ -118,10 +133,12 @@ class TestGetRecordIds:
     @pytest.mark.asyncio
     async def test_scroll_pagination_dedupes(self) -> None:
         client = _bare_client()
-        responses = iter([
-            ([SimpleNamespace(id="a"), SimpleNamespace(id="b")], "cursor-1"),
-            ([SimpleNamespace(id="b"), SimpleNamespace(id="c")], None),
-        ])
+        responses = iter(
+            [
+                ([SimpleNamespace(id="a"), SimpleNamespace(id="b")], "cursor-1"),
+                ([SimpleNamespace(id="b"), SimpleNamespace(id="c")], None),
+            ]
+        )
 
         async def fake_scroll(**kwargs: Any) -> tuple[list[Any], str | None]:
             return next(responses)
@@ -139,16 +156,18 @@ class TestGetChunkIdsByDocumentId:
     @pytest.mark.asyncio
     async def test_returns_unique_payload_chunk_ids(self) -> None:
         client = _bare_client()
-        responses = iter([
-            (
-                [
-                    SimpleNamespace(id="r1", payload={"chunk_id": "k1"}),
-                    SimpleNamespace(id="r2", payload={"chunk_id": "k1"}),
-                    SimpleNamespace(id="r3", payload={"chunk_id": "k2"}),
-                ],
-                None,
-            ),
-        ])
+        responses = iter(
+            [
+                (
+                    [
+                        SimpleNamespace(id="r1", payload={"chunk_id": "k1"}),
+                        SimpleNamespace(id="r2", payload={"chunk_id": "k1"}),
+                        SimpleNamespace(id="r3", payload={"chunk_id": "k2"}),
+                    ],
+                    None,
+                ),
+            ]
+        )
 
         async def fake_scroll(**kwargs: Any) -> tuple[list[Any], str | None]:
             return next(responses)
@@ -159,22 +178,59 @@ class TestGetChunkIdsByDocumentId:
         assert result == ["k1", "k2"]
 
 
+def _excludes_deleted(collection_filter: models.Filter) -> bool:
+    return any(
+        isinstance(c, models.FieldCondition)
+        and c.key == "is_deleted"
+        and isinstance(c.match, models.MatchValue)
+        and c.match.value is True
+        for c in collection_filter.must_not or []
+    )
+
+
+class TestLiveChunksFilter:
+    def test_excludes_deleted_and_keeps_conditions(self) -> None:
+        extra = models.FieldCondition(key="chunk_id", match=models.MatchAny(any=["k1"]))
+        f = _bare_client().live_chunks_filter("p", extra)
+        assert _excludes_deleted(f)
+        assert isinstance(f.must, list) and f.must[-1] == extra
+
+    @pytest.mark.asyncio
+    async def test_chunk_payloads_exclude_deleted_chunks(self) -> None:
+        client = _bare_client()
+        filters: list[models.Filter] = []
+
+        async def fake_scroll(**kwargs: Any) -> tuple[list[Any], str | None]:
+            filters.append(kwargs["scroll_filter"])
+            return [], None
+
+        client.scroll = AsyncMock(side_effect=fake_scroll)  # type: ignore[method-assign]
+        await client.get_chunk_payloads(project_id="p", chunk_ids=["k1"])
+
+        assert filters and all(_excludes_deleted(f) for f in filters)
+
+
 class TestScrollByPayloadField:
     @pytest.mark.asyncio
     async def test_collects_all_pages(self) -> None:
         client = _bare_client()
-        responses = iter([
-            ([SimpleNamespace(id="r1"), SimpleNamespace(id="r2")], "cursor"),
-            ([SimpleNamespace(id="r3")], None),
-        ])
+        responses = iter(
+            [
+                ([SimpleNamespace(id="r1"), SimpleNamespace(id="r2")], "cursor"),
+                ([SimpleNamespace(id="r3")], None),
+            ]
+        )
 
         async def fake_scroll(**kwargs: Any) -> tuple[list[Any], str | None]:
             return next(responses)
 
         client.scroll = AsyncMock(side_effect=fake_scroll)  # type: ignore[method-assign]
         result = await client._scroll_by_payload_field(
-            project_id="p", payload_field="chunk_id", values=["k1"],
-            collection="chunks", with_vectors=False,
+            project_id="p",
+            payload_field="chunk_id",
+            values=["k1"],
+            collection="chunks",
+            with_vectors=False,
         )
 
         assert [r.id for r in result] == ["r1", "r2", "r3"]
@@ -183,7 +239,9 @@ class TestScrollByPayloadField:
     async def test_empty_field_values_returns_empty(self) -> None:
         client = _bare_client()
         result = await client._get_record_payloads_by_payload_field(
-            project_id="p", payload_field="chunk_id", field_values=[],
+            project_id="p",
+            payload_field="chunk_id",
+            field_values=[],
             collection="chunks",
         )
 
@@ -195,8 +253,12 @@ class TestScrollByPayloadField:
         call_args: list[list[str]] = []
 
         async def fake_scroll_batch(
-            *, project_id: str, payload_field: str, values: list[str],
-            collection: str, with_vectors: bool,
+            *,
+            project_id: str,
+            payload_field: str,
+            values: list[str],
+            collection: str,
+            with_vectors: bool,
         ) -> list[Any]:
             call_args.append(values)
             return [SimpleNamespace(id=v) for v in values]
@@ -205,9 +267,11 @@ class TestScrollByPayloadField:
         values = [f"v{i}" for i in range(client._MATCH_ANY_BATCH_SIZE + 5)]
 
         result = await client._get_record_payloads_by_payload_field(
-            project_id="p", payload_field="chunk_id", field_values=values,
+            project_id="p",
+            payload_field="chunk_id",
+            field_values=values,
             collection="chunks",
         )
 
         assert len(result) == len(values)
-        assert len(call_args) >= 2
+        assert len(call_args) >= 2  # noqa: PLR2004

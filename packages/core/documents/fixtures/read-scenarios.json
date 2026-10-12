@@ -1,0 +1,58 @@
+{
+  "projects": {
+    "populated": {
+      "id": "10000000-0000-4000-8000-000000000001",
+      "latestVersion": 3
+    },
+    "empty": {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "latestVersion": 1
+    },
+    "other": {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "latestVersion": 2
+    },
+    "locked": {
+      "id": "10000000-0000-4000-8000-000000000007",
+      "latestVersion": 4
+    }
+  },
+  "files": {
+    "versioned": "20000000-0000-4000-8000-000000000001",
+    "deleted": "20000000-0000-4000-8000-000000000002",
+    "alpha": "20000000-0000-4000-8000-000000000003",
+    "beta": "20000000-0000-4000-8000-000000000004",
+    "otherProject": "20000000-0000-4000-8000-000000000005",
+    "missingObject": "20000000-0000-4000-8000-000000000006",
+    "pending": "20000000-0000-4000-8000-000000000007",
+    "unknown": "20000000-0000-4000-8000-000000000999"
+  },
+  "topics": {
+    "environment": "30000000-0000-4000-8000-000000000001",
+    "planning": "30000000-0000-4000-8000-000000000002",
+    "versionedLink": "31000000-0000-4000-8000-000000000000",
+    "alphaLink": "31000000-0000-4000-8000-000000000001",
+    "betaLink": "31000000-0000-4000-8000-000000000002"
+  },
+  "zips": {
+    "versioned": "40000000-0000-4000-8000-000000000001",
+    "emptyDiff": "40000000-0000-4000-8000-000000000002",
+    "failed": "40000000-0000-4000-8000-000000000003",
+    "rejected": "40000000-0000-4000-8000-000000000004",
+    "otherProject": "40000000-0000-4000-8000-000000000005",
+    "unknown": "40000000-0000-4000-8000-000000000999"
+  },
+  "uploads": {
+    "roundTripFilename": "basis.pdf",
+    "freshFilename": "fresh.pdf",
+    "zipFilename": "fresh.zip",
+    "internalFilename": "analysis.json",
+    "invalidFilename": "malware.exe",
+    "roundTripBody": "DMS read contract upload round trip\n"
+  },
+  "downloads": {
+    "currentBody": "DMS current document v3\n",
+    "historicalBody": "DMS historical document v2\n",
+    "deletedBody": "DMS soft-deleted document\n"
+  }
+}

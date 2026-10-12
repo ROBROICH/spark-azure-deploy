@@ -30,7 +30,7 @@ export function SubgraphLoader() {
     : null;
   const effectiveSelectedNodeId = selectedGraphNodeId || selectedNodeId;
   const effectiveSelectedNodeType =
-    selectedGraphNode?.node_type ?? selectedNodeType;
+    selectedGraphNode?.nodeType ?? selectedNodeType;
 
   const nodesOfType = getNodesByType(effectiveSelectedNodeType);
   const nodeIdItems = nodesOfType.map((n) => ({
@@ -69,7 +69,7 @@ export function SubgraphLoader() {
         ...prev,
         selectedGraphNodeId: node.id,
         selectedNodeId: node.id,
-        selectedNodeType: node.node_type,
+        selectedNodeType: node.nodeType,
         showDescendants: undefined,
       }),
       replace: true,
@@ -130,11 +130,11 @@ export function SubgraphLoader() {
       {selectedNodeRef && (
         <>
           <SubgraphLoaderSelectedNodePanel
-            key={`${selectedNodeRef.node_type}:${selectedNodeRef.id}`}
+            key={`${selectedNodeRef.nodeType}:${selectedNodeRef.id}`}
             nodeRef={selectedNodeRef}
           />
           <SatzDescendantsPanel
-            key={`descendants-${selectedNodeRef.node_type}:${selectedNodeRef.id}`}
+            key={`descendants-${selectedNodeRef.nodeType}:${selectedNodeRef.id}`}
             nodeRef={selectedNodeRef}
             getDescendants={getDescendants}
           />
@@ -163,8 +163,8 @@ function SatzDescendantsPanel(props: {
   const descendantCountsByType = new Map<NodeTypeLiteral, number>();
   for (const ref of allDescendants) {
     descendantCountsByType.set(
-      ref.node_type,
-      (descendantCountsByType.get(ref.node_type) ?? 0) + 1,
+      ref.nodeType,
+      (descendantCountsByType.get(ref.nodeType) ?? 0) + 1,
     );
   }
   const availableDescendantTypeItems = nodeTypeItems

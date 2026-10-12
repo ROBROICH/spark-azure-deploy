@@ -63,7 +63,15 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
 
   const { verfahrenId } = route.useParams();
   const { newCommentInitItems } = route.useSearch();
-  const { comments, isLoading, isError, refetch } = useComments(verfahrenId);
+  const {
+    comments,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useComments(verfahrenId);
   const { canMutateProject } = useCanMutateProject({ requiredLevel: 'user' });
 
   const currentProcessStep: CommentProcessStep =
@@ -72,10 +80,6 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
 
   const contentRef = useRef<HTMLDivElement>(null);
   const dateLocale = getDateLocale(i18n.resolvedLanguage);
-
-  const sortedComments = [...comments].sort(
-    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-  );
 
   // eslint-disable-next-line no-restricted-syntax -- Scroll to top on panel mount
   useEffect(() => {
@@ -190,7 +194,7 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
           retryLabel={t('Sidebar.commentsPanel.retry')}
           onRetry={refetch}
         >
-          {sortedComments.length === 0 &&
+          {comments.length === 0 &&
             !showManualForm &&
             (newCommentInitItems ?? []).length === 0 && (
               <p className="py-2 text-sm text-text-secondary">
@@ -198,7 +202,7 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
               </p>
             )}
 
-          {sortedComments.map((item) => (
+          {comments.map((item) => (
             <CommentItemCard
               key={item.id}
               item={item}
@@ -210,6 +214,19 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
               canMutateProject={canMutateProject}
             />
           ))}
+
+          {hasNextPage && (
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              disabled={isFetchingNextPage}
+              onClick={fetchNextPage}
+            >
+              {t('Sidebar.commentsPanel.loadMore')}
+            </Button>
+          )}
         </SidebarListState>
 
         {showManualForm ? (
@@ -242,14 +259,14 @@ export const CommentsPanel = (props: CommentsPanelProps) => {
             </Button>
             <span className="shrink-0 rounded border border-slate-400 bg-white px-2 py-[5px] text-[11px] leading-[14px] font-medium tracking-[0.22px] text-slate-600">
               {t('Sidebar.commentsPanel.countLabel', {
-                count: sortedComments.length,
+                count: comments.length,
               })}
             </span>
           </div>
         )}
       </div>
 
-      <DeleteDialog canMutateProject={canMutateProject} />
+      <DeleteDialog canMutateProject={canMutateProject} items={comments} />
     </SidebarPanelShell>
   );
 };

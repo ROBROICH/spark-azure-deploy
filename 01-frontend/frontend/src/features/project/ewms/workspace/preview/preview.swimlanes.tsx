@@ -37,17 +37,17 @@ export const PreviewLanes = (props: PreviewLanesProps) => {
   );
   const objection = selectedItem?.entry;
   const isPromptInjection =
-    objection?.extraction_status === 'prompt_injection_error';
-  const markdownRef = objection?.beteiligungs_eingang_markdown_id
+    objection?.extractionStatus === 'prompt_injection_error';
+  const markdownRef = objection?.markdownId
     ? {
-        id: objection.beteiligungs_eingang_markdown_id,
-        node_type: 'beteiligungs_eingang_markdown' as const,
+        id: objection.markdownId,
+        nodeType: 'beteiligungs_eingang_markdown' as const,
       }
     : undefined;
   const { data: markdownNode, isLoading: isMarkdownLoading } =
     useLiveNode(markdownRef);
   const { downloadUrl, isLoading: isDocumentLoading } = useFileDownloadUrl(
-    selectedItem?.entry.file_id,
+    selectedItem?.entry.fileId,
   );
 
   return (

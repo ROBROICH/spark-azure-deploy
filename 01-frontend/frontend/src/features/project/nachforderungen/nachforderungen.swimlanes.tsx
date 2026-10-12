@@ -11,7 +11,7 @@ export const NachforderungenSwimlanes = () => {
   const laneTab = useSwimlanesGroupSearchState(nachforderungenTabSearchSchema);
 
   return (
-    <Swimlanes minLaneWidth={320}>
+    <Swimlanes className="min-h-[var(--reflow-min-h)] lg:min-h-0">
       <Swimlanes.Group unfoldOn="always" {...laneTab}>
         <Swimlanes.Lane
           id="list"
@@ -26,6 +26,7 @@ export const NachforderungenSwimlanes = () => {
           id="letter"
           title={t('page.lanes.letter')}
           icon={FileText}
+          headerClassName="flex-wrap"
         >
           <SupplementaryRequestLetter />
         </Swimlanes.Lane>

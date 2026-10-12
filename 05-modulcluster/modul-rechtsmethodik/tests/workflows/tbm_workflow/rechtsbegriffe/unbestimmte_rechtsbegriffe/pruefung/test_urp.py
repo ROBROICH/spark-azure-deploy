@@ -3,7 +3,7 @@
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from temporal.workflows.rechtsmethodik.types import UnbestimmterRechtsbegriff
+from temporal.contracts import UnbestimmterRechtsbegriff
 
 from src.activities.law_api_calls import DefinitionsByJurabkTitelOutput, LegaldefinitionOutput
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.pruefung.urp import (

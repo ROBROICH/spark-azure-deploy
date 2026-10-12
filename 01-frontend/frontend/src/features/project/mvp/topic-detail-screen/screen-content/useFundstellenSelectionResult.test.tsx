@@ -11,7 +11,7 @@ import {
 const { descendantsByRefKey, fundstellenById } = vi.hoisted(() => ({
   descendantsByRefKey: new Map<
     string,
-    { id: string; node_type: 'fundstelle' }[]
+    { id: string; nodeType: 'fundstelle' }[]
   >(),
   fundstellenById: new Map<string, NodePayloadByType<'fundstelle'>>(),
 }));
@@ -19,7 +19,7 @@ const { descendantsByRefKey, fundstellenById } = vi.hoisted(() => ({
 vi.mock('@/db/nodes/hooks/useDescendants', () => ({
   useDescendants: (
     _nodeType: 'fundstelle',
-    parentRef: { id: string; node_type: string } | null,
+    parentRef: { id: string; nodeType: string } | null,
   ) => (parentRef ? (descendantsByRefKey.get(parentRef.id) ?? []) : []),
 }));
 
@@ -52,25 +52,28 @@ const createFundstelle = (
 ) =>
   ({
     id,
-    dokument_id: dokumentId,
-    frontend_parent_ids: [],
-    gesetz_id: 'gesetz-1',
-    norm_id: normId,
-    satz_id: 'satz-1',
+    dokumentId: dokumentId,
+    frontendParentIds: [],
+    gesetzId: 'gesetz-1',
+    normId: normId,
+    satzId: 'satz-1',
     text: 'Textauszug',
-    page_numbers: [pageNumber],
+    pageNumbers: [pageNumber],
     title: id,
-    chunk_ids: [],
-    compositeKey: toCompositeKey({ id, node_type: 'fundstelle' }),
-    created_at: '2026-04-02T00:00:00.000Z',
-    is_deleted: false,
-    is_outdated: false,
-    node_type: 'fundstelle',
-    project_id: 'project-1',
-    project_version: 1,
-    sys_period: null,
-    update_type: 'automated',
-    updated_at: '2026-04-02T00:00:00.000Z',
+    chunkIds: [],
+    compositeKey: toCompositeKey({ id, nodeType: 'fundstelle' }),
+    createdAt: '2026-04-02T00:00:00.000Z',
+    isDeleted: false,
+    isOutdated: false,
+    nodeType: 'fundstelle',
+    sourceNodeId: null,
+    projectId: 'project-1',
+    projectVersion: 1,
+    updateType: 'automated',
+    updatedAt: '2026-04-02T00:00:00.000Z',
+    confidence: null,
+    consensusRatio: null,
+    relevance: null,
   }) satisfies NodePayloadByType<'fundstelle'>;
 
 describe('useFundstellenSelectionResult mode hooks', () => {
@@ -97,12 +100,12 @@ describe('useFundstellenSelectionResult mode hooks', () => {
     }
 
     descendantsByRefKey.set('document-1', [
-      { id: 'document-only', node_type: 'fundstelle' },
-      { id: 'intersection', node_type: 'fundstelle' },
+      { id: 'document-only', nodeType: 'fundstelle' },
+      { id: 'intersection', nodeType: 'fundstelle' },
     ]);
     descendantsByRefKey.set('norm-1', [
-      { id: 'norm-only', node_type: 'fundstelle' },
-      { id: 'intersection', node_type: 'fundstelle' },
+      { id: 'norm-only', nodeType: 'fundstelle' },
+      { id: 'intersection', nodeType: 'fundstelle' },
     ]);
   });
 

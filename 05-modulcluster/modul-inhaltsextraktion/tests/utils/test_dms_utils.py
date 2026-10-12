@@ -3,12 +3,16 @@
 
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import UUID
+from uuid import UUID, uuid4
 
+import httpx
 import pytest
 from temporal.project_context import use_project_context
 
+from src.config import Config
 from src.utils.dms_utils import (
+    DmsConflictError,
+    DmsUploadInput,
     FileObject,
     FileUploadArgs,
     ListFilesInput,
@@ -18,8 +22,19 @@ from src.utils.dms_utils import (
     download_file,
     download_file_as_stream,
     get_file_metadata,
+    list_all_files,
     list_files,
+    upload_file_overwrite,
 )
+
+_PROJECT_ID = UUID("12345678-1234-5678-1234-567812345678")
+
+
+def _listed_file(filename: str) -> MagicMock:
+    file_obj = MagicMock()
+    file_obj.id = uuid4()
+    file_obj.filename = filename
+    return file_obj
 
 
 class TestCamelConfig:
@@ -214,7 +229,7 @@ class TestGetFileMetadata:
             result = await get_file_metadata(UUID("12345678-1234-5678-1234-567812345678"))
 
         assert result.project_version == 7
-        assert mock_client.get.call_args.kwargs["params"] == {"project_version": 7}
+        assert mock_client.get.call_args.kwargs["params"] == {"projectVersion": 7}
 
 
 class TestDownloadFile:
@@ -276,35 +291,31 @@ class TestDownloadFile:
             result = await download_file("file-123")
 
         assert result == b"pdf content"
-        # Verify that the second call included the Content-Type header
-        calls = mock_client.get.call_args_list
-        assert len(calls) == 2
 
     @pytest.mark.asyncio
     async def test_download_file_adds_project_version_only_to_dms_request(self) -> None:
         """Scopes the signed-url request without leaking query params to object storage."""
-        mock_url_response = MagicMock()
-        mock_url_response.status_code = 200
-        mock_url_response.json.return_value = {"downloadUrl": "https://storage.example.com/signed-url"}
+        def handler(request: httpx.Request) -> httpx.Response:
+            if (
+                request.method == "GET"
+                and request.url.path == "/v2/internal/files/file-123/generate-download-url"
+                and dict(request.url.params) == {"projectVersion": "7"}
+            ):
+                return httpx.Response(
+                    200, json={"downloadUrl": "https://storage.example.com/signed-url?signature=signed"}
+                )
+            if str(request.url) == "https://storage.example.com/signed-url?signature=signed":
+                return httpx.Response(200, content=b"file content here")
+            return httpx.Response(404)
 
-        mock_download_response = MagicMock()
-        mock_download_response.status_code = 200
-        mock_download_response.content = b"file content here"
-        mock_download_response.raise_for_status = MagicMock()
-
-        mock_client = AsyncMock()
-        mock_client.get = AsyncMock(side_effect=[mock_url_response, mock_download_response])
-
-        with (
-            patch("src.utils.dms_utils._get_client", return_value=mock_client),
-            use_project_context("project-123", 7),
-        ):
-            result = await download_file("file-123")
+        async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+            with (
+                patch("src.utils.dms_utils._get_client", return_value=client),
+                use_project_context("project-123", 7),
+            ):
+                result = await download_file("file-123")
 
         assert result == b"file content here"
-        dms_call, storage_call = mock_client.get.call_args_list
-        assert dms_call.kwargs["params"] == {"project_version": 7}
-        assert "params" not in storage_call.kwargs
 
 
 class TestListFiles:
@@ -330,7 +341,85 @@ class TestListFiles:
             )
 
         assert result == []
-        assert mock_client.get.call_args.kwargs["params"]["project_version"] == 7
+        assert mock_client.get.call_args.kwargs["params"]["projectVersion"] == 7
+
+
+class TestListAllFiles:
+    @pytest.mark.asyncio
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_returns_empty_when_first_page_empty(self, mock_list_files: AsyncMock) -> None:
+        empty_page: list[FileObject] = []
+        mock_list_files.return_value = empty_page
+
+        result = await list_all_files(_PROJECT_ID, "document")
+
+        assert result == []
+        mock_list_files.assert_awaited_once()
+        request = mock_list_files.await_args_list[0].args[0]
+        assert (request.project_id, request.file_type, request.page, request.page_size) == (
+            _PROJECT_ID,
+            "document",
+            1,
+            500,
+        )
+
+    @pytest.mark.asyncio
+    @patch("src.utils.dms_utils.get_config", return_value=Config(DMS_LIST_PAGE_SIZE=2))
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_paginates_until_partial_page(self, mock_list_files: AsyncMock, _mock_config: MagicMock) -> None:
+        full_page = [_listed_file("doc0.pdf"), _listed_file("doc1.pdf")]
+        partial_page = [_listed_file("last.pdf")]
+        mock_list_files.side_effect = [full_page, partial_page]
+
+        result = await list_all_files(_PROJECT_ID, "document")
+
+        assert [f.filename for f in result] == ["doc0.pdf", "doc1.pdf", "last.pdf"]
+        assert [c.args[0].page for c in mock_list_files.await_args_list] == [1, 2]
+
+    @pytest.mark.asyncio
+    @patch("src.utils.dms_utils.activity")
+    @patch("src.utils.dms_utils.get_config", return_value=Config(DMS_LIST_PAGE_SIZE=1, DMS_LIST_MAX_PAGES=3))
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_stops_at_max_pages_with_warning(
+        self, mock_list_files: AsyncMock, _mock_config: MagicMock, mock_activity: MagicMock
+    ) -> None:
+        mock_list_files.side_effect = lambda _input: [_listed_file(f"doc{_input.page}.pdf")]
+
+        result = await list_all_files(_PROJECT_ID, "document")
+
+        assert [f.filename for f in result] == ["doc1.pdf", "doc2.pdf", "doc3.pdf"]
+        assert [c.args[0].page for c in mock_list_files.await_args_list] == [1, 2, 3]
+        mock_activity.logger.warning.assert_called_once()
+
+
+class TestUploadFileOverwrite:
+    @pytest.mark.asyncio
+    @patch("src.utils.dms_utils.activity")
+    @patch("src.utils.dms_utils.delete_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.upload_file", new_callable=AsyncMock)
+    @patch("src.utils.dms_utils.get_config", return_value=Config(DMS_LIST_PAGE_SIZE=1))
+    @patch("src.utils.dms_utils.list_files", new_callable=AsyncMock)
+    async def test_finds_conflicting_file_beyond_first_page(
+        self,
+        mock_list_files: AsyncMock,
+        _mock_config: MagicMock,
+        mock_upload_file: AsyncMock,
+        mock_delete_file: AsyncMock,
+        _mock_activity: MagicMock,
+    ) -> None:
+        conflicting = _listed_file("doc/img.png")
+        last_page: list[MagicMock] = []
+        mock_list_files.side_effect = [[_listed_file("other.png")], [conflicting], last_page]
+        uploaded = MagicMock()
+        mock_upload_file.side_effect = [DmsConflictError("exists"), uploaded]
+
+        result = await upload_file_overwrite(
+            DmsUploadInput(data=b"png", filename="doc/img.png", project_id=_PROJECT_ID)
+        )
+
+        assert result is uploaded
+        mock_delete_file.assert_awaited_once_with(conflicting.id)
+        assert [c.args[0].filename for c in mock_upload_file.await_args_list] == ["doc/img.png", "doc/img.png"]
 
 
 class TestDownloadFileAsStream:

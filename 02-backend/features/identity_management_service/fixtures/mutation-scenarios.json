@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "assignments": [
+    {
+      "id": "owner-required",
+      "profile": "focused-real",
+      "actor": "primary",
+      "request": {
+        "assignments": [{ "role": "member", "userId": "$secondaryUserId" }]
+      },
+      "expected": {
+        "status": 400,
+        "body": { "detail": "At least one project owner is required." }
+      }
+    },
+    {
+      "id": "replace-snapshot",
+      "profile": "focused-real",
+      "actor": "primary",
+      "request": {
+        "assignments": [
+          { "role": "owner", "userId": "$primaryUserId" },
+          { "role": "member", "userId": "$secondaryUserId" }
+        ]
+      },
+      "expected": {
+        "status": 200,
+        "body": { "success": true }
+      },
+      "expectedRelations": {
+        "owner": ["$primaryUserId"],
+        "member": ["$secondaryUserId"]
+      }
+    },
+    {
+      "id": "permission-denied",
+      "profile": "focused-real",
+      "actor": "secondary",
+      "request": {
+        "assignments": [{ "role": "owner", "userId": "$secondaryUserId" }]
+      },
+      "expected": {
+        "status": 403,
+        "body": { "detail": "Access denied" }
+      }
+    },
+    {
+      "id": "provider-unavailable",
+      "profile": "focused-unavailable",
+      "actor": "primary",
+      "request": {
+        "assignments": [{ "role": "owner", "userId": "$primaryUserId" }]
+      },
+      "expected": {
+        "status": 500,
+        "body": { "detail": "Internal Server Error" }
+      }
+    },
+    {
+      "id": "bulk-spicedb-disabled",
+      "profile": "bulk-fixture",
+      "actor": "primary",
+      "request": {
+        "assignments": [{ "role": "owner", "userId": "$primaryUserId" }]
+      },
+      "expected": {
+        "status": 503,
+        "body": { "detail": "SpiceDB is unavailable in bulk fixture profile" }
+      }
+    }
+  ]
+}

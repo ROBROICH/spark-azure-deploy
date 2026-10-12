@@ -9,8 +9,8 @@ const mocks = vi.hoisted(() => ({
   getDiff: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  getFileDiffV2FilesFileIdDiffGet: mocks.getDiff,
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementGetFileDiff: mocks.getDiff,
 }));
 
 let queryClient: QueryClient;
@@ -48,7 +48,7 @@ describe('useZipFileDiff', () => {
     const { result } = renderHook(() => useZipFileDiff('zip-1'), { wrapper });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(mocks.getDiff).toHaveBeenCalledWith({ path: { file_id: 'zip-1' } });
+    expect(mocks.getDiff).toHaveBeenCalledWith({ path: { fileId: 'zip-1' } });
     expect(result.current.diff).toEqual(diff);
     expect(result.current.isError).toBe(false);
   });

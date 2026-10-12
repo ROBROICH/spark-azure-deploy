@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { usePpData, useTocData } from './useFvpCategoryData';
+import { useFcsData, usePpData, useTocData } from './useFvpCategoryData';
 
 const mocks = vi.hoisted(() => ({
   retryPlausibilityReads: vi.fn(),
@@ -17,11 +17,32 @@ const mocks = vi.hoisted(() => ({
     isError: false,
   },
   liveQueryData: [] as unknown[],
+  assignedTypeIds: [] as string[],
   queryStatesByKey: new Map<
     string,
     { dataUpdatedAt: number; status: string }
   >(),
+  failureCodes: {
+    tableOfContents: null as string | null,
+    requiredDocuments: null as string | null,
+    plausibility: null as string | null,
+  },
 }));
+
+vi.mock(
+  '@/features/workflow-runtime/workflow-status/FvpWorkflowContext',
+  () => ({
+    useFvpWorkflowContext: () => ({
+      tableOfContentsWorkflow: {
+        failureCode: mocks.failureCodes.tableOfContents,
+      },
+      requiredDocumentsWorkflow: {
+        failureCode: mocks.failureCodes.requiredDocuments,
+      },
+      plausibilityWorkflow: { failureCode: mocks.failureCodes.plausibility },
+    }),
+  }),
+);
 
 vi.mock('./fvpResultReads', () => ({
   retryPlausibilityReads: mocks.retryPlausibilityReads,
@@ -48,9 +69,14 @@ vi.mock(
 );
 
 vi.mock(
-  '@/features/project/fvp/main-screen/data/collections/documentAssignments.collection',
+  '@/features/project/fvp/main-screen/data/read-model/useDocuments',
   () => ({
-    documentAssignmentsCollection: {},
+    useFormalDocumentSummary: () => ({
+      data: { assignedTypeIds: mocks.assignedTypeIds },
+      isFetched: true,
+      isFetching: false,
+      isError: false,
+    }),
   }),
 );
 
@@ -80,7 +106,7 @@ vi.mock(
         workflowType ?? '',
       )?.isRunning
         ? {
-            workflow_start_time: '2026-05-16T10:09:17.545079Z',
+            workflowStartTime: '2026-05-16T10:09:17.545079Z',
           }
         : undefined,
     }),
@@ -117,7 +143,64 @@ describe('useFvpCategoryData', () => {
       isError: false,
     };
     mocks.liveQueryData = [];
+    mocks.assignedTypeIds = [];
     mocks.queryStatesByKey.clear();
+    mocks.failureCodes = {
+      tableOfContents: null,
+      requiredDocuments: null,
+      plausibility: null,
+    };
+  });
+
+  it('reports a failed category with its code and whether an earlier result exists', () => {
+    mocks.failureCodes.tableOfContents = 'ANALYSIS_TIMED_OUT';
+
+    const { result, rerender } = renderHook(() => useTocData('p1'));
+
+    expect(result.current).toMatchObject({
+      status: 'failed',
+      failureCode: 'ANALYSIS_TIMED_OUT',
+      hasResult: false,
+      isDone: false,
+    });
+
+    mocks.tableOfContents = { ...mocks.tableOfContents, status: 'complete' };
+    rerender();
+
+    expect(result.current).toMatchObject({
+      status: 'failed',
+      hasResult: true,
+    });
+  });
+
+  it('reports no earlier result for a failed first required-documents run with resolved empty reads', () => {
+    mocks.failureCodes.requiredDocuments = 'ANALYSIS_FAILED';
+    mocks.queryStatesByKey.set('required-documents:p1', {
+      dataUpdatedAt: 1,
+      status: 'success',
+    });
+
+    const { result, rerender } = renderHook(() => useFcsData('p1'));
+
+    expect(result.current).toMatchObject({
+      status: 'failed',
+      hasResult: false,
+    });
+
+    mocks.assignedTypeIds = ['required-type-1'];
+    rerender();
+
+    expect(result.current.hasResult).toBe(true);
+  });
+
+  it('reports a new run as running, not failed, while it is active', () => {
+    mocks.failureCodes.tableOfContents = 'ANALYSIS_FAILED';
+    mocks.runningWorkflowsByType.set('FVPWorkflow', { isRunning: true });
+
+    const { result } = renderHook(() => useTocData('p1'));
+
+    expect(result.current.status).toBe('running');
+    expect(result.current.failureCode).toBeNull();
   });
 
   it('treats PP resolved empty as ready only after TOC and FCS are ready', () => {

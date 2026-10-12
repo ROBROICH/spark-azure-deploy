@@ -1,10 +1,65 @@
 # (1) Systemarchitektur SPARK Workflow
 
-![System Architecture](./system-architecture.png)
+## Architekturansichten
 
-> ***Hinweis zur Abweichung zwischen Systemarchitektur und Repository-Struktur***
-> 
-> *Die Systemarchitektur stimmt derzeit nicht vollständig mit der tatsächlichen Struktur dieses Repositorys überein. Diese Abweichung ist uns bekannt. Sie ergibt sich aus den Rahmenbedingungen eines agilen Softwareentwicklungsprojekts mit einem ambitionierten Zeitplan. Eine Angleichung der Repository-Struktur an die dokumentierte Systemarchitektur wird erfolgen.*
+Die Architektur ist nach dem C4-Modell in den Ebenen 1 bis 3 beschrieben. Alle
+Ansichten werden aus einem versionierten Modell reproduzierbar nach SVG
+gerendert; die Quelle einer Ansicht liegt als `.d2` daneben und ist eigenständig
+erneut renderbar.
+
+| Ansicht | Zeigt |
+|---|---|
+| [C1 Systemkontext](./views/c1-system-context.svg) | SPARK Workflow, seine Akteure, die angebundenen Behördenplattformen und die Sprachmodelle |
+| [C2 Container](./views/c2-container.svg) | Die deploybaren Einheiten im veröffentlichten Architekturumfang, nach Layern und Dienstgruppen |
+| [C2 Dienste und Orchestrierung](./views/c2-service-flows.svg) | Frontend, Backend-Pools, Workflow Engine und Plattformdienste mit ihren belegten Laufzeitbeziehungen |
+| [C2 Integration](./views/c2-integration.svg) | Integrationsdienste, Rechtsdatenbanken und der Modellzugang über den LLM-Client |
+| [C2 KI-Verarbeitung](./views/c2-ai.svg) | KI-Module, Modellzugang, Vorverarbeitung und die Dienste, die sie aufrufen |
+| [C3 Komponenten des SPARK Backend](./views/c3-component-spark-backend.svg) | Den Modulithen von innen: Feature-Pakete, geteilte Pakete und die Pools mit eigener Worker-Identität |
+
+Die SVGs sind für die Einbettung oben links ausgerichtet (`xMinYMin`). In
+Browsern mit sehr breitem Fenster wirken sie deshalb nicht zentriert; die
+Tabelle verlinkt die Dateien direkt, für die Doku empfiehlt sich eine
+volle Breite mit horizontalem Scrollen bei sehr breiten Ansichten:
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c1-system-context.svg" alt="C1 Systemkontext" style="display:block;width:100%;height:auto;" />
+</div>
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c2-container.svg" alt="C2 Container" style="display:block;width:100%;height:auto;" />
+</div>
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c2-service-flows.svg" alt="C2 Dienste und Orchestrierung" style="display:block;width:100%;height:auto;" />
+</div>
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c2-integration.svg" alt="C2 Integration" style="display:block;width:100%;height:auto;" />
+</div>
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c2-ai.svg" alt="C2 KI-Verarbeitung" style="display:block;width:100%;height:auto;" />
+</div>
+
+<div markdown="0" style="max-width:100%;overflow-x:auto;margin:1rem 0;">
+<img src="./views/c3-component-spark-backend.svg" alt="C3 SPARK Backend" style="display:block;width:100%;height:auto;" />
+</div>
+
+Die C2-Karte zeigt den veröffentlichten Architekturumfang ohne Kanten; die belegten
+Laufzeitbeziehungen stehen in den drei fokussierten C2-Ansichten.
+
+> ***Hinweis zur Darstellung der Dienstgruppen***
+>
+> *Die Dienstgruppen beschreiben fachliche Module, nicht jeweils eigenständig
+> deployte Backend-Anwendungen. Die TypeScript-Backend-Module werden als Core-
+> und Feature-Pakete in der gemeinsamen Anwendung `spark-backend` ausgeführt.
+> Externe Infrastruktur, Datenbankdienste und KI-Module bleiben eigenständige
+> Komponenten.*
+>
+> *Die C2-Ansicht zeigt darüber hinaus die Betriebssicht: `spark-backend` wird als
+> fünfzehn Pools desselben Images betrieben. Jeder Pool stellt den vollständigen
+> HTTP-Graphen bereit; getrennt sind Name, Service, Routing-Präfix,
+> Worker-Identität und Skalierung.*
 
 
 Die Applikation SPARK Workflow ist als containerisierte Service-Architektur umgesetzt und ist nativ für den Betrieb auf einem, gegebenenfalls gemanagten, Kubernetes-Cluster auf Basis einer (Cloud-)Serverinfrastruktur ausgelegt. SPARK Workflow ist sowohl als Open-Source-Software als auch plattformunabhängig konzipiert und auf jeder Kubernetes-kompatiblen Infrastruktur lauffähig – sei es in Public-Cloud-Umgebungen, in Private-Cloud-Umgebungen oder auf On-Premise-Infrastruktur.
@@ -55,7 +110,7 @@ Der zweite Layer, der „Orchestration Layer“, umfasst ausschließlich die Kom
 
 ## (2.3) AI Module Layer
 
-Der dritte Layer, der „AI Module Layer“, umfasst insgesamt neun Modulgruppen und drei eigenständige Komponenten. Die neun Modulgruppen umfassen wie folgt:
+Der dritte Layer, der „AI Module Layer“, umfasst insgesamt zehn Modulgruppen und drei eigenständige Komponenten. Die zehn Modulgruppen umfassen wie folgt:
 
 - Die Gruppe „Inhaltsextraktion“ umfasst das gleichnamige Modul. Dieses ist Grundlage für den Prozessschritt „Formale Vollständigkeitsprüfung“ im Frontend.
 
@@ -70,6 +125,8 @@ Der dritte Layer, der „AI Module Layer“, umfasst insgesamt neun Modulgruppen
 - Die Gruppe „Rechtliche Prüfung und Bewertung“ umfasst das Modul „Bewertung“. Dieses stellt die KI-Funktionalitäten für den Prozessschritt „Rechtliche Prüfung und Beschlusserstellung“ im Frontend bereit.
 
 - Die Gruppe „Rechtsmethodik“ umfasst das gleichnamige Modul. Dieses dient der Bereitstellung von grundlegenden rechtsmethodischen Funktionalitäten, auf welche die anderen Module zugreifen.
+
+- Die Gruppe „Normenermittlung“ umfasst das gleichnamige Modul. Dieses führt die formale Anwendbarkeitsprüfung und die Auflösung von Normenkollisionen durch und stellt die ermittelten Rechtsnormen für die rechtliche Prüfung bereit.
 
 - Die Gruppe „Anonymisierung“ umfasst das gleichnamige Modul. Dieses stellt die KI-Funktionalitäten für das KI-Werkzeug „Schwärzungsagent“ im Frontend bereit.
 

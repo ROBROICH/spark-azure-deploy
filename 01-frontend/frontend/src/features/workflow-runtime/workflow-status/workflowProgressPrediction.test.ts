@@ -56,7 +56,7 @@ describe('workflowProgressPrediction', () => {
         fallbackStartedAt: 0,
         now: 25 * MS_PER_MINUTE,
         workflow: {
-          workflow_start_time: new Date(0).toISOString(),
+          workflowStartTime: new Date(0).toISOString(),
         },
       }),
     ).toEqual({
@@ -74,7 +74,7 @@ describe('workflowProgressPrediction', () => {
         fallbackStartedAt: 0,
         now: 200 * MS_PER_MINUTE,
         workflow: {
-          workflow_start_time: new Date(0).toISOString(),
+          workflowStartTime: new Date(0).toISOString(),
         },
       }).status,
     ).toBe('overEstimate');
@@ -88,7 +88,7 @@ describe('workflowProgressPrediction', () => {
         isDone: true,
         now: 25 * MS_PER_MINUTE,
         workflow: {
-          workflow_start_time: new Date(0).toISOString(),
+          workflowStartTime: new Date(0).toISOString(),
         },
       }),
     ).toMatchObject({

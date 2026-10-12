@@ -23,7 +23,8 @@ const getIndicatorStyle = (fillPercentage: number) => {
 
 type ContradictionsRatingFilterProps = {
   disabled?: boolean;
-  filteredCount: number;
+  /** Kept for the toolbar contract; the bubble shows the threshold value only. */
+  filteredCount?: number;
   totalCount: number;
   hasUsableRatings: boolean;
   minimumRating: number;
@@ -40,7 +41,6 @@ export const ContradictionsRatingFilter = (
 ) => {
   const {
     disabled = false,
-    filteredCount,
     totalCount,
     hasUsableRatings,
     minimumRating,
@@ -107,13 +107,10 @@ export const ContradictionsRatingFilter = (
       </button>
       <div className="relative flex max-w-32 min-w-0 flex-1 items-center">
         <div
-          className="pointer-events-none absolute bottom-full z-10 mb-2 min-w-max rounded bg-slate-800 px-2 py-1 text-[11px] leading-none font-medium whitespace-nowrap text-white shadow-elevated"
+          className="pointer-events-none absolute bottom-full z-10 mb-2 min-w-max text-[11px] leading-none font-medium whitespace-nowrap text-slate-500 tabular-nums"
           style={indicatorStyle}
         >
-          {t('NoticeCards.countOf', {
-            count: filteredCount,
-            total: totalCount,
-          })}
+          {sliderValue}
         </div>
         <input
           type="range"

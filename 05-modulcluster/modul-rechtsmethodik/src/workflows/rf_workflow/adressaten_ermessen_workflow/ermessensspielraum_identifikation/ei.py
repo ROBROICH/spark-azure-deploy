@@ -1,6 +1,6 @@
 """Agent for identifying Ermessensspielraum."""
 
-from temporal.workflows.rechtsmethodik.types import Ermessensspielraum
+from temporal.contracts import Ermessensspielraum
 from temporalio import workflow
 
 from src.activities.llm_invoke import llm_invoke

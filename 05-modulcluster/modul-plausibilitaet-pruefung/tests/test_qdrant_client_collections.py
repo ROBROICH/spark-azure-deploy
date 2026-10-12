@@ -18,10 +18,9 @@ class TestCollectionHelpers:
         client = _bare_client()
         assert client._get_collection_name("p", "claims") == Config.QDRANT.CLAIM_COLLECTION_NAME
 
-    @pytest.mark.parametrize("ctype", ["chunks", "parent_chunks", "summaries"])
-    def test_get_collection_name_data_variants(self, ctype: str) -> None:
+    def test_get_collection_name_chunks(self) -> None:
         client = _bare_client()
-        assert client._get_collection_name("p", ctype) == Config.QDRANT.DATA_COLLECTION_NAME  # type: ignore[arg-type]
+        assert client._get_collection_name("p", "chunks") == Config.QDRANT.DATA_COLLECTION_NAME
 
     def test_get_collection_name_invalid_raises(self) -> None:
         client = _bare_client()
@@ -33,20 +32,16 @@ class TestCollectionHelpers:
         conds = client.get_collection_must_conditions("p", "claims")
         assert len(conds) == 1
 
-    @pytest.mark.parametrize(
-        "ctype, type_value",
-        [("chunks", "chunk"), ("parent_chunks", "parent_chunk"), ("summaries", "summary")],
-    )
-    def test_collection_must_conditions_data_variants(self, ctype: str, type_value: str) -> None:
+    def test_collection_must_conditions_chunks(self) -> None:
         client = _bare_client()
-        conds = client.get_collection_must_conditions("p", ctype)  # type: ignore[arg-type]
+        conds = client.get_collection_must_conditions("p", "chunks")
         type_cond = conds[1]
 
-        assert len(conds) == 2
+        assert len(conds) == 2  # noqa: PLR2004
         assert isinstance(type_cond, models.FieldCondition)
         assert type_cond.key == "type"
         assert isinstance(type_cond.match, models.MatchValue)
-        assert type_cond.match.value == type_value
+        assert type_cond.match.value == "chunk"
 
     def test_collection_must_conditions_invalid_raises(self) -> None:
         client = _bare_client()
@@ -71,10 +66,7 @@ class TestBuildKnnFilter:
         )
 
         assert any(isinstance(c, models.HasIdCondition) for c in (filt.must_not or []))
-        assert any(
-            isinstance(c, models.FieldCondition) and c.key == "chunk_id"
-            for c in (filt.must_not or [])
-        )
+        assert any(isinstance(c, models.FieldCondition) and c.key == "chunk_id" for c in (filt.must_not or []))
 
     def test_adds_erlaeuterungsbericht_must_condition(self) -> None:
         client = _bare_client()

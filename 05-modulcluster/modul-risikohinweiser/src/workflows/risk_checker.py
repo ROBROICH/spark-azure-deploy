@@ -3,7 +3,8 @@ from uuid import UUID, uuid4
 
 from prompt_injection.prompt_defense import render_prompt_format, sanitize_and_wrap_external_data, wrap_system_prompt
 from temporal.activities.llm import llm_invoke_structured
-from temporal.workflows.risikohinweis.risikohinweis import RISIKOHINWEISER_WORKFLOW_NAME
+from temporal.contracts import PFBChapter, RiskFinderOutput, RiskFinding
+from temporal.registry import RISIKOHINWEIS_WORKFLOW
 from temporalio import workflow
 
 from src.config.config import config
@@ -21,12 +22,9 @@ from src.schemas.workflow import (
     CriteriaDefinitionResponse,
     CriterionRatingItem,
     IntentionAnalysisResponse,
-    PFBChapter,
     QualityAnalysisRequest,
     QualityAnalysisResponse,
     QualityCheckItem,
-    RiskFinderOutput,
-    RiskFinding,
     RiskFormulatorFinding,
     RiskFormulatorInput,
     RiskFormulatorResponse,
@@ -164,7 +162,7 @@ def _quality_defects(quality_check_results: list[QualityAnalysisResponse]) -> di
     }
 
 
-@workflow.defn(name=RISIKOHINWEISER_WORKFLOW_NAME)
+@workflow.defn(name=RISIKOHINWEIS_WORKFLOW.name)
 class RiskCheckerWorkflow:
     @workflow.run
     async def run(self, chapter: PFBChapter) -> RiskFinderOutput:

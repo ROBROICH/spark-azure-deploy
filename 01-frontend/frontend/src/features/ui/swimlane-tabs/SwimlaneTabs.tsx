@@ -62,7 +62,7 @@ export const SwimlaneTabs = (props: SwimlaneTabsProps) => {
       <div className="relative flex w-full shrink-0 items-stretch">
         <TabsList
           aria-label={ariaLabel ?? t('SwimlaneTabs.defaultAriaLabel')}
-          className="flex w-full shrink-0 items-stretch"
+          className="flex w-full shrink-0 flex-row items-stretch"
         >
           {items.map((item, index) => {
             const Icon = item.icon;
@@ -82,7 +82,7 @@ export const SwimlaneTabs = (props: SwimlaneTabsProps) => {
               >
                 <span
                   aria-hidden="true"
-                  className="rounded-lg p-2 group-data-[state=active]:bg-bg-quaternary"
+                  className="inline-flex rounded-lg p-2 group-data-[state=active]:bg-bg-quaternary"
                 >
                   <Icon className="size-4" />
                 </span>

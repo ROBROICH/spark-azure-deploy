@@ -48,7 +48,7 @@ const sortSatzRefsByPosition = (
 };
 
 const hasMultipleSaetzeInAbsatz = (saetze: NodePayloadByType<'satz'>[]) => {
-  return new Set(saetze.map((satz) => satz.satz_nr)).size > 1;
+  return new Set(saetze.map((satz) => satz.satzNr)).size > 1;
 };
 
 export const AiAbsatzSection = (props: AiAbsatzSectionProps) => {

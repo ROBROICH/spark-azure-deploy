@@ -4,6 +4,7 @@ services:
   postgresql:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
+    command: ["postgres", "-c", "max_connections=300"]
     ports:
       - "5432:5432"
     volumes:
@@ -24,6 +25,91 @@ services:
       timeout: 5s
       retries: 30
 
+  backend-postgresql:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    command: ["postgres", "-c", "max_connections=300"]
+    ports:
+      - "5433:5432"
+    volumes:
+      - backend_postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: application
+    configs:
+      - source: backend_postgresql_init_sql
+        target: /docker-entrypoint-initdb.d/init.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d application"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  unoserver:
+    build:
+      context: ./04-shared-services/basiskomponenten/unoserver
+    restart: unless-stopped
+    environment:
+      CONVERSION_TIMEOUT: "120"
+    ports:
+      - "127.0.0.1:2003:2003"
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          curl -fsS --max-time 2 -H 'Content-Type: text/xml'
+          --data '<methodCall><methodName>info</methodName><params></params></methodCall>'
+          http://localhost:2003/ -o /dev/null
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  temporal-postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5434:5432"
+    volumes:
+      - temporal_postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  spicedb-postgresql:
+    image: postgres:16
+    restart: unless-stopped
+    ports:
+      - "5435:5432"
+    volumes:
+      - spicedb_postgresql_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: spicedb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d spicedb"]
+      interval: 3s
+      timeout: 5s
+      retries: 30
+
+  spicedb-migrate:
+    image: authzed/spicedb:v1.49.0
+    command: >
+      datastore migrate head
+      --datastore-engine=postgres
+      --datastore-conn-uri=postgres://postgres:${DB_PASSWORD}@spicedb-postgresql:5432/spicedb?sslmode=disable
+    restart: "no"
+    depends_on:
+      spicedb-postgresql:
+        condition: service_healthy
+
   temporal:
     image: temporalio/auto-setup:1.29.0
     restart: unless-stopped
@@ -32,17 +118,21 @@ services:
     volumes:
       - ./docker/temporal/development-sql.yaml:/etc/temporal/config/dynamicconfig/development-sql.yaml
     environment:
+      SQL_MAX_CONNS: 3
+      SQL_MAX_IDLE_CONNS: 3
+      SQL_VIS_MAX_CONNS: 2
+      SQL_VIS_MAX_IDLE_CONNS: 2
       DB: postgres12
       DB_PORT: 5432
       POSTGRES_USER: postgres
       POSTGRES_PWD: ${DB_PASSWORD}
-      POSTGRES_SEEDS: postgresql
+      POSTGRES_SEEDS: temporal-postgresql
       DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
       BIND_ON_IP: 0.0.0.0
       TEMPORAL_ADDRESS: 0.0.0.0:7233
       TEMPORAL_CLI_ADDRESS: 0.0.0.0:7233
     depends_on:
-      postgresql:
+      temporal-postgresql:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "tctl", "--address", "temporal:7233", "cluster", "h"]
@@ -90,61 +180,31 @@ services:
         condition: service_healthy
     environment:
       TEMPORAL_ADDRESS: temporal:7233
+      TEMPORAL_CSRF_COOKIE_INSECURE: "true"
 
-  minio:
-    image: minio/minio
+  versitygw:
+    image: versity/versitygw:v1.8.0
     restart: unless-stopped
     ports:
       - "9000:9000"
-      - "9001:9001"
     volumes:
-      - minio_data:/data
+      - versitygw_data:/data
     environment:
-      MINIO_ROOT_USER: ${S3_ACCESS_KEY_ID}
-      MINIO_ROOT_PASSWORD: ${S3_SECRET_ACCESS_KEY}
-    command: server /data --console-address ":9001"
+      ROOT_ACCESS_KEY: ${S3_ACCESS_KEY_ID}
+      ROOT_SECRET_KEY: ${S3_SECRET_ACCESS_KEY}
+      VGW_REGION: eu-west-1
+      VGW_CORS_ALLOW_ORIGIN: "*"
+    entrypoint:
+      - /bin/sh
+      - -ec
+      - |
+        mkdir -p /data/dms-local /data/temporal-payloads /data/quarantine-bucket
+        exec versitygw --port :9000 --health /health posix /data
     healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live >/dev/null"]
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:9000/health"]
       interval: 3s
       timeout: 5s
       retries: 30
-
-  minio-init:
-    image: minio/mc
-    depends_on:
-      minio:
-        condition: service_healthy
-    environment:
-      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID}
-      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY}
-      DMS_BUCKET_NAME: dms-local
-      TEMPORAL_S3_BUCKET_NAME: temporal-payloads
-      QUARANTINE_BUCKET_NAME: quarantine-bucket
-    restart: "no"
-    entrypoint:
-      - /bin/sh
-      - -c
-      - |
-        set -eu
-        mc alias set local http://minio:9000 "$$S3_ACCESS_KEY_ID" "$$S3_SECRET_ACCESS_KEY"
-        mc mb -p "local/$$DMS_BUCKET_NAME" || true
-        mc mb -p "local/$$TEMPORAL_S3_BUCKET_NAME" || true
-        mc mb -p "local/$$QUARANTINE_BUCKET_NAME" || true
-        tail -f /dev/null
-
-  minio-proxy:
-    # Host-restoring reverse proxy in front of MinIO for presigned URLs. An authenticating
-    # reverse proxy may rewrite the inbound Host (real host -> X-Forwarded-Host), which would make
-    # MinIO reject SigV4 presigned URLs with 403 SignatureDoesNotMatch. This sidecar restores
-    # Host from X-Forwarded-Host before MinIO validates the signature. See
-    # docker/minio-proxy/nginx.conf. Reached only over the compose network (via oauth2-proxy).
-    image: nginx:1.27-alpine
-    restart: unless-stopped
-    depends_on:
-      minio:
-        condition: service_healthy
-    volumes:
-      - ./docker/minio-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
 
   qdrant:
     image: qdrant/qdrant:v1.17.1
@@ -200,6 +260,7 @@ services:
       - "--config.file=/etc/prometheus/prometheus.yaml"
       - "--storage.tsdb.path=/prometheus"
       - "--storage.tsdb.retention.time=7d"
+      - "--web.enable-otlp-receiver"
     volumes:
       - ./docker/observability/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
       - prometheus_data:/prometheus
@@ -207,6 +268,15 @@ services:
       - "9090:9090"
     extra_hosts:
       - "host.docker.internal:host-gateway"
+
+  alertmanager:
+    image: prom/alertmanager:v0.31.1
+    profiles: ["observability"]
+    command: ["--config.file=/etc/alertmanager/alertmanager.yaml"]
+    volumes:
+      - ./docker/observability/alertmanager.yaml:/etc/alertmanager/alertmanager.yaml:ro
+    ports:
+      - "127.0.0.1:9093:9093"
 
   grafana:
     image: grafana/grafana-oss:11.2.0
@@ -233,17 +303,12 @@ services:
       - --http-port=9090
     environment:
       KC_DB: dev-file
-      # Public base URL of Keycloak as the browser reaches it: http://localhost:9090 locally,
-      # https://9090-$WEB_HOST behind a reverse proxy. This drives the token `iss`, so it must
-      # match OAUTH2_PROXY_OIDC_ISSUER_URL. STRICT=false still lets internal callers (oauth2-proxy
-      # token redeem, the bootstrap container) reach Keycloak on the docker network at keycloak:9090.
-      KC_HOSTNAME: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_PORT: 9090
       KC_HOSTNAME_STRICT: false
       KC_HTTP_ENABLED: true
-      # Honour X-Forwarded-* from the TLS-terminating reverse proxy (no-op locally).
-      KC_PROXY_HEADERS: xforwarded
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${OIDC_BOOTSTRAP_ADMIN_PASSWORD:-${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:-}}
       KC_FEATURES: token-exchange
       KC_HEALTH_ENABLED: true
     ports:
@@ -264,15 +329,13 @@ services:
       keycloak:
         condition: service_healthy
     environment:
-      KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD}
-      LOCAL_KEYCLOAK_CLIENT_SECRET: ${LOCAL_KEYCLOAK_CLIENT_SECRET}
+      OIDC_BOOTSTRAP_ADMIN_PASSWORD: ${OIDC_BOOTSTRAP_ADMIN_PASSWORD:-${KEYCLOAK_BOOTSTRAP_ADMIN_PASSWORD:-}}
+      LOCAL_OIDC_CLIENT_SECRET: ${LOCAL_OIDC_CLIENT_SECRET:-${LOCAL_KEYCLOAK_CLIENT_SECRET:-}}
       LOCAL_USER_ID: ${LOCAL_USER_ID}
       LOCAL_USER_EMAIL: ${LOCAL_USER_EMAIL}
       LOCAL_USER_PASSWORD: ${LOCAL_USER_PASSWORD}
       LOCAL_USER_FIRST_NAME: ${LOCAL_USER_FIRST_NAME}
       LOCAL_USER_LAST_NAME: ${LOCAL_USER_LAST_NAME}
-      # Used to register the OIDC client's redirectUris / webOrigins (see bootstrap.sh).
-      FRONTEND_PUBLIC_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:3000}
     restart: on-failure
     volumes:
       - ./docker/keycloak/bootstrap.sh:/bootstrap.sh:ro
@@ -288,35 +351,23 @@ services:
         condition: service_completed_successfully
     environment:
       OAUTH2_PROXY_HTTP_ADDRESS: 0.0.0.0:4180
-      # Default upstream is the frontend dev server (runs on the host via process-compose).
-      # The extra /dms-local/ route serves MinIO same-origin so browser uploads/downloads avoid
-      # cross-origin CORS preflight, which an authenticating reverse proxy blocks. MinIO uses
-      # path-style addressing and SigV4 signs the Host header. An authenticating reverse proxy may
-      # rewrite the inbound Host (the real host is moved to X-Forwarded-Host) before oauth2-proxy
-      # sees it; PASS_HOST_HEADER would then forward that wrong Host to MinIO and presigned URLs
-      # fail with 403 SignatureDoesNotMatch. So /dms-local/* is routed through the minio-proxy
-      # sidecar, which restores Host from X-Forwarded-Host before MinIO validates the signature.
-      # Longest-prefix wins, so /dms-local/* goes to minio-proxy and everything else to the
-      # frontend. Add one route per additional browser-facing bucket.
-      OAUTH2_PROXY_UPSTREAMS: http://host.docker.internal:3002,http://minio-proxy:9000/dms-local/
-      # Trust X-Forwarded-* from the reverse proxy (no-op on plain localhost).
-      OAUTH2_PROXY_REVERSE_PROXY: "true"
+      # The frontend dev server runs on the host via process-compose.
+      OAUTH2_PROXY_UPSTREAMS: http://host.docker.internal:3002
       OAUTH2_PROXY_PROVIDER: keycloak-oidc
       OAUTH2_PROXY_CLIENT_ID: local-client
-      OAUTH2_PROXY_CLIENT_SECRET: ${LOCAL_KEYCLOAK_CLIENT_SECRET}
+      OAUTH2_PROXY_CLIENT_SECRET: ${LOCAL_OIDC_CLIENT_SECRET:-${LOCAL_KEYCLOAK_CLIENT_SECRET:-}}
       OAUTH2_PROXY_COOKIE_SECRET: ${OAUTH2_PROXY_COOKIE_SECRET}
-      # true under HTTPS (behind a reverse proxy), false for plain-http localhost.
-      OAUTH2_PROXY_COOKIE_SECURE: ${OAUTH2_PROXY_COOKIE_SECURE:-false}
+      OAUTH2_PROXY_COOKIE_SECURE: "false"
       OAUTH2_PROXY_EMAIL_DOMAINS: "*"
-      OAUTH2_PROXY_REDIRECT_URL: ${FRONTEND_PUBLIC_URL:-http://localhost:3000}/oauth2/callback
+      OAUTH2_PROXY_REDIRECT_URL: http://localhost:3000/oauth2/callback
       OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: "true"
       OAUTH2_PROXY_CODE_CHALLENGE_METHOD: S256
-      # Browser-facing (front-channel) Keycloak URLs use the public host; the back-channel
-      # (redeem/jwks/profile) stays on the docker network and never traverses the reverse
-      # proxy. OIDC discovery cannot express that split, so the endpoints are set explicitly.
+      # The browser reaches Keycloak via localhost:9090, this container via
+      # keycloak:9090. OIDC discovery cannot express that split, so the
+      # endpoints are set explicitly.
       OAUTH2_PROXY_SKIP_OIDC_DISCOVERY: "true"
-      OAUTH2_PROXY_OIDC_ISSUER_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}/realms/local
-      OAUTH2_PROXY_LOGIN_URL: ${KEYCLOAK_PUBLIC_URL:-http://localhost:9090}/realms/local/protocol/openid-connect/auth
+      OAUTH2_PROXY_OIDC_ISSUER_URL: http://localhost:9090/realms/local
+      OAUTH2_PROXY_LOGIN_URL: http://localhost:9090/realms/local/protocol/openid-connect/auth
       OAUTH2_PROXY_REDEEM_URL: http://keycloak:9090/realms/local/protocol/openid-connect/token
       OAUTH2_PROXY_OIDC_JWKS_URL: http://keycloak:9090/realms/local/protocol/openid-connect/certs
       OAUTH2_PROXY_PROFILE_URL: http://keycloak:9090/realms/local/protocol/openid-connect/userinfo
@@ -328,7 +379,8 @@ services:
     container_name: spicedb
     command: >
       serve
-      --datastore-engine=memory
+      --datastore-engine=postgres
+      --datastore-conn-uri=postgres://postgres:${DB_PASSWORD}@spicedb-postgresql:5432/spicedb?sslmode=disable
       --grpc-preshared-key=${AUTH_SPICE_DB_TOKEN}
     environment:
       ZED_TOKEN: ${AUTH_SPICE_DB_TOKEN}
@@ -337,13 +389,22 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    depends_on:
+      spicedb-migrate:
+        condition: service_completed_successfully
     ports:
       - "50051:50051"
 
 volumes:
   postgresql_data:
     driver: local
-  minio_data:
+  backend_postgresql_data:
+    driver: local
+  temporal_postgresql_data:
+    driver: local
+  spicedb_postgresql_data:
+    driver: local
+  versitygw_data:
     driver: local
   qdrant_data:
     driver: local
@@ -353,6 +414,25 @@ volumes:
   grafana_data:
 
 configs:
+  backend_postgresql_init_sql:
+    content: |
+      #!/bin/sh
+      set -eu
+      psql --set=ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname "$$POSTGRES_DB" --set=local_password="$$POSTGRES_PASSWORD" <<'SQL'
+      SELECT 'CREATE ROLE application_owner NOLOGIN'
+      WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'application_owner')\gexec
+      SELECT format('CREATE ROLE application_migrator LOGIN PASSWORD %L IN ROLE application_owner', :'local_password')
+      WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'application_migrator')\gexec
+      SELECT format('CREATE ROLE application_runtime LOGIN PASSWORD %L', :'local_password')
+      WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'application_runtime')\gexec
+
+      ALTER DATABASE application OWNER TO application_owner;
+      GRANT CONNECT ON DATABASE application TO application_migrator, application_runtime;
+
+      \connect application
+      CREATE EXTENSION IF NOT EXISTS vector;
+      SQL
+
   # Loads the public gesetze-normen seed (deconstructed norms) on first
   # database initialization. Runs after init.sql created the databases.
   postgresql_seed_gesetze_normen:
@@ -367,36 +447,6 @@ configs:
 
   postgresql_init_sql:
     content: |
-      SELECT 'CREATE DATABASE temporal'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'temporal')\gexec
-      SELECT 'CREATE DATABASE spicedb'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'spicedb')\gexec
-      SELECT 'CREATE DATABASE project_logic'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'project_logic')\gexec
-      SELECT 'CREATE DATABASE dms'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'dms')\gexec
-      SELECT 'CREATE DATABASE formal_completeness_check'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'formal_completeness_check')\gexec
-      SELECT 'CREATE DATABASE plausibility_notes'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'plausibility_notes')\gexec
-      SELECT 'CREATE DATABASE examination_service_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'examination_service_db')\gexec
-      SELECT 'CREATE DATABASE administrative_file_draft'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'administrative_file_draft')\gexec
-      SELECT 'CREATE DATABASE diplan'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'diplan')\gexec
-      SELECT 'CREATE DATABASE comment_service_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'comment_service_db')\gexec
-      SELECT 'CREATE DATABASE feedback_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'feedback_db')\gexec
-      SELECT 'CREATE DATABASE objections_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'objections_db')\gexec
-      SELECT 'CREATE DATABASE identity_management_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'identity_management_db')\gexec
-      SELECT 'CREATE DATABASE supplementary_requests'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'supplementary_requests')\gexec
-      SELECT 'CREATE DATABASE fpp'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'fpp')\gexec
       SELECT 'CREATE DATABASE "gesetze-normen"'
       WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gesetze-normen')\gexec
       SELECT 'CREATE DATABASE "begruendungen-db"'
@@ -409,25 +459,9 @@ configs:
       WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rechtsaenderungsmonitoring-db')\gexec
       SELECT 'CREATE DATABASE rechtsbegriffe'
       WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'rechtsbegriffe')\gexec
-      SELECT 'CREATE DATABASE temporal_job_service_db'
-      WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'temporal_job_service_db')\gexec
 
       CREATE EXTENSION IF NOT EXISTS vector;
 
-      \connect project_logic
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect dms
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect formal_completeness_check
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect plausibility_notes
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect examination_service_db
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect administrative_file_draft
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect diplan
-      CREATE EXTENSION IF NOT EXISTS vector;
       \connect "gesetze-normen"
       CREATE EXTENSION IF NOT EXISTS vector;
       \connect "begruendungen-db"
@@ -439,6 +473,4 @@ configs:
       \connect "rechtsaenderungsmonitoring-db"
       CREATE EXTENSION IF NOT EXISTS vector;
       \connect rechtsbegriffe
-      CREATE EXTENSION IF NOT EXISTS vector;
-      \connect temporal_job_service_db
       CREATE EXTENSION IF NOT EXISTS vector;

@@ -4,10 +4,11 @@ import logging
 from dataclasses import dataclass, field
 from uuid import UUID
 
-from temporal.workflows.inhaltsextraktion.types import (
+from temporal.contracts import (
     DeleteDocumentsWorkflowInput,
     DeleteDocumentsWorkflowOutput,
 )
+from temporal.registry import INHALTSEXTRAKTION_DELETE_DOCUMENTS_WORKFLOW
 from temporalio import activity, workflow
 
 from src.activities.deletion import (
@@ -35,9 +36,6 @@ def _get_logger() -> logging.Logger | logging.LoggerAdapter:  # type: ignore[typ
 
 
 logger = _get_logger()
-delete_documents_workflow_id = "delete-documents-workflow"
-
-
 @dataclass
 class _DeletionResults:
     """Aggregated results across all per-file deletions."""
@@ -90,7 +88,7 @@ async def _delete_single_file(
         results.summary_filenames.append(dms_result.document_filename)
 
 
-@workflow.defn(name=delete_documents_workflow_id)
+@workflow.defn(name=INHALTSEXTRAKTION_DELETE_DOCUMENTS_WORKFLOW.name)
 class DeleteDocumentsWorkflow:
     """Workflow that deletes selected DMS documents and related derived data.
 

@@ -1,0 +1,32 @@
+# Builds the static handbook and publishes it via GitLab Pages.
+# Self-contained so the Open CoDE mirror can use the same job verbatim.
+
+pages:
+  stage: test
+  image: node:24
+  variables:
+    HANDBUCH_DIR: "01-frontend/handbuch"
+  script:
+    # Serve the bundle under the path of this project's Pages URL
+    # ("/" for a unique domain, otherwise "/<group>/<project>/").
+    - export HANDBUCH_BASE_PATH="$(printf '%s' "$CI_PAGES_URL" | sed -E 's#^https?://[^/]+##; s#/*$#/#')"
+    - cd "$HANDBUCH_DIR"
+    - corepack enable pnpm
+    # The handbook is not part of the repository pnpm workspace.
+    - pnpm install --frozen-lockfile --ignore-workspace
+    - pnpm run build
+    # Classic Pages artifact: works on every GitLab version.
+    - mv dist/public "$CI_PROJECT_DIR/public"
+  artifacts:
+    paths:
+      - public
+  rules:
+    # Manual run on the default branch. BUILD_SERVICE only exists in the
+    # internal pipeline; elsewhere it is unset.
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "web" && ($BUILD_SERVICE == null || $BUILD_SERVICE == "All" || $BUILD_SERVICE == "handbuch")'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_PIPELINE_SOURCE == "push"'
+      changes:
+        - 01-frontend/handbuch/**/*
+        - docs/handbuch/**/*
+        - .gitlab/ci/templates/handbuch-pages.yml
+    - when: never

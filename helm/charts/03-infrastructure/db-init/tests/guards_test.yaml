@@ -1,0 +1,144 @@
+suite: db-init guards
+release: {name: rel, namespace: ci}
+values: [../ci/full-values.yaml]
+tests:
+  - it: renders the init Job as a pre-install/upgrade hook
+    template: templates/jobs.yaml
+    asserts:
+      - isKind: {of: Job}
+      - matchRegex: {path: 'metadata.annotations["helm.sh/hook"]', pattern: pre-install}
+      - equal: {path: 'metadata.annotations["helm.sh/hook-delete-policy"]', value: before-hook-creation}
+
+  - it: refuses a database outside the stage's name pattern
+    template: templates/prerequisites.yaml
+    set:
+      databases.foreign: {name: other-application}
+    asserts:
+      - failedTemplate: {errorPattern: does not match guard.namePattern}
+
+  - it: refuses a dump outside guard.dumpPattern
+    template: templates/prerequisites.yaml
+    set:
+      databases.application.dump: https://elsewhere.example.org/application.dump
+    asserts:
+      - failedTemplate: {errorPattern: does not match guard.dumpPattern}
+
+  - it: refuses a dump scheme other than gs:// or https://
+    template: templates/prerequisites.yaml
+    set:
+      databases.application.dump: http://dumps.example.com/application.dump
+    asserts:
+      - failedTemplate: {errorPattern: must be gs:// or https://}
+
+  - it: refuses a database without an owner
+    template: templates/prerequisites.yaml
+    set:
+      defaults.owner: ''
+    asserts:
+      - failedTemplate: {errorPattern: needs an owner}
+
+  - it: refuses an unknown drop mode
+    template: templates/prerequisites.yaml
+    set:
+      databases.application.drop: everything
+    asserts:
+      - failedTemplate: {errorPattern: "value must be one of 'none', 'database', 'tables'"}
+
+  - it: passes the extensions to the Job
+    template: templates/jobs.yaml
+    set:
+      databases.application.extensions: [vector, pgaudit]
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: {name: EXTENSIONS, value: vector pgaudit}
+        documentSelector: {path: 'metadata.labels["db-init/database"]', value: application}
+
+  - it: renders a Job for extensions alone
+    template: templates/jobs.yaml
+    set:
+      defaults: {create: false, restore: false}
+      databases: {application: {name: ci-application, extensions: [vector]}}
+      spicedb.restore: false
+      qdrant.collections: null
+    asserts:
+      - hasDocuments: {count: 1}
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: {name: CREATE_MISSING, value: "false"}
+
+  - it: refuses an extension name that is not an identifier
+    template: templates/prerequisites.yaml
+    set:
+      databases.application.extensions: ['vector; DROP TABLE x']
+    asserts:
+      - failedTemplate: {}
+
+  - it: renders nothing without databases
+    template: templates/jobs.yaml
+    set:
+      databases: null
+      qdrant.collections: null
+      spicedb.restore: false
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: binds the Jobs' ServiceAccount only when asked
+    template: templates/prerequisites.yaml
+    documentIndex: 0
+    asserts:
+      - isKind: {of: ServiceAccount}
+      - notExists: {path: 'metadata.annotations["iam.gke.io/gcp-service-account"]'}
+
+  - it: adds generic ServiceAccount annotations
+    template: templates/prerequisites.yaml
+    documentIndex: 0
+    set:
+      serviceAccount.annotations: {example.com/role: db-init}
+    asserts:
+      - equal: {path: 'metadata.annotations["example.com/role"]', value: db-init}
+
+  - it: requires trusted dump locations for any restore
+    template: templates/spicedb-restore.yaml
+    set:
+      guard.dumpPattern: ''
+    asserts:
+      - failedTemplate: {errorPattern: guard.dumpPattern is empty}
+
+  - it: uses an existing admin Secret instead of the ExternalSecret
+    template: templates/prerequisites.yaml
+    set:
+      admin.existingSecret.name: pg-admin
+      admin.secretStore.name: ''
+    asserts:
+      - hasDocuments: {count: 2}
+      - isKind: {of: ServiceAccount}
+        documentIndex: 0
+      - isKind: {of: ConfigMap}
+        documentIndex: 1
+
+  - it: connects with TLS by default
+    template: templates/jobs.yaml
+    set:
+      connection.sslmode: null
+    asserts:
+      - contains: {path: 'spec.template.spec.containers[0].env', content: {name: PGSSLMODE, value: require}}
+
+  - it: runs the Jobs under the restricted Pod Security Standard
+    template: templates/jobs.yaml
+    documentIndex: 0
+    asserts:
+      - equal: {path: spec.template.spec.securityContext.runAsUser, value: 65532}
+      - equal: {path: 'spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem', value: true}
+      - contains: {path: 'spec.template.spec.containers[0].env', content: {name: HOME, value: /tmp}}
+      - contains: {path: spec.template.spec.volumes, content: {name: tmp, emptyDir: {}}}
+      - equal: {path: spec.template.spec.automountServiceAccountToken, value: false}
+
+  - it: never mounts the token, also without the restricted defaults
+    template: templates/jobs.yaml
+    documentIndex: 0
+    set:
+      global.podSecurity.restricted: false
+    asserts:
+      - equal: {path: spec.template.spec.automountServiceAccountToken, value: false}
+      - notExists: {path: spec.template.spec.securityContext}

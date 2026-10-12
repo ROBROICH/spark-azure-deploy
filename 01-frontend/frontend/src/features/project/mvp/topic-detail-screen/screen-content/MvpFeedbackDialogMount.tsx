@@ -32,7 +32,7 @@ export function MvpFeedbackDialogMount() {
     typeof targetId === 'string' && isValidFeedbackTarget
       ? {
           id: targetId,
-          node_type: 'fundstelle' as const,
+          nodeType: 'fundstelle' as const,
         }
       : undefined;
   const hasTargetSearchParams =

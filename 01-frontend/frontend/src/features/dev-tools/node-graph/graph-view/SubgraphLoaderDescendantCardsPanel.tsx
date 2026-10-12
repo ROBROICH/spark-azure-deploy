@@ -53,13 +53,13 @@ function SubgraphLoaderDescendantCardsPanelContent(
               variant="ghost-light"
               size="sm"
               iconOnly
-              aria-label={`Make ${node.node_type} ${node.id.slice(0, 8)} the selected top-level node`}
+              aria-label={`Make ${node.nodeType} ${node.id.slice(0, 8)} the selected top-level node`}
               onClick={() => {
                 navigate({
                   search: (prev) => ({
                     ...prev,
                     selectedNodeId: node.id,
-                    selectedNodeType: node.node_type,
+                    selectedNodeType: node.nodeType,
                     showDescendants: undefined,
                   }),
                   replace: true,

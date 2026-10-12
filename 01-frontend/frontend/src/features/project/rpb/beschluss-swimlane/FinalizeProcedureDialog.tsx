@@ -1,7 +1,7 @@
 import {
-  exportVaeDocxProjectIdExportDocxPost,
-  exportVaePdfProjectIdExportPdfPost,
-} from '@/api-clients/vae-module';
+  v1AdministrativeFileDraftExportAdministrativeFileDraftDocx as exportAdministrativeFileDraftDocx,
+  v1AdministrativeFileDraftExportAdministrativeFileDraftPdf as exportAdministrativeFileDraftPdf,
+} from '@/api-clients/backend';
 import {
   createLocalPdfPreviewUrl,
   revokeLocalPdfPreviewUrl,
@@ -101,8 +101,8 @@ export const FinalizeProcedureDialog = (
       setIsPreviewLoading(true);
       setNextPreviewUrl(null);
 
-      return exportVaePdfProjectIdExportPdfPost({
-        path: { project_id: verfahrenId },
+      return exportAdministrativeFileDraftPdf({
+        path: { projectId: verfahrenId },
         parseAs: 'blob',
         throwOnError: true,
       })
@@ -152,8 +152,8 @@ export const FinalizeProcedureDialog = (
 
     const downloadRequest =
       format === 'pdf'
-        ? exportVaePdfProjectIdExportPdfPost({
-            path: { project_id: verfahrenId },
+        ? exportAdministrativeFileDraftPdf({
+            path: { projectId: verfahrenId },
             parseAs: 'blob',
             throwOnError: true,
           }).then(({ data, response }) => {
@@ -163,8 +163,8 @@ export const FinalizeProcedureDialog = (
               'pdf',
             );
           })
-        : exportVaeDocxProjectIdExportDocxPost({
-            path: { project_id: verfahrenId },
+        : exportAdministrativeFileDraftDocx({
+            path: { projectId: verfahrenId },
             parseAs: 'blob',
             throwOnError: true,
           }).then(({ data, response }) => {

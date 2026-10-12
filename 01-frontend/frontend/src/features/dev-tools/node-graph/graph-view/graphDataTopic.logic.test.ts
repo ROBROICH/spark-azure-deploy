@@ -11,20 +11,20 @@ import {
 } from './graphDataTopic.logic';
 
 const createSummary = (
-  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'node_type'>,
+  overrides: Partial<NodeSummary> & Pick<NodeSummary, 'id' | 'nodeType'>,
 ): NodeSummary => ({
-  frontend_parent_ids: [],
+  frontendParentIds: [],
   parents: [],
   ...overrides,
 });
 
 describe('graphDataTopic logic', () => {
   it('keeps the selected topic and its outgoing edge in topic-scoped graphs', () => {
-    const topic = createSummary({ id: 'topic-1', node_type: 'topic' });
+    const topic = createSummary({ id: 'topic-1', nodeType: 'topic' });
     const child = createSummary({
       id: 'norm-1',
-      node_type: 'topic_norm',
-      parents: [{ id: topic.id, node_type: topic.node_type }],
+      nodeType: 'topic_norm',
+      parents: [{ id: topic.id, nodeType: topic.nodeType }],
     });
     const scopedGraph = buildTopicScopedGraph({
       graph: buildProjectNodeIndex([topic, child]),
@@ -41,11 +41,11 @@ describe('graphDataTopic logic', () => {
   });
 
   it('keeps the selected root and its outgoing edge in descendant-scoped graphs', () => {
-    const root = createSummary({ id: 'satz-1', node_type: 'satz' });
+    const root = createSummary({ id: 'satz-1', nodeType: 'satz' });
     const child = createSummary({
       id: 'argument-1',
-      node_type: 'argument',
-      parents: [{ id: root.id, node_type: root.node_type }],
+      nodeType: 'argument',
+      parents: [{ id: root.id, nodeType: root.nodeType }],
     });
     const scopedGraph = buildDescendantScopedGraph({
       graph: buildProjectNodeIndex([root, child]),

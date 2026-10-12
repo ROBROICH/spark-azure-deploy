@@ -1,6 +1,6 @@
 from typing import Any
 
-from temporal.workflows.formale_pruefung import DMSFileResponse
+from temporal.contracts import DMSFileResponse
 from temporalio import activity
 
 from src.activities.dms_activities import UploadTemporalCheckpointInput
@@ -91,8 +91,8 @@ async def upload_temporal_checkpoint(
         id="UUID",
         type="temporal_checkpoint",
         filename="results.json",
-        bucketPath="dms_documents/path/results.json",
-        projectId="PUUID",
+        bucket_path="dms_documents/path/results.json",
+        project_id="PUUID",
     )
 
 

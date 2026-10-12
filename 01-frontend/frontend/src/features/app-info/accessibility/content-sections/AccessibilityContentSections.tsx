@@ -1,24 +1,6 @@
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-const exceptionItemKeys = [
-  'visualHeadings',
-  'lists',
-  'formLabels',
-  'autocomplete',
-  'textContrast',
-  'graphicContrast',
-  'zoom',
-  'skipLinks',
-  'keyboardFocus',
-  'keyboardScreenreaderControls',
-  'timeLimit',
-  'formErrorsDetectable',
-  'formErrorsPersistent',
-  'controlNameRoleValue',
-  'pdf',
-] as const;
-
 type ContentSectionProps = {
   children: ReactNode;
   title: string;
@@ -63,18 +45,6 @@ export const AccessibilityContentSections = () => {
         <p>{t('conformance.requirements')}</p>
         <p>{t('conformance.review')}</p>
         <p>{t('conformance.result')}</p>
-        <div className="flex flex-col gap-3">
-          <p>{t('conformance.exceptionsIntro')}</p>
-          <ul className="list-disc space-y-2 pl-6">
-            {exceptionItemKeys.map((itemKey) => (
-              <li key={itemKey}>{t(`conformance.exceptions.${itemKey}`)}</li>
-            ))}
-          </ul>
-        </div>
-        <p className="pt-2 font-semibold text-text-primary">
-          {t('reason.heading')}
-        </p>
-        <p>{t('reason.text')}</p>
       </ContentSection>
 
       <ContentSection title={t('creation.heading')}>

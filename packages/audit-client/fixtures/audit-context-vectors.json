@@ -1,0 +1,201 @@
+{
+  "validHeaders": [
+    {
+      "name": "all six fields are normalized",
+      "headers": {
+        "X-Actor-User-Id": "AAAAAAAA-AAAA-4AAA-8AAA-AAAAAAAAAAAA",
+        "X-Triggered-By-User-Id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "X-Workflow-Run-Id": "root-run/17",
+        "X-Workflow-Type": "DocumentWorkflow",
+        "X-Request-Starttime": "2026-07-16T08:15:30+00:00",
+        "X-Request-Id": "CCCCCCCC-CCCC-4CCC-8CCC-CCCCCCCCCCCC"
+      },
+      "expected": {
+        "X-Actor-User-Id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        "X-Triggered-By-User-Id": "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+        "X-Workflow-Run-Id": "root-run/17",
+        "X-Workflow-Type": "DocumentWorkflow",
+        "X-Request-Starttime": "2026-07-16T08:15:30.000Z",
+        "X-Request-Id": "cccccccc-cccc-4ccc-8ccc-cccccccccccc"
+      }
+    },
+    {
+      "name": "epoch milliseconds are canonicalized",
+      "headers": {
+        "x-request-starttime": "1784189730123",
+        "x-request-id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      },
+      "expected": {
+        "X-Request-Starttime": "2026-07-16T08:15:30.123Z",
+        "X-Request-Id": "dddddddd-dddd-4ddd-8ddd-dddddddddddd"
+      }
+    }
+  ],
+  "malformedHeaders": [
+    {
+      "name": "bad UUIDs and time do not erase unrelated values",
+      "headers": {
+        "X-Actor-User-Id": "not-a-uuid",
+        "X-Triggered-By-User-Id": "also-not-a-uuid",
+        "X-Workflow-Run-Id": "run-still-valid",
+        "X-Workflow-Type": "WorkerWorkflow",
+        "X-Request-Starttime": "tomorrow-ish",
+        "X-Request-Id": "request-not-a-uuid"
+      },
+      "expected": {
+        "X-Workflow-Run-Id": "run-still-valid",
+        "X-Workflow-Type": "WorkerWorkflow"
+      }
+    },
+    {
+      "name": "empty optionals are absent",
+      "headers": {
+        "X-Workflow-Run-Id": "   ",
+        "X-Workflow-Type": "",
+        "X-Request-Id": ""
+      },
+      "expected": {}
+    }
+  ],
+  "precedence": {
+    "forwarded": {
+      "X-Actor-User-Id": "11111111-1111-4111-8111-111111111111",
+      "X-Triggered-By-User-Id": "22222222-2222-4222-8222-222222222222",
+      "X-Workflow-Run-Id": "forwarded-run",
+      "X-Workflow-Type": "ForwardedWorkflow",
+      "X-Request-Starttime": "2026-07-16T09:00:00Z",
+      "X-Request-Id": "33333333-3333-4333-8333-333333333333"
+    },
+    "active": {
+      "X-Actor-User-Id": "44444444-4444-4444-8444-444444444444",
+      "X-Workflow-Type": "ActiveWorkflow",
+      "X-Request-Starttime": "2026-07-16T09:01:00Z"
+    },
+    "explicit": {
+      "X-Actor-User-Id": "55555555-5555-4555-8555-555555555555",
+      "X-Workflow-Run-Id": "explicit-run"
+    },
+    "expected": {
+      "X-Actor-User-Id": "55555555-5555-4555-8555-555555555555",
+      "X-Triggered-By-User-Id": "22222222-2222-4222-8222-222222222222",
+      "X-Workflow-Run-Id": "explicit-run",
+      "X-Workflow-Type": "ActiveWorkflow",
+      "X-Request-Starttime": "2026-07-16T09:01:00.000Z",
+      "X-Request-Id": "33333333-3333-4333-8333-333333333333"
+    }
+  },
+  "identity": {
+    "sub": "66666666-6666-4666-8666-666666666666",
+    "preferred_username": "reviewer",
+    "realm_access": {
+      "roles": ["user"]
+    },
+    "enabled": true,
+    "expected": {
+      "X-Actor-User-Id": "66666666-6666-4666-8666-666666666666"
+    }
+  },
+  "changes": [
+    {
+      "input": {
+        "entityType": "record",
+        "entityId": "77777777-7777-4777-8777-777777777777",
+        "changeType": "create"
+      },
+      "expected": {
+        "entityType": "record",
+        "entityId": "77777777-7777-4777-8777-777777777777",
+        "changeType": "create"
+      }
+    },
+    {
+      "input": {
+        "entityType": "record",
+        "entityId": "88888888-8888-4888-8888-888888888888",
+        "changeType": "update"
+      },
+      "expected": {
+        "entityType": "record",
+        "entityId": "88888888-8888-4888-8888-888888888888",
+        "changeType": "update"
+      }
+    },
+    {
+      "input": {
+        "entityType": "record",
+        "entityId": "99999999-9999-4999-8999-999999999999",
+        "changeType": "delete"
+      },
+      "expected": {
+        "entityType": "record",
+        "entityId": "99999999-9999-4999-8999-999999999999",
+        "changeType": "delete"
+      }
+    },
+    {
+      "input": {
+        "entityType": "record",
+        "entityId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "changeType": "action",
+        "actionType": "reviewed"
+      },
+      "expected": {
+        "entityType": "record",
+        "entityId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "changeType": "action",
+        "actionType": "reviewed"
+      }
+    }
+  ],
+  "invalidChanges": [
+    {
+      "name": "action needs a concrete action type",
+      "input": {
+        "entityType": "record",
+        "entityId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "changeType": "action"
+      }
+    },
+    {
+      "name": "entity type cannot be empty",
+      "input": {
+        "entityType": "  ",
+        "entityId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "changeType": "update"
+      }
+    },
+    {
+      "name": "entity id is a UUID",
+      "input": {
+        "entityType": "record",
+        "entityId": "not-a-uuid",
+        "changeType": "delete"
+      }
+    },
+    {
+      "name": "unexpected change properties fail closed",
+      "input": {
+        "entityType": "record",
+        "entityId": "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee",
+        "changeType": "update",
+        "databaseTable": "must-not-flow"
+      }
+    }
+  ],
+  "bulk": {
+    "empty": [],
+    "nonEmpty": [
+      {
+        "entityType": "record",
+        "entityId": "abababab-abab-4bab-8bab-abababababab",
+        "changeType": "create"
+      },
+      {
+        "entityType": "record",
+        "entityId": "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd",
+        "changeType": "action",
+        "actionType": "published"
+      }
+    ]
+  }
+}

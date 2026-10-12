@@ -1,0 +1,4 @@
+# ci: the chart defaults with a pinned public image.
+image:
+  repository: registry.example.com/spark/landingpage
+  tag: "1.0.0"

@@ -1,0 +1,46 @@
+{
+  "projects": {
+    "populated": {
+      "id": "5ebebf2e-95dc-484e-9763-9ebd36389f2d",
+      "latestVersion": 2,
+      "name": "Musterprojekt",
+      "internalProjectNumber": "MUSTER-2026-001"
+    },
+    "empty": {
+      "id": "10000000-0000-4000-8000-000000000002",
+      "latestVersion": 1,
+      "name": "Leeres Vorhaben",
+      "internalProjectNumber": "AFD-EMPTY-001"
+    },
+    "noExportableNodes": {
+      "id": "10000000-0000-4000-8000-000000000003",
+      "latestVersion": 1,
+      "name": "Vorhaben ohne exportierbare Inhalte",
+      "internalProjectNumber": "AFD-NO-EXPORT-001"
+    },
+    "unknown": {
+      "id": "10000000-0000-4000-8000-000000000004"
+    }
+  },
+  "projectTypes": {
+    "populated": "00000000-0000-0000-0000-000000000000",
+    "empty": "30000000-0000-4000-8000-000000000003"
+  },
+  "templates": {
+    "active": "5b3d2429-21ab-419d-ab92-08113819ff5e",
+    "unknown": "31000000-0000-4000-8000-000000000999"
+  },
+  "nodes": {
+    "currentRoot": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+    "currentChild": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+    "historicalRoot": "c6e29520-cf3e-42cf-bac3-af74dcd07306",
+    "historicalChild": "388d2a24-afbd-422a-a1d8-7b10cfd698bf",
+    "unknown": "20000000-0000-4000-8000-000000000999"
+  },
+  "risks": {
+    "currentHigh": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+    "currentLow": "2ae19cf2-fabb-449d-aad2-2be4cb70f0bf",
+    "historical": "00808076-6ecc-4c14-b4e4-ca3be0a51c01",
+    "unknown": "40000000-0000-4000-8000-000000000999"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "module": "Preserve",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noUncheckedIndexedAccess": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "target": "ESNext",
+    "types": ["bun"],
+    "verbatimModuleSyntax": true
+  },
+  "include": [
+    "../temporal/typescript/workflow.d.ts",
+    "documents/scripts/**/*.ts",
+    "documents/src/**/*.ts",
+    "documents/test/**/*.ts",
+    "projects/src/**/*.ts",
+    "projects/test/**/*.ts",
+    "usecases/scripts/**/*.ts",
+    "usecases/src/**/*.ts",
+    "usecases/test/**/*.ts",
+    "src/**/*.ts"
+  ]
+}

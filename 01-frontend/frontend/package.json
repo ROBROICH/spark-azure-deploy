@@ -18,10 +18,10 @@
     "dev": "vite",
     "dev:port-forwarding": "node src/scripts/validate-port-forwarding-env.js && VITE_DEV_API_MODE=port-forwarding vite --port 3000",
     "format": "prettier --write .",
-    "lint": "pnpm exec eslint",
+    "lint": "pnpm exec eslint --quiet",
     "preview:port-forwarding": "node src/scripts/validate-port-forwarding-env.js && VITE_DEV_API_MODE=port-forwarding vite build && VITE_DEV_API_MODE=port-forwarding vite preview --host 127.0.0.1 --port 3000 --strictPort",
     "serve": "vite preview",
-    "test": "vitest run",
+    "test": "vitest run --reporter=dot",
     "test:coverage": "vitest run --coverage && node src/scripts/print-overall-coverage.js",
     "type-check": "tsc --noEmit --incremental",
     "openapi-ts": "openapi-ts"
@@ -47,7 +47,7 @@
     "@tanstack/react-db": "^0.1.83",
     "@tanstack/react-form": "^1.25.0",
     "@tanstack/react-query": "^5.66.5",
-    "@tanstack/react-router": "^1.132.0",
+    "@tanstack/react-router": "^1.170.38",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/core": "^3.31.3",
@@ -78,8 +78,8 @@
     "@babel/core": "^7.29.6",
     "@hey-api/openapi-ts": "0.97.3",
     "@rolldown/plugin-babel": "^0.2.2",
-    "@tailwindcss/vite": "^4.2.2",
     "@tanstack/eslint-config": "^0.4.0",
+    "@tailwindcss/vite": "^4.2.2",
     "@tanstack/router-plugin": "^1.168.40",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.0",
@@ -91,6 +91,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "@vitest/coverage-v8": "^4.1.11",
     "babel-plugin-react-compiler": "^1.0.0",
+    "vitest": "^4.1.11",
     "dotenv": "^17.3.1",
     "eslint": "^9.22.0",
     "eslint-plugin-jsx-a11y": "^6.10.2",
@@ -104,7 +105,6 @@
     "tailwindcss": "^4.0.6",
     "tw-animate-css": "^1.3.6",
     "typescript": "^6.0.2",
-    "vite": "^8.0.16",
-    "vitest": "^4.1.2"
+    "vite": "^8.0.16"
   }
 }

@@ -1,0 +1,15 @@
+id: no-unknown-record
+language: TypeScript
+severity: error
+message: "FORBIDDDEN: we do not get any benefit with that. Its not better than unknown. We only do Value.Parse/Check with Elysia built-in. Internal code is not allowed to use Value.Check/Parse. Value.Check/Parse is forbidden."
+rule:
+  any:
+    - pattern: $TYPEBOX.Record($TYPEBOX.String(), $TYPEBOX.Unknown())
+    - pattern:
+        context: |
+          type Dictionary = Record<string, unknown>;
+        selector: generic_type
+    - pattern:
+        context: |
+          type Dictionary = { [key: string]: unknown };
+        selector: index_signature

@@ -20,7 +20,7 @@ export const NormCardLawChangeIndicator = (
     <LawChangeIndicatorView
       jurabk={topicNorm.jurabk}
       lawChanges={lawChanges}
-      paragraphNr={topicNorm.paragraph_nr}
+      paragraphNr={topicNorm.paragraphNr}
       onOpen={(lawChange) => {
         navigate({
           search: (prev) => ({

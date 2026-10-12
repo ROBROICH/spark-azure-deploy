@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a01-no-ui-only-authorization
+---
+
 # OWASP A01: No UI-Only Authorization
 
 - Covers OWASP A01 Broken Access Control.

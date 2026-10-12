@@ -5,16 +5,28 @@ import re
 from enum import Enum
 
 from pydantic import BaseModel, Field
-from temporal.workflows.bewertung.types import (  # re-exported
-    DetailedPlan,
-    Originaltext,
-    PlanSection,
-    PlanSubsection,
-)
+from temporal.contracts import Originaltext
 
 __all__ = ["DetailedPlan", "Originaltext", "PlanSection", "PlanSubsection"]
 
 _logger = logging.getLogger(__name__)
+
+
+class PlanSubsection(BaseModel):
+    titel: str
+    fokus: str
+    struktur: str | None = None
+
+
+class PlanSection(BaseModel):
+    titel: str
+    ziel: str
+    svm_ids: list[str] = Field(min_length=1)
+    unterkapitel: list[PlanSubsection] = Field(default_factory=list)
+
+
+class DetailedPlan(BaseModel):
+    kapitel: list[PlanSection] = Field(min_length=3, max_length=12)
 
 
 class ResultType(str, Enum):

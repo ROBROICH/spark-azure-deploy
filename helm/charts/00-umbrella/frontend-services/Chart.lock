@@ -1,0 +1,15 @@
+dependencies:
+- name: frontend
+  repository: file://../../01-frontend/frontend
+  version: 0.3.0
+- name: prototype-demo
+  repository: file://../../01-frontend/prototype-demo
+  version: 0.3.0
+- name: frontend
+  repository: file://../../01-frontend/frontend
+  version: 0.3.0
+- name: frontend
+  repository: file://../../01-frontend/frontend
+  version: 0.3.0
+digest: sha256:07a9f76fecaeab1d5fe23062adb363dfb861e40b5e3345cf2da31ba97268eb00
+generated: "2026-10-09T12:55:45.33801+02:00"

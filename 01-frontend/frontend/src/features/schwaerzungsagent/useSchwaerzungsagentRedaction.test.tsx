@@ -7,8 +7,8 @@ const mocks = vi.hoisted(() => ({
   anonymizePdf: vi.fn(),
 }));
 
-vi.mock('@/api-clients/agent-orchestration-module', () => ({
-  anonymizePdfWorkflowsAnonymisierungPost: mocks.anonymizePdf,
+vi.mock('@/api-clients/backend', () => ({
+  v1AgentOrchestrationAnonymizePdf: mocks.anonymizePdf,
 }));
 
 const session = {

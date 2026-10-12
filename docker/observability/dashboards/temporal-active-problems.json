@@ -1,0 +1,1017 @@
+{
+  "title": "Temporal active problems",
+  "uid": "temporal-active-problems",
+  "tags": [
+    "temporal",
+    "alerts"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 2,
+  "refresh": "30s",
+  "editable": false,
+  "description": "Active workflow problems, current running times, and worker data freshness. Each workflow type appears once per namespace.",
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "Reading this view",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Check Workflow updates first.** If it says data is missing or out of date, an empty problem list does not mean the workflows are healthy. **Data updates** below shows which worker queues need attention. Worker error alerts can still appear while workflow updates are unavailable.\n\nEach row is one workflow type in one Temporal namespace. A failed or timed-out run stays on the list for 15 minutes after it ends. When it drops off, that only means the 15 minutes are up. It does not mean the run recovered. A slow workflow drops off when none of its current runs is over its time limit, when its time limit changes, or when its time checks are skipped. Skipping time checks never hides failures or timeouts. Click a workflow type to see its runs."
+      }
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Workflow updates",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 0,
+        "y": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "min(spark_temporal_collection_healthy{temporal_namespace=~\"$temporal_namespace\"}) or vector(0)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "Missing or out of date",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "Up to date",
+                  "color": "green"
+                }
+              }
+            }
+          ]
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Types with problems",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 8,
+        "y": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count(((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"}))) or vector(0)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Types needing more past runs",
+      "description": "",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 8,
+        "x": 16,
+        "y": 8
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "count((((spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"} >= bool 30) or (0 * group by (temporal_namespace, workflow_type) (spark_temporal_running{temporal_namespace=~\"$temporal_namespace\"} or spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"}))) == 0) unless on (workflow_type) (spark_temporal_runtime_alert_excluded == 1)) or vector(0)",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "No data",
+          "mappings": [],
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Workflows with problems",
+      "description": "Current problems grouped by workflow type. Missing counts mean current workflow data is unavailable.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"}) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"}) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) (((spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} > bool 0)) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((spark_temporal_runtime_limit_seconds{temporal_namespace=~\"$temporal_namespace\"}) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((spark_temporal_oldest_running_age_seconds{temporal_namespace=~\"$temporal_namespace\"}) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "E"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",alertname=\"TemporalWorkflowNonDeterminism\",alertstate=\"firing\"})) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "I"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",alertname=\"TemporalWorkflowTaskErrors\",alertstate=\"firing\"})) and on (temporal_namespace, workflow_type) ((spark_temporal_recent_failed_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or (spark_temporal_recent_timed_out_runs{temporal_namespace=~\"$temporal_namespace\"} > 0) or spark_temporal_runtime_unusual{temporal_namespace=~\"$temporal_namespace\"} or count by (temporal_namespace, workflow_type) (ALERTS{temporal_namespace=~\"$temporal_namespace\",component=\"temporal\",workflow_type!=\"\",alertstate=\"firing\",alertname=~\"TemporalWorkflowNonDeterminism|TemporalWorkflowTaskErrors\"})))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "J"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "temporal_namespace": 0,
+              "workflow_type": 1,
+              "task_queue": 2,
+              "Value #A": 3,
+              "Value #B": 4,
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #E": 7,
+              "Value #I": 8,
+              "Value #J": 9
+            },
+            "renameByName": {
+              "temporal_namespace": "Namespace",
+              "workflow_type": "Workflow type",
+              "task_queue": "Task queue",
+              "Value #A": "Failed in last 15 min",
+              "Value #B": "Timed out in last 15 min",
+              "Value #C": "Taking too long",
+              "Value #D": "Time limit",
+              "Value #E": "Longest running",
+              "Value #I": "Code mismatch",
+              "Value #J": "Errors while running"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2014",
+          "decimals": 0,
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Code mismatch"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "No alert",
+                        "color": "text"
+                      },
+                      "1": {
+                        "text": "Active alert",
+                        "color": "red"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "description",
+                "value": "The workflow code does not match the steps Temporal recorded for this run."
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Errors while running"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "No alert",
+                        "color": "text"
+                      },
+                      "1": {
+                        "text": "Active alert",
+                        "color": "orange"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "description",
+                "value": "Errors encountered while running workflow code. Temporal may still be retrying the work."
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow type"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View workflow runs",
+                    "targetBlank": true,
+                    "url": "${temporal_ui_url:raw}/namespaces/${__data.fields[\"Namespace\"]:percentencode}/workflows?query=WorkflowType%3D%22${__data.fields[\"Workflow type\"]:percentencode}%22"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Longest running"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "description",
+                "value": "How long the oldest unfinished run has been running."
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time limit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Taking too long"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "1": {
+                        "text": "Yes",
+                        "color": "orange"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Cluster",
+            "desc": false
+          },
+          {
+            "displayName": "Workflow type",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "type": "table",
+      "title": "Data updates",
+      "description": "One row per worker task queue. Missing or old data means this queue is not being checked.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, task_queue) (spark_temporal_collection_healthy{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, task_queue) (time() - spark_temporal_collection_timestamp_seconds{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "temporal_namespace": 0,
+              "workflow_type": 1,
+              "task_queue": 2,
+              "Value #A": 3,
+              "Value #B": 4
+            },
+            "renameByName": {
+              "temporal_namespace": "Namespace",
+              "workflow_type": "Workflow type",
+              "task_queue": "Task queue",
+              "Value #A": "Workflow updates",
+              "Value #B": "Last update"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2014",
+          "decimals": 0,
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow type"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View workflow runs",
+                    "targetBlank": true,
+                    "url": "${temporal_ui_url:raw}/namespaces/${__data.fields[\"Namespace\"]:percentencode}/workflows?query=WorkflowType%3D%22${__data.fields[\"Workflow type\"]:percentencode}%22"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow updates"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Not up to date",
+                        "color": "red"
+                      },
+                      "1": {
+                        "text": "Up to date",
+                        "color": "green"
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last update"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Cluster",
+            "desc": false
+          },
+          {
+            "displayName": "Workflow type",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Checks for slow workflows",
+      "description": "Time checks need 30 duration measurements. The limit is twice the historical duration shown here, with a five-minute minimum.",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "h": 10,
+        "w": 24,
+        "x": 0,
+        "y": 30
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) ((2 * (group by (temporal_namespace, workflow_type) (spark_temporal_running{temporal_namespace=~\"$temporal_namespace\"} or spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"}) and on (workflow_type) (spark_temporal_runtime_alert_excluded == 1))) or (((spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"} >= bool 30) or (0 * group by (temporal_namespace, workflow_type) (spark_temporal_running{temporal_namespace=~\"$temporal_namespace\"} or spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"})))))",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) (spark_temporal_runtime_baseline_samples{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) (spark_temporal_runtime_baseline_seconds{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "C"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) (spark_temporal_runtime_limit_seconds{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "D"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "max by (temporal_namespace, workflow_type) (spark_temporal_running{temporal_namespace=~\"$temporal_namespace\"})",
+          "format": "table",
+          "instant": true,
+          "range": false,
+          "refId": "E"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "__name__": true
+            },
+            "indexByName": {
+              "temporal_namespace": 0,
+              "workflow_type": 1,
+              "task_queue": 2,
+              "Value #A": 3,
+              "Value #B": 4,
+              "Value #C": 5,
+              "Value #D": 6,
+              "Value #E": 7
+            },
+            "renameByName": {
+              "temporal_namespace": "Namespace",
+              "workflow_type": "Workflow type",
+              "task_queue": "Task queue",
+              "Value #A": "Time checks",
+              "Value #B": "Past runs",
+              "Value #C": "95% finished within",
+              "Value #D": "Time limit",
+              "Value #E": "Running now"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "noValue": "\u2014",
+          "decimals": 0,
+          "custom": {
+            "align": "auto",
+            "filterable": true,
+            "cellOptions": {
+              "type": "auto"
+            }
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Workflow type"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 300
+              },
+              {
+                "id": "links",
+                "value": [
+                  {
+                    "title": "View workflow runs",
+                    "targetBlank": true,
+                    "url": "${temporal_ui_url:raw}/namespaces/${__data.fields[\"Namespace\"]:percentencode}/workflows?query=WorkflowType%3D%22${__data.fields[\"Workflow type\"]:percentencode}%22"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Namespace"
+            },
+            "properties": [
+              {
+                "id": "custom.width",
+                "value": 170
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "95% finished within"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              },
+              {
+                "id": "decimals",
+                "value": 1
+              },
+              {
+                "id": "description",
+                "value": "95% of past runs finished within this time. The alert limit allows extra time."
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time checks"
+            },
+            "properties": [
+              {
+                "id": "mappings",
+                "value": [
+                  {
+                    "type": "value",
+                    "options": {
+                      "0": {
+                        "text": "Needs more past runs",
+                        "color": "orange"
+                      },
+                      "1": {
+                        "text": "Ready",
+                        "color": "green"
+                      },
+                      "2": {
+                        "text": "Skipped",
+                        "color": "blue"
+                      }
+                    }
+                  }
+                ]
+              },
+              {
+                "id": "description",
+                "value": "Skipped types do not raise alerts for taking too long. Failures and timeouts still appear."
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Time limit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "s"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "footer": {
+          "show": false
+        },
+        "sortBy": [
+          {
+            "displayName": "Cluster",
+            "desc": false
+          },
+          {
+            "displayName": "Workflow type",
+            "desc": false
+          }
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "text",
+      "title": "Skipped time checks",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "Time checks start once at least 30 run durations have been exported. They use up to 14 days of measurements and update every five minutes. Workflow types marked **Skipped** do not get time checks because their run time is meant to vary, for example when it depends on how many files were uploaded. Their failures and timeouts still appear. The list of skipped types is managed in the deployment configuration."
+      }
+    }
+  ],
+  "templating": {
+    "list": [
+      {
+        "name": "temporal_namespace",
+        "label": "Temporal namespace",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(temporal_workflow_collection_timestamp_seconds, temporal_namespace)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": "All",
+          "value": "$__all"
+        },
+        "definition": "label_values(temporal_workflow_collection_timestamp_seconds, temporal_namespace)"
+      },
+      {
+        "name": "temporal_ui_url",
+        "label": "Temporal address",
+        "type": "textbox",
+        "query": "http://localhost:8233",
+        "current": {
+          "text": "http://localhost:8233",
+          "value": "http://localhost:8233"
+        }
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "links": []
+}

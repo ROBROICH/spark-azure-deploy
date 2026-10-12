@@ -10,10 +10,10 @@ const mocks = vi.hoisted(() => ({
   startProcessing: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module/sdk.gen', () => ({
-  generateUploadUrlV2FilesGenerateUploadUrlPost: mocks.generateUrl,
-  confirmUploadV2FilesConfirmUploadPost: mocks.confirmUpload,
-  startFileProcessingV2FilesStartFileProcessingPost: mocks.startProcessing,
+vi.mock('@/api-clients/backend/sdk.gen', () => ({
+  v1DocumentManagementGenerateFileUploadUrl: mocks.generateUrl,
+  v1DocumentManagementConfirmFileUpload: mocks.confirmUpload,
+  v1DocumentManagementStartFileProcessing: mocks.startProcessing,
 }));
 
 let queryClient: QueryClient;
@@ -78,7 +78,7 @@ describe('useZipUpload', () => {
       queryKey: ['projects'],
     });
     expect(invalidateSpy).toHaveBeenCalledWith({
-      queryKey: [{ _id: 'getWorkflowsTemporalWorkflowsGet' }],
+      queryKey: [{ _id: 'listTemporalWorkflows' }],
     });
   });
 

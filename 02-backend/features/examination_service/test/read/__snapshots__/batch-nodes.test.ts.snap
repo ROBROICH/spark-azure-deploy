@@ -1,0 +1,130 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`POST /{project_id}/batch-nodes HTTP contract snapshots an empty explicit request 1`] = `
+{
+  "body": {
+    "results": [],
+  },
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract freezes mixed-type grouping, full fields, duplicate collapse, and unknown/deleted omission 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-04-09T15:05:58.977Z",
+        "frontendParentIds": [
+          "topic_norm:9263912d-3e73-4936-900b-1198bd79ac41",
+          "topic_norm:e45cac12-35f3-46b6-80fc-40d70d533135",
+          "topic_norm:efaf36d0-6b1f-4e7f-8309-8e7c927aab6b",
+        ],
+        "gesetzId": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "id": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "norm",
+        "paragraphNr": "1a",
+        "paragraphTitel": "Grundsätze des Strommarktes",
+        "projectId": "e17baca1-af91-48d0-9702-9c34880d7046",
+        "projectVersion": 1,
+        "regelungsgegenstand": "Der Paragraph legt die Grundsätze des liberalisierten Strommarktes fest, insbesondere die wettbewerbsbasierte Preisbildung am Elektrizitätsmarkt, die regulatorische Nicht-Beschränkung der Großhandelspreise sowie die zentrale Rolle des Bilanzkreis- und Ausgleichsenergiesystems für die Versorgungssicherheit. Er verfolgt das Ziel, durch Flexibilisierung von Angebot und Nachfrage, Wettbewerb zwischen Erzeugungsanlagen, Speichertechnologien und Verbrauch, Sektorkopplung sowie Integration der Ladeinfrastruktur für Elektromobile die Kosten zu senken, die Transformation zu einem umweltverträglichen und bezahlbaren Energieversorgungssystem zu ermöglichen und die Versorgungssicherheit zu gewährleisten. Zudem werden der bedarfsgerechte Netzausbau unter Berücksichtigung des Ausbaus erneuerbarer Energien, die Steigerung der Transparenz am Strommarkt sowie die Stärkung der europäischen Marktkopplung und des grenzüberschreitenden Stromhandels als zentrale Zielsetzungen formuliert.",
+        "text": "Der Preis für Elektrizität bildet sich nach wettbewerblichen Grundsätzen frei am Markt. Die Höhe der Preise für Elektrizität am Großhandelsmarkt wird regulatorisch nicht beschränkt.\\nDas Bilanzkreis- und Ausgleichsenergiesystem hat eine zentrale Bedeutung für die Gewährleistung der Elektrizitätsversorgungssicherheit. Daher sollen die Bilanzkreistreue der Bilanzkreisverantwortlichen und eine ordnungsgemäße Bewirtschaftung der Bilanzkreise sichergestellt werden.\\nEs soll insbesondere auf eine Flexibilisierung von Angebot und Nachfrage hingewirkt werden. Ein Wettbewerb zwischen effizienten und flexiblen Erzeugungsanlagen, Anlagen zur Speicherung elektrischer Energie und Lasten, eine effiziente Kopplung des Wärme- und des Verkehrssektors mit dem Elektrizitätssektor sowie die Integration der Ladeinfrastruktur für Elektromobile in das Elektrizitätsversorgungssystem sollen die Kosten der Energieversorgung verringern, die Transformation zu einem umweltverträglichen, zuverlässigen und bezahlbaren Energieversorgungssystem ermöglichen und die Versorgungssicherheit gewährleisten.\\nElektrizitätsversorgungsnetze sollen bedarfsgerecht unter Berücksichtigung des Ausbaus der Stromerzeugung aus erneuerbaren Energien nach § 4 des Erneuerbare-Energien-Gesetzes, der Versorgungssicherheit sowie volkswirtschaftlicher Effizienz ausgebaut werden.\\nDie Transparenz am Strommarkt soll erhöht werden.\\nAls Beitrag zur Verwirklichung des Elektrizitätsbinnenmarktes sollen eine stärkere Einbindung des Strommarktes in die europäischen Strommärkte und eine stärkere Angleichung der Rahmenbedingungen in den europäischen Strommärkten, insbesondere mit den an das Gebiet der Bundesrepublik Deutschland angrenzenden Staaten sowie dem Königreich Norwegen und dem Königreich Schweden, angestrebt werden. Es sollen die notwendigen Verbindungsleitungen ausgebaut, die Marktkopplung und der grenzüberschreitende Stromhandel gestärkt sowie die Regelenergiemärkte und die vortägigen und untertägigen Spotmärkte stärker integriert werden.",
+        "updateType": "automated",
+        "updatedAt": "2026-04-09T15:05:58.977Z",
+      },
+      {
+        "createdAt": "2026-04-09T15:05:58.977Z",
+        "frontendParentIds": [
+          "topic:3fad20bd-d82c-4d88-83d1-0198e8a5b53a",
+          "topic:6f5b1f34-dcc6-4ed7-8d02-3c1e68f8e1b4",
+          "topic:b61fff72-15fc-4b0c-9ea3-e5f5256cf609",
+        ],
+        "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "isDeleted": false,
+        "isOutdated": false,
+        "jurabk": "EnWG",
+        "name": "Energiewirtschaftsgesetz",
+        "nodeType": "gesetz",
+        "projectId": "e17baca1-af91-48d0-9702-9c34880d7046",
+        "projectVersion": 1,
+        "updateType": "automated",
+        "updatedAt": "2026-04-09T15:05:58.977Z",
+      },
+    ],
+  },
+  "requested": [
+    {
+      "id": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+      "nodeType": "norm",
+    },
+    {
+      "id": "74000000-0000-4000-8000-000000000099",
+      "nodeType": "norm",
+    },
+    {
+      "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+      "nodeType": "gesetz",
+    },
+    {
+      "id": "74000000-0000-4000-8000-000000000013",
+      "nodeType": "norm",
+    },
+    {
+      "id": "3ee7b4dc-932e-45d0-94dc-fdd6ebfa7865",
+      "nodeType": "norm",
+    },
+  ],
+  "status": 200,
+}
+`;
+
+exports[`POST /{project_id}/batch-nodes HTTP contract omitted version resolves once and returns the current-only full payload 1`] = `
+{
+  "body": {
+    "results": [
+      {
+        "createdAt": "2026-04-09T15:05:58.977Z",
+        "frontendParentIds": [
+          "topic_norm:8836f757-1f94-4d9e-ad18-c94db7cd9807",
+          "topic_norm:c57553ca-192f-468f-ae05-ea1d0923c6c9",
+          "topic_norm:f4cd9a06-c071-4d46-a198-164c47bc6ba7",
+        ],
+        "gesetzId": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "id": "96e61655-b310-4ebe-a30d-e3c10f37fed1",
+        "isDeleted": false,
+        "isOutdated": false,
+        "nodeType": "norm",
+        "paragraphNr": "1",
+        "paragraphTitel": "Zweck und Ziele des Gesetzes",
+        "projectId": "e17baca1-af91-48d0-9702-9c34880d7046",
+        "projectVersion": 1,
+        "regelungsgegenstand": "Der Paragraph legt den Zweck und die Ziele des Energiewirtschaftsgesetzes fest. Dabei geht es um die sicherstellung einer sicheren, preisgünstigen, verbraucherfreundlichen, effizienten, umweltverträglichen und treibhausgasneutralen leitungsgebundenen Versorgung der Allgemeinheit mit Elektrizität, Gas und Wasserstoff, die zunehmend auf erneuerbaren Energien basiert. Zudem werden konkrete Zielsetzungen für die Regulierung der Elektrizitäts- und Gasversorgungsnetze genannt, wie den Wettbewerb, die Netzbetriebsicherheit, die Digitalisierung und den Ausbau erneuerbarer Energien. Schließlich dient das Gesetz der Umsetzung des europäischen Gemeinschaftsrechts im Bereich der leitungsgebundenen Energieversorgung und verfolgt dabei unter anderem die Stärkung der freien Preisbildung, des Elektrizitätsmarktes sowie der internationalen Zusammenarbeit.",
+        "text": "Zweck des Gesetzes ist eine möglichst sichere, preisgünstige, verbraucherfreundliche, effiziente, umweltverträgliche und treibhausgasneutrale leitungsgebundene Versorgung der Allgemeinheit mit Elektrizität, Gas und Wasserstoff, die zunehmend auf erneuerbaren Energien beruht.\\nDie Regulierung der Elektrizitäts- und Gasversorgungsnetze dient den Zielen der Sicherstellung eines wirksamen und unverfälschten Wettbewerbs bei der Versorgung mit Elektrizität und Gas, der Sicherung eines langfristig angelegten leistungsfähigen und zuverlässigen Betriebs von Energieversorgungsnetzen sowie der gesamtwirtschaftlich optimierten Energieversorgung. Zur Verfolgung der Ziele in Absatz 1 berücksichtigt die Regulierung insbesondere\\n\\n1.\\n:   den vorausschauenden Ausbau, die optimierte Nutzung und die Digitalisierung der Energieversorgungsnetze,\\n\\n2.\\n:   die Erzeugung und Nutzung von Strom aus erneuerbaren Energien und Wasserstoff,\\n\\n3.\\n:   die Flexibilisierung im Elektrizitätssystem, einschließlich der Nutzung von Energiespeichern sowie\\n\\n4.\\n:   eine angemessene Verteilung der Netzkosten im Zusammenhang mit dem Ausbau der Stromerzeugung aus erneuerbaren Energien.\\nZweck dieses Gesetzes ist ferner die Umsetzung und Durchführung des Europäischen Gemeinschaftsrechts auf dem Gebiet der leitungsgebundenen Energieversorgung.\\nUm den Zweck des Absatzes 1 auf dem Gebiet der leitungsgebundenen Versorgung der Allgemeinheit mit Elektrizität zu erreichen, verfolgt dieses Gesetz insbesondere die Ziele,\\n\\n1.\\n:   die freie Preisbildung für Elektrizität durch wettbewerbliche Marktmechanismen zu stärken,\\n\\n2.\\n:   den Ausgleich von Angebot und Nachfrage nach Elektrizität an den Strommärkten jederzeit zu ermöglichen,\\n\\n3.\\n:   dass Erzeugungsanlagen, Anlagen zur Speicherung elektrischer Energie und Lasten insbesondere möglichst umweltverträglich, netzverträglich, effizient und flexibel in dem Umfang eingesetzt werden, der erforderlich ist, um die Sicherheit und Zuverlässigkeit des Elektrizitätsversorgungssystems zu gewährleisten, und\\n\\n4.\\n:   den Elektrizitätsbinnenmarkt zu stärken sowie die Zusammenarbeit insbesondere mit den an das Gebiet der Bundesrepublik Deutschland angrenzenden Staaten sowie mit dem Königreich Norwegen und dem Königreich Schweden zu intensivieren.",
+        "updateType": "automated",
+        "updatedAt": "2026-04-09T15:05:58.977Z",
+      },
+      {
+        "createdAt": "2026-04-09T15:05:58.977Z",
+        "frontendParentIds": [
+          "topic:3fad20bd-d82c-4d88-83d1-0198e8a5b53a",
+          "topic:6f5b1f34-dcc6-4ed7-8d02-3c1e68f8e1b4",
+          "topic:b61fff72-15fc-4b0c-9ea3-e5f5256cf609",
+        ],
+        "id": "2f1e6535-3e9d-492b-8d72-673e8b8f057e",
+        "isDeleted": false,
+        "isOutdated": false,
+        "jurabk": "EnWG",
+        "name": "Energiewirtschaftsgesetz",
+        "nodeType": "gesetz",
+        "projectId": "e17baca1-af91-48d0-9702-9c34880d7046",
+        "projectVersion": 1,
+        "updateType": "automated",
+        "updatedAt": "2026-04-09T15:05:58.977Z",
+      },
+    ],
+  },
+  "status": 200,
+}
+`;

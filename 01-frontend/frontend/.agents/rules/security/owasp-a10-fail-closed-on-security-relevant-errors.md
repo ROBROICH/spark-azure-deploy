@@ -1,3 +1,7 @@
+---
+ruleId: security/owasp-a10-fail-closed-on-security-relevant-errors
+---
+
 # OWASP A10: Fail Closed on Security-Relevant Errors
 
 - Covers OWASP A10 Mishandling of Exceptional Conditions.

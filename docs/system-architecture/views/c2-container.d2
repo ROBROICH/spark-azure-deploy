@@ -1,0 +1,680 @@
+# Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
+# inventory.toml, style.d2);
+# der Pfad steht in .agents/config.json unter architectureModelPath.
+# architecture-rendered-at: 06.10.2026, 15:51 UTC
+
+# SPARK Workflow — Styleguide der Architekturansichten
+#
+# Diese Datei wird beim Rendern wörtlich an den Anfang jeder erzeugten Ansicht
+# gesetzt. Eine veröffentlichte Ansicht ist dadurch eigenständig: sie lässt sich
+# allein mit der d2-CLI erneut rendern, ohne dieses Verzeichnis.
+#
+# Die Farben stammen aus den Design-Tokens des Frontends
+# (01-frontend/frontend/src/styles.css). Sie sind dort als Tailwind-Skalen
+# definiert und hier als Hexwerte aufgelöst, weil D2 keine CSS-Variablen kennt.
+# Wer einen Token ändert, ändert ihn dort zuerst und trägt ihn hier nach.
+#
+#   brand      indigo-950 #1e1b4b, brand-800 #31317e   Service-Layer
+#   primary    blue-600   #2563eb, blue-50   #eff6ff   Frontend, Datenzugriff
+#   ki         violet-800 #5b21b6, violet-50 #f5f3ff   KI-Module und Modelle
+#   success    emerald-700 #047857                     Orchestrierung
+#   warning    orange-600 #ea580c                      Autorisierung
+#   neutral    slate-Skala                             Basis, Kontext, Rahmen
+#
+# Keine eigene Schriftart: D2 bettet nur mitgelieferte Schriften ein. Inter
+# würde --font-regular voraussetzen und die Ansicht von einer Datei abhängig
+# machen, die nicht neben der SVG liegt.
+
+vars: {
+  d2-config: {
+    layout-engine: elk
+    # false: diagram grows from the top-left instead of floating in the canvas.
+    center: false
+    pad: 48
+  }
+}
+
+classes: {
+  # -- Rahmen ---------------------------------------------------------------
+
+  layer: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-frontend: {
+    style: {
+      stroke: "#93c5fd"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e3a8a"
+      border-radius: 8
+    }
+  }
+
+  layer-service: {
+    style: {
+      stroke: "#a5b4fc"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-size: 24
+      bold: true
+      font-color: "#1e1b4b"
+      border-radius: 8
+    }
+  }
+
+  layer-orchestration: {
+    style: {
+      stroke: "#6ee7b7"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-size: 24
+      bold: true
+      font-color: "#064e3b"
+      border-radius: 8
+    }
+  }
+
+  layer-ai: {
+    style: {
+      stroke: "#c4b5fd"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-size: 24
+      bold: true
+      font-color: "#4c1d95"
+      border-radius: 8
+    }
+  }
+
+  layer-basis: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-size: 24
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  layer-infrastructure: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f8fafc"
+      font-size: 24
+      bold: true
+      font-color: "#475569"
+      border-radius: 8
+    }
+  }
+
+  # Durchgezogen: eine Gruppe liegt im Repository, gestrichelt bleibt dem
+  # vorbehalten, was nicht aus ihm deployt wird.
+  group: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 1
+      fill: "#f8fafc"
+      font-size: 19
+      bold: true
+      font-color: "#475569"
+      border-radius: 6
+    }
+  }
+
+  legend: {
+    style: {
+      stroke: "#cbd5e1"
+      stroke-width: 2
+      fill: "#ffffff"
+      font-size: 19
+      bold: true
+      font-color: "#334155"
+      border-radius: 8
+    }
+  }
+
+  # Textspalte der Legende neben den Symbolen: ohne eigenen Rahmen.
+  legend-column: {
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Unsichtbare Endpunkte einer Musterkante in der Legende; sichtbar ist nur
+  # die Linie selbst.
+  legend-anchor: {
+    width: 4
+    height: 4
+    style: {
+      stroke: transparent
+      fill: transparent
+    }
+  }
+
+  # Beschriftung einer Musterkante, rechts neben der Linie.
+  legend-label: {
+    shape: text
+    style: {
+      font-size: 15
+      font-color: "#334155"
+    }
+  }
+
+  # -- Systemkontext --------------------------------------------------------
+
+  actor: {
+    style: {
+      stroke: "#334155"
+      stroke-width: 2
+      fill: "#f1f5f9"
+      font-color: "#0f172a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  actor-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 3
+      fill: "#f8fafc"
+      font-color: "#475569"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  system: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 2
+      fill: "#31317e"
+      font-color: "#ffffff"
+      font-size: 19
+      bold: true
+      border-radius: 8
+      shadow: true
+    }
+  }
+
+  external: {
+    style: {
+      stroke: "#64748b"
+      stroke-dash: 3
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Container ------------------------------------------------------------
+
+  frontend: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      fill: "#eff6ff"
+      font-color: "#1e3a8a"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  service: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # Ein Pool ist eine Instanz des geteilten SPARK-Backend-Images. Die dunklere
+  # Füllung trennt ihn optisch von den eigenständigen Diensten desselben Layers.
+  pool: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      fill: "#e0e7ff"
+      font-color: "#1e1b4b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  modulith: {
+    style: {
+      stroke: "#1e1b4b"
+      stroke-width: 3
+      fill: "#c7d2fe"
+      font-color: "#1e1b4b"
+      font-size: 16
+      bold: true
+      border-radius: 6
+    }
+  }
+
+  orchestration: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      fill: "#ecfdf5"
+      font-color: "#064e3b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-module: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      fill: "#f5f3ff"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  ai-infrastructure: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      fill: "#ede9fe"
+      font-color: "#4c1d95"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  platform: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      fill: "#f8fafc"
+      font-color: "#1e293b"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  # -- Komponenten ----------------------------------------------------------
+
+  component: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 1
+      fill: "#eef2ff"
+      font-color: "#1e1b4b"
+      font-size: 15
+      border-radius: 4
+    }
+  }
+
+  # -- Betreiberseitig ------------------------------------------------------
+  #
+  # Gestrichelte Knoten und Rahmen heißen: nicht aus diesem Repository
+  # deployt (betreiberseitig, extern, Sprachmodelle, Beteiligte ohne
+  # Systemzugang). Bei Kanten unterscheidet die Strichelung dagegen den Typ.
+
+  infrastructure: {
+    style: {
+      stroke: "#64748b"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#f1f5f9"
+      font-color: "#334155"
+      font-size: 16
+      border-radius: 6
+    }
+  }
+
+  language-model: {
+    style: {
+      stroke: "#7c3aed"
+      stroke-width: 2
+      stroke-dash: 4
+      fill: "#faf5ff"
+      font-color: "#4c1d95"
+      font-size: 15
+      border-radius: 6
+    }
+  }
+
+  # -- Kantentypen ----------------------------------------------------------
+  #
+  # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
+  # Die Farben sind so gewählt, dass je zwei Typen mit gleicher Strichart auch
+  # bei Rot-Grün-Sehschwäche unterscheidbar bleiben; wer eine Farbe ändert,
+  # prüft das erneut (Farbabstand, nicht Augenmaß).
+
+  http: {
+    style: {
+      stroke: "#475569"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#475569"
+    }
+  }
+
+  http-primary: {
+    style: {
+      stroke: "#1e293b"
+      stroke-width: 3
+      font-size: 14
+      font-color: "#0f172a"
+      bold: true
+    }
+  }
+
+  queue: {
+    style: {
+      stroke: "#047857"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#047857"
+    }
+  }
+
+  datastore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  objectstore: {
+    style: {
+      stroke: "#2563eb"
+      stroke-width: 2
+      stroke-dash: 3
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  cache: {
+    style: {
+      stroke: "#60a5fa"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#1e3a8a"
+    }
+  }
+
+  authz: {
+    style: {
+      stroke: "#ea580c"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#9a3412"
+    }
+  }
+
+  llm: {
+    style: {
+      stroke: "#5b21b6"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#5b21b6"
+    }
+  }
+
+  uses: {
+    style: {
+      stroke: "#31317e"
+      stroke-width: 2
+      font-size: 14
+      font-color: "#31317e"
+    }
+  }
+
+  # Beteiligung ohne Systemzugang: die Unterlagen erreichen das System, die
+  # Person selbst meldet sich nie an.
+  uses-indirect: {
+    style: {
+      stroke: "#94a3b8"
+      stroke-width: 2
+      stroke-dash: 4
+      font-size: 14
+      font-color: "#64748b"
+    }
+  }
+
+  # -- Hinweistext unterhalb einer Ansicht ----------------------------------
+
+  note: {
+    style: {
+      font-size: 15
+      font-color: "#475569"
+    }
+  }
+
+  diagram-meta: {
+    style: {
+      font-size: 15
+      font-color: "#334155"
+      bold: true
+    }
+  }
+}
+
+direction: down
+grid-columns: 1
+grid-gap: 32
+
+title: |md
+  # C2 Container
+
+  Deploybare Einheiten im veroeffentlichten Architekturumfang
+| {
+  near: top-center
+  style: { font-size: 24; font-color: "#1e1b4b" }
+}
+
+frontend-layer: "Frontend" {
+  class: layer-frontend
+  grid-columns: 1
+  frontend-anwendungen: "Anwendungen" {
+    class: group
+    grid-columns: 3
+    frontend: "SPARK Workflow Frontend\nReact, TanStack, Vite" { class: frontend }
+    handbuch: "Handbuch\nWaku, Fumadocs, Base UI" { class: frontend }
+  }
+}
+
+service-layer: "Service Layer" {
+  class: layer-service
+  grid-columns: 4
+  spark-backend: "SPARK Backend\nTypeScript, Elysia, Bun\nImage aller 15 Pools" { class: modulith }
+  workflow-dienste: "Workflow-Dienste" {
+    class: group
+    grid-columns: 4
+    project-logic-service: "Verfahrensverwaltung\nWorker project-logic" { class: pool }
+    temporal-job-service: "Workflowmanagement\nWorker temporal-job" { class: pool }
+    document-management-service: "Dokumentenmanagement\nWorker document-management" { class: pool }
+    agent-orchestration-service: "Agentenorchestrierung\nWorker agent-orchestration" { class: pool }
+  }
+  interaktionsdienste: "Interaktionsdienste" {
+    class: group
+    grid-columns: 4
+    comment-service: "Kommentarverwaltung" { class: pool }
+    supplementary-requests-service: "Nachforderungsverwaltung" { class: pool }
+    identity-management-service: "Identitaetsverwaltung" { class: pool }
+    objections-management-service: "Einwendungsverwaltung" { class: pool }
+  }
+  pruefungsdienste: "Pruefungsdienste" {
+    class: group
+    grid-columns: 5
+    formal-completeness-check: "Formale Vollstaendigkeitspruefung" { class: pool }
+    plausibility-notes: "Plausibilitaetshinweise" { class: pool }
+    examination-service: "Pruefungsdienst" { class: pool }
+    protocol-service: "Protokollverwaltung" { class: pool }
+    feedback-service: "Feedbackverwaltung" { class: pool }
+    rechtsaenderungs-monitoring: "Rechtsaenderungsmonitoring\nPython, FastAPI, Temporal" { class: service }
+  }
+  beschlussdienste: "Beschlussdienste" {
+    class: group
+    grid-columns: 1
+    administrative-file-draft: "Beschlusserstellung" { class: pool }
+  }
+  integrationsdienste: "Integrationsdienste" {
+    class: group
+    grid-columns: 2
+    fpp-service: "Fachplanungsportalintegration" { class: pool }
+    llm-client: "LLM-Client\nPython, Temporal-Worker" { class: service }
+  }
+  datenbankdienste: "Datenbankdienste" {
+    class: group
+    grid-columns: 2
+    gesetze-normen-db-service: "Gesetz- und Normendatenbankdienst\nPython, FastAPI, Temporal" { class: service }
+    jura-db-service: "Juristischer Datenbankdienst\nPython, FastAPI, Temporal" { class: service }
+    gesetzesbegruendung-db-service: "Gesetzesbegruendungsdatenbankdienst\nPython, FastAPI, Temporal" { class: service }
+  }
+}
+
+orchestration-layer: "Orchestration Layer" {
+  class: layer-orchestration
+  grid-columns: 1
+  workflow-engine: "Workflow Engine" {
+    class: group
+    grid-columns: 1
+    temporal: "Temporal\nTemporal" { class: orchestration }
+  }
+}
+
+ai-module-layer: "AI Module Layer" {
+  class: layer-ai
+  grid-columns: 2
+  ki-module: "KI-Module" {
+    class: group
+    grid-columns: 5
+    inhaltsextraktion: "Inhaltsextraktion\nPython, Temporal-Worker" { class: ai-module }
+    formale-vollstaendigkeitspruefung: "Formale Vollstaendigkeitspruefung\nPython, Temporal-Worker" { class: ai-module }
+    plausibilitaetspruefung: "Plausibilitaetspruefung\nPython, Temporal-Worker" { class: ai-module }
+    materielle-vollstaendigkeitspruefung: "Materielle Vollstaendigkeitspruefung\nPython, Temporal-Worker" { class: ai-module }
+    einwendungsmanagement: "Einwendungsmanagement\nPython, Temporal-Worker" { class: ai-module }
+    rechtliche-pruefung-und-bewertung: "Rechtliche Pruefung und Bewertung\nPython, Temporal-Worker" { class: ai-module }
+    rechtsmethodik: "Rechtsmethodik\nPython, Temporal-Worker" { class: ai-module }
+    anonymisierung: "Anonymisierung\nPython, Temporal-Worker" { class: ai-module }
+    risikohinweiser: "Risikohinweiser\nPython, Temporal-Worker" { class: ai-module }
+  }
+}
+
+basisdienste: "Basisdienste" {
+  class: layer-basis
+  grid-columns: 2
+  plattformdienste: "Plattformdienste" {
+    class: group
+    grid-columns: 5
+    spicedb: "SpiceDB\nSpiceDB" { class: platform }
+    qdrant: "Qdrant\nQdrant" { class: platform }
+    unoserver: "Unoserver\nUnoserver, LibreOffice" { class: platform }
+    clamav: "ClamAV\nClamAV, clamav-api (REST)" { class: platform }
+    docling-rq: "Docling\nDocling, RQ" { class: platform }
+  }
+  datenhaltung: "Datenhaltung" {
+    class: group
+    grid-columns: 5
+    redis-shared: "Redis (geteilt)\nRedis" { class: platform }
+    redis-datenbanken: "Redis (Datenbankdienste)\nRedis" { class: platform }
+    redis-formale-pruefung: "Redis (Formale Pruefung)\nRedis" { class: platform }
+    redis-rechtsmethodik: "Redis (Rechtsmethodik)\nRedis" { class: platform }
+    redis-sessions: "Redis (Sitzungen)\nRedis" { class: platform }
+  }
+  werkzeuge: "Werkzeuge" {
+    class: group
+    grid-columns: 1
+    service-api-docs: "Service-API-Dokumentation\nSwagger UI" { class: platform }
+  }
+}
+
+betreiberseitig: "Betreiberseitig bereitgestellt" {
+  class: layer-infrastructure
+  grid-columns: 4
+  postgresql: "PostgreSQL" { class: infrastructure }
+  object-storage: "S3-kompatibler Objektspeicher" { class: infrastructure }
+  redis: "Redis" { class: infrastructure }
+  identity-provider: "Identitaets- und Autorisierungsdienst" { class: infrastructure }
+  service-mesh: "mTLS-Service-Mesh" { class: infrastructure }
+  secrets-management: "Secrets- und Schluesselverwaltung" { class: infrastructure }
+  metrics: "Metrikdienst" { class: infrastructure }
+  telemetry: "Telemetriedienst" { class: infrastructure }
+  llm-proxy: "LLM-Proxy" { class: infrastructure }
+  kubernetes: "Kubernetes-Cluster" { class: infrastructure }
+}
+
+
+dokumentation: "Legende und Metadaten" {
+  class: legend
+  grid-columns: 3
+  grid-gap: 32
+  legende-symbole: "Symbole" {
+    class: legend
+    grid-columns: 3
+    grid-gap: 32
+    l-pool: "Backend-Pool\n15 Instanzen eines Images" { class: pool }
+    l-service: "Eigenstaendiger Dienst" { class: service }
+    l-modulith: "SPARK Backend\nModulith-Image" { class: modulith }
+    l-ai: "KI-Modul" { class: ai-module }
+    l-platform: "Plattformdienst" { class: platform }
+    l-infra: "Betreiberseitig, nicht aus diesem Repository" { class: infrastructure }
+  }
+
+  legende-text: "" {
+    class: legend-column
+    grid-columns: 1
+    metadaten: |md
+      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Ansicht** c2-container (C2)\
+      **Renderer** d2 v0.8.2\
+      **Quelle** kuratiertes Modell\
+      landscape.toml, views.toml, inventory.toml
+    | {
+      class: diagram-meta
+    }
+
+  }
+  hinweis: |md
+    44 deploybare Einheiten aus diesem Repository,\
+    dazu 10 betreiberseitig bereitgestellte Bausteine.
+
+    Die 15 Backend-Pools starten dasselbe Image und stellen jeweils\
+    den vollstaendigen HTTP-Graphen bereit. Getrennt sind Name, Service,\
+    Routing-Praefix, Worker-Identitaet und Skalierung, nicht die\
+    Fachlichkeit. Die Gruppen benennen den Verkehr, den ein Pool bedient.
+
+    Die Karte zeigt das Inventar ohne Laufzeitkanten. Die\
+    78 belegten Beziehungen stehen in den\
+    fokussierten C2-Ansichten und in inventory.toml.
+
+    SPARK Backend, KI-Module und Datenbankdienste melden an den\
+    Telemetriedienst, sofern ihr Endpunkt je Umgebung gesetzt ist;\
+    diese Kanten sind nicht einzeln gezeichnet.
+  | {
+    class: note
+  }
+
+}

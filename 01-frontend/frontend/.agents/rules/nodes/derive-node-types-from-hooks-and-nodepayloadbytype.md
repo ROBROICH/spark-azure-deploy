@@ -1,3 +1,7 @@
+---
+ruleId: nodes/derive-node-types-from-hooks-and-nodepayloadbytype
+---
+
 # Derive Node Types from Hooks and `NodePayloadByType`
 
 - When wiring UI to the nodes API, prefer the actual types returned by `useNode(...)` and `useNodes(...)`.

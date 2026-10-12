@@ -69,7 +69,6 @@ class SpeciesScaleWorkflow:
             *[
                 process_species_scale_batch(
                     ProcessSpeciesScaleBatchInput(chunks=batch),
-                    num_concurrent_batches=num_batches,
                 )
                 for batch in batches
             ]

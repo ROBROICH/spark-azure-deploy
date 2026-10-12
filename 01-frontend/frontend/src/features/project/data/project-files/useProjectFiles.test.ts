@@ -1,122 +1,76 @@
-import { renderHook } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type * as ProjectVersioning from '@/features/project/versioning/projectVersioning';
-import { useProjectFile, useProjectFiles } from './useProjectFiles';
+import { renderHook, waitFor } from '@testing-library/react';
+import { createElement, type ReactNode } from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { describe, expect, it, vi } from 'vitest';
+import { client } from '@/api-clients/backend/client.gen';
+import type { FileResponse } from '@/api-clients/backend';
+import { queryClient } from '@/integrations/tanstack-query/root-provider';
+import { useProjectFiles } from './useProjectFiles';
 
-const mocks = vi.hoisted(() => ({
-  loadProjectFiles: vi.fn(),
-  useQuery: vi.fn(),
-  useProjectRouteVersion: vi.fn(() => 7),
+vi.mock('@/features/project/versioning/projectVersioning', () => ({
+  useProjectRouteVersion: () => 7,
+  getMountedProjectIds: () => [],
 }));
 
-vi.mock('@tanstack/react-query', () => ({
-  useQuery: mocks.useQuery,
+const projectId = '61000000-0000-4000-8000-000000000002';
+const files: FileResponse[] = Array.from({ length: 120 }, (_, index) => ({
+  id: `61000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+  type: 'document',
+  filename: `document-${index}.pdf`,
+  mimeType: 'application/pdf',
+  bucketPath: `${projectId}/document-${index}.pdf`,
+  version: 1,
+  projectVersion: 2,
+  addedInVersion: 1,
+  isDeleted: false,
+  projectId,
+  workflowId: null,
+  runId: null,
+  vectorSearchable: true,
+  topics: [],
+  createdAt: new Date(Date.UTC(2026, 8, 1, 8, 0, 120 - index)).toISOString(),
+  updatedAt: new Date(Date.UTC(2026, 8, 1, 8, 0, 120 - index)).toISOString(),
 }));
 
-vi.mock(
-  '@/features/project/versioning/projectVersioning',
-  async (importOriginal) => ({
-    ...(await importOriginal<typeof ProjectVersioning>()),
-    useProjectRouteVersion: mocks.useProjectRouteVersion,
-  }),
-);
-
-vi.mock('../collections/files.collection', () => ({
-  loadProjectFiles: mocks.loadProjectFiles,
-}));
-
-type UseQueryOptions = {
-  queryKey: ReadonlyArray<unknown>;
-  queryFn: () => Promise<unknown>;
-  enabled: boolean;
-};
+const wrapper = ({ children }: { children: ReactNode }) =>
+  createElement(QueryClientProvider, { client: queryClient }, children);
 
 describe('useProjectFiles', () => {
-  beforeEach(() => {
-    mocks.loadProjectFiles.mockReset();
-    mocks.useQuery.mockReset();
-    mocks.useProjectRouteVersion.mockClear();
-    mocks.useQuery.mockReturnValue({
-      data: [],
-      isError: false,
-      isLoading: false,
+  it('transfers only the initial visible window from the selected document version', async () => {
+    const original = client.getConfig();
+    const requests: URL[] = [];
+    const transferred: string[] = [];
+    client.setConfig({
+      baseUrl: 'http://files.test',
+      fetch: (request) => {
+        const url = new URL(
+          request instanceof Request ? request.url : String(request),
+        );
+        requests.push(url);
+        const page = Number(url.searchParams.get('page') ?? 1);
+        const pageSize = Number(url.searchParams.get('pageSize') ?? 50);
+        const items = files.slice((page - 1) * pageSize, page * pageSize);
+        transferred.push(...items.map((file) => file.id));
+        return Promise.resolve(Response.json(items));
+      },
     });
-  });
-
-  it('disables the query without loading files', () => {
-    const { result } = renderHook(() =>
-      useProjectFiles('project-1', { enabled: false }),
+    const hook = renderHook(
+      () => useProjectFiles(projectId, { documentVersion: 2 }),
+      { wrapper },
     );
-
-    expect(mocks.useQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        enabled: false,
-        queryKey: ['files', 'project-1', undefined],
-      }),
-    );
-    expect(result.current).toEqual({
-      files: [],
-      isError: false,
-      isLoading: false,
-    });
-  });
-
-  it('loads documents for the active project version by default', async () => {
-    renderHook(() => useProjectFiles('project-1'));
-
-    const options = mocks.useQuery.mock.calls[0]?.[0] as UseQueryOptions;
-    await options.queryFn();
-
-    expect(mocks.useProjectRouteVersion).toHaveBeenCalled();
-    expect(options).toEqual(
-      expect.objectContaining({
-        enabled: true,
-        queryKey: ['files', 'project-1', 7],
-      }),
-    );
-    expect(mocks.loadProjectFiles).toHaveBeenCalledWith('project-1', 7);
-  });
-
-  it('uses the selected document version instead of the active project version', async () => {
-    renderHook(() => useProjectFiles('project-1', { documentVersion: 2 }));
-
-    const options = mocks.useQuery.mock.calls[0]?.[0] as UseQueryOptions;
-    await options.queryFn();
-
-    expect(mocks.useProjectRouteVersion).toHaveBeenCalled();
-    expect(options).toEqual(
-      expect.objectContaining({
-        enabled: true,
-        queryKey: ['files', 'project-1', 2],
-      }),
-    );
-    expect(mocks.loadProjectFiles).toHaveBeenCalledWith('project-1', 2);
-  });
-
-  it('resolves a single file from the project-scoped files query', () => {
-    mocks.useQuery.mockReturnValue({
-      data: [
-        { id: 'file-1', filename: 'one.pdf' },
-        { id: 'file-2', filename: 'two.pdf' },
-      ],
-      isError: false,
-      isLoading: false,
-    });
-
-    const { result } = renderHook(() =>
-      useProjectFile({ projectId: 'project-1', fileId: 'file-2' }),
-    );
-
-    expect(mocks.useQuery).toHaveBeenCalledWith(
-      expect.objectContaining({
-        enabled: true,
-        queryKey: ['files', 'project-1', 7],
-      }),
-    );
-    expect(result.current).toEqual({
-      file: { id: 'file-2', filename: 'two.pdf' },
-      isError: false,
-      isLoading: false,
-    });
+    try {
+      await waitFor(() => expect(hook.result.current.isLoading).toBe(false));
+      expect(hook.result.current.files.map((file) => file.id)).toEqual(
+        files.slice(0, 50).map((file) => file.id),
+      );
+      expect(transferred.length).toBeLessThanOrEqual(51);
+      expect(
+        requests.every((url) => url.searchParams.get('projectVersion') === '2'),
+      ).toBe(true);
+    } finally {
+      hook.unmount();
+      queryClient.clear();
+      client.setConfig(original);
+    }
   });
 });

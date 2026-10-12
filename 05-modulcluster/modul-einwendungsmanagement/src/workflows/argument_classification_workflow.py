@@ -8,19 +8,16 @@ in parallel using child workflows, ensuring efficient handling of LLM classifica
 
 from datetime import timedelta
 
+from temporal.contracts import ArgumentClassificationOutput, ArgumentClassificationParams
+from temporal.registry import EINWENDUNGSMANAGEMENT_ARGUMENT_CLASSIFICATION_WORKFLOW
 from temporal.utils import sliding_window
-from temporal.workflows.einwendungsmanagement.types import (
-    ARGUMENT_CLASSIFICATION_WORKFLOW_ID,
-    ArgumentClassificationOutput,
-    ArgumentClassificationParams,
-)
 from temporalio import workflow
 
 from src.config.config import config
 from src.workflows import ArgumentClassificationSingleBatchWorkflow
 
 
-@workflow.defn(name=ARGUMENT_CLASSIFICATION_WORKFLOW_ID)
+@workflow.defn(name=EINWENDUNGSMANAGEMENT_ARGUMENT_CLASSIFICATION_WORKFLOW.name)
 class ArgumentClassificationWorkflow:
     """
     Orchestrates the classification of arguments across multiple documents.

@@ -1,0 +1,75 @@
+{{- /*
+Hook-scoped prerequisites of the db-init Jobs: they run before the release's
+normal resources exist, so the admin credentials, the ServiceAccount and the
+script are hooks themselves (weight -10, kept until the next hook run).
+*/ -}}
+{{- if include "db-init.active" . }}
+{{- /* deleted once each hook event has finished: the admin credentials of the
+     shared server do not stay in the namespace (hook-failed: ArgoCD removes
+     them after a failed sync too; Helm applies it only to the failing hook,
+     so delete them by hand after a failed Helm CLI run) */}}
+{{- $hook := dict "helm.sh/hook" "pre-install,pre-upgrade,post-install,post-upgrade" "helm.sh/hook-weight" "-10" "helm.sh/hook-delete-policy" "before-hook-creation,hook-succeeded,hook-failed" }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "db-init.fullname" . }}
+  namespace: {{ include "db-init.namespace" . }}
+  labels:
+    {{- include "db-init.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml $hook | nindent 4 }}
+    {{- with .Values.serviceAccount.gcpServiceAccount }}
+    iam.gke.io/gcp-service-account: {{ . }}
+    {{- end }}
+    {{- with .Values.serviceAccount.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+{{- with .Values.imagePullSecrets }}
+imagePullSecrets:
+  {{- toYaml . | nindent 2 }}
+{{- end }}
+{{- if not .Values.admin.existingSecret.name }}
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: {{ include "db-init.fullname" . }}-admin
+  namespace: {{ include "db-init.namespace" . }}
+  labels:
+    {{- include "db-init.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml $hook | nindent 4 }}
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: {{ required "db-init: admin.secretStore.name is required (store holding the admin credentials)" .Values.admin.secretStore.name }}
+    kind: {{ .Values.admin.secretStore.kind }}
+  target:
+    name: {{ include "db-init.fullname" . }}-admin
+    creationPolicy: Owner
+  data:
+    - secretKey: username
+      remoteRef:
+        key: {{ required "db-init: admin.remoteKey is required (store entry of the admin credentials)" .Values.admin.remoteKey }}
+        property: {{ .Values.admin.usernameProperty }}
+    - secretKey: password
+      remoteRef:
+        key: {{ required "db-init: admin.remoteKey is required (store entry of the admin credentials)" .Values.admin.remoteKey }}
+        property: {{ .Values.admin.passwordProperty }}
+{{- end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "db-init.fullname" . }}-script
+  namespace: {{ include "db-init.namespace" . }}
+  labels:
+    {{- include "db-init.labels" . | nindent 4 }}
+  annotations:
+    {{- toYaml $hook | nindent 4 }}
+data:
+  db-init.sh: |
+    {{- .Files.Get "files/db-init.sh" | nindent 4 }}
+  qdrant-init.sh: |
+    {{- .Files.Get "files/qdrant-init.sh" | nindent 4 }}
+{{- end }}

@@ -19,6 +19,8 @@
     "loadError": "Unterlagen konnten nicht geladen werden."
   },
   "PdfFileTree": {
+    "loadMore": "Weitere Unterlagen laden",
+    "loading": "Unterlagen werden geladen …",
     "recentlyOpened": "Zuletzt geöffnet",
     "connectedBadge": "Verbunden",
     "closeLaneAria": "Panel für diese Unterlage schließen",
@@ -43,6 +45,8 @@
     "filterTablistLabel": "Unterlagenfilter",
     "filterAll": "Alle ({{count}})",
     "filterTopic": "{{label}} ({{count}})",
+    "filterAllPartial": "Alle ({{count}} geladen)",
+    "filterTopicPartial": "{{label}} ({{count}} geladen)",
     "collapseSidebarAria": "Seitenleiste einklappen",
     "expandSidebarAria": "Seitenleiste ausklappen",
     "loadError": "Unterlagen konnten nicht geladen werden."

@@ -14,8 +14,7 @@ DOCKER_SERVICES=(
   temporal
   temporal-init
   temporal-ui
-  minio
-  minio-init
+  versitygw
 )
 
 PROCESS_COMPOSE_SERVICES=(

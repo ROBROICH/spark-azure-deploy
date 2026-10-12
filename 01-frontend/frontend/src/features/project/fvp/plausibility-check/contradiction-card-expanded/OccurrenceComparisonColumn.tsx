@@ -1,4 +1,4 @@
-import type { ContradictionOccurrence } from '@/api-clients/pns-module';
+import type { ContradictionOccurrence } from '@/api-clients/backend';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 

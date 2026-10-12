@@ -4,7 +4,12 @@ Tests for prepare_stage1 and prepare_stage2 in src/pageindex_svm/preparation.py.
 These test the prompt-building logic and stage2 batching with sentence maps.
 """
 
-from temporal.workflows.modul_suche_und_zuordnung.types import Document, DocumentNode
+from temporal.contracts import (
+    SucheZuordnungDocument as Document,
+)
+from temporal.contracts import (
+    SucheZuordnungDocumentNode as DocumentNode,
+)
 
 from src.pageindex_svm.preparation import prepare_stage1, prepare_stage2
 

@@ -26,7 +26,7 @@ export const ObjectionRow = (props: ObjectionRowProps) => {
   const totalCount = argumentsList.length;
   const { t } = useTranslation('Ewms');
   const classificationState = resolveEwmsClassificationState(objection);
-  const extractionStatus = objection.entry.extraction_status;
+  const extractionStatus = objection.entry.extractionStatus;
   const isWaitingForClassification = classificationState === 'loading';
   const isPromptInjection = extractionStatus === 'prompt_injection_error';
   const isClassificationFailed =
@@ -68,7 +68,7 @@ export const ObjectionRow = (props: ObjectionRowProps) => {
     <div role="listitem">
       <button
         type="button"
-        onClick={() => onSelect(objection.entry.file_id)}
+        onClick={() => onSelect(objection.entry.fileId)}
         aria-pressed={isSelected}
         className={buttonClass}
       >

@@ -15,11 +15,9 @@ import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor
 
+from temporal.registry import EINWENDUNGSMANAGEMENT_ARGUMENT_EXTRACTION_WORKFLOW
 from temporal.s3_payload_storage import S3PayloadStorage
 from temporal.worker import start_temporal_worker
-from temporal.workflows.einwendungsmanagement.types import (
-    TASK_QUEUE as EINWENDUNGSMANAGEMENT_TASK_QUEUE,
-)
 
 from src.activities import activities
 from src.workflows import workflows
@@ -31,8 +29,8 @@ def _create_storage() -> S3PayloadStorage:
     return S3PayloadStorage(
         bucket_name=ENV.TEMPORAL.S3_BUCKET_NAME,
         endpoint_url=ENV.TEMPORAL.S3_ENDPOINT_URL,
-        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID,
-        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY,
+        access_key=ENV.TEMPORAL.S3_ACCESS_KEY_ID.get_secret_value(),
+        secret_key=ENV.TEMPORAL.S3_SECRET_ACCESS_KEY.get_secret_value(),
         region=ENV.TEMPORAL.S3_REGION,
     )
 
@@ -46,7 +44,7 @@ async def main():
     with limited concurrency to prevent overloading.
     """
     target_host = ENV.TEMPORAL.HOST
-    task_queue = EINWENDUNGSMANAGEMENT_TASK_QUEUE
+    task_queue = EINWENDUNGSMANAGEMENT_ARGUMENT_EXTRACTION_WORKFLOW.task_queue
 
     logger.info("Initializing Temporal Worker Process....")
     logger.info(f"Target Temporal Host: {target_host}")

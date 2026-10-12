@@ -1,0 +1,18 @@
+{{- /*
+System-CA TLS validation for the per-namespace keycloak-external Backend.
+*/ -}}
+apiVersion: gateway.networking.k8s.io/v1
+kind: BackendTLSPolicy
+metadata:
+  name: keycloak-external-tls
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "gateway-routes.labels" . | nindent 4 }}
+spec:
+  targetRefs:
+    - group: gateway.envoyproxy.io
+      kind: Backend
+      name: keycloak-external
+  validation:
+    wellKnownCACertificates: System
+    hostname: {{ include "gateway-routes.keycloakHost" . }}

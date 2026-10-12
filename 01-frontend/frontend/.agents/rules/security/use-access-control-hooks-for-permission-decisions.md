@@ -1,3 +1,9 @@
+---
+ruleId: security/use-access-control-hooks-for-permission-decisions
+paths:
+  - "src/features/**"
+---
+
 # Use AccessControl Hooks for Permission Decisions
 
 - Feature code must use the canonical permission helpers from `src/features/access-control/` instead of hand-rolling role, owner, member, or topic-assignee checks.

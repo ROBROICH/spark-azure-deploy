@@ -1,0 +1,112 @@
+apiVersion: v2
+name: spark-platform
+description: >-
+  One complete SPARK Workflow environment per release — testing, a branch deployment or a demo: the spark-environment application stack plus the per-environment add-ons (environment-config: ServiceAccount, ExternalSecrets, otel-collector, network policies, SpiceDBCluster; gateway-routes; the Temporal engine, unoserver, ClamAV, landing page, further modules and the per-provider llm-client workers). Every add-on can be switched off for environments that get it from elsewhere. Per-environment configuration lives in one values file per environment.
+type: application
+version: 0.5.0
+appVersion: "1.0.0"
+dependencies:
+  - name: spark-environment
+    version: "0.4.0"
+    repository: "file://../spark-environment"
+    condition: spark-environment.enabled
+  # Namespace plumbing (KSA, secrets, policies) and edge routing. On by
+  # default; environments whose routing is managed elsewhere switch
+  # gateway-routes off.
+  - name: environment-config
+    version: "0.4.0"
+    repository: "file://../../03-infrastructure/environment-config"
+    condition: environment-config.enabled
+  - name: gateway-routes
+    version: "0.4.0"
+    repository: "file://../../03-infrastructure/gateway-routes"
+    condition: gateway-routes.enabled
+  # Opt-in database initialization (create / drop / restore from GCS dumps,
+  # SpiceDB zed restore) — renders nothing unless a database asks for it.
+  - name: db-init
+    version: "0.4.0"
+    repository: "file://../../03-infrastructure/db-init"
+    condition: db-init.enabled
+  # In-cluster endpoints for databases outside the cluster (Cloud SQL Auth
+  # Proxy, session-mode PgBouncer) — off by default.
+  - name: db-proxy
+    version: "0.1.0"
+    repository: "file://../../03-infrastructure/db-proxy"
+    condition: db-proxy.enabled
+  # Landing page for the dashboard host apex. Paired with gateway-routes: its
+  # landing-route serves dashboard.<env>/ from this chart's Service. When
+  # disabling it, also set gateway-routes.landing.enabled=false — the
+  # dashboard route then 302-redirects the apex to /app, so exactly one route
+  # claims / either way.
+  - name: landingpage
+    version: "0.3.0"
+    repository: "file://../../01-frontend/landingpage"
+    condition: landingpage.enabled
+  - name: temporal
+    version: "0.4.0"
+    repository: "file://../../04-shared-services/temporal"
+    condition: temporal.enabled
+  # In-namespace document conversion (UNO_HOST of the DMS-family services).
+  - name: unoserver
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/unoserver"
+    condition: unoserver.enabled
+  # Per-environment ClamAV scanner; point the backend's CLAMAV_BASE_URL at its
+  # Service ({release}-clamav-<stage>:6000).
+  - name: clamav
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/clamav"
+    condition: clamav.enabled
+  # Modules outside the spark-environment layers (direct add-ons).
+  - name: modul-risikohinweiser
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-risikohinweiser"
+    condition: modul-risikohinweiser.enabled
+  # Fallvergleichsservice; requires its own PostgreSQL database per
+  # environment (e.g. created with db-init).
+  - name: fallvergleichsservice
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/fallvergleichsservice"
+    condition: fallvergleichsservice.enabled
+  # Normenermittlung Temporal worker
+  # (norm-tbm-spec-module image).
+  - name: modul-normenermittlung
+    version: "0.3.0"
+    repository: "file://../../05-modulcluster/modul-normenermittlung"
+    condition: modul-normenermittlung.enabled
+  # Per-provider llm-client instances (aliases of the same leaf chart). The
+  # shared llm_invoke activity routes each call by model-name prefix to a
+  # provider task queue (llm-custom, llm-vertex, llm-ionos, llm-mistral,
+  # llm-nvidia, llm-huggingface); the agent-services llm-client polls
+  # llm-custom only. Every queue needs a poller or its activities starve —
+  # some model names are code defaults invisible in values (e.g. the OCR
+  # model), so full queue coverage is required, not just the configured models.
+  - name: llm-client
+    alias: llm-client-vertex
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client-vertex.enabled
+  - name: llm-client
+    alias: llm-client-ionos
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client-ionos.enabled
+  - name: llm-client
+    alias: llm-client-mistral
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client-mistral.enabled
+  - name: llm-client
+    alias: llm-client-nvidia
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client-nvidia.enabled
+  - name: llm-client
+    alias: llm-client-huggingface
+    version: "0.3.0"
+    repository: "file://../../04-shared-services/llm-client"
+    condition: llm-client-huggingface.enabled
+kubeVersion: ">=1.28.0-0"
+home: https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts
+sources:
+  - https://gitlab.opencode.de/bmds/planungs-und-genehmigungsbeschleunigung/charts

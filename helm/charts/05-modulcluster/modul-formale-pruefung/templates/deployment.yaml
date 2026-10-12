@@ -1,0 +1,125 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "modul-formale-pruefung.fullname" . }}
+  namespace: {{ include "modul-formale-pruefung.namespace" . }}
+  labels:
+    {{- include "modul-formale-pruefung.labels" . | nindent 4 }}
+spec:
+  {{- if not (or .Values.autoscaling.enabled (.Values.keda | default dict).enabled) }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "modul-formale-pruefung.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with mergeOverwrite (deepCopy ((.Values.global | default dict).podAnnotations | default dict)) (.Values.podAnnotations | default dict) }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- /* chart labels win: podLabels cannot redefine selector or standard keys */}}
+        {{- merge (include "modul-formale-pruefung.labels" . | fromYaml) (.Values.podLabels | default dict) | toYaml | nindent 8 }}
+    spec:
+      {{- with include "modul-formale-pruefung.imagePullSecrets" . }}
+      imagePullSecrets:
+        {{- . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "modul-formale-pruefung.serviceAccountName" . }}
+      {{- if eq (include "modul-formale-pruefung.automountToken" .) "false" }}
+      automountServiceAccountToken: false
+      {{- end }}
+      {{- with .Values.priorityClassName }}
+      priorityClassName: {{ . }}
+      {{- end }}
+      {{- if not (kindIs "invalid" .Values.terminationGracePeriodSeconds) }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- end }}
+      {{- with include "modul-formale-pruefung.podSecurityContext" . }}
+      securityContext:
+        {{- . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.initContainers }}
+      initContainers:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ include "modul-formale-pruefung.containerName" . }}
+          {{- with include "modul-formale-pruefung.containerSecurityContext" . }}
+          securityContext:
+            {{- . | nindent 12 }}
+          {{- end }}
+          image: {{ include "modul-formale-pruefung.image" . | quote }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.command }}
+          command:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.containerPorts }}
+          ports:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with include "modul-formale-pruefung.containerEnv" . }}
+          env:
+            {{- . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.extraEnvFrom }}
+          envFrom:
+            {{- tpl (toYaml .) $ | nindent 12 }}
+          {{- end }}
+          {{- with .Values.lifecycle }}
+          lifecycle:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- $tmp := list }}
+          {{- if include "modul-formale-pruefung.tmpVolume" . }}{{ $tmp = list (dict "name" "tmp" "mountPath" "/tmp") }}{{ end }}
+          {{- with concat (.Values.volumeMounts | default list) (.Values.extraVolumeMounts | default list) $tmp }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- with .Values.extraContainers }}
+        {{- tpl (toYaml .) $ | nindent 8 }}
+        {{- end }}
+      {{- $tmpVol := list }}
+      {{- if include "modul-formale-pruefung.tmpVolume" . }}{{ $tmpVol = list (dict "name" "tmp" "emptyDir" dict) }}{{ end }}
+      {{- with concat (.Values.volumes | default list) (.Values.extraVolumes | default list) $tmpVol }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.topologySpreadConstraints }}
+      topologySpreadConstraints:
+        {{- tpl (toYaml .) $ | nindent 8 }}
+      {{- end }}

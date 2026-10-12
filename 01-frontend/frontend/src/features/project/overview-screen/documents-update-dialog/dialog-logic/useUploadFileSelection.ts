@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { UploadFile } from '../DocumentsUploadContext';
+import type { UploadFile, UploadGlobalError } from '../DocumentsUploadContext';
 
 const VALID_EXTENSIONS = ['.zip'] as const;
 
@@ -25,14 +25,16 @@ export const useUploadFileSelection = () => {
   // eslint-disable-next-line no-restricted-syntax -- pre-submit form state local to the upload workflow.
   const [files, setFiles] = useState<UploadFile[]>([]);
 
-  const addFiles = (incoming: File[]) => {
-    setFiles((prev) => {
-      const existingNames = new Set(prev.map((entry) => entry.file.name));
-      const deduplicated = incoming.filter(
-        (file) => !existingNames.has(file.name),
-      );
-      return [...prev, ...deduplicated.map(validateNewFile)];
-    });
+  const addFiles = (incoming: File[]): UploadGlobalError | null => {
+    const [file] = incoming;
+    if (incoming.length !== 1 || !file) {
+      return 'single-zip-required';
+    }
+    if (files.length > 0) {
+      return files[0]?.file.name === file.name ? null : 'single-zip-required';
+    }
+    setFiles((prev) => (prev.length === 0 ? [validateNewFile(file)] : prev));
+    return null;
   };
 
   const removeFile = (id: string) => {

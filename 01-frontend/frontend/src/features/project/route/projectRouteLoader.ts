@@ -1,8 +1,11 @@
-import { startBatchMvpWorkflowWorkflowsMvpPost } from '@/api-clients/agent-orchestration-module';
-import { startProjectInitializationProjectsProjectIdInitializePost } from '@/api-clients/pls-module';
+import {
+  v1AgentOrchestrationStartBatchMvpWorkflow as startBatchMvpWorkflow,
+  v1ProjectLogicInitializeProject as initializeProject,
+} from '@/api-clients/backend';
 import { createExaminationDb } from '@/db/nodes/createExaminationDb';
 import { ensureProjectGraphReady } from '@/db/nodes/projectGraphCache';
 import { getCurrentUserQueryOptions } from '@/features/access-control/current-user/currentUser';
+import { getConfiguredProductMode } from '@/features/shared/config/productMode';
 import { organizationUsersCollection } from '@/features/access-control/organization-users/organizationUsers.collection';
 import { isProjectOwnerOrMember } from '@/features/access-control/project-permissions/isProjectOwnerOrMember';
 import { projectsCollection } from '@/features/project/data/collections/projects.collection';
@@ -19,16 +22,23 @@ type ProjectRouteLoaderContext = {
 };
 
 const startProjectRouteWorkflows = async (projectId: string) => {
-  await Promise.all([
-    startProjectInitializationProjectsProjectIdInitializePost({
-      path: { project_id: projectId },
+  const requests: Promise<unknown>[] = [
+    initializeProject({
+      path: { projectId: projectId },
       throwOnError: true,
     }),
-    startBatchMvpWorkflowWorkflowsMvpPost({
-      body: { projectId },
-      throwOnError: true,
-    }),
-  ]);
+  ];
+
+  if (getConfiguredProductMode() === 'spark') {
+    requests.push(
+      startBatchMvpWorkflow({
+        body: { projectId },
+        throwOnError: true,
+      }),
+    );
+  }
+
+  await Promise.all(requests);
 };
 
 const startProjectRouteWorkflowsBestEffort = async (projectId: string) => {

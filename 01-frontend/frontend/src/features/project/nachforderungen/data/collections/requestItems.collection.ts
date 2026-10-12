@@ -1,79 +1,45 @@
 import {
-  createSupplementaryRequestProjectsProjectIdSupplementaryRequestsPost,
-  deleteSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdDelete,
-  listSupplementaryRequestsProjectsProjectIdSupplementaryRequestsGet,
-  updateSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdPatch,
-  type CreateSupplementaryRequestRequest,
-  type SourceRef,
+  v1SupplementaryRequestsCreateSupplementaryRequest as createSupplementaryRequest,
+  v1SupplementaryRequestsDeleteSupplementaryRequest as deleteSupplementaryRequest,
+  v1SupplementaryRequestsListSupplementaryRequests as listSupplementaryRequests,
+  v1SupplementaryRequestsUpdateSupplementaryRequest as updateSupplementaryRequest,
+  type V1SupplementaryRequestsCreateSupplementaryRequestData as CreateSupplementaryRequestData,
   type SupplementaryRequestResponse,
-  type UpdateSupplementaryRequestRequest,
-} from '@/api-clients/supplementary-requests-module';
+  type V1SupplementaryRequestsUpdateSupplementaryRequestData as UpdateSupplementaryRequestData,
+} from '@/api-clients/backend';
 import { queryClient } from '@/integrations/tanstack-query/root-provider';
+import { queryCollectionOptions } from '@tanstack/query-db-collection';
 import {
-  parseLoadSubsetOptions,
-  queryCollectionOptions,
-} from '@tanstack/query-db-collection';
-import { createCollection } from '@tanstack/react-db';
+  BasicIndex,
+  createCollection,
+  walkExpression,
+  type LoadSubsetOptions,
+} from '@tanstack/react-db';
+import { invalidateRequestReads } from '../requestQueries';
 
 import {
-  requestItemSchema,
+  requestItemFromApi,
   type RequestItem,
   type RequestItemSourceRef,
 } from '../schemas/requestItem.schema';
 
-const NIL_UUID = '00000000-0000-0000-0000-000000000000';
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+type CreateSupplementaryRequestRequest = CreateSupplementaryRequestData['body'];
+type UpdateSupplementaryRequestRequest = UpdateSupplementaryRequestData['body'];
+type ApiSourceRef = NonNullable<SupplementaryRequestResponse['sourceRef']>;
 
-const extractProjectId = (opts: Record<string, unknown>): string => {
-  const parsed = parseLoadSubsetOptions(opts);
-  const filter = parsed.filters.find((f) => f.field.join('.') === 'projectId');
-  const value = filter?.value;
-  return typeof value === 'string' ? value : '';
-};
-
-const fromApiSourceRef = (
-  sourceRef?: SourceRef | null,
-): RequestItemSourceRef | undefined => {
-  if (!sourceRef) {
-    return undefined;
-  }
-  return {
-    type: sourceRef.type,
-    itemId: sourceRef.item_id,
-  };
-};
+export const REQUEST_ITEMS_PAGE_SIZE = 50;
 
 const toApiSourceRef = (
   sourceRef?: RequestItemSourceRef,
-): SourceRef | undefined => {
+): ApiSourceRef | undefined => {
   if (!sourceRef?.itemId) {
     return undefined;
   }
   return {
     type: sourceRef.type,
-    item_id: sourceRef.itemId,
+    itemId: sourceRef.itemId,
   };
 };
-
-const toApiUuid = (value: string | undefined): string =>
-  value && UUID_PATTERN.test(value) ? value : NIL_UUID;
-
-export const requestItemFromApi = (
-  item: SupplementaryRequestResponse,
-): RequestItem =>
-  requestItemSchema.parse({
-    id: item.id,
-    projectId: item.project_id,
-    sourceRef: fromApiSourceRef(item.source_ref),
-    priority: item.priority,
-    title: item.title,
-    reason: item.reason,
-    createdAt: new Date(item.created_at),
-    topicId: item.topic_id ?? undefined,
-    documentId: item.document_id ?? undefined,
-    includedInLetter: item.included_in_letter,
-  });
 
 export const requestItemToCreatePayload = (
   item: RequestItem,
@@ -81,10 +47,10 @@ export const requestItemToCreatePayload = (
   title: item.title,
   reason: item.reason,
   priority: item.priority,
-  source_ref: toApiSourceRef(item.sourceRef),
-  included_in_letter: item.includedInLetter,
-  document_id: toApiUuid(item.documentId),
-  topic_id: toApiUuid(item.topicId),
+  sourceRef: toApiSourceRef(item.sourceRef),
+  includedInLetter: item.includedInLetter,
+  documentId: item.documentId,
+  topicId: item.topicId,
 });
 
 const toPatchPayload = (
@@ -101,114 +67,155 @@ const toPatchPayload = (
   if (typeof changes.priority === 'string') {
     payload.priority = changes.priority;
   }
-  if ('includedInLetter' in changes) {
-    payload.included_in_letter = changes.includedInLetter ?? null;
+  if (typeof changes.includedInLetter === 'boolean') {
+    payload.includedInLetter = changes.includedInLetter;
   }
-  if (typeof changes.topicId === 'string') {
-    payload.topic_id = toApiUuid(changes.topicId);
+  if ('topicId' in changes) {
+    payload.topicId = changes.topicId ?? null;
   }
-  if (typeof changes.documentId === 'string') {
-    payload.document_id = toApiUuid(changes.documentId);
+  if ('documentId' in changes) {
+    payload.documentId = changes.documentId ?? null;
   }
   if ('sourceRef' in changes) {
-    payload.source_ref = toApiSourceRef(changes.sourceRef) ?? null;
+    payload.sourceRef = toApiSourceRef(changes.sourceRef) ?? null;
   }
 
   return payload;
 };
 
-export const requestItemsCollection = createCollection(
-  queryCollectionOptions({
-    id: 'request-items',
-    syncMode: 'on-demand',
-    queryKey: (opts) => {
-      const projectId = extractProjectId(opts as Record<string, unknown>);
-      return projectId ? ['request-items', projectId] : ['request-items'];
-    },
-    queryFn: async (ctx): Promise<RequestItem[]> => {
-      const projectId = extractProjectId(
-        ctx.meta?.loadSubsetOptions as Record<string, unknown>,
-      );
-      if (!projectId) {
-        return [];
-      }
+/**
+ * Reads the project and page window requested by the collection subset.
+ * @param search - Optional search across the complete project dataset.
+ * @param subset - Project boundary and requested offset window.
+ * @returns The requested rows, or no rows when no project is selected.
+ */
+const fetchRequestItems = async (
+  search: string | undefined,
+  subset: LoadSubsetOptions | undefined,
+): Promise<RequestItem[]> => {
+  let projectId: string | undefined;
+  walkExpression(subset?.where, (expression) => {
+    if (expression.type !== 'func') {
+      return;
+    }
+    const [field, value] = expression.args;
+    if (
+      field?.type !== 'ref' ||
+      value?.type !== 'val' ||
+      typeof value.value !== 'string'
+    ) {
+      return;
+    }
+    if (expression.name === 'eq' && field.path[0] === 'projectId') {
+      projectId = value.value;
+    }
+  });
+  if (!projectId) {
+    return [];
+  }
 
-      const { data } =
-        await listSupplementaryRequestsProjectsProjectIdSupplementaryRequestsGet(
-          {
-            path: { project_id: projectId },
-            query: { sort: 'created_at:asc' },
-          },
+  const { data } = await listSupplementaryRequests({
+    path: { projectId },
+    query: {
+      sort: 'created_at:asc',
+      search,
+      limit: subset?.limit ?? REQUEST_ITEMS_PAGE_SIZE,
+      offset: subset?.offset ?? 0,
+    },
+  });
+  if (!data) {
+    throw new Error('Failed to fetch request items');
+  }
+  return data.map(requestItemFromApi);
+};
+
+const invalidateRequestItemProjects = (items: RequestItem[]) =>
+  Promise.all(
+    [...new Set(items.map((item) => item.projectId))].map(
+      invalidateRequestReads,
+    ),
+  );
+
+/**
+ * Search scopes the server dataset while TanStack DB owns project windows and mutations.
+ * @param search - Optional complete-dataset search; never a filter over only loaded rows.
+ * @returns An on-demand collection isolated from other search results.
+ */
+export const createRequestItemsCollection = (search?: string) =>
+  createCollection(
+    queryCollectionOptions({
+      id: JSON.stringify(['request-items', search ?? null]),
+      syncMode: 'on-demand',
+      autoIndex: 'eager',
+      defaultIndexType: BasicIndex,
+      queryKey: ['request-items', { search }],
+      queryFn: (ctx) => fetchRequestItems(search, ctx.meta?.loadSubsetOptions),
+      queryClient,
+      getKey: (item) => item.id,
+      onInsert: async ({ transaction }) => {
+        const results = await Promise.all(
+          transaction.mutations.map(async (mutation) => {
+            const { data } = await createSupplementaryRequest({
+              path: { projectId: mutation.modified.projectId },
+              body: requestItemToCreatePayload(mutation.modified),
+            });
+
+            if (!data) {
+              throw new Error('Failed to create request item');
+            }
+            return requestItemFromApi(data);
+          }),
         );
-      if (!data) {
-        throw new Error('Failed to fetch request items');
-      }
 
-      return data.map(requestItemFromApi);
-    },
-    queryClient,
-    getKey: (item) => item.id,
-    onInsert: async ({ transaction }) => {
-      const results = await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          const { data } =
-            await createSupplementaryRequestProjectsProjectIdSupplementaryRequestsPost(
-              {
-                path: { project_id: mutation.modified.projectId },
-                body: requestItemToCreatePayload(mutation.modified),
-              },
-            );
+        await invalidateRequestItemProjects(
+          transaction.mutations.map(({ modified }) => modified),
+        );
+        return results;
+      },
+      onUpdate: async ({ transaction }) => {
+        const results = await Promise.all(
+          transaction.mutations.map(async (mutation) => {
+            const body = toPatchPayload(mutation.changes);
+            if (Object.keys(body).length === 0) {
+              return { ...mutation.original, ...mutation.changes };
+            }
 
-          if (!data) {
-            throw new Error('Failed to create request item');
-          }
-          return requestItemFromApi(data);
-        }),
-      );
-
-      return results;
-    },
-    onUpdate: async ({ transaction }) => {
-      const results = await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          const body = toPatchPayload(mutation.changes);
-          if (Object.keys(body).length === 0) {
-            return { ...mutation.original, ...mutation.changes };
-          }
-
-          const { data } =
-            await updateSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdPatch(
-              {
-                path: {
-                  project_id: mutation.original.projectId,
-                  request_id: mutation.key,
-                },
-                body,
-              },
-            );
-
-          if (!data) {
-            throw new Error('Failed to update request item');
-          }
-          return requestItemFromApi(data);
-        }),
-      );
-
-      return results;
-    },
-    onDelete: async ({ transaction }) => {
-      await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          await deleteSupplementaryRequestProjectsProjectIdSupplementaryRequestsRequestIdDelete(
-            {
+            const { data } = await updateSupplementaryRequest({
               path: {
-                project_id: mutation.original.projectId,
-                request_id: mutation.key,
+                projectId: mutation.original.projectId,
+                requestId: mutation.key,
               },
-            },
-          );
-        }),
-      );
-    },
-  }),
-);
+              body,
+            });
+
+            if (!data) {
+              throw new Error('Failed to update request item');
+            }
+            return requestItemFromApi(data);
+          }),
+        );
+
+        await invalidateRequestItemProjects(
+          transaction.mutations.map(({ original }) => original),
+        );
+        return results;
+      },
+      onDelete: async ({ transaction }) => {
+        await Promise.all(
+          transaction.mutations.map(async (mutation) => {
+            await deleteSupplementaryRequest({
+              path: {
+                projectId: mutation.original.projectId,
+                requestId: mutation.key,
+              },
+            });
+          }),
+        );
+        await invalidateRequestItemProjects(
+          transaction.mutations.map(({ original }) => original),
+        );
+      },
+    }),
+  );
+
+export const requestItemsCollection = createRequestItemsCollection();

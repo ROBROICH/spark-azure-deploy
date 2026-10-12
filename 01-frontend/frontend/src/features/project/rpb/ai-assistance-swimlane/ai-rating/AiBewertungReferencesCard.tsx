@@ -81,21 +81,19 @@ const ReferenceGroupItems = (props: ReferenceGroupItemsProps) => {
               item={{
                 type: 'passage',
                 label:
-                  quelle.title.trim() || dokumentLabel || quelle.dokument_id,
-                page: getReferencePageLabel(quelle.page_numbers, t),
+                  quelle.title.trim() || dokumentLabel || quelle.dokumentId,
+                page: getReferencePageLabel(quelle.pageNumbers, t),
               }}
               onClick={() =>
                 openBewertungReference(
                   {
-                    chunk_ids: quelle.chunk_ids,
-                    document_id: quelle.dokument_id,
+                    chunkIds: quelle.chunkIds,
+                    documentId: quelle.dokumentId,
                     node_id: quelle.id,
-                    page_numbers: quelle.page_numbers,
+                    pageNumbers: quelle.pageNumbers,
                     referenceId: quelle.id,
                     title:
-                      quelle.title.trim() ||
-                      dokumentLabel ||
-                      quelle.dokument_id,
+                      quelle.title.trim() || dokumentLabel || quelle.dokumentId,
                   },
                   documents,
                   openPreviewDocument,
@@ -107,7 +105,7 @@ const ReferenceGroupItems = (props: ReferenceGroupItemsProps) => {
           </div>
           <div className="pr-1">
             <NodeFeedbackThumbButtons
-              targetRef={{ id: quelle.id, node_type: 'bewertung_quelle' }}
+              targetRef={{ id: quelle.id, nodeType: 'bewertung_quelle' }}
             />
           </div>
         </div>
@@ -130,7 +128,7 @@ export const AiBewertungReferencesCard = (
   const feedbackTargetRefs = groups.flatMap((group) =>
     group.quellen.map((quelle) => ({
       id: quelle.id,
-      node_type: 'bewertung_quelle' as const,
+      nodeType: 'bewertung_quelle' as const,
     })),
   );
 

@@ -71,6 +71,7 @@ export const ReadOnlyDocumentsCard = () => {
     hasActiveFileProcessing,
     hasFailedFileProcessing,
     fileProcessingBannerDismissKey,
+    fileProcessingFailureCode,
   } = useProjectProcessingState({
     projectId: verfahrenId,
   });
@@ -164,7 +165,7 @@ export const ReadOnlyDocumentsCard = () => {
         <span aria-hidden className="rounded-lg bg-bg-quaternary p-2">
           <Files className="size-4" />
         </span>
-        <div className="flex flex-1 items-center gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-2">
           <h2 className="text-base font-medium tracking-tight text-text-primary">
             {t('Documents.sectionTitle')}
           </h2>
@@ -194,19 +195,20 @@ export const ReadOnlyDocumentsCard = () => {
             <FileProcessingStatusAlert
               status={processingStatus}
               dismissKey={fileProcessingBannerDismissKey}
+              workflowFailureCode={fileProcessingFailureCode}
             />
-            <div className="flex items-start gap-6">
+            <div className="flex flex-col items-start gap-6 sm:flex-row">
               <div
                 className={
                   previewDocumentId
-                    ? 'min-w-0 flex-1 overflow-x-clip'
+                    ? 'w-full min-w-0 overflow-x-clip sm:flex-1'
                     : 'w-full'
                 }
               >
                 <ReadOnlyDocumentsTable />
               </div>
               {previewDocumentId && (
-                <div className="sticky top-8 h-[min(64rem,calc(100dvh-8rem))] w-1/2 shrink-0 self-start">
+                <div className="top-8 h-auto w-full shrink-0 self-start sm:sticky sm:h-[min(64rem,calc(100dvh-8rem))] sm:w-1/2">
                   <ReadOnlyPdfPreview />
                 </div>
               )}

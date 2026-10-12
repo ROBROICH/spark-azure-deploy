@@ -7,6 +7,10 @@ import type { NodePayloadByType } from '@/db/nodes/types';
 import { partitionRisksByStatus, RiskWarningsPanel } from './RiskWarningsPanel';
 
 const mocks = vi.hoisted(() => ({
+  latestWorkflowFailure: null as {
+    errorCode: 'ANALYSIS_FAILED';
+    branches: never[];
+  } | null,
   canMutateProject: false,
   hasTopicMutationRightsMock: vi.fn<(topicId: string | null) => boolean>(),
   transactMock: vi.fn((callback: () => void) => callback()),
@@ -56,8 +60,8 @@ vi.mock('@/db/nodes/examinationGraphModel', () => ({
     nodeType: string,
   ) =>
     mocks.risks
-      .filter((risk) => risk.vae_node_id === startId)
-      .map((risk) => ({ id: risk.id, node_type: nodeType })),
+      .filter((risk) => risk.vaeNodeId === startId)
+      .map((risk) => ({ id: risk.id, nodeType: nodeType })),
 }));
 
 vi.mock('@/db/nodes/hooks/useLiveNodes', () => ({
@@ -137,12 +141,9 @@ vi.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-vi.mock(
-  '@/api-clients/agent-orchestration-module/@tanstack/react-query.gen',
-  () => ({
-    startRisikohinweiseWorkflowWorkflowsRisikohinweisePostMutation: () => ({}),
-  }),
-);
+vi.mock('@/api-clients/backend/@tanstack/react-query.gen', () => ({
+  v1AgentOrchestrationStartRisikohinweiseWorkflowMutation: () => ({}),
+}));
 
 vi.mock('@sentry/react', () => ({
   captureException: (...args: unknown[]) => mocks.captureExceptionMock(...args),
@@ -150,6 +151,10 @@ vi.mock('@sentry/react', () => ({
 
 vi.mock('@/features/ui/toast/Toast', () => ({
   toast: { error: (...args: unknown[]) => mocks.toastErrorMock(...args) },
+}));
+
+vi.mock('@/features/workflow-runtime/workflow-status/useWorkflow', () => ({
+  useWorkflow: () => ({ latestFailure: mocks.latestWorkflowFailure }),
 }));
 
 vi.mock(
@@ -203,25 +208,24 @@ const buildRisk = (
 ): NodePayloadByType<'risks'> => {
   const { id, ...rest } = overrides;
   return {
-    node_type: 'risks',
+    nodeType: 'risks',
     id,
-    compositeKey: toCompositeKey({ id, node_type: 'risks' }),
-    vae_node_id: 'leaf',
+    compositeKey: toCompositeKey({ id, nodeType: 'risks' }),
+    vaeNodeId: 'leaf',
     problem: 'p',
     recommendation: null,
     quote: null,
     severity: 5,
     implication: 'i',
     status: 'open',
-    project_id: 'project-1',
-    is_deleted: false,
-    is_outdated: false,
-    frontend_parent_ids: [],
-    project_version: 0,
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    projectId: 'project-1',
+    isDeleted: false,
+    isOutdated: false,
+    frontendParentIds: [],
+    projectVersion: 0,
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     ...rest,
   };
 };
@@ -231,32 +235,31 @@ const buildVaeNode = (
 ): NodePayloadByType<'vae_node'> => {
   const { id, ...rest } = overrides;
   return {
-    node_type: 'vae_node',
+    nodeType: 'vae_node',
     id,
-    compositeKey: toCompositeKey({ id, node_type: 'vae_node' }),
-    parent_vae_node_id: null,
+    compositeKey: toCompositeKey({ id, nodeType: 'vae_node' }),
+    parentVaeNodeId: null,
     assignee: null,
-    checked_by_assignee: false,
-    checked_by_leader: false,
-    checked_at_assignee: null,
-    checked_at_leader: null,
-    topic_id: null,
-    subtopic_id: null,
-    template_id: null,
-    project_id: 'project-1',
-    project_version: 0,
-    is_deleted: false,
-    is_outdated: false,
-    frontend_parent_ids: [],
-    update_type: null,
-    created_at: '',
-    updated_at: '',
-    sys_period: null,
+    checkedByAssignee: false,
+    checkedByLeader: false,
+    checkedAtAssignee: null,
+    checkedAtLeader: null,
+    topicId: null,
+    subtopicId: null,
+    templateId: null,
+    projectId: 'project-1',
+    projectVersion: 0,
+    isDeleted: false,
+    isOutdated: false,
+    frontendParentIds: [],
+    updateType: null,
+    createdAt: '',
+    updatedAt: '',
     order: 0,
     text: '',
     title: '',
-    can_add_child: false,
-    is_hidden: false,
+    canAddChild: false,
+    isHidden: false,
     ...rest,
   } satisfies NodePayloadByType<'vae_node'>;
 };
@@ -267,7 +270,7 @@ describe('partitionRisksByStatus', () => {
       buildRisk({ id: 'r1', status: 'open' }),
       buildRisk({ id: 'r2', status: 'corrected' }),
       buildRisk({ id: 'r3', status: 'ignored' }),
-      buildRisk({ id: 'r4', status: 'open', is_deleted: true }),
+      buildRisk({ id: 'r4', status: 'open', isDeleted: true }),
     ]);
 
     expect(result.open).toHaveLength(1);
@@ -290,11 +293,12 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.isBeschlussCommitPending = false;
     mocks.startMutationOptions = null;
     mocks.workflowOptions = null;
+    mocks.latestWorkflowFailure = null;
     mocks.outlineNodeIdMock = 'leaf';
     mocks.risks = [buildRisk({ id: 'r1', status: 'open' })];
     mocks.selectedVaeNodeAssignedTopicId = 'topic-1';
     mocks.selectedVaeNodeMutationTopicId = 'topic-1';
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: 'topic-1' })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: 'topic-1' })];
   });
 
   afterEach(cleanup);
@@ -344,7 +348,7 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.hasTopicMutationRightsMock.mockReturnValue(false);
     const risk = buildRisk({ id: 'r1', status: 'open' });
     mocks.risks = [risk];
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: null })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: null })];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = null;
 
@@ -369,7 +373,7 @@ describe('RiskWarningsPanel mutation gating', () => {
   it('skips status mutations for a no-topic risk when the user cannot mutate the project', async () => {
     mocks.canMutateProject = false;
     mocks.hasTopicMutationRightsMock.mockReturnValue(true);
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: null })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: null })];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = null;
 
@@ -389,7 +393,7 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.canMutateProject = true;
     mocks.hasTopicMutationRightsMock.mockReturnValue(true);
     mocks.vaeNodes = [
-      buildVaeNode({ id: 'leaf', parent_vae_node_id: 'missing-parent' }),
+      buildVaeNode({ id: 'leaf', parentVaeNodeId: 'missing-parent' }),
     ];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = undefined;
@@ -413,18 +417,34 @@ describe('RiskWarningsPanel mutation gating', () => {
       buildRisk({
         id: 'other-risk',
         problem: 'hidden problem',
-        vae_node_id: 'other-leaf',
+        vaeNodeId: 'other-leaf',
       }),
     ];
     mocks.vaeNodes = [
-      buildVaeNode({ id: 'leaf', topic_id: 'topic-1' }),
-      buildVaeNode({ id: 'other-leaf', topic_id: 'topic-1' }),
+      buildVaeNode({ id: 'leaf', topicId: 'topic-1' }),
+      buildVaeNode({ id: 'other-leaf', topicId: 'topic-1' }),
     ];
 
     render(<RiskWarningsPanel />);
 
     expect(screen.getAllByText('visible problem')).not.toHaveLength(0);
     expect(screen.queryByText('hidden problem')).not.toBeInTheDocument();
+  });
+
+  it('marks a failed latest risk analysis in the lane header of the selected outline node', () => {
+    mocks.hasTopicMutationRightsMock.mockReturnValue(true);
+    mocks.latestWorkflowFailure = {
+      errorCode: 'ANALYSIS_FAILED',
+      branches: [],
+    };
+
+    render(<RiskWarningsPanel />);
+
+    expect(
+      within(screen.getByTestId('lane-header')).getByRole('button', {
+        name: 'processingFailure.areas.rpbRiskWarnings',
+      }),
+    ).toBeInTheDocument();
   });
 
   it('matches the risk warning workflow without hard-coding a project version', () => {
@@ -440,7 +460,7 @@ describe('RiskWarningsPanel mutation gating', () => {
 
   it('shows the AI trigger card instead of status categories when there are no active risks', () => {
     mocks.hasTopicMutationRightsMock.mockReturnValue(true);
-    mocks.risks = [buildRisk({ id: 'r1', is_deleted: true })];
+    mocks.risks = [buildRisk({ id: 'r1', isDeleted: true })];
 
     render(<RiskWarningsPanel />);
 
@@ -500,7 +520,7 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.canMutateProject = true;
     mocks.hasTopicMutationRightsMock.mockReturnValue(false);
     mocks.risks = [];
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: null })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: null })];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = null;
 
@@ -531,7 +551,7 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.canMutateProject = false;
     mocks.hasTopicMutationRightsMock.mockReturnValue(false);
     mocks.risks = [];
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: null })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: null })];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = null;
 
@@ -559,7 +579,7 @@ describe('RiskWarningsPanel mutation gating', () => {
     mocks.hasTopicMutationRightsMock.mockReturnValue(true);
     mocks.risks = [];
     mocks.vaeNodes = [
-      buildVaeNode({ id: 'leaf', parent_vae_node_id: 'missing-parent' }),
+      buildVaeNode({ id: 'leaf', parentVaeNodeId: 'missing-parent' }),
     ];
     mocks.selectedVaeNodeAssignedTopicId = undefined;
     mocks.selectedVaeNodeMutationTopicId = undefined;
@@ -614,8 +634,8 @@ describe('RiskWarningsPanel mutation gating', () => {
   it('shows the no-selection empty state when the URL outline node does not resolve', () => {
     mocks.outlineNodeIdMock = 'missing-leaf';
     mocks.hasTopicMutationRightsMock.mockReturnValue(true);
-    mocks.risks = [buildRisk({ id: 'r1', vae_node_id: 'missing-leaf' })];
-    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topic_id: 'topic-1' })];
+    mocks.risks = [buildRisk({ id: 'r1', vaeNodeId: 'missing-leaf' })];
+    mocks.vaeNodes = [buildVaeNode({ id: 'leaf', topicId: 'topic-1' })];
 
     render(<RiskWarningsPanel />);
 

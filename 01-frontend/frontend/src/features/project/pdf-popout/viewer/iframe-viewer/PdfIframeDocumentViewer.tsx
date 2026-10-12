@@ -20,8 +20,6 @@ type PdfIframeDocumentViewerProps = {
   hasFileUrlError?: boolean;
   hasDocumentNotFound?: boolean;
   flush?: boolean;
-  getPagePosition?: (documentId: string) => number | undefined;
-  savePagePosition?: (documentId: string, pageNumber: number) => void;
   requestedPageNumber?: number;
   requestedPageJumpKey?: number;
 };
@@ -32,45 +30,30 @@ type BufferedIframeState = {
   title: string;
 };
 
-type PendingPagePositionSave = {
-  documentId: string;
-  frameKey: string;
-  pageNumber: number;
-  requestKey: number;
-};
-
 type ViewerRuntimeState = {
   activeFrame: BufferedIframeState | null;
   documentId: string | undefined;
   handledPageJumpKey: number | undefined;
   pageNumber: number;
   pendingFrame: BufferedIframeState | null;
-  pendingPagePositionSave: PendingPagePositionSave | null;
 };
 
 const DEFAULT_PAGE_NUMBER = 1;
 
-const getInitialPageNumber = (
+const getFrameKey = (
   documentId: string | undefined,
-  getPagePosition: ((documentId: string) => number | undefined) | undefined,
-) =>
-  documentId && getPagePosition
-    ? (getPagePosition(documentId) ?? DEFAULT_PAGE_NUMBER)
-    : DEFAULT_PAGE_NUMBER;
-
-const getFrameKey = (documentId: string | undefined, pageNumber: number) =>
-  `${documentId ?? 'no-document'}:${pageNumber}`;
+  pageNumber: number,
+  requestKey: number | undefined,
+) => `${documentId ?? 'no-document'}:${pageNumber}:${requestKey ?? 'initial'}`;
 
 const createInitialViewerState = (props: {
   documentId: string | undefined;
-  getPagePosition: ((documentId: string) => number | undefined) | undefined;
 }): ViewerRuntimeState => ({
   activeFrame: null,
   documentId: props.documentId,
   handledPageJumpKey: undefined,
-  pageNumber: getInitialPageNumber(props.documentId, props.getPagePosition),
+  pageNumber: DEFAULT_PAGE_NUMBER,
   pendingFrame: null,
-  pendingPagePositionSave: null,
 });
 
 const replaceViewerRuntimeState = (
@@ -106,11 +89,17 @@ const getBufferedFramesForRender = (params: {
     return { activeFrame: desiredFrame, pendingFrame: null };
   }
 
-  if (currentActiveFrame.src === desiredFrame.src) {
+  if (
+    currentActiveFrame.key === desiredFrame.key &&
+    currentActiveFrame.src === desiredFrame.src
+  ) {
     return { activeFrame: currentActiveFrame, pendingFrame: null };
   }
 
-  if (currentPendingFrame?.src === desiredFrame.src) {
+  if (
+    currentPendingFrame?.key === desiredFrame.key &&
+    currentPendingFrame.src === desiredFrame.src
+  ) {
     return {
       activeFrame: currentActiveFrame,
       pendingFrame: currentPendingFrame,
@@ -129,18 +118,10 @@ const haveBufferedFramesChanged = (
 
 const getPageJumpState = (params: {
   currentState: ViewerRuntimeState;
-  documentId: string | undefined;
   pageNumber: number | undefined;
   requestKey: number | undefined;
-  shouldSavePagePosition: boolean;
 }) => {
-  const {
-    currentState,
-    documentId,
-    pageNumber,
-    requestKey,
-    shouldSavePagePosition,
-  } = params;
+  const { currentState, pageNumber, requestKey } = params;
 
   if (
     pageNumber === undefined ||
@@ -154,15 +135,6 @@ const getPageJumpState = (params: {
     ...currentState,
     handledPageJumpKey: requestKey,
     pageNumber,
-    pendingPagePositionSave:
-      documentId && shouldSavePagePosition
-        ? {
-            documentId,
-            frameKey: getFrameKey(documentId, pageNumber),
-            pageNumber,
-            requestKey,
-          }
-        : null,
   };
 };
 
@@ -181,35 +153,35 @@ export const PdfIframeDocumentViewer = (
     hasFileUrlError = false,
     hasDocumentNotFound = false,
     flush = false,
-    getPagePosition,
-    savePagePosition,
     requestedPageNumber,
     requestedPageJumpKey,
   } = props;
   const { t } = useTranslation('PdfPopout');
   const [viewerState, setViewerState] = useReducer(
     replaceViewerRuntimeState,
-    { documentId, getPagePosition },
+    { documentId },
     createInitialViewerState,
   );
   let nextViewerState = viewerState;
 
-  if (documentId !== nextViewerState.documentId) {
+  if (
+    documentId !== nextViewerState.documentId ||
+    (requestedPageJumpKey === undefined &&
+      nextViewerState.handledPageJumpKey !== undefined)
+  ) {
     nextViewerState = {
       ...nextViewerState,
       documentId,
-      pageNumber: getInitialPageNumber(documentId, getPagePosition),
+      handledPageJumpKey: undefined,
+      pageNumber: DEFAULT_PAGE_NUMBER,
       pendingFrame: null,
-      pendingPagePositionSave: null,
     };
   }
 
   nextViewerState = getPageJumpState({
     currentState: nextViewerState,
-    documentId,
     pageNumber: requestedPageNumber,
     requestKey: requestedPageJumpKey,
-    shouldSavePagePosition: Boolean(savePagePosition),
   });
 
   const frameTitle = documentTitle
@@ -222,7 +194,11 @@ export const PdfIframeDocumentViewer = (
   const desiredFrame =
     safeFrameSrc && isPdf && !hasFileUrlError && !isLoading
       ? ({
-          key: getFrameKey(documentId, nextViewerState.pageNumber),
+          key: getFrameKey(
+            documentId,
+            nextViewerState.pageNumber,
+            nextViewerState.handledPageJumpKey,
+          ),
           src: safeFrameSrc,
           title: frameTitle,
         } satisfies BufferedIframeState)
@@ -248,34 +224,13 @@ export const PdfIframeDocumentViewer = (
   }
 
   const promotePendingFrame = (loadedFrame: BufferedIframeState) => {
-    const pendingPagePositionSave = viewerState.pendingPagePositionSave;
-    const savedPageJumpKey =
-      pendingPagePositionSave?.frameKey === loadedFrame.key
-        ? pendingPagePositionSave.requestKey
-        : undefined;
-
-    if (
-      pendingPagePositionSave &&
-      pendingPagePositionSave.frameKey === loadedFrame.key &&
-      savePagePosition
-    ) {
-      savePagePosition(
-        pendingPagePositionSave.documentId,
-        pendingPagePositionSave.pageNumber,
-      );
+    if (viewerState.pendingFrame?.key !== loadedFrame.key) {
+      return;
     }
-
     setViewerState({
       ...viewerState,
       activeFrame: loadedFrame,
-      pendingFrame:
-        viewerState.pendingFrame?.src === loadedFrame.src
-          ? null
-          : viewerState.pendingFrame,
-      pendingPagePositionSave:
-        savedPageJumpKey === pendingPagePositionSave?.requestKey
-          ? null
-          : pendingPagePositionSave,
+      pendingFrame: null,
     });
   };
 

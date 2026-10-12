@@ -5,6 +5,7 @@ import os
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from temporal.activities.models import ChatModel
+from temporal.connection_config import TemporalConfig
 
 
 class LawDatabaseConfig(BaseModel):
@@ -20,17 +21,6 @@ class LawDatabaseConfig(BaseModel):
     QUERY_TOP_K_DR_URL: str = Field(..., description="http://localhost:18021/query_top_k")
     QUERY_K_RESULTS_UT_URL: str = Field(..., description="http://localhost:18022/query_k_results")
     QUERY_CHUNKS_UT_URL: str = Field(..., description="http://localhost:18022/chunks")
-
-
-class TemporalConfig(BaseModel):
-    """Configuration for Temporal workflow engine and S3-compatible storage."""
-
-    HOST: str
-    S3_BUCKET_NAME: str
-    S3_ENDPOINT_URL: str
-    S3_ACCESS_KEY_ID: str
-    S3_SECRET_ACCESS_KEY: str
-    S3_REGION: str
 
 
 class LLMConfig(BaseModel):

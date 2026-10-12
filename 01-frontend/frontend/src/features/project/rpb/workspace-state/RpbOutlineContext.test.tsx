@@ -95,34 +95,33 @@ const createVaeNode = (
   },
 ): NodePayloadByType<'vae_node'> => {
   return {
-    node_type: 'vae_node',
+    nodeType: 'vae_node',
     id: overrides.id,
     title: overrides.title,
     text: overrides.text ?? '',
     assignee: overrides.assignee ?? null,
-    checked_by_assignee: overrides.checked_by_assignee ?? false,
-    checked_by_leader: overrides.checked_by_leader ?? false,
-    checked_at_assignee: overrides.checked_at_assignee ?? null,
-    checked_at_leader: overrides.checked_at_leader ?? null,
-    parent_vae_node_id: overrides.parent_vae_node_id ?? null,
+    checkedByAssignee: overrides.checkedByAssignee ?? false,
+    checkedByLeader: overrides.checkedByLeader ?? false,
+    checkedAtAssignee: overrides.checkedAtAssignee ?? null,
+    checkedAtLeader: overrides.checkedAtLeader ?? null,
+    parentVaeNodeId: overrides.parentVaeNodeId ?? null,
     order: overrides.order ?? 0,
-    template_id: overrides.template_id ?? null,
-    is_hidden: overrides.is_hidden ?? false,
-    can_add_child: overrides.can_add_child ?? false,
-    topic_id: overrides.topic_id ?? null,
-    subtopic_id: overrides.subtopic_id ?? null,
-    project_id: overrides.project_id ?? 'project-1',
-    is_deleted: overrides.is_deleted ?? false,
-    frontend_parent_ids: overrides.frontend_parent_ids ?? [],
-    update_type: overrides.update_type ?? null,
-    created_at: overrides.created_at ?? '2026-01-01T00:00:00Z',
-    updated_at: overrides.updated_at ?? '2026-01-01T00:00:00Z',
-    sys_period: overrides.sys_period ?? null,
+    templateId: overrides.templateId ?? null,
+    isHidden: overrides.isHidden ?? false,
+    canAddChild: overrides.canAddChild ?? false,
+    topicId: overrides.topicId ?? null,
+    subtopicId: overrides.subtopicId ?? null,
+    projectId: overrides.projectId ?? 'project-1',
+    isDeleted: overrides.isDeleted ?? false,
+    frontendParentIds: overrides.frontendParentIds ?? [],
+    updateType: overrides.updateType ?? null,
+    createdAt: overrides.createdAt ?? '2026-01-01T00:00:00Z',
+    updatedAt: overrides.updatedAt ?? '2026-01-01T00:00:00Z',
     compositeKey: overrides.compositeKey
       ? overrides.compositeKey
       : toCompositeKey({
           id: overrides.id,
-          node_type: 'vae_node',
+          nodeType: 'vae_node',
         }),
   };
 };
@@ -132,20 +131,20 @@ const nodes = [
     id: 'root',
     title: 'Root',
     order: 1,
-    topic_id: 'topic-root',
+    topicId: 'topic-root',
   }),
   createVaeNode({
     id: 'child-topic',
     title: 'Child Topic',
     order: 1,
-    parent_vae_node_id: 'root',
-    topic_id: 'topic-child',
+    parentVaeNodeId: 'root',
+    topicId: 'topic-child',
   }),
   createVaeNode({
     id: 'grandchild',
     title: 'Grandchild',
     order: 1,
-    parent_vae_node_id: 'child-topic',
+    parentVaeNodeId: 'child-topic',
   }),
 ] satisfies NodePayloadByType<'vae_node'>[];
 
@@ -532,7 +531,7 @@ describe('RpbOutlineContext', () => {
           id: 'topicless-root',
           title: 'Topicless Root',
           order: 2,
-          topic_id: null,
+          topicId: null,
         }),
       ],
     });
@@ -742,7 +741,7 @@ describe('RpbOutlineContext', () => {
           id: 'topicless-root',
           title: 'Topicless Root',
           order: 1,
-          topic_id: null,
+          topicId: null,
         }),
       ],
     });
@@ -778,7 +777,7 @@ describe('RpbOutlineContext', () => {
           id: 'topicless-root',
           title: 'Topicless Root',
           order: 1,
-          topic_id: null,
+          topicId: null,
         }),
       ],
     });
@@ -828,13 +827,13 @@ describe('RpbOutlineContext', () => {
     const draft = createVaeNode({
       id: 'root',
       title: 'Root',
-      checked_by_assignee: false,
-      checked_by_leader: false,
+      checkedByAssignee: false,
+      checkedByLeader: false,
     });
     recipe(draft);
 
-    expect(draft.checked_by_assignee).toBe(true);
-    expect(draft.checked_by_leader).toBe(false);
+    expect(draft.checkedByAssignee).toBe(true);
+    expect(draft.checkedByLeader).toBe(false);
   });
 
   it('clears checked_by_leader when assignee revokes a previously-approved completion', () => {
@@ -859,13 +858,13 @@ describe('RpbOutlineContext', () => {
       // Pre-revocation state: assignee completed, leader approved.
       id: 'root',
       title: 'Root',
-      checked_by_assignee: true,
-      checked_by_leader: true,
+      checkedByAssignee: true,
+      checkedByLeader: true,
     });
     recipe(draft);
 
-    expect(draft.checked_by_assignee).toBe(false);
-    expect(draft.checked_by_leader).toBe(false);
+    expect(draft.checkedByAssignee).toBe(false);
+    expect(draft.checkedByLeader).toBe(false);
   });
 
   it('does not touch checked_by_leader when assignee marks a chapter done', () => {
@@ -889,13 +888,13 @@ describe('RpbOutlineContext', () => {
     const draft = createVaeNode({
       id: 'root',
       title: 'Root',
-      checked_by_assignee: false,
-      checked_by_leader: false,
+      checkedByAssignee: false,
+      checkedByLeader: false,
     });
     recipe(draft);
 
-    expect(draft.checked_by_assignee).toBe(true);
-    expect(draft.checked_by_leader).toBe(false);
+    expect(draft.checkedByAssignee).toBe(true);
+    expect(draft.checkedByLeader).toBe(false);
   });
 
   it('does not trust a stale final-decision action snapshot as authorization', () => {
@@ -943,13 +942,13 @@ describe('RpbOutlineContext', () => {
     const draft = createVaeNode({
       id: 'root',
       title: 'Root',
-      checked_by_assignee: false,
-      checked_by_leader: false,
+      checkedByAssignee: false,
+      checkedByLeader: false,
     });
     recipe(draft);
 
-    expect(draft.checked_by_assignee).toBe(false);
-    expect(draft.checked_by_leader).toBe(true);
+    expect(draft.checkedByAssignee).toBe(false);
+    expect(draft.checkedByLeader).toBe(true);
   });
 
   it('only clears checked_by_leader when the current user revokes final decision approval', () => {
@@ -973,13 +972,13 @@ describe('RpbOutlineContext', () => {
     const draft = createVaeNode({
       id: 'root',
       title: 'Root',
-      checked_by_assignee: true,
-      checked_by_leader: true,
+      checkedByAssignee: true,
+      checkedByLeader: true,
     });
     recipe(draft);
 
-    expect(draft.checked_by_assignee).toBe(true);
-    expect(draft.checked_by_leader).toBe(false);
+    expect(draft.checkedByAssignee).toBe(true);
+    expect(draft.checkedByLeader).toBe(false);
   });
 
   it('reflects a persisted assignee toggle in provider checked state after rerender', () => {
@@ -1033,8 +1032,8 @@ describe('RpbOutlineContext', () => {
       ...nodes.filter((n) => n.id !== 'root'),
       {
         ...rootNode,
-        checked_by_assignee: true,
-        checked_by_leader: false,
+        checkedByAssignee: true,
+        checkedByLeader: false,
       },
     ] satisfies NodePayloadByType<'vae_node'>[];
     mocks.useNodesByTypeMock.mockReturnValue({ data: partiallyDoneNodes });

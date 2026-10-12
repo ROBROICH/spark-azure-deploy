@@ -11,33 +11,17 @@ const mocks = vi.hoisted(() => ({
   vaeListNodes: vi.fn(),
 }));
 
-vi.mock('@/api-clients/dms-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
+vi.mock('@/api-clients/backend', () => ({
+  v1DocumentManagementServiceListNodes: (...args: unknown[]) =>
     mocks.dmsListNodes(...args),
-}));
-
-vi.mock('@/api-clients/examination-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
+  v1ExaminationServiceListNodes: (...args: unknown[]) =>
     mocks.examListNodes(...args),
-}));
-
-vi.mock('@/api-clients/feedback-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
-    mocks.feedbackListNodes(...args),
-}));
-
-vi.mock('@/api-clients/oms-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
+  v1FeedbackListNodes: (...args: unknown[]) => mocks.feedbackListNodes(...args),
+  v1ObjectionsManagementServiceListNodes: (...args: unknown[]) =>
     mocks.omsListNodes(...args),
-}));
-
-vi.mock('@/api-clients/pls-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
+  v1ProjectLogicServiceListNodes: (...args: unknown[]) =>
     mocks.plsListNodes(...args),
-}));
-
-vi.mock('@/api-clients/vae-module', () => ({
-  listNodesProjectIdNodesGet: (...args: unknown[]) =>
+  v1AdministrativeFileDraftListNodes: (...args: unknown[]) =>
     mocks.vaeListNodes(...args),
 }));
 
@@ -74,10 +58,10 @@ describe('nodeSummaries.collection', () => {
       data: {
         nodes: [
           {
-            frontend_parent_ids: [],
+            frontendParentIds: [],
             id: 'topic-1',
-            is_outdated: false,
-            node_type: 'topic',
+            isOutdated: false,
+            nodeType: 'topic',
             parents: [],
           },
         ],
@@ -88,9 +72,9 @@ describe('nodeSummaries.collection', () => {
         nodes: [
           {
             id: 'feedback-1',
-            node_type: 'feedback',
+            nodeType: 'feedback',
             parents: [],
-            frontend_parent_ids: ['topic-1'],
+            frontendParentIds: ['topic-1'],
           },
         ],
       },
@@ -106,10 +90,10 @@ describe('nodeSummaries.collection', () => {
         nodes: [
           {
             id: 'entry-1',
-            is_outdated: false,
-            node_type: 'beteiligungs_eingang',
+            isOutdated: false,
+            nodeType: 'beteiligungs_eingang',
             parents: [],
-            frontend_parent_ids: [],
+            frontendParentIds: [],
           },
         ],
       },
@@ -127,10 +111,10 @@ describe('nodeSummaries.collection', () => {
       queryFn: () => Promise<
         {
           compositeKey: string;
-          frontend_parent_ids?: string[];
+          frontendParentIds?: string[];
           id: string;
-          node_type: string;
-          parents: { id: string; node_type: string }[];
+          nodeType: string;
+          parents: { id: string; nodeType: string }[];
         }[]
       >;
     };
@@ -138,28 +122,28 @@ describe('nodeSummaries.collection', () => {
     const summaries = await collection.queryFn();
 
     expect(mocks.feedbackListNodes).toHaveBeenCalledWith({
-      path: { project_id: 'verfahren-feedback-test' },
-      query: { project_version: 1 },
+      path: { projectId: 'verfahren-feedback-test' },
+      query: { projectVersion: 1 },
       throwOnError: true,
     });
     expect(mocks.omsListNodes).toHaveBeenCalledWith({
-      path: { project_id: 'verfahren-feedback-test' },
-      query: { project_version: 1 },
+      path: { projectId: 'verfahren-feedback-test' },
+      query: { projectVersion: 1 },
       throwOnError: true,
     });
     expect(summaries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           compositeKey: 'feedback:feedback-1',
-          frontend_parent_ids: ['topic-1'],
+          frontendParentIds: ['topic-1'],
           id: 'feedback-1',
-          node_type: 'feedback',
+          nodeType: 'feedback',
         }),
         expect.objectContaining({
           compositeKey: 'beteiligungs_eingang:entry-1',
-          frontend_parent_ids: [],
+          frontendParentIds: [],
           id: 'entry-1',
-          node_type: 'beteiligungs_eingang',
+          nodeType: 'beteiligungs_eingang',
         }),
       ]),
     );
@@ -170,31 +154,31 @@ describe('nodeSummaries.collection', () => {
       data: {
         nodes: [
           {
-            frontend_parent_ids: [],
+            frontendParentIds: [],
             id: 'topic-1',
-            is_outdated: false,
-            node_type: 'topic',
+            isOutdated: false,
+            nodeType: 'topic',
             parents: [],
           },
           {
-            frontend_parent_ids: [],
+            frontendParentIds: [],
             id: 'fundstelle-1',
-            is_outdated: true,
-            node_type: 'fundstelle',
+            isOutdated: true,
+            nodeType: 'fundstelle',
             parents: [],
           },
           {
-            frontend_parent_ids: [],
+            frontendParentIds: [],
             id: 'bewertung-1',
-            is_outdated: true,
-            node_type: 'bewertung',
+            isOutdated: true,
+            nodeType: 'bewertung',
             parents: [],
           },
           {
-            frontend_parent_ids: [],
+            frontendParentIds: [],
             id: 'bewertung-quelle-1',
-            is_outdated: true,
-            node_type: 'bewertung_quelle',
+            isOutdated: true,
+            nodeType: 'bewertung_quelle',
             parents: [],
           },
         ],
@@ -207,8 +191,8 @@ describe('nodeSummaries.collection', () => {
       queryFn: () => Promise<
         {
           id: string;
-          is_outdated: boolean;
-          node_type: string;
+          isOutdated: boolean;
+          nodeType: string;
         }[]
       >;
     };
@@ -217,20 +201,20 @@ describe('nodeSummaries.collection', () => {
 
     expect(
       summaries.find((summary) => summary.id === 'topic-1'),
-    ).toHaveProperty('is_outdated', false);
+    ).toHaveProperty('isOutdated', false);
     expect(summaries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           id: 'fundstelle-1',
-          is_outdated: true,
+          isOutdated: true,
         }),
         expect.objectContaining({
           id: 'bewertung-1',
-          is_outdated: true,
+          isOutdated: true,
         }),
         expect.objectContaining({
           id: 'bewertung-quelle-1',
-          is_outdated: true,
+          isOutdated: true,
         }),
       ]),
     );

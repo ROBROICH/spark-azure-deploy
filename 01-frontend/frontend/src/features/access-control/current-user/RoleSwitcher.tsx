@@ -1,5 +1,5 @@
-import { updateUserRolesMeRolesPostMutation } from '@/api-clients/identity-management-module/@tanstack/react-query.gen';
-import type { UserOidcRole } from '@/api-clients/identity-management-module/types.gen';
+import { v1IdentityReplaceCurrentUserRolesMutation as replaceCurrentUserRolesMutation } from '@/api-clients/backend/@tanstack/react-query.gen';
+import type { UserOidcRole } from '@/api-clients/backend/types.gen';
 import { CURRENT_USER_QUERY_KEY } from '@/features/access-control/current-user/currentUser';
 import { useCurrentUser } from '@/features/access-control/current-user/CurrentUserProvider';
 import { useCurrentUserRoleMock } from '@/features/access-control/current-user/currentUserRoleMock';
@@ -84,7 +84,7 @@ export const RoleSwitcher = () => {
   const [mockRole, setMockRole] = useCurrentUserRoleMock();
   const queryClient = useQueryClient();
   const updateKeycloakRoleMutation = useMutation({
-    ...updateUserRolesMeRolesPostMutation(),
+    ...replaceCurrentUserRolesMutation(),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY });
       toast.success(t('sidebar.roleSwitcher.keycloakRoleUpdateSuccess'));

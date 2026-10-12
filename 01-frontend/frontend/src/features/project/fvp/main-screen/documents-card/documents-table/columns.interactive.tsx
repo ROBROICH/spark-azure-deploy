@@ -24,6 +24,12 @@ import { TopicBadgeSelect } from './TopicBadgeSelect';
 
 const columnHelper = createColumnHelper<RowNode>();
 
+/**
+ * Missing/requested types are handled elsewhere; deleted assignments remain read-only.
+ * @param callbacks - Authorized assignment actions and the complete type catalog.
+ * @param context - Current document row from the table.
+ * @returns The applicable assignment control, retained deleted label, or no cell.
+ */
 function renderDocumentTypeCell(
   callbacks: ColumnCallbacks,
   context: CellContext<RowNode, unknown>,
@@ -65,6 +71,7 @@ function renderDocumentTypeCell(
           kind: 'ai_suggestion',
           label: linked.name,
           selectedTypeId: linked.id,
+          confidence: node.confidence ?? null,
         };
 
   return (
@@ -72,7 +79,11 @@ function renderDocumentTypeCell(
       disabled={!callbacks.canMutateProject}
       status={status}
       availableTypes={callbacks.availableDocumentTypesStructured}
-      onConfirm={() => callbacks.onConfirmDocumentType(node.id)}
+      onConfirm={() => {
+        if (node.linkedDocumentType) {
+          callbacks.onSelectDocumentType(node.id, node.linkedDocumentType.id);
+        }
+      }}
       onSelect={(typeId) => callbacks.onSelectDocumentType(node.id, typeId)}
       onManageCustomDocumentTypes={callbacks.onManageCustomDocumentTypes}
     />

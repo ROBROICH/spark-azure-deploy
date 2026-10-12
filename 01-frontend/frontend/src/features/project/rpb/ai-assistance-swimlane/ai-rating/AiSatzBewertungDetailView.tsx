@@ -40,7 +40,7 @@ const createNodeRef = <T extends NodeTypeLiteral>(
 
   return {
     id,
-    node_type: nodeType,
+    nodeType: nodeType,
   } satisfies NodeRefByType<T>;
 };
 
@@ -166,9 +166,9 @@ export const AiSatzBewertungDetailView = () => {
   const { verfahrenId } = route.useParams();
   const satzRef = createNodeRef(satzId, 'satz');
   const { data: satz } = useNode(satzRef);
-  const absatzRef = createNodeRef(satz?.absatz_id, 'absatz');
+  const absatzRef = createNodeRef(satz?.absatzId, 'absatz');
   const { data: absatz } = useNode(absatzRef);
-  const normRef = createNodeRef(absatz?.norm_id, 'norm');
+  const normRef = createNodeRef(absatz?.normId, 'norm');
   const { data: norm } = useNode(normRef);
   const bewertungRefs = useDescendants('bewertung', satzRef);
   const bewertungRef = bewertungRefs[0];
@@ -227,7 +227,7 @@ export const AiSatzBewertungDetailView = () => {
         <FeedbackLookupProvider targetRefs={bewertungRefs.slice(0, 1)}>
           <AssessmentHeaderRow
             title={t('aiAssistance.aiAssessment')}
-            bewertungRef={{ id: bewertung.id, node_type: 'bewertung' }}
+            bewertungRef={{ id: bewertung.id, nodeType: 'bewertung' }}
             badgeLabel={assessmentResultLabel}
             accessory={
               isAssessmentOutdated && norm?.id ? (
@@ -244,7 +244,7 @@ export const AiSatzBewertungDetailView = () => {
           <AiSatzBewertungFull
             bewertungRef={{
               id: bewertung.id,
-              node_type: 'bewertung',
+              nodeType: 'bewertung',
             }}
             summaryText={bewertung.kurzform ?? ''}
           />

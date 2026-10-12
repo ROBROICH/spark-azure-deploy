@@ -7,8 +7,9 @@ document matching.
 
 from datetime import timedelta
 
-from temporal.workflows.formale_pruefung import (
+from temporal.contracts import (
     DMSFileResponse,
+    DocumentTypeDefinition,
     InhaltsverzeichnisFinderOutput,
     InhaltsverzeichnisFinderParams,
     InhaltsverzeichnisMatchingOutput,
@@ -16,9 +17,7 @@ from temporal.workflows.formale_pruefung import (
     LLMMatchingOutput,
     LLMMatchingParams,
 )
-from temporal.workflows.formale_pruefung.inhaltsverzeichnis_matching import (
-    INHALTSVERZEICHNIS_MATCHING_WORKFLOW_ID,
-)
+from temporal.registry import FORMALE_PRUEFUNG_INHALTSVERZEICHNIS_MATCHING_WORKFLOW
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
@@ -33,7 +32,7 @@ from src.workflows.inhaltsverzeichnis_finder import InhaltsverzeichnisFinderWork
 from src.workflows.llm_matching import LLMMatchingWorkflow
 
 
-@workflow.defn(name=INHALTSVERZEICHNIS_MATCHING_WORKFLOW_ID)
+@workflow.defn(name=FORMALE_PRUEFUNG_INHALTSVERZEICHNIS_MATCHING_WORKFLOW.name)
 class InhaltsverzeichnisMatchingWorkflow:
     """Orchestrator workflow that chains TOC extraction and LLM-based matching."""
 
@@ -70,8 +69,7 @@ class InhaltsverzeichnisMatchingWorkflow:
             return await self._upload_result(failed_result, params)
 
         # 3. Prepare Matching Data
-        document_types = extraction_output.document_types or []
-        document_types_payload = [dt.model_dump() for dt in document_types]
+        document_types: list[DocumentTypeDefinition] = extraction_output.document_types or []
         workflow.logger.info(f"Found {len(document_types)} document types. Starting matching.")
 
         # 4. Execute Matching Workflow
@@ -79,7 +77,7 @@ class InhaltsverzeichnisMatchingWorkflow:
             LLMMatchingWorkflow.run,
             LLMMatchingParams(
                 project_id=params.project_id,
-                document_types=document_types_payload,
+                document_types=document_types,
             ),
             id=str(workflow.uuid4()),
             task_timeout=timedelta(seconds=60),
@@ -123,7 +121,7 @@ class InhaltsverzeichnisMatchingWorkflow:
                 workflow_id=info.workflow_id,
                 run_id=info.run_id,
                 filename="result.json",
-                payload=output_data.model_dump(mode="json"),
+                payload=output_data.model_dump(mode="json", by_alias=True),
             ),
             start_to_close_timeout=timedelta(seconds=config.TEMPORAL.UPLOAD_ACTIVITY_TIMEOUT_SECONDS),
             retry_policy=RetryPolicy(maximum_attempts=config.TEMPORAL.ACTIVITY_MAX_RETRIES),

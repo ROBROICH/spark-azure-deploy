@@ -24,7 +24,7 @@ export type RpbParticipationSubtopicItem = {
 };
 
 export const getRpbArgumentReference = (argument: RpbArgumentNode) =>
-  argument.argument_id?.trim() || argument.id;
+  argument.argumentId?.trim() || argument.id;
 
 const compareRpbArgumentReferences = (
   left: RpbArgumentNode,
@@ -38,8 +38,8 @@ const compareRpbArgumentReferences = (
 export const sortRpbArguments = (argumentsList: RpbArgumentNode[]) =>
   [...argumentsList].sort((left, right) => {
     const validityComparison =
-      Number(Boolean(right.is_valid_argument)) -
-      Number(Boolean(left.is_valid_argument));
+      Number(Boolean(right.isValidArgument)) -
+      Number(Boolean(left.isValidArgument));
 
     if (validityComparison !== 0) {
       return validityComparison;
@@ -56,7 +56,7 @@ const getRpbParticipationSubtopicMetrics = (
 ): RpbParticipationSubtopicItem => {
   const sortedArguments = sortRpbArguments(groupArguments);
   const validArguments = sortedArguments.filter((argument) =>
-    Boolean(argument.is_valid_argument),
+    Boolean(argument.isValidArgument),
   );
 
   return {
@@ -65,7 +65,7 @@ const getRpbParticipationSubtopicMetrics = (
     arguments: sortedArguments,
     totalCount: sortedArguments.length,
     validCount: validArguments.length,
-    inBeschlussCount: validArguments.filter((argument) => argument.in_vae)
+    inBeschlussCount: validArguments.filter((argument) => argument.inVae)
       .length,
     isGeneratedSonstige,
   };

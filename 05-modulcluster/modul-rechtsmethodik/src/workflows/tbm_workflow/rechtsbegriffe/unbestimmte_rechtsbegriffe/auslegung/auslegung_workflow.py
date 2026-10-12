@@ -3,7 +3,7 @@
 import asyncio
 from datetime import timedelta
 
-from temporal.workflows.rechtsmethodik.types import (
+from temporal.contracts import (
     UnbestimmterRechtsbegriff,
 )
 from temporalio import workflow
@@ -141,7 +141,9 @@ class AuslegungWorkflow:
         results: list[UnbestimmterRechtsbegriff],
     ) -> list[UnbestimmterRechtsbegriff]:
         """Prefix each Wortlaut result with its source word."""
-        attribution = "Zur Analyse von Wortbedeutungen greift SPARK Workflow über die Wikimedia-API auf Wiktionary zu. Die darüber bereitgestellten Inhalte stehen unter folgender Lizenz: CC-BY-SA 3.0.\n\n"
+        attribution = (
+            "Zur Analyse von Wortbedeutungen greift SPARK Workflow über die Wikimedia-API auf Wiktionary zu. Die darüber bereitgestellten Inhalte stehen unter folgender Lizenz: CC-BY-SA 3.0.\n\n"
+        )
         for ur in results:
             for av in ur.auslegungsvorschläge:
                 if av.auslegung_methode == "wortlaut":

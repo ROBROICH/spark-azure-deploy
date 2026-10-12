@@ -47,7 +47,7 @@ def mock_env():
 
 @pytest.mark.asyncio
 @patch("src.workflows.process_documents_ewms_workflow.snapshot_config")
-@patch("src.workflows.process_documents_ewms_workflow.sliding_window", new_callable=AsyncMock)
+@patch("src.workflows.process_documents_ewms_workflow.sliding_window_collect_failures", new_callable=AsyncMock)
 @patch("src.workflows.process_documents_ewms_workflow.dms_get_file_metadata", new_callable=AsyncMock)
 async def test_process_documents_ewms_workflow(
     mock_get_metadata,

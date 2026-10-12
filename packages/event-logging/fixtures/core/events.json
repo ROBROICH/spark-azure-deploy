@@ -1,0 +1,261 @@
+[
+  {
+    "name": "default-general-unicode-and-falsy-values",
+    "logger": {
+      "service_name": "fixture-service",
+      "default_context": {
+        "deployment.environment": "fixture",
+        "event.duration": 99,
+        "labels.debug": true
+      }
+    },
+    "input": {
+      "level": "info",
+      "action": "read",
+      "outcome": "success",
+      "category": "api",
+      "event_kind": "event",
+      "message": "Änderung geprüft – vollständig",
+      "context": {
+        "event_duration": 0,
+        "labels_debug": false,
+        "user_roles": [],
+        "project_id": "",
+        "trace_id": "11111111111111111111111111111111",
+        "unknown_context": "must-not-be-copied"
+      }
+    },
+    "expected": {
+      "ecs.version": "8.11.0",
+      "@timestamp": "2026-07-16T12:34:56.789Z",
+      "event.action": "read",
+      "event.outcome": "success",
+      "event.kind": "event",
+      "event.category": "api",
+      "log.level": "info",
+      "service.name": "fixture-service",
+      "event.default": "general",
+      "message": "Änderung geprüft – vollständig",
+      "deployment.environment": "fixture",
+      "event.duration": 0,
+      "labels.debug": false,
+      "user.roles": [],
+      "project_id": "",
+      "trace.id": "11111111111111111111111111111111"
+    }
+  },
+  {
+    "name": "system-event-and-component-override",
+    "logger": {
+      "service_name": "fixture-service",
+      "service_component": "api_gateway"
+    },
+    "input": {
+      "level": "debug",
+      "action": "write",
+      "outcome": "in_progress",
+      "category": "service",
+      "event_kind": "alert",
+      "system_event": "container_lifecycle",
+      "message": "",
+      "context": {
+        "service_component": "authentication",
+        "process_id": "",
+        "source_port": 0,
+        "labels_redacted": false
+      }
+    },
+    "expected": {
+      "ecs.version": "8.11.0",
+      "@timestamp": "2026-07-16T12:34:56.789Z",
+      "event.action": "write",
+      "event.outcome": "in_progress",
+      "event.kind": "alert",
+      "event.category": "service",
+      "log.level": "debug",
+      "service.name": "fixture-service",
+      "event.system": "container_lifecycle",
+      "message": "",
+      "service.component": "authentication",
+      "process.id": "",
+      "source.port": 0,
+      "labels.redacted": false
+    }
+  },
+  {
+    "name": "auth-event-and-complete-mapped-context",
+    "logger": {
+      "service_name": "fixture-service"
+    },
+    "input": {
+      "level": "warn",
+      "action": "authorize",
+      "outcome": "failure",
+      "category": "security",
+      "auth_event": "permission_error",
+      "message": "Access refused",
+      "context": {
+        "error_message": "denied",
+        "process_id": "process-1",
+        "trace_id": "22222222222222222222222222222222",
+        "event_type": "error",
+        "event_code": "403",
+        "event_reason": "policy",
+        "event_duration": 42,
+        "event_hash": [{"algo": "sha256", "value": "fixture-hash"}],
+        "event_ingested": "2026-07-16T12:35:00.000Z",
+        "http_request_method": "POST",
+        "url_path": "/projects/fixture",
+        "service_component": "authorization",
+        "user_type": "service",
+        "user_id": "user-1",
+        "user_hash": "user-hash",
+        "user_roles": ["reviewer"],
+        "source_ip": "127.0.0.1",
+        "source_port": 1234,
+        "destination_ip": "127.0.0.2",
+        "destination_port": 8080,
+        "session_id": "session-1",
+        "session_token_hash": "token-hash",
+        "session_expiry": "2026-07-17T00:00:00.000Z",
+        "file_id": "file-1",
+        "file_source": "fixture",
+        "file_path": "/safe/path",
+        "file_name": "fixture.pdf",
+        "file_size": 7,
+        "file_hash_sha256": "file-hash",
+        "database_operation": "update",
+        "database_query": "UPDATE fixture SET value = 1",
+        "database_rows_affected": 1,
+        "ai_model_name": "fixture-model",
+        "ai_model_version": "1",
+        "ai_decision_process": "fixture-process",
+        "ai_decision_output": "fixture-output",
+        "ai_decision_human_override": "review",
+        "ai_data_sources": ["fixture-source"],
+        "project_id": "project-1",
+        "labels_debug": true,
+        "labels_redacted": true
+      }
+    },
+    "expected": {
+      "ecs.version": "8.11.0",
+      "@timestamp": "2026-07-16T12:34:56.789Z",
+      "event.action": "authorize",
+      "event.outcome": "failure",
+      "event.kind": "event",
+      "event.category": "security",
+      "log.level": "warn",
+      "service.name": "fixture-service",
+      "event.auth": "permission_error",
+      "message": "Access refused",
+      "service.component": "authorization",
+      "error.message": "denied",
+      "process.id": "process-1",
+      "trace.id": "22222222222222222222222222222222",
+      "event.type": "error",
+      "event.code": "403",
+      "event.reason": "policy",
+      "event.duration": 42,
+      "event.hash": [{"algo": "sha256", "value": "fixture-hash"}],
+      "event.ingested": "2026-07-16T12:35:00.000Z",
+      "http.request.method": "POST",
+      "url.path": "/projects/fixture",
+      "user.type": "service",
+      "user.id": "user-1",
+      "user.hash": "user-hash",
+      "user.roles": ["reviewer"],
+      "source.ip": "127.0.0.1",
+      "source.port": 1234,
+      "destination.ip": "127.0.0.2",
+      "destination.port": 8080,
+      "session.id": "session-1",
+      "session.token_hash": "token-hash",
+      "session.expiry": "2026-07-17T00:00:00.000Z",
+      "file.id": "file-1",
+      "file.source": "fixture",
+      "file.path": "/safe/path",
+      "file.name": "fixture.pdf",
+      "file.size": 7,
+      "file.hash.sha256": "file-hash",
+      "database.operation": "update",
+      "database.query": "UPDATE fixture SET value = 1",
+      "database.rows_affected": 1,
+      "ai.model.name": "fixture-model",
+      "ai.model.version": "1",
+      "ai.decision.process": "fixture-process",
+      "ai.decision.output": "fixture-output",
+      "ai.decision.human_override": "review",
+      "ai.data.sources": ["fixture-source"],
+      "project_id": "project-1",
+      "labels.debug": true,
+      "labels.redacted": true
+    }
+  },
+  {
+    "name": "legal-event",
+    "logger": {
+      "service_name": "fixture-service"
+    },
+    "input": {
+      "level": "error",
+      "action": "rejection",
+      "outcome": "failure",
+      "category": "service",
+      "legal_event": "human_rejection",
+      "message": "Rejected",
+      "context": {}
+    },
+    "expected": {
+      "ecs.version": "8.11.0",
+      "@timestamp": "2026-07-16T12:34:56.789Z",
+      "event.action": "rejection",
+      "event.outcome": "failure",
+      "event.kind": "event",
+      "event.category": "service",
+      "log.level": "error",
+      "service.name": "fixture-service",
+      "event.legal": "human_rejection",
+      "message": "Rejected"
+    }
+  },
+  {
+    "name": "explicit-default-and-omitted-optionals",
+    "logger": {
+      "service_name": "fixture-service",
+      "default_context": {
+        "nested": {
+          "present": "yes",
+          "absent": null,
+          "false": false
+        }
+      }
+    },
+    "input": {
+      "level": "fatal",
+      "action": "validate",
+      "outcome": "unknown",
+      "category": "api",
+      "default_event": "validation_failure",
+      "context": {
+        "event_reason": null,
+        "user_roles": null
+      }
+    },
+    "expected": {
+      "ecs.version": "8.11.0",
+      "@timestamp": "2026-07-16T12:34:56.789Z",
+      "event.action": "validate",
+      "event.outcome": "unknown",
+      "event.kind": "event",
+      "event.category": "api",
+      "log.level": "fatal",
+      "service.name": "fixture-service",
+      "event.default": "validation_failure",
+      "nested": {
+        "present": "yes",
+        "false": false
+      }
+    }
+  }
+]

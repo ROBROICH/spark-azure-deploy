@@ -9,9 +9,8 @@ const mocks = vi.hoisted(() => ({
   exportProjectHistory: vi.fn(),
 }));
 
-vi.mock('@/api-clients/protocol-module', () => ({
-  exportProjectHistoryProjectsProjectIdHistoryExportGet:
-    mocks.exportProjectHistory,
+vi.mock('@/api-clients/backend', () => ({
+  v1ProtocolExportProjectHistory: mocks.exportProjectHistory,
 }));
 
 const originalCreateObjectUrl = globalThis.URL.createObjectURL;
@@ -44,17 +43,17 @@ describe('createAuditLogExportQuery', () => {
       from: '2026-01-01T00:00:00.000Z',
       limit: 50,
       offset: 100,
-      request_id: 'request-1',
+      requestId: 'request-1',
       service: 'formal_completeness',
       source: 'user',
       to: '2026-01-31T23:59:59.999Z',
       ungrouped: true,
-      workflow_run_id: 'workflow-run-1',
+      workflowRunId: 'workflow-run-1',
     };
 
     expect(createAuditLogExportQuery(query)).toEqual({
       from: '2026-01-01T00:00:00.000Z',
-      request_id: 'request-1',
+      requestId: 'request-1',
       service: 'formal_completeness',
       source: 'user',
       to: '2026-01-31T23:59:59.999Z',
@@ -73,7 +72,7 @@ describe('exportAuditLogHistory', () => {
       from: '2026-01-01T00:00:00.000Z',
       limit: 50,
       offset: 0,
-      request_id: 'request-1',
+      requestId: 'request-1',
       service: 'formal_completeness',
       source: 'agent',
       to: '2026-01-31T23:59:59.999Z',
@@ -81,10 +80,10 @@ describe('exportAuditLogHistory', () => {
     });
 
     expect(mocks.exportProjectHistory).toHaveBeenCalledWith({
-      path: { project_id: 'project-1' },
+      path: { projectId: 'project-1' },
       query: {
         from: '2026-01-01T00:00:00.000Z',
-        request_id: 'request-1',
+        requestId: 'request-1',
         service: 'formal_completeness',
         source: 'agent',
         to: '2026-01-31T23:59:59.999Z',

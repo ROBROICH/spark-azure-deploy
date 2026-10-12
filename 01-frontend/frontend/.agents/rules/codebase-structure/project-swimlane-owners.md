@@ -1,3 +1,9 @@
+---
+ruleId: codebase-structure/project-swimlane-owners
+paths:
+  - "src/**"
+---
+
 # Project Swimlane Owners
 
 Use when creating, moving, reviewing, or restructuring Project screens that

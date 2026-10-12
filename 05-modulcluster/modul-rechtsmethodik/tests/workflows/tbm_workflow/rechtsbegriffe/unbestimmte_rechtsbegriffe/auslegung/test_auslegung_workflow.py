@@ -1,7 +1,7 @@
 # ruff: noqa: PLR2004
 """Tests for AuslegungWorkflow static methods."""
 
-from temporal.workflows.rechtsmethodik.types import Auslegungsvorschlag, UnbestimmterRechtsbegriff
+from temporal.contracts import Auslegungsvorschlag, UnbestimmterRechtsbegriff
 
 from src.workflows.tbm_workflow.rechtsbegriffe.unbestimmte_rechtsbegriffe.auslegung.auslegung_types import (
     UnbestimmterRechtsbegriffWithContext,

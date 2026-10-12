@@ -1,3 +1,7 @@
+---
+ruleId: clean-code/async-performance
+---
+
 # Async and Performance
 
 Use when code changes requests, loops with async work, Suspense/data reads, search/filter input, long lists/tables, render factories, or manual memoization.
@@ -8,7 +12,7 @@ Use when code changes requests, loops with async work, Suspense/data reads, sear
 - Do not replace a real sequential loop with promise chaining or `Array.reduce` just to silence `no-await-in-loop`; that obscures intent without improving latency.
 - Fetch only what the screen needs and prefer TanStack DB/query-layer composition that avoids duplicate or cascading requests.
 - In Suspense code, avoid one broad boundary around many sibling node reads when that creates a render-time waterfall. Either batch visible refs in a shared owner with `useNodes(...)` or place smaller boundaries around independent leaves when leaf ownership is clearer.
-- Do not fire expensive filtering, search, network work, or heavy local computation on every keystroke. Keep instant local echo and debounce/defer the expensive side effect. URL-backed router writes are owned by `state-effects-routing.md`.
+- Do not fire expensive filtering, search, network work, or heavy local computation on every keystroke. Keep instant local echo and debounce/defer the expensive side effect. URL-backed router writes are owned by `../../tanstack/clean-code/state-effects-routing.md` when the selected application uses TanStack Router.
 - Virtualize lists/tables that can grow meaningfully large. Pair virtualization with stable row keys and predictable sizing when possible.
 - Prefer `children` composition over inline render functions or element factories for wrapper components that mainly own layout.
 - React Compiler is enabled: treat `useMemo` and `useCallback` as opt-in exceptions. Prefer plain expressions/functions unless a compiler opt-out, external identity boundary, context provider value, effect-sensitive callback, or verified runtime constraint needs stable identity.

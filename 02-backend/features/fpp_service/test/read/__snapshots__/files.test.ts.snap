@@ -1,0 +1,62 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`GET /internal/fpp/files/{request_id} HTTP contract snapshots empty, one, and many file projections in incumbent order 1`] = `
+{
+  "failed-one-file": {
+    "body": [
+      {
+        "createdAt": "2026-05-22T11:52:42.854Z",
+        "fileName": null,
+        "fileType": "PLANUNTERLAGEN",
+        "fileUrl": "https://fpp.example.com/SPARK/A-F000000-001/pu_unterlagen/Planunterlagen_gesamt.zip",
+        "id": "e11cf49c-111c-46a6-87e1-fcbba1ea238e",
+      },
+    ],
+    "status": 200,
+  },
+  "imported-many-files": {
+    "body": [
+      {
+        "createdAt": "2026-05-22T05:58:08.675Z",
+        "fileName": null,
+        "fileType": "ERGAENZENDE_UNTERLAGEN",
+        "fileUrl": "https://fpp.example.com/SPARK/A-F000000-001/eu_unterlagen/fba_ergänzende_unterlagen.zip",
+        "id": "0ed8efc7-2220-47a9-897f-171aaa8177c2",
+      },
+      {
+        "createdAt": "2026-05-22T05:58:08.675Z",
+        "fileName": null,
+        "fileType": "PLANUNTERLAGEN",
+        "fileUrl": "https://fpp.example.com/SPARK/A-F000000-001/pu_unterlagen/Planunterlagen_gesamt.zip",
+        "id": "c7dede93-2c8c-4631-b06c-7a25f1cfce0b",
+      },
+    ],
+    "status": 200,
+  },
+  "imported-one-file": {
+    "body": [
+      {
+        "createdAt": "2026-05-20T13:24:54.764Z",
+        "fileName": null,
+        "fileType": "PLANUNTERLAGEN",
+        "fileUrl": "https://fpp.example.com/SPARK/A-F000000-001/pu_unterlagen/Planunterlagen_gesamt.zip",
+        "id": "b47aa784-e0ba-4228-b1ca-f9ce6808feb1",
+      },
+    ],
+    "status": 200,
+  },
+  "received-empty": {
+    "body": [],
+    "status": 200,
+  },
+}
+`;
+
+exports[`GET /internal/fpp/files/{request_id} HTTP contract snapshots the absent request error 1`] = `
+{
+  "body": {
+    "detail": "Request 3af5eab3-cc1c-476d-b3a2-4372233c728f not found",
+  },
+  "status": 404,
+}
+`;

@@ -56,6 +56,19 @@ class LLMMatchingParamsConfig(BaseModel):
         model_name=ENV.LITELLM.MODEL,
         reasoning_effort="high",
     )
+    # Grouping degenerates into reasoning loops on large unsorted file lists
+    # (gpt-oss burns the whole completion budget without answering), so the
+    # list is sorted and split into chunks of this size before each LLM call.
+    GROUPING_CHUNK_SIZE: int = 90
+    # temperature > 0 breaks repetition loops and makes the pydantic-validation
+    # retries in llm_invoke_structured effective; the larger budget covers the
+    # measured worst case (~18k tokens) with headroom.
+    GROUPING_LLM_PROFILE: LLMProfile = LLMProfile(
+        model_name=ENV.LITELLM.MODEL,
+        temperature=1.0,
+        max_completion_tokens=32000,
+        reasoning_effort="high",
+    )
 
 
 class TemporalConfig(BaseModel):

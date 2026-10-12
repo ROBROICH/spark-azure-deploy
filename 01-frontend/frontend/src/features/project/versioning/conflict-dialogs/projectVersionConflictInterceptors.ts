@@ -52,7 +52,7 @@ const getStringField = (
 };
 
 const getProjectIdFromUnknown = (value: unknown): string | null => {
-  const direct = getStringField(value, ['projectId', 'project_id']);
+  const direct = getStringField(value, ['projectId']);
   if (direct) {
     return direct;
   }
@@ -63,7 +63,7 @@ const getProjectIdFromUnknown = (value: unknown): string | null => {
 
   const detail = value.detail;
   if (isRecord(detail)) {
-    return getStringField(detail, ['projectId', 'project_id']);
+    return getStringField(detail, ['projectId']);
   }
 
   return null;

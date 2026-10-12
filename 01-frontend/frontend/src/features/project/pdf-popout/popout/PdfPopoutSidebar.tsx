@@ -36,6 +36,7 @@ const FILTERS: DocumentFilter[] = ['all', 'topic'];
 type SidebarFileTreeContentProps = {
   isFilesError: boolean;
   tree: ReturnType<typeof usePdfPopout>['tree'];
+  filePagination: ReturnType<typeof usePdfPopout>['filePagination'];
   openDocumentIds: Set<string>;
   connectedFileId: string | undefined;
   addLaneFromSidebar: (id: string) => void;
@@ -47,6 +48,7 @@ const SidebarFileTreeContent = (props: SidebarFileTreeContentProps) => {
   const {
     isFilesError,
     tree,
+    filePagination,
     openDocumentIds,
     connectedFileId,
     addLaneFromSidebar,
@@ -66,6 +68,7 @@ const SidebarFileTreeContent = (props: SidebarFileTreeContentProps) => {
   return (
     <PdfFileTree
       nodes={tree}
+      pagination={filePagination}
       openDocumentIds={openDocumentIds}
       connectedFileId={connectedFileId}
       onSelectDocument={addLaneFromSidebar}
@@ -84,6 +87,7 @@ export const PdfPopoutSidebar = () => {
     tree,
     isLoadingFiles,
     isFilesError,
+    filePagination,
     panes,
     connectedFileId,
     addLaneFromSidebar,
@@ -139,6 +143,7 @@ export const PdfPopoutSidebar = () => {
             topicLabel={topicLabel}
             allCount={allDocumentCount}
             topicCount={topicDocumentCount}
+            hasMoreFiles={filePagination !== undefined}
           />
           {FILTERS.map((filter) => (
             <div
@@ -155,6 +160,7 @@ export const PdfPopoutSidebar = () => {
               <SidebarFileTreeContent
                 isFilesError={isFilesError}
                 tree={tree}
+                filePagination={filePagination}
                 openDocumentIds={openDocumentIds}
                 connectedFileId={connectedFileId}
                 addLaneFromSidebar={addLaneFromSidebar}
@@ -174,6 +180,7 @@ export const PdfPopoutSidebar = () => {
           <SidebarFileTreeContent
             isFilesError={isFilesError}
             tree={tree}
+            filePagination={filePagination}
             openDocumentIds={openDocumentIds}
             connectedFileId={connectedFileId}
             addLaneFromSidebar={addLaneFromSidebar}

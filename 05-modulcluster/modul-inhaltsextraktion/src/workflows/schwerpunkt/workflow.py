@@ -67,7 +67,6 @@ class SchwerpunktWorkflow:
             *[
                 process_schwerpunkt_batch(
                     ProcessSchwerpunktBatchInput(chunks=batch),
-                    num_concurrent_batches=num_batches,
                 )
                 for batch in batches
             ]

@@ -161,7 +161,7 @@ export function UserAvatar(props: UserAvatarProps) {
     <span
       aria-label={name || email}
       className={cn(
-        'flex size-7 shrink-0 items-center justify-center rounded-full border text-xs leading-none font-medium',
+        'flex size-7 shrink-0 items-center justify-center rounded-full border text-xs leading-none font-medium forced-colors:border-[CanvasText] forced-colors:text-[color:CanvasText]',
         color.backgroundClassName,
         color.borderClassName,
         color.textClassName,

@@ -1,22 +1,16 @@
 """
 Tests for src/Activities/law_db_activities.py
-
-_query_top_k_dr and _query_k_results_ut create a fresh httpx.AsyncClient inside
-the function body, so they require a real server or a request-interceptor library
-(e.g. respx / pytest-httpx) to test HTTP behaviour.  Those libraries are not in
-the current dev dependencies, so only the Pydantic input models and the module-
-level URL constants are covered here.
 """
+
+from datetime import timedelta
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from pydantic import ValidationError
+from temporal.activities.law_db import QueryKResultsUTInput, QueryTopKDRInput, UTNorm
+from temporalio import activity
 
 import src.Activities.law_db_activities as law_db_module
-from src.Activities.law_db_activities import (
-    QueryKResultsUTInput,
-    QueryTopKDRInput,
-    UTNorm,
-)
 
 # ---------------------------------------------------------------------------
 # Constants for magic-value comparisons
@@ -27,6 +21,7 @@ EXPECTED_K_SMALL = 3
 EXPECTED_SINGLE_NORM_COUNT = 1
 EXPECTED_MULTIPLE_NORM_COUNT = 2
 EXPECTED_K_LARGE = 10
+EXPECTED_MAX_ATTEMPTS = 30
 
 
 # ---------------------------------------------------------------------------
@@ -44,6 +39,36 @@ class TestModuleConstants:
     def test_ut_url_contains_query_k_results(self) -> None:
         """Verify that the UT URL contains the expected query_k_results endpoint segment."""
         assert "query_k_results" in law_db_module._UT_URL
+
+    def test_activity_names_are_stable(self) -> None:
+        assert activity._Definition.must_from_callable(law_db_module._query_top_k_dr).name == "law_db_query_top_k_dr"
+        assert (
+            activity._Definition.must_from_callable(law_db_module._query_k_results_ut).name
+            == "law_db_query_k_results_ut"
+        )
+
+
+@pytest.mark.asyncio
+class TestWorkflowWrappers:
+    async def test_query_top_k_dr_options(self) -> None:
+        inp = QueryTopKDRInput(jurabk="BauGB", query_text="q", section_substrings=None, k=EXPECTED_K_MEDIUM)
+        with patch("src.Activities.law_db_activities.workflow.execute_activity", AsyncMock(return_value=[])) as mock:
+            await law_db_module.query_top_k_dr(inp)
+        args, kwargs = mock.call_args
+        assert args == (law_db_module._query_top_k_dr, inp)
+        assert kwargs["start_to_close_timeout"] == timedelta(seconds=60)
+        assert kwargs["retry_policy"].maximum_attempts == EXPECTED_MAX_ATTEMPTS
+        assert kwargs["retry_policy"].initial_interval == timedelta(seconds=5)
+        assert kwargs["retry_policy"].maximum_interval is None
+
+    async def test_query_k_results_ut_options(self) -> None:
+        inp = QueryKResultsUTInput(query_text="q", norms=[], k=EXPECTED_K_MEDIUM)
+        with patch("src.Activities.law_db_activities.workflow.execute_activity", AsyncMock(return_value=[])) as mock:
+            await law_db_module.query_k_results_ut(inp)
+        args, kwargs = mock.call_args
+        assert args == (law_db_module._query_k_results_ut, inp)
+        assert kwargs["start_to_close_timeout"] == timedelta(seconds=60)
+        assert kwargs["retry_policy"].maximum_attempts == EXPECTED_MAX_ATTEMPTS
 
 
 # ---------------------------------------------------------------------------
