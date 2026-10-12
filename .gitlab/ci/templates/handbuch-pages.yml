@@ -3,7 +3,9 @@
 
 pages:
   stage: test
-  image: node:24
+  image:
+    name: node:24
+    pull_policy: if-not-present
   variables:
     HANDBUCH_DIR: "01-frontend/handbuch"
   script:

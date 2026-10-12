@@ -1,3 +1,5 @@
+![SPARK Workflow Logo](./docs/assets/images/SPARK-Logo.png)
+
 # SPARK Workflow 
 
 Welcome to the repository of the application **SPARK Workflow**!
