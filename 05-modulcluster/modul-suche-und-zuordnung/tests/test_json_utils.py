@@ -60,6 +60,32 @@ class TestParseStage1Response:
         result = parse_llm_json(raw, Stage1Response)
         assert result.node_list == [1, 2, 3]
 
+    def test_code_fence_without_closing_fence(self) -> None:
+        """Regression #44: prose with brackets before an unclosed ```json block must not leak in."""
+        raw = 'Ich analysiere [Abschnitt 3] und [Abschnitt 7].\n\n```json\n{"node_list": [0, 3, 7]}\n'
+        result = parse_llm_json(raw, Stage1Response)
+        assert result.node_list == [0, 3, 7]
+
+    def test_plain_code_fence_without_closing_fence(self) -> None:
+        raw = 'Analyse [A]:\n```\n{"node_list": [7]}'
+        result = parse_llm_json(raw, Stage1Response)
+        assert result.node_list == [7]
+
+    def test_last_block_unclosed(self) -> None:
+        raw = '```json\n{"node_list": [1]}\n```\nKorrektur [x]:\n```json\n{"node_list": [2]}'
+        result = parse_llm_json(raw, Stage1Response)
+        assert result.node_list == [2]
+
+    def test_json_fence_preferred_over_plain(self) -> None:
+        raw = '```json\n{"node_list": [1]}\n```\nBeispiel:\n```\nkein JSON\n```'
+        result = parse_llm_json(raw, Stage1Response)
+        assert result.node_list == [1]
+
+    def test_lone_trailing_fence(self) -> None:
+        raw = '{"node_list": [4]}\n```'
+        result = parse_llm_json(raw, Stage1Response)
+        assert result.node_list == [4]
+
 
 # ---------------------------------------------------------------------------
 # Stage2SentenceResponse tests

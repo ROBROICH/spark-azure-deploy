@@ -106,3 +106,34 @@ class TestParseJsonResponse:
         content = 'Some text\n```\n{"key": "value"}\n```\nMore text'
         result = parse_json_response(content)
         assert result == {"key": "value"}
+
+
+class TestMissingClosingFence:
+    """Regression tests for issue #44: LLM omits the closing ``` fence."""
+
+    def test_json_block_without_closing_fence(self) -> None:
+        """Prose with brackets before an unclosed ```json block must not leak into the result."""
+        content = (
+            'Ich prüfe [Kapitel 3] und [Kapitel 7].\n\n```json\n{"key": "value"}\n'
+        )
+        assert parse_json_response(content) == {"key": "value"}
+
+    def test_last_json_block_unclosed(self) -> None:
+        """A closed draft block followed by an unclosed final block yields the final block."""
+        content = '```json\n{"draft": true}\n```\nVerifikation [ok].\n```json\n{"final": true}'
+        assert parse_json_response(content) == {"final": True}
+
+    def test_plain_block_without_closing_fence(self) -> None:
+        """An unclosed ``` block without json marker is extracted up to the end of the text."""
+        content = 'Analyse [A] und [B]:\n```\n{"key": "value"}'
+        assert parse_json_response(content) == {"key": "value"}
+
+    def test_plain_blocks_last_unclosed(self) -> None:
+        """With plain fences, the last opening fence wins even if it is unclosed."""
+        content = '```\n{"first": 1}\n```\nText [x]\n```\n{"second": 2}\n'
+        assert parse_json_response(content) == {"second": 2}
+
+    def test_lone_trailing_fence_falls_back(self) -> None:
+        """A lone closing fence (opening missing) keeps working via the full-text fallback."""
+        content = '{"key": "value"}\n```'
+        assert parse_json_response(content) == {"key": "value"}
