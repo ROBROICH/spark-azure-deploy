@@ -33,6 +33,8 @@ class Config:
     VLM_TIMEOUT_SECONDS: int = 600
     VLM_ACTIVITY_TIMEOUT_MINUTES: int = 15
     VLM_MAX_TOKENS: int = 4096
+    # Output cap for the summary LLM; leaves headroom for reasoning models.
+    VLM_SUMMARY_MAX_TOKENS: int = 8192
 
     # Concurrency
     MAX_CONCURRENT_DMS_IMAGE_UPLOADS: int = 5

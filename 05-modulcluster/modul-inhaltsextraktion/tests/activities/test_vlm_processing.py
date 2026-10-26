@@ -1,10 +1,16 @@
 # tests/activities/test_vlm_processing.py
-"""Unit tests for the VLM processing activity (apply_vlm_results)."""
+"""Unit tests for the VLM processing activities (apply_vlm_results, summarize_visual_element)."""
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
-from src.activities.vlm_processing import ApplyVlmResultsInput, _apply_vlm_results
-from src.workflows.vlm_enhancement.output_format import VLMWorkflowOutput
+from src.activities.vlm_processing import (
+    ApplyVlmResultsInput,
+    SummarizeVisualElementInput,
+    _apply_vlm_results,
+    summarize_visual_element,
+)
+from src.config import get_config
+from src.workflows.vlm_enhancement.output_format import VlmAnalysis, VLMWorkflowOutput
 
 
 def _make_output(original: str, replacement: str) -> VLMWorkflowOutput:
@@ -145,3 +151,25 @@ class TestApplyVlmResults:
             out = await _apply_vlm_results(inp)
 
         assert out == "before\n<TABELLE>enhanced</TABELLE>\nafter"
+
+
+class TestSummarizeVisualElement:
+    """Tests for the output limit of the summary LLM call."""
+
+    async def test_passes_output_limit(self) -> None:
+        """The summary call is capped at VLM_SUMMARY_MAX_TOKENS."""
+        expected = VlmAnalysis(summary="Eine Zusammenfassung.")
+        inp = SummarizeVisualElementInput(
+            context_text="Kontext",
+            extraction_result="Extraktion",
+            description_result="Beschreibung",
+        )
+
+        with patch(
+            "src.activities.vlm_processing.llm_invoke_structured",
+            new=AsyncMock(return_value=expected),
+        ) as mock_llm:
+            result = await summarize_visual_element(inp)
+
+        assert result is expected
+        assert mock_llm.call_args.kwargs["max_tokens"] == get_config().VLM_SUMMARY_MAX_TOKENS

@@ -58,6 +58,7 @@ async def summarize_visual_element(
         VlmAnalysis,
         model=ENV.VLM_SUMMARY_MODEL_NAME,
         temperature=0.1,
+        max_tokens=get_config().VLM_SUMMARY_MAX_TOKENS,
     )
 
 
