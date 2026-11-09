@@ -13,21 +13,21 @@ GN_URL = HttpUrl("http://gesetze-normen.test/")
 
 def test_gn_not_found(respx_mock):
     """should return None when no relevant Law is found"""
-    respx_mock.get(f"{GN_URL}documents/search/Nonexistant").mock(
+    respx_mock.get(f"{GN_URL}documents/search/Nonexistent").mock(
         return_value=Response(404)
     )
     gn_client = GesetzeNormenDB(GN_URL)
-    gn_client.find_jurabk("Nonexistant", Hierarchy.BUND)
+    gn_client.find_jurabk("Nonexistent", Hierarchy.BUND)
 
 
 def test_gn_raise_for_status(respx_mock):
     """should raise exception for failing statuses other than 404"""
-    respx_mock.get(f"{GN_URL}documents/search/Nonexistant").mock(
+    respx_mock.get(f"{GN_URL}documents/search/Nonexistent").mock(
         return_value=Response(500)
     )
     gn_client = GesetzeNormenDB(GN_URL)
     with pytest.raises(HTTPError):
-        gn_client.find_jurabk("Nonexistant", Hierarchy.BUND)
+        gn_client.find_jurabk("Nonexistent", Hierarchy.BUND)
 
 
 def test_gn_wrong_hierarchy(respx_mock):

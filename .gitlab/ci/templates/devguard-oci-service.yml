@@ -10,6 +10,13 @@ spec:
       type: string
     dockerfile:
       type: string
+    intoto_materials:
+      type: string
+      description: "Newline-separated build input paths relative to the repository root"
+    intoto_workspace_manifests:
+      type: boolean
+      default: false
+      description: "Include workspace pyproject.toml files for Python dependency resolution"
     base_image_dev:
       type: string
       default: ""
@@ -55,10 +62,8 @@ include:
       ignore_external_references: "true"
       ignore_upstream_attestations: "true"
       needs:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
       dependencies:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/sign-oci-image.yml"
@@ -72,10 +77,8 @@ include:
       pull_policy: "if-not-present"
       image: "$IMAGE_TAG"
       needs:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
       dependencies:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
 
   - remote: "https://gitlab.com/l3montree/devguard/-/raw/v1.16.0/templates/attest.yml"
@@ -90,11 +93,9 @@ include:
       pull_policy: "if-not-present"
       image: "$IMAGE_TAG"
       needs:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
         - "devguard:container_scanning$[[ inputs.job_suffix ]]"
       dependencies:
-        - "devguard:generate_tag$[[ inputs.job_suffix ]]"
         - "devguard:build_oci_image$[[ inputs.job_suffix ]]"
       attestations:
         - source: "$DEVGUARD_API_URL/api/v1/organizations/$DEVGUARD_ASSET_NAME/refs/COMMIT_REF/artifacts/ARTIFACT_NAME/sbom.json/"
@@ -114,6 +115,10 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
     - $[[ inputs.build_needs ]]
   variables:
     GIT_STRATEGY: fetch
+    DEVGUARD_BUILD_MATERIALS: "$[[ inputs.intoto_materials ]]"
+    DEVGUARD_BUILD_WORKSPACE_MANIFESTS: "$[[ inputs.intoto_workspace_manifests ]]"
+    DEVGUARD_BUILD_CONTEXT: "$[[ inputs.context ]]"
+    DEVGUARD_BUILD_DOCKERFILE: "$[[ inputs.dockerfile ]]"
   image:
     name: registry.gitlab.com/l3montree/devguard/osscontainertools-kaniko-crane:kaniko-v1.28.3-devguard-scanner-v1.12.4@sha256:07b0db85f1fe98a8ce05cc1855649d9e758cea3ebb40e98b6282148b48c1a350
     pull_policy: if-not-present
@@ -121,9 +126,14 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
       - ""
   before_script:
     - echo "Uses Kaniko to build Docker images securely without requiring privileged access. Images are pushed directly to the registry to avoid GitLab artifact size limits for large image tarballs."
-    - /devguard-scanner intoto start --step=build --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA"
+    - sh .gitlab/ci/intoto-start.sh /devguard-scanner intoto start --step=build --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA"
   script:
     - |
+      GENERATED_IMAGE_REF="${IMAGE_TAG:?generate_tag must provide IMAGE_TAG}"
+      case "$GENERATED_IMAGE_REF" in
+        "$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:"?*) ;;
+        *) echo "Generated image reference must use the service repository and a nonempty tag" >&2; exit 1 ;;
+      esac
       if [ -n "$CI_COMMIT_TAG" ]; then
         IMAGE_REF="$CI_REGISTRY_IMAGE/$[[ inputs.image_suffix ]]:$CI_COMMIT_TAG"
       else
@@ -133,9 +143,15 @@ devguard:build_oci_image$[[ inputs.job_suffix ]]:
     - /kaniko/executor --context "$[[ inputs.context ]]" --dockerfile "$[[ inputs.dockerfile ]]" --build-arg "BASE_IMAGE_DEV=$[[ inputs.base_image_dev ]]" --build-arg "BASE_IMAGE=$[[ inputs.base_image ]]" --ignore-path=/devguard-scanner --ignore-path=/crane --pre-cleanup --cleanup --preserve-context --push-retry=5 --destination "$IMAGE_REF"
     - /crane auth login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
     - /crane digest "$IMAGE_REF" > image-digest.txt
+    - |
+      BUILT_IMAGE_REF="$IMAGE_REF@$(cat image-digest.txt)"
+      if [ "$GENERATED_IMAGE_REF" != "$IMAGE_REF" ]; then
+        echo "Applying DevGuard generated tag $GENERATED_IMAGE_REF to $BUILT_IMAGE_REF"
+        /crane tag "$BUILT_IMAGE_REF" "${GENERATED_IMAGE_REF##*:}" || exit $?
+      fi
     - echo "Running DevGuard Intoto Build...stopping..."
     - /devguard-scanner intoto stop --step=build --products=image-digest.txt --token="$DEVGUARD_TOKEN" --apiUrl="$DEVGUARD_API_URL" --assetName="$DEVGUARD_ASSET_NAME" --supplyChainId="$CI_COMMIT_SHA" --generateSlsaProvenance --defaultRef="$CI_DEFAULT_BRANCH" --ref="$CI_COMMIT_REF_NAME" --isTag="$(if [ "$CI_COMMIT_TAG" != "" ]; then echo "true"; else echo "false"; fi)"
-    - echo "IMAGE_TAG=$IMAGE_REF@$(cat image-digest.txt)" > variables.env
+    - echo "IMAGE_TAG=$BUILT_IMAGE_REF" > variables.env
   artifacts:
     paths:
       - image-digest.txt

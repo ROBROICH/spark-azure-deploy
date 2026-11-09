@@ -1,5 +1,5 @@
-ARG BASE_IMAGE_DEV=node:24-alpine3.23
-ARG BASE_IMAGE=nginx:1.30.5-alpine3.24-slim
+ARG BASE_IMAGE_DEV=node:24.22.1-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2
+ARG BASE_IMAGE=nginx:1.30.6-alpine3.24-slim
 
 # Stage 1: Build the application
 FROM ${BASE_IMAGE_DEV} AS builder

@@ -1,3 +1,14 @@
+## Version 0.3.1 (27.10.2026)
+
+- Bold, italic and underlined text in the decision editor is kept after saving, when switching between outline items and after a reload, and appears in the exported decision.
+- Canceled processing runs appear as “Canceled” in the “Workflows” sidebar instead of “Failed”. A canceled formal completeness check no longer ends as failed.
+- A project’s audit log again shows the fields with their before and after values for created, changed and deleted entries, instead of “This entry does not contain a row diff.” The audit log download contains these values again as well.
+- Supplementary requests and comments are saved on the first click on “Save”.
+- Long document type names are shortened and shown in full in a tooltip.
+- Legal norm lookups return the requested norm instead of a neighboring one.
+- Exported decisions no longer contain template metadata such as authors.
+- Additional bug fixes and optimizations were completed.
+
 ## Version 0.3.0 (12.10.2026)
 
 - An administration area for project types is available, including topic catalogs with legal bases, required documents, and decision templates.

@@ -48,11 +48,13 @@ markers = ["integration: mark a test as an integration test (uses real external 
 addopts = "-m 'not integration' -p no:warnings -v --ignore=./db-data"
 testpaths = ["tests"]
 norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
-postgresql_dbname = "jura-db"
+# Separate test database, recreated per test.
+postgresql_dbname = "jura-db-test"
 postgresql_port = "15433"
 postgresql_password = "postgres"
 env = [
     "D:DB_PORT=15433",
+    "D:DB_NAME=jura-db-test",
 ]
 
 [tool.pyrefly]

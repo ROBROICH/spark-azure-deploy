@@ -101,16 +101,24 @@ function renderContentsCell(
   const isOnRequestList = node.status === DOCUMENT_STATUS.onRequestList;
 
   if ((isMissing || isOnRequestList) && node.missingReason) {
+    const missingDocumentLabel = callbacks.t(
+      'DocumentsCard.table.missingDocument',
+      { documentType: node.missingReason.documentType },
+    );
     return (
       <div className="flex items-center">
         {renderIndentGuides(row.depth)}
         <div className="flex min-w-0 items-center gap-2 py-2">
           <AlertCircle className="size-4 shrink-0 text-error-600" />
-          <span className="text-[13px] leading-[18px] tracking-[-0.01em] text-text-primary">
-            {callbacks.t('DocumentsCard.table.missingDocument', {
-              documentType: node.missingReason.documentType,
-            })}
-          </span>
+          <OverflowTooltip content={missingDocumentLabel} side="top">
+            <span
+              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- tooltip trigger anchor inside TooltipTrigger asChild; tabIndex makes truncated text keyboard-accessible
+              tabIndex={0}
+              className="focus-ring block truncate rounded text-[13px] leading-[18px] tracking-[-0.01em] text-text-primary"
+            >
+              {missingDocumentLabel}
+            </span>
+          </OverflowTooltip>
         </div>
       </div>
     );

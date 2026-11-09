@@ -15,6 +15,9 @@ export const FAILED_WORKFLOW_STATUSES = new Set([
   'timed_out',
 ]);
 
+// A user abort ends the run canceled; Temporal terminates its children.
+const CANCELED_WORKFLOW_STATUSES = new Set(['canceled', 'terminated']);
+
 export const WORKFLOW_TYPE_CONTENT_EXTRACTION =
   'InsertExtractionResultsWorkflow';
 export const WORKFLOW_TYPE_PROCESS_DOCUMENTS = 'process-documents-workflow';
@@ -182,6 +185,10 @@ export const getWorkflowBadgeStatus = (
   workflow: WorkflowsBase,
 ): WorkflowBadgeStatus => {
   const normalizedStatus = normalizeWorkflowValue(workflow.status);
+
+  if (CANCELED_WORKFLOW_STATUSES.has(normalizedStatus)) {
+    return 'canceled';
+  }
 
   if (FAILED_WORKFLOW_STATUSES.has(normalizedStatus)) {
     return 'failed';

@@ -111,6 +111,8 @@ gcp:
 #   enabled          — false skips the secret (default true).
 #   targetName       — Secret name when it differs from the map key.
 #   name             — ExternalSecret object name (default: target name).
+#   annotations      — ExternalSecret metadata annotations, e.g. Helm hook
+#                      ordering for credentials consumed by pre-install Jobs.
 #   namespaces       — namespaces to render the ExternalSecret into (default:
 #                      the chart namespace). Environments that spread
 #                      workloads over several namespaces list each consumer

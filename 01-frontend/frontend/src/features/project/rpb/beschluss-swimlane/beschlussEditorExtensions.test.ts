@@ -1,13 +1,12 @@
-import { Editor, type JSONContent } from '@tiptap/core';
+import { Editor, getSchema, type JSONContent } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
+import { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { describe, expect, it, vi } from 'vitest';
-import type { BeschlussSection } from '../rpbBeschluss.types';
+import type { BeschlussContent, BeschlussSection } from '../rpbBeschluss.types';
 import {
   buildEditorContent,
   buildStructureTemplate,
   createStructureGuardExtension,
-  extractNodeText,
   extractNodeTexts,
   getFirstParagraphSelectionPos,
   getOutlineNodeIdAtPosition,
@@ -17,12 +16,18 @@ import {
   TextareaEnterExtension,
   textToParagraphContent,
 } from './beschlussEditorExtensions';
+import {
+  beschlussStarterKit,
+  createBeschlussEditorExtensions,
+} from './beschlussEditorExtensionList';
 
 const makeSection = (
   outlineNodeId: string,
   title: string,
   text: string,
+  content: BeschlussSection['content'] = null,
 ): BeschlussSection => ({
+  content,
   depth: 0,
   index: 0,
   isEditable: true,
@@ -32,6 +37,91 @@ const makeSection = (
   title,
   vaeNodeId: outlineNodeId,
 });
+
+// Shared literal with backend test I.2 (implementation/backend.md, Handovers); keep both copies identical.
+const canonicalFormattedContent: BeschlussContent = {
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      content: [
+        { type: 'text', marks: [{ type: 'bold' }], text: 'Fett' },
+        { type: 'text', text: ' und ' },
+        { type: 'text', marks: [{ type: 'italic' }], text: 'kursiv' },
+        { type: 'text', text: ' und ' },
+        {
+          type: 'text',
+          marks: [{ type: 'underline' }],
+          text: 'unterstrichen',
+        },
+        { type: 'hardBreak' },
+        { type: 'text', marks: [{ type: 'bold' }], text: 'vor' },
+        { type: 'hardBreak', marks: [{ type: 'bold' }] },
+        { type: 'text', marks: [{ type: 'bold' }], text: 'nach' },
+      ],
+    },
+  ],
+};
+
+// Shared literal with backend test 2.2 (implementation/backend.md, Handovers); keep both copies identical.
+const nonCanonicalFormattedContent = {
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          marks: [{ type: 'underline' }, { type: 'bold', attrs: { level: 1 } }],
+          text: 'Fe',
+        },
+        {
+          type: 'text',
+          marks: [{ type: 'bold' }, { type: 'underline' }],
+          text: 'tt',
+        },
+        { type: 'text', text: ' normal', extra: true },
+      ],
+    },
+  ],
+};
+
+const expectedCanonicalFormattedContent: BeschlussContent = {
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      content: [
+        {
+          type: 'text',
+          marks: [{ type: 'bold' }, { type: 'underline' }],
+          text: 'Fett',
+        },
+        { type: 'text', text: ' normal' },
+      ],
+    },
+  ],
+};
+
+const getSectionDocument = (editor: Editor, sectionIndex: number) => ({
+  type: 'doc',
+  content: [editor.state.doc.child(sectionIndex * 2 + 1).toJSON()],
+});
+
+// ProseMirror runs input rules only from handleTextInput, which insertText and insertContent skip.
+const typeText = (editor: Editor, text: string) => {
+  for (const character of text) {
+    const { from, to } = editor.state.selection;
+    const insertCharacter = () =>
+      editor.state.tr.insertText(character, from, to);
+    const handled = editor.view.someProp('handleTextInput', (handleTextInput) =>
+      handleTextInput(editor.view, from, to, character, insertCharacter),
+    );
+    if (!handled) {
+      editor.view.dispatch(insertCharacter());
+    }
+  }
+};
 
 describe('textToParagraphContent', () => {
   it('creates hard breaks inside one paragraph', () => {
@@ -151,48 +241,12 @@ describe('extractNodeTexts', () => {
   });
 });
 
-describe('extractNodeText', () => {
-  it('rebuilds plain text only for the requested outline node', () => {
-    const editor = new Editor({
-      extensions: [StarterKit],
-      content: buildEditorContent([
-        makeSection('node-a', 'A', 'One\nTwo'),
-        makeSection('node-b', 'B', 'Three'),
-      ]),
-    });
-
-    expect(
-      extractNodeText(editor.state.doc, 'node-a', ['node-a', 'node-b']),
-    ).toBe('One\nTwo');
-    expect(
-      extractNodeText(editor.state.doc, 'node-b', ['node-a', 'node-b']),
-    ).toBe('Three');
-
-    editor.destroy();
-  });
-});
-
 describe('createStructureGuardExtension', () => {
   it('keeps Enter inside the same paragraph as a hard break', () => {
     const sections = [makeSection('node-a', 'A', 'Alpha')];
     const editor = new Editor({
       extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [3],
-            HTMLAttributes: {
-              contenteditable: 'false',
-              'data-readonly-heading': 'true',
-            },
-          },
-          bulletList: false,
-          orderedList: false,
-          listItem: false,
-          blockquote: false,
-          codeBlock: false,
-          horizontalRule: false,
-          link: false,
-        }),
+        beschlussStarterKit,
         TextareaEnterExtension,
         createStructureGuardExtension(() => buildStructureTemplate(sections)),
       ],
@@ -228,22 +282,7 @@ describe('createStructureGuardExtension', () => {
     ];
     const editor = new Editor({
       extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [3],
-            HTMLAttributes: {
-              contenteditable: 'false',
-              'data-readonly-heading': 'true',
-            },
-          },
-          bulletList: false,
-          orderedList: false,
-          listItem: false,
-          blockquote: false,
-          codeBlock: false,
-          horizontalRule: false,
-          link: false,
-        }),
+        beschlussStarterKit,
         createStructureGuardExtension(
           () => buildStructureTemplate(sections),
           () => ['node-a', 'node-b'],
@@ -270,27 +309,176 @@ describe('createStructureGuardExtension', () => {
   });
 });
 
+describe('formatted section content', () => {
+  const createEditor = (sections: BeschlussSection[]) =>
+    new Editor({
+      extensions: createBeschlussEditorExtensions(() =>
+        buildStructureTemplate(sections),
+      ),
+      content: buildEditorContent(sections),
+    });
+
+  it('builds a section from its formatted content, including marks on hard breaks', () => {
+    const editor = createEditor([
+      makeSection(
+        'node-a',
+        'A',
+        'Fett und kursiv und unterstrichen\nvor\nnach',
+        canonicalFormattedContent,
+      ),
+    ]);
+
+    expect(getSectionDocument(editor, 0)).toEqual(canonicalFormattedContent);
+
+    editor.destroy();
+  });
+
+  it('builds a section without formatted content from its plain text', () => {
+    const editor = createEditor([makeSection('node-a', 'A', 'First\nSecond')]);
+
+    expect(getSectionDocument(editor, 0)).toEqual({
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            { type: 'text', text: 'First' },
+            { type: 'hardBreak' },
+            { type: 'text', text: 'Second' },
+          ],
+        },
+      ],
+    });
+
+    editor.destroy();
+  });
+
+  it('normalizes a non-canonical document to the canonical form the backend stores', () => {
+    const beschlussEditorSchema = getSchema(
+      createBeschlussEditorExtensions(() => []),
+    );
+
+    expect(
+      ProseMirrorNode.fromJSON(
+        beschlussEditorSchema,
+        nonCanonicalFormattedContent,
+      ).toJSON(),
+    ).toEqual(expectedCanonicalFormattedContent);
+  });
+});
+
+describe('structure guard formatting', () => {
+  const sections = [
+    makeSection('node-a', 'A', 'Alpha'),
+    makeSection('node-b', 'B', 'Beta'),
+  ];
+  const outlineNodeIds = ['node-a', 'node-b'];
+  const createGuardedEditor = () =>
+    new Editor({
+      extensions: createBeschlussEditorExtensions(
+        () => buildStructureTemplate(sections),
+        () => outlineNodeIds,
+        () => new Set(['node-a']),
+      ),
+      content: buildEditorContent(sections),
+    });
+
+  it('rejects a bold toggle in a read-only section', () => {
+    const editor = createGuardedEditor();
+    const from = getFirstParagraphSelectionPos(
+      editor.state.doc,
+      'node-b',
+      outlineNodeIds,
+    );
+
+    editor.commands.setTextSelection({ from, to: from + 'Beta'.length });
+    editor.commands.toggleBold();
+
+    expect(editor.state.doc.child(3).toJSON()).toEqual({
+      type: 'paragraph',
+      content: [{ type: 'text', text: 'Beta' }],
+    });
+
+    editor.destroy();
+  });
+
+  it('rejects a bold toggle on a heading', () => {
+    const editor = createGuardedEditor();
+    const headingTextStart = 1;
+
+    editor.commands.setTextSelection({
+      from: headingTextStart,
+      to: headingTextStart + 'A'.length,
+    });
+    editor.commands.toggleBold();
+
+    expect(editor.state.doc.child(0).toJSON()).toEqual({
+      type: 'heading',
+      attrs: { level: 3 },
+      content: [{ type: 'text', text: 'A' }],
+    });
+
+    editor.destroy();
+  });
+});
+
+describe('unsupported marks', () => {
+  const sections = [makeSection('node-a', 'A', 'Alpha')];
+  const createEditor = () =>
+    new Editor({
+      extensions: createBeschlussEditorExtensions(() =>
+        buildStructureTemplate(sections),
+      ),
+      content: buildEditorContent(sections),
+    });
+
+  it.each(['Mod-Shift-s', 'Mod-e'])(
+    'does not apply a mark for the %s shortcut',
+    (shortcut) => {
+      const editor = createEditor();
+      const from = getFirstParagraphSelectionPos(editor.state.doc, 'node-a', [
+        'node-a',
+      ]);
+
+      editor.commands.setTextSelection({ from, to: from + 'Alpha'.length });
+      editor.commands.keyboardShortcut(shortcut);
+
+      expect(editor.state.doc.child(1).toJSON()).toEqual({
+        type: 'paragraph',
+        content: [{ type: 'text', text: 'Alpha' }],
+      });
+
+      editor.destroy();
+    },
+  );
+
+  it.each(['~~struck~~', '`coded`'])(
+    'does not apply a mark when typing %s',
+    (input) => {
+      const editor = createEditor();
+      const from = getFirstParagraphSelectionPos(editor.state.doc, 'node-a', [
+        'node-a',
+      ]);
+
+      editor.commands.setTextSelection(from + 'Alpha'.length);
+      typeText(editor, ` ${input}`);
+
+      expect(editor.state.doc.child(1).toJSON()).toEqual({
+        type: 'paragraph',
+        content: [{ type: 'text', text: `Alpha ${input}` }],
+      });
+
+      editor.destroy();
+    },
+  );
+});
+
 describe('PastePlainTextAsHardBreaksExtension', () => {
   it('pastes multiline external plain text inside the active paragraph', () => {
     const sections = [makeSection('node-a', 'A', 'Alpha')];
     const editor = new Editor({
       extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [3],
-            HTMLAttributes: {
-              contenteditable: 'false',
-              'data-readonly-heading': 'true',
-            },
-          },
-          bulletList: false,
-          orderedList: false,
-          listItem: false,
-          blockquote: false,
-          codeBlock: false,
-          horizontalRule: false,
-          link: false,
-        }),
+        beschlussStarterKit,
         createStructureGuardExtension(() => buildStructureTemplate(sections)),
         PastePlainTextAsHardBreaksExtension,
       ],
@@ -367,22 +555,7 @@ describe('ParagraphSelectAllExtension', () => {
     ];
     const editor = new Editor({
       extensions: [
-        StarterKit.configure({
-          heading: {
-            levels: [3],
-            HTMLAttributes: {
-              contenteditable: 'false',
-              'data-readonly-heading': 'true',
-            },
-          },
-          bulletList: false,
-          orderedList: false,
-          listItem: false,
-          blockquote: false,
-          codeBlock: false,
-          horizontalRule: false,
-          link: false,
-        }),
+        beschlussStarterKit,
         ParagraphSelectAllExtension,
         createStructureGuardExtension(() => buildStructureTemplate(sections)),
       ],

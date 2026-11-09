@@ -20,7 +20,7 @@ from event_logging.enums import (
 from authentification.dependencies import require_role
 from authentification.enums import OidcRoles
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import Integer, cast
+from sqlalchemy import Integer, cast, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload, selectinload
 from sqlmodel import and_, distinct, func, or_, select
@@ -317,12 +317,20 @@ def get_norms_search_query(jurabk: str, paragraph_nr: str, include_absaetze: boo
             .cte("filtered")
         )
 
-        # Main query
+        # Main query.
+        #
+        # The pair must be matched as a tuple against the filtered CTE. Two
+        # independent IN clauses form a cross product: for §§ 4, 4a, 5 a query
+        # for § 5 filters to {(4,"a"), (5,"")}, but `paragraph_nr IN (4,5) AND
+        # sub_paragraph_nr IN ("a","")` also matches the unrelated (4,"") - and
+        # that phantom row shifts the requested norm out of the middle position
+        # create_norm_result used to rely on.
         stmt = select(DBNorm).where(
             and_(
                 func.lower(DBNorm.jurabk) == jurabk.lower(),
-                DBNorm.paragraph_nr.in_(select(filtered_cte.c.paragraph_nr)),
-                DBNorm.sub_paragraph_nr.in_(select(filtered_cte.c.sub_paragraph_nr)),
+                tuple_(DBNorm.paragraph_nr, DBNorm.sub_paragraph_nr).in_(
+                    select(filtered_cte.c.paragraph_nr, filtered_cte.c.sub_paragraph_nr)
+                ),
             )
         )
 
@@ -340,46 +348,39 @@ def create_norm_result(query_result, paragraph_nr: str | None = None) -> list[No
     result = []
 
     if paragraph_nr:
-        if len(query_result) == 1:
-            entry = query_result[0]
-        elif len(query_result) == 2:
-            main = filter(
-                lambda x: x.paragraph_nr == paragraph_nr,
-                query_result,
-            ).__next__()
-            main.prev = query_result[0].paragraph_nr if query_result.index(main) == 1 else None
-            main.next = query_result[1].paragraph_nr if query_result.index(main) == 0 else None
-            entry = main
-        elif len(query_result) == 3:
-            entry = query_result[1]
-            entry.prev = query_result[0].paragraph_nr
-            entry.next = query_result[2].paragraph_nr
-        elif len(query_result) >= 4:  # happens when prev hast alphabeic part
+        # Identify the requested norm by value, never by position. The previous
+        # implementation branched on the number of rows and, for exactly three,
+        # assumed the middle one was the requested norm. Any row set that was
+        # not exactly [prev, self, next] therefore returned a neighbour instead
+        # - e.g. §§ 4, 4a, 5 queried for § 5 returned § 4a.
+        #
+        # The request is normalised the same way row values are built, so
+        # callers may pass "1 a" for "1a".
+        numeric_part, alpha_part = split_paragraph_nr_str(paragraph_nr)
+        wanted = f"{numeric_part}{alpha_part}" if isinstance(numeric_part, int) else paragraph_nr.strip()
+
+        main_index = next(
+            (i for i, norm in enumerate(query_result) if norm.paragraph_nr == wanted),
+            None,
+        )
+
+        if main_index is None:
+            # Controlled miss rather than an escaping StopIteration/IndexError,
+            # which surfaced as a 500. The endpoint documents an empty list for
+            # "nothing found", and callers already treat it as not-found.
             logger.warn(
                 action=EventAction.NOTIFY,
                 outcome=EventOutcome.UNKNOWN,
                 category=EventCategory.DATABASE,
                 default_event=LogEventDefault.DB_READ,
-                message="more than 3 neighbouring entries found:"
-                + f"{query_result[0].jurabk} {paragraph_nr} - "
-                + f"{[(paragraph_nr) for x in query_result]}",
+                message=f"requested paragraph_nr {wanted} not among neighbouring entries "
+                + f"{[norm.paragraph_nr for norm in query_result]}",
             )
-            main = filter(
-                lambda x: x.paragraph_nr == paragraph_nr,
-                query_result,
-            ).__next__()
-            main.prev = query_result[query_result.index(main) - 1].paragraph_nr
-            main.next = query_result[query_result.index(main) + 1].paragraph_nr
-            entry = main
-        else:
-            logger.error(
-                action=EventAction.NOTIFY,
-                outcome=EventOutcome.FAILURE,
-                category=EventCategory.DATABASE,
-                default_event=LogEventDefault.DB_READ,
-                message="no neighbouring entries:" + f"{[(x.paragraph_nr, x.sub_paragraph_nr) for x in query_result]}",
-            )
-            raise Exception(f"no neighbouring entries found in\n {query_result}")
+            return []
+
+        entry = query_result[main_index]
+        entry.prev = query_result[main_index - 1].paragraph_nr if main_index > 0 else None
+        entry.next = query_result[main_index + 1].paragraph_nr if main_index < len(query_result) - 1 else None
         result.append(entry)
     else:
         for i, norm in enumerate(query_result):

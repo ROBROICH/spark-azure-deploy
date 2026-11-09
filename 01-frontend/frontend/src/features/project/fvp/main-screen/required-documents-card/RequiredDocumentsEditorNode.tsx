@@ -1,5 +1,6 @@
 import { Button } from '@/features/ui/button/Button';
 import { cn } from '@/features/ui/style/cn';
+import { OverflowTooltip } from '@/features/ui/tooltip/Tooltip';
 import { ChevronDown, ChevronRight, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { RequiredDocumentNode } from '../data/schemas/requiredDocument.schema';
@@ -47,6 +48,25 @@ export const RequiredDocumentsEditorNode = (
   const isCustomCategoryEmpty =
     isCustomCategory && (!node.children || node.children.length === 0);
   const rowStyle = { marginLeft: `${depth * 24}px` };
+
+  // Leaf rows are plain <div>s, so the focusable tooltip anchor never nests inside the category toggle button.
+  const nameLabel = isCategory ? (
+    <span className="flex-1 text-[13px] leading-[18px] font-medium text-brand-950">
+      {isCustomCategory
+        ? t('DocumentTypeDropdown.customCategoryLabel')
+        : node.name}
+    </span>
+  ) : (
+    <OverflowTooltip content={node.name} side="top">
+      <span
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- tooltip trigger anchor inside TooltipTrigger asChild; tabIndex makes truncated text keyboard-accessible
+        tabIndex={0}
+        className="focus-ring min-w-0 flex-1 truncate rounded text-[13px] leading-[18px] font-normal text-neutral-600"
+      >
+        {node.name}
+      </span>
+    </OverflowTooltip>
+  );
 
   // Toggleable rows never render the rename input or edit/delete actions
   // (those require `isEditable`/`isEditing`, which only apply to custom-category
@@ -101,18 +121,7 @@ export const RequiredDocumentsEditorNode = (
           ) : null}
         </div>
       ) : (
-        <span
-          className={cn(
-            'flex-1 text-[13px] leading-[18px]',
-            isCategory
-              ? 'font-medium text-brand-950'
-              : 'font-normal text-neutral-600',
-          )}
-        >
-          {isCustomCategory
-            ? t('DocumentTypeDropdown.customCategoryLabel')
-            : node.name}
-        </span>
+        nameLabel
       )}
 
       {isEditable && !isEditing && (

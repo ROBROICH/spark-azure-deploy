@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import type { NodePayloadByType } from '@/db/nodes/types';
 import { useRpbFeatureContext } from '../workspace-state/RpbFeatureContext';
 import { useRpbVaeNodeUrlState } from '../workspace-state/RpbOutlineContext';
-import type { BeschlussSection } from '../rpbBeschluss.types';
+import type { BeschlussContent, BeschlussSection } from '../rpbBeschluss.types';
 import { formatNodeNumber } from '../outline/outlineNumbering';
 import {
   buildRpbOutlineTree,
@@ -35,6 +35,7 @@ const appendBeschlussSections = (
 
     vaeNodeById.set(node.vaeNode.id, node.vaeNode);
     sections.push({
+      content: node.vaeNode.content,
       depth,
       index,
       isEditable: topicId ? hasTopicMutationRights(topicId) : canMutateProject,
@@ -121,19 +122,20 @@ export const BeschlussSwimlane = () => {
   );
 
   // eslint-disable-next-line no-restricted-syntax -- passed into a memoized TipTap editor boundary where stable handler identity avoids editor prop churn.
-  const handleTextBlur = useCallback(
-    (outlineNodeId: string, nextText: string) => {
+  const handleContentCommit = useCallback(
+    (outlineNodeId: string, nextContent: BeschlussContent) => {
       const vaeNode = vaeNodeById.get(outlineNodeId);
       const section = sections.find(
         (candidate) => candidate.vaeNodeId === outlineNodeId,
       );
-      if (!vaeNode || !section?.isEditable || nextText === vaeNode.text) {
+      if (!vaeNode || !section?.isEditable) {
         return;
       }
 
+      // The VAE service derives `text` from `content` and rejects a client `text`.
       const tx = transact(() => {
         update(vaeNode, (draft) => {
-          draft.text = nextText;
+          draft.content = nextContent;
         });
       });
       trackBeschlussCommit(tx.isPersisted.promise);
@@ -171,7 +173,7 @@ export const BeschlussSwimlane = () => {
         selectedVaeNodeId={selectedVaeNodeId}
         onVaeNodeSelect={onVaeNodeSelect}
         onExportClick={handleExportClick}
-        onTextBlur={handleTextBlur}
+        onContentCommit={handleContentCommit}
       />
     </>
   );

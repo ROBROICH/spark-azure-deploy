@@ -98,6 +98,44 @@ describe("derived node definition validation", () => {
     ).toThrow("Invalid node request");
   });
 
+  test("removes derived fields from the input schemas and keeps them in the response", () => {
+    const derived = define({
+      ...representativeNodeMetadata,
+      authors: {
+        ...representativeNodeMetadata.authors,
+        derive: { fields: ["bio"], payload: (_kind, payload) => payload },
+      },
+    }).nodes.find(({ nodeType }) => nodeType === "author")!;
+
+    expect(Object.keys(derived.schemas.insert.properties)).not.toContain("bio");
+    expect(Object.keys(derived.schemas.patch.properties)).not.toContain("bio");
+    expect(Object.keys(derived.schemas.response.properties)).toContain("bio");
+    expect(derived.fields).toContain("bio");
+  });
+
+  test("rejects a derived field that is not public or that an input schema exposes", () => {
+    expect(() =>
+      define({
+        ...representativeNodeMetadata,
+        authors: {
+          ...representativeNodeMetadata.authors,
+          derive: { fields: ["missing"], payload: (_kind, payload) => payload },
+        },
+      }),
+    ).toThrow("Invalid node request");
+
+    expect(() =>
+      define({
+        ...representativeNodeMetadata,
+        authors: {
+          ...representativeNodeMetadata.authors,
+          schemas: author.schemas,
+          derive: { fields: ["bio"], payload: (_kind, payload) => payload },
+        },
+      }),
+    ).toThrow("Invalid node request");
+  });
+
   test("uses public node aliases for nodes and persisted parents", () => {
     const nodes = define({
       ...representativeNodeMetadata,

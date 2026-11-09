@@ -111,6 +111,34 @@ tests:
     asserts:
       - hasDocuments: {count: 0}
 
+  - it: leaves ExternalSecret annotations absent unless configured
+    template: templates/external-secrets.yaml
+    asserts:
+      - notExists: {path: metadata.annotations}
+
+  - it: passes bootstrap annotations to ExternalSecrets in additional namespaces
+    template: templates/external-secrets.yaml
+    set:
+      externalSecrets.secrets:
+        registry-credentials:
+          namespaces: [ci, ci-other]
+          annotations:
+            helm.sh/hook: pre-install,pre-upgrade
+            helm.sh/hook-weight: "-10"
+            helm.sh/hook-delete-policy: before-hook-creation
+          data:
+            username: {remoteKey: shared/registry, property: username}
+            password: {remoteKey: shared/registry, property: password}
+    asserts:
+      - equal:
+          path: 'metadata.annotations["helm.sh/hook-weight"]'
+          value: "-10"
+        documentSelector: {path: metadata.namespace, value: ci-other}
+      - equal:
+          path: 'metadata.annotations["helm.sh/hook-delete-policy"]'
+          value: before-hook-creation
+        documentSelector: {path: metadata.namespace, value: ci-other}
+
   - it: requires a secret store once a secret renders
     template: templates/external-secrets.yaml
     set:

@@ -1,3 +1,4 @@
+import copy
 import re
 from xml.etree.ElementTree import Element
 
@@ -421,6 +422,9 @@ def filter_weggefallen(saetze: list[Satz]) -> list[Satz]:
 
 def process_absatz(absatz: Element) -> Absatz:
     """process xml elementTree into Absatz object"""
+    # work on a copy: callers reuse the element afterwards (e.g. for the full
+    # paragraph text), which must keep its absatz number
+    absatz = copy.deepcopy(absatz)
     try:
         absatz_nr, clean_text = get_absatz_nr(absatz.text)
         # overwrite with clean string (without absatz_nr)

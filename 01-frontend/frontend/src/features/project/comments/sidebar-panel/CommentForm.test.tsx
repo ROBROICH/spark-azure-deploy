@@ -37,7 +37,7 @@ afterEach(() => {
 });
 
 describe('CommentForm validation accessibility', () => {
-  it('only surfaces an error for the field the user blurred and links it via aria-describedby', async () => {
+  it('surfaces required errors on submit and links them via aria-describedby', async () => {
     const user = userEvent.setup();
 
     render(
@@ -49,30 +49,59 @@ describe('CommentForm validation accessibility', () => {
     );
 
     const titleInput = screen.getByLabelText('Sidebar.commentForm.titleLabel');
-    // Untouched fields must stay clean.
+    // Untouched fields must stay clean, also after merely leaving one.
+    await user.click(titleInput);
+    await user.tab();
     expect(titleInput).toHaveAttribute('aria-invalid', 'false');
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-    // Blur the required title field while it is empty.
-    await user.click(titleInput);
-    await user.tab();
+    await user.click(
+      screen.getByRole('button', { name: 'Sidebar.commentForm.save' }),
+    );
 
-    const titleError = await screen.findByRole('alert');
-    expect(titleError).toHaveTextContent(
+    const titleError = await screen.findByText(
       'Sidebar.commentForm.validation.titleRequired',
     );
+    expect(titleError).toHaveAttribute('role', 'alert');
     expect(titleInput).toHaveAttribute('aria-invalid', 'true');
     // The error id is unique per form instance and is what the input points at.
     expect(titleInput.getAttribute('aria-describedby')).toBe(titleError.id);
+    expect(addComment).not.toHaveBeenCalled();
+  });
 
-    // The untouched content field must not be flagged just because title blurred.
-    const contentInput = screen.getByLabelText(
-      'Sidebar.commentForm.contentLabel',
+  it('does not keep a stale required error while the user fills a field it left empty', async () => {
+    const user = userEvent.setup();
+
+    render(
+      <CommentForm
+        onClose={() => {}}
+        canMutateProject
+        processStep="unsorted"
+      />,
     );
-    expect(contentInput).toHaveAttribute('aria-invalid', 'false');
+
+    const titleInput = screen.getByLabelText('Sidebar.commentForm.titleLabel');
+    await user.click(titleInput);
+    await user.tab();
+    await user.type(titleInput, 'My title');
+
+    // A lingering message would vanish on the save mousedown, shift the
+    // button and swallow the first click.
     expect(
-      screen.queryByText('Sidebar.commentForm.validation.contentRequired'),
+      screen.queryByText('Sidebar.commentForm.validation.titleRequired'),
     ).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByLabelText('Sidebar.commentForm.contentLabel'),
+      'My content',
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Sidebar.commentForm.save' }),
+    );
+
+    await waitFor(() => {
+      expect(addComment).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('namespaces field ids per form instance to avoid collisions', () => {
@@ -130,5 +159,78 @@ describe('CommentForm validation accessibility', () => {
     });
     // The form must stay open so the user can retry without losing input.
     expect(onClose).not.toHaveBeenCalled();
+  });
+});
+
+describe('CommentForm saving state', () => {
+  it('marks the save button busy until saving finishes', async () => {
+    const user = userEvent.setup();
+    let finishSave = () => {};
+    vi.mocked(addComment).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+
+    render(
+      <CommentForm
+        onClose={() => {}}
+        canMutateProject
+        processStep="unsorted"
+      />,
+    );
+    await user.type(
+      screen.getByLabelText('Sidebar.commentForm.titleLabel'),
+      'My title',
+    );
+    await user.type(
+      screen.getByLabelText('Sidebar.commentForm.contentLabel'),
+      'My content',
+    );
+    const saveButton = screen.getByRole('button', {
+      name: 'Sidebar.commentForm.save',
+    });
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(saveButton).toHaveAttribute('aria-busy', 'true');
+    });
+    expect(saveButton).toBeDisabled();
+
+    finishSave();
+    await waitFor(() => {
+      expect(saveButton).toHaveAttribute('aria-busy', 'false');
+    });
+  });
+});
+
+describe('CommentForm prefilled title', () => {
+  it('saves a prefilled title from a long source name within the title limit', async () => {
+    const user = userEvent.setup();
+    vi.mocked(addComment).mockResolvedValueOnce(undefined);
+    const longSourceName = 'Grunderwerbsplan Blatt '.repeat(50);
+
+    render(
+      <CommentForm
+        onClose={() => {}}
+        canMutateProject
+        processStep="unsorted"
+        initialTitle={longSourceName}
+      />,
+    );
+    await user.type(
+      screen.getByLabelText('Sidebar.commentForm.contentLabel'),
+      'My content',
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'Sidebar.commentForm.save' }),
+    );
+
+    await waitFor(() => {
+      expect(addComment).toHaveBeenCalledTimes(1);
+    });
+    const savedTitle = vi.mocked(addComment).mock.calls[0]?.[1];
+    expect(savedTitle?.length).toBe(255);
+    expect(savedTitle?.endsWith('…')).toBe(true);
   });
 });

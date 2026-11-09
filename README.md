@@ -1,4 +1,4 @@
-![SPARK Workflow Logo](./docs/assets/images/SPARK-Logo.png)
+![SPARK Workflow Logo](./SPARK-Logo.png)
 
 # SPARK Workflow 
 
@@ -39,23 +39,33 @@ The TypeScript backend runs as one application, `spark-backend`, assembled from 
 ## Upgrading from Earlier Versions
 
 > [!IMPORTANT]
-> SPARK Workflow 0.3.0 cannot be installed as an upgrade of an earlier version.
+> SPARK Workflow 0.3.1 cannot be installed as an upgrade of 0.2.x or earlier. It updates 0.3.0 in place.
 
 Version 0.3.0 introduces changes to the data structure that are not compatible with earlier versions of SPARK Workflow. Procedure data from earlier versions (0.2.x and older) therefore cannot be migrated.
 
-If you operate an earlier version, set up SPARK Workflow 0.3.0 as a new installation. Back up any data you still need before switching, as it will not be available in the new installation. For the required steps, see "Upgrading from 0.2.x" in the [release notes](./RELEASE_NOTES.md).
+If you operate 0.2.x or earlier, set up SPARK Workflow 0.3.1 as a new installation. Back up any data you still need before switching, as it will not be available in the new installation. For the required steps, see "Upgrading from 0.2.x" in the [release notes](./RELEASE_NOTES.md).
 
 ## Getting Started
+
+
+### User Guideline
+
+Please be advised that the User Guideline is currently only available in German.
+
+To open the guideline, select “GitLab Pages” on the right-hand side of the project information section.
+
+The German User Guideline can also be accessed directly via the following link:
+ https://agentische-ki-workflow-based-375145.usercontent.opencode.de/
 
 ### Prerequisites
 
 - Docker with Docker Compose
-- [Bun 1.4.0](https://bun.sh/docs/installation)
+- [Bun 1.4.4](https://bun.sh/docs/installation)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - [Process Compose v1.76.1](https://github.com/F1bonacc1/process-compose/releases/tag/v1.76.1)
   (or a later release explicitly verified to contain the readiness-restart fix from upstream #403
   and the readiness-health assignment fix from upstream #414)
-- Node.js 24
+- Node.js 24.22.1 or a newer patched 24.x release
 - [pnpm 10.30.2](https://pnpm.io/installation)
 - An OpenAI-compatible LLM provider, for example LiteLLM
 

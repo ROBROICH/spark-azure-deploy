@@ -7,6 +7,7 @@ import {
 } from '@/features/ui/action-menu/ActionMenu';
 import { cn } from '@/features/ui/style/cn';
 import { POPUP_SELECT_ITEM_CLASSES } from '@/features/ui/style/popupStyles';
+import { OverflowTooltip } from '@/features/ui/tooltip/Tooltip';
 import { Check, X } from 'lucide-react';
 import {
   forwardRef,
@@ -56,7 +57,7 @@ const FilterPillSelectTriggerButton = forwardRef<
       <span className="flex size-6 items-center justify-center rounded">
         {icon}
       </span>
-      {triggerLabel}
+      <span className="max-w-60 truncate">{triggerLabel}</span>
     </button>
   );
 });
@@ -170,7 +171,7 @@ export function FilterPillSelect<
             aria-label={triggerAriaLabel}
           />
         </ActionMenuTrigger>
-        <ActionMenuContent align={align}>
+        <ActionMenuContent align={align} className="max-w-80">
           <ActionMenuRadioGroup
             value={selectedOption?.value ?? ''}
             onValueChange={(strValue) => {
@@ -185,9 +186,11 @@ export function FilterPillSelect<
                 key={option.value}
                 value={option.value}
                 disabled={option.disabled}
-                className={POPUP_SELECT_ITEM_CLASSES}
+                className={cn(POPUP_SELECT_ITEM_CLASSES, 'gap-2')}
               >
-                {option.label}
+                <OverflowTooltip content={option.label} side="right">
+                  <span className="min-w-0 truncate">{option.label}</span>
+                </OverflowTooltip>
                 {option.value === selectedOption?.value ? (
                   <Check className="size-4 shrink-0" aria-hidden="true" />
                 ) : null}

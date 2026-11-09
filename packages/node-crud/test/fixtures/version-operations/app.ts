@@ -6,6 +6,7 @@ import {
   createNodeRoutes,
   createNodeVersionRoutes,
   defineNodeDescriptor,
+  type NodeDescriptorInput,
   type NodePersistence,
   type ProjectVersionPeer,
 } from "../../../src";
@@ -17,12 +18,14 @@ import {
 export const createVersionOperationsApp = (
   persistence: NodePersistence<typeof formalCompletenessSchema>,
   peer: ProjectVersionPeer,
+  nodeMetadata: NodeDescriptorInput<typeof formalCompletenessSchema>["nodeMetadata"] =
+    formalCompletenessNodeMetadata,
 ) => {
   const descriptor = defineNodeDescriptor({
     name: "formal-completeness-version-representative",
     auditLogEnabled: true,
     schema: formalCompletenessSchema,
-    nodeMetadata: formalCompletenessNodeMetadata,
+    nodeMetadata,
   });
   const runtime = bindNodeRuntime(descriptor, {
     persistence,

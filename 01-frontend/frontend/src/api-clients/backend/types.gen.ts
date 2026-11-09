@@ -4991,7 +4991,26 @@ export type V1AdministrativeFileDraftCopyVersionRequest = {
         setOutdated?: boolean;
         overrides?: {
             title?: string;
-            text?: string;
+            content?: {
+                type: 'doc';
+                content: [
+                    {
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        }>;
+                    }
+                ];
+            } | null;
             checkedByAssignee?: boolean;
             checkedByLeader?: boolean;
             checkedAtAssignee?: string | null;
@@ -5031,7 +5050,26 @@ export type V1AdministrativeFileDraftCopyVersionNode = {
     setOutdated?: boolean;
     overrides?: {
         title?: string;
-        text?: string;
+        content?: {
+            type: 'doc';
+            content: [
+                {
+                    type: 'paragraph';
+                    content?: Array<{
+                        type: 'text';
+                        text: string;
+                        marks?: Array<{
+                            type: 'bold' | 'italic' | 'underline';
+                        }>;
+                    } | {
+                        type: 'hardBreak';
+                        marks?: Array<{
+                            type: 'bold' | 'italic' | 'underline';
+                        }>;
+                    }>;
+                }
+            ];
+        } | null;
         checkedByAssignee?: boolean;
         checkedByLeader?: boolean;
         checkedAtAssignee?: string | null;
@@ -5054,6 +5092,26 @@ export type V1AdministrativeFileDraftVaeNodeResponse = {
     id: string;
     title: string;
     text: string;
+    content: {
+        type: 'doc';
+        content: [
+            {
+                type: 'paragraph';
+                content?: Array<{
+                    type: 'text';
+                    text: string;
+                    marks?: Array<{
+                        type: 'bold' | 'italic' | 'underline';
+                    }>;
+                } | {
+                    type: 'hardBreak';
+                    marks?: Array<{
+                        type: 'bold' | 'italic' | 'underline';
+                    }>;
+                }>;
+            }
+        ];
+    } | null;
     checkedByAssignee: boolean;
     checkedByLeader: boolean;
     checkedAtAssignee: string | null;
@@ -5126,7 +5184,26 @@ export type V1AdministrativeFileDraftProcessNodeChangesRequest = {
         id?: string;
         payload: {
             title: string;
-            text: string;
+            content: {
+                type: 'doc';
+                content: [
+                    {
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        }>;
+                    }
+                ];
+            };
             checkedByAssignee?: boolean;
             checkedByLeader?: boolean;
             checkedAtAssignee?: string | null;
@@ -5164,7 +5241,26 @@ export type V1AdministrativeFileDraftProcessNodeChangesRequest = {
         id: string;
         payload: {
             title?: string;
-            text?: string;
+            content?: {
+                type: 'doc';
+                content: [
+                    {
+                        type: 'paragraph';
+                        content?: Array<{
+                            type: 'text';
+                            text: string;
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        } | {
+                            type: 'hardBreak';
+                            marks?: Array<{
+                                type: 'bold' | 'italic' | 'underline';
+                            }>;
+                        }>;
+                    }
+                ];
+            } | null;
             checkedByAssignee?: boolean;
             checkedByLeader?: boolean;
             checkedAtAssignee?: string | null;
@@ -9499,7 +9595,26 @@ export type V1AdministrativeFileDraftUpdateNodesData = {
             id?: string;
             payload: {
                 title: string;
-                text: string;
+                content: {
+                    type: 'doc';
+                    content: [
+                        {
+                            type: 'paragraph';
+                            content?: Array<{
+                                type: 'text';
+                                text: string;
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            } | {
+                                type: 'hardBreak';
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            }>;
+                        }
+                    ];
+                };
                 checkedByAssignee?: boolean;
                 checkedByLeader?: boolean;
                 checkedAtAssignee?: string | null;
@@ -9537,7 +9652,26 @@ export type V1AdministrativeFileDraftUpdateNodesData = {
             id: string;
             payload: {
                 title?: string;
-                text?: string;
+                content?: {
+                    type: 'doc';
+                    content: [
+                        {
+                            type: 'paragraph';
+                            content?: Array<{
+                                type: 'text';
+                                text: string;
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            } | {
+                                type: 'hardBreak';
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            }>;
+                        }
+                    ];
+                } | null;
                 checkedByAssignee?: boolean;
                 checkedByLeader?: boolean;
                 checkedAtAssignee?: string | null;
@@ -9605,7 +9739,26 @@ export type V1AdministrativeFileDraftCopyVersionNodesData = {
             setOutdated?: boolean;
             overrides?: {
                 title?: string;
-                text?: string;
+                content?: {
+                    type: 'doc';
+                    content: [
+                        {
+                            type: 'paragraph';
+                            content?: Array<{
+                                type: 'text';
+                                text: string;
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            } | {
+                                type: 'hardBreak';
+                                marks?: Array<{
+                                    type: 'bold' | 'italic' | 'underline';
+                                }>;
+                            }>;
+                        }
+                    ];
+                } | null;
                 checkedByAssignee?: boolean;
                 checkedByLeader?: boolean;
                 checkedAtAssignee?: string | null;

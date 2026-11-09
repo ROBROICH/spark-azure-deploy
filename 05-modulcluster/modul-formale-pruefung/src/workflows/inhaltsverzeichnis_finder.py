@@ -64,6 +64,8 @@ from src.schemas.inhaltsverzeichnis_finder_schemas import (
     SelectInhaltsverzeichnisLLMActivityParams,
 )
 
+MAX_DOCUMENT_TYPE_NAME_LENGTH = 1_000
+
 
 @workflow.defn(name=FORMALE_PRUEFUNG_INHALTSVERZEICHNIS_FINDER_WORKFLOW.name)
 class InhaltsverzeichnisFinderWorkflow:
@@ -452,7 +454,7 @@ class InhaltsverzeichnisFinderWorkflow:
         results: list[DocumentTypeDefinition] = [
             DocumentTypeDefinition(
                 category=" > ".join(entry.hierarchy_path) if entry.hierarchy_path else None,
-                document_type_name=entry.entry_title,
+                document_type_name=entry.entry_title[:MAX_DOCUMENT_TYPE_NAME_LENGTH],
                 document_type_description=f"{entry.entry_number}: {description_result.document_type_description}"
                 if entry.entry_number
                 else description_result.document_type_description,

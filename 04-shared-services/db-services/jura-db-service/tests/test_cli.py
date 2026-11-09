@@ -1,19 +1,51 @@
 """cli testing"""
+import io
+import zipfile
+from pathlib import Path
+
 import httpx
 import pytest
+import respx
+from httpx import Response
 from jura_db import cli
 from jura_db.cli import app, download_document
 from jura_db.config import app_config
 
+SAMPLE_DOC = "jb-TESTDOC0001"
 
-@pytest.mark.skip("errors in ci only")
-def test_cli_main(cli_client):
-    """Test the main CLI command with a cached sample document name."""
-    result = cli_client.invoke(
-        app, ["main", "jb-TESTDOC0001"]
+
+def _sample_document_zip() -> bytes:
+    """Zip the committed sample XML the way the RII portal serves it."""
+    xml = (Path("tests/data") / SAMPLE_DOC / f"{SAMPLE_DOC}.xml").read_bytes()
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        archive.writestr(f"{SAMPLE_DOC}.xml", xml)
+    return buffer.getvalue()
+
+
+@respx.mock
+def test_cli_main(cli_client, mock_query_embedding):
+    """main should download (stubbed), parse and persist a document."""
+    respx.get(f"{app_config.rii_base_document_url}/{SAMPLE_DOC}.zip").mock(
+        return_value=Response(200, content=_sample_document_zip())
     )
-    assert result.exit_code == 0
+
+    result = cli_client.invoke(app, ["main", SAMPLE_DOC, "--overwrite"])
+
+    assert result.exit_code == 0, result.output
     assert "Document processing completed successfully" in result.output
+
+
+@respx.mock
+def test_cli_main_reports_download_failure(cli_client, mock_query_embedding):
+    """A missing document upstream should fail the command, not pass silently."""
+    respx.get(f"{app_config.rii_base_document_url}/{SAMPLE_DOC}.zip").mock(
+        return_value=Response(404)
+    )
+
+    result = cli_client.invoke(app, ["main", SAMPLE_DOC, "--overwrite"])
+
+    assert result.exit_code != 0
 
 
 def test_resolve_toc_path_exists(cli_client):

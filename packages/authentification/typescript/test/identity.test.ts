@@ -90,7 +90,19 @@ describe("configuration", () => {
         AUTH_REALM: "example",
         AUTH_AUDIENCE: "api",
       }).unwrap(),
-    ).toMatchObject({ mode: "strict", spiceDb: undefined });
+    ).toMatchObject({ mode: "strict", spiceDb: undefined, zeroTrustDisabled: false });
+  });
+
+  test("parses the explicit zero trust opt-out", () => {
+    expect(
+      parseAuthConfig({
+        AUTH_MODE: "strict",
+        AUTH_BASE_URL: "https://identity.example",
+        AUTH_REALM: "example",
+        AUTH_AUDIENCE: "api",
+        DANGEROUS_ZERO_TRUST_DISABLED: "true",
+      }).unwrap(),
+    ).toMatchObject({ zeroTrustDisabled: true });
   });
 
   test("rejects half-configured SpiceDB", () => {

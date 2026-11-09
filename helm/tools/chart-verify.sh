@@ -61,7 +61,7 @@ for dir in "${charts[@]}"; do
   done
   if [ -d "$dir/tests" ]; then
     if out=$(helm unittest "$dir" 2>&1); then ok "unittest $name: $(printf '%s\n' "$out" | grep -E '^Tests:' | tr -s ' ')"
-    else bad "unittest $name:"$'\n'"$(printf '%s\n' "$out" | grep -E 'FAIL|Error|expected' | head -10)"; fi
+    else bad "unittest $name:"$'\n'"$out"; fi
   fi
 done
 

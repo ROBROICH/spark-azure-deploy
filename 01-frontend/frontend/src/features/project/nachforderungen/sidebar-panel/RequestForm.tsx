@@ -15,7 +15,7 @@ import {
 import { toast } from '@/features/ui/toast/Toast';
 import { getHttpErrorStatus } from '@/integrations/api-clients/httpErrorStatus';
 import * as Sentry from '@sentry/react';
-import { useForm } from '@tanstack/react-form';
+import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { getRouteApi } from '@tanstack/react-router';
 import { useEffect, useId, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -83,9 +83,14 @@ export const RequestForm = (props: RequestFormProps) => {
       title: editItem?.title ?? initialTitle ?? '',
       reason: editItem?.reason ?? '',
     },
+    // Validate first on submit, then on every change: leaving the auto-focused
+    // reason field must not flag it, and a fixed field clears while typing.
+    validationLogic: revalidateLogic({
+      mode: 'submit',
+      modeAfterSubmission: 'change',
+    }),
     validators: {
-      onSubmit: requestFormSchema,
-      onBlur: requestFormSchema,
+      onDynamic: requestFormSchema,
     },
     onSubmit: async ({ value }) => {
       if (!canMutateProject) {
@@ -260,14 +265,19 @@ export const RequestForm = (props: RequestFormProps) => {
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
             {t('RequestListPanel.form.cancel')}
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={!canMutateProject}
-          >
-            {t('RequestListPanel.form.save')}
-          </Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                loading={isSubmitting}
+                disabled={!canMutateProject}
+              >
+                {t('RequestListPanel.form.save')}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
       </form>
     </div>

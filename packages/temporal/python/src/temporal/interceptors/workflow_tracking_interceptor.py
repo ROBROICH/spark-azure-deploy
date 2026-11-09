@@ -7,7 +7,6 @@ from temporalio import workflow
 from temporalio.client import Interceptor as ClientInterceptor
 from temporalio.client import OutboundInterceptor, StartWorkflowInput
 from temporalio.common import RetryPolicy
-from temporalio.exceptions import FailureError
 from temporalio.worker import (
     ExecuteWorkflowInput,
     WorkflowInboundInterceptor,
@@ -15,13 +14,15 @@ from temporalio.worker import (
 )
 from temporalio.worker import Interceptor as WorkerInterceptor
 
-from temporal.contracts import WorkflowStatusEvent
+from temporal.contracts import WorkflowStatus2, WorkflowStatusEvent
+from temporal.interceptors._cancellation import ends_cancelled, is_abort
 from temporal.tracking_client import TrackingClient
 
 logger = logging.getLogger("temporal.interceptors.workflow_tracking")
 
 _STATUS_ACTIVITY = "_post_status_activity"
 _TRACKING_PATCH_ID = "workflow-tracking-activities"
+_RUNNING_CANCEL_PATCH_ID = "workflow-tracking-running-cancel"
 
 
 class _TrackingClientOutbound(OutboundInterceptor):
@@ -41,7 +42,7 @@ class _TrackingClientOutbound(OutboundInterceptor):
                 timestamp=datetime.now(UTC),
                 project_id=_search_attr(getattr(input, "search_attributes", {}), "ProjectId"),
                 project_version=_search_attr(getattr(input, "search_attributes", {}), "ProjectVersion"),
-                status="pending",
+                status=WorkflowStatus2.PENDING,
             )
             await self._tracker.post_status(payload)
         except Exception:
@@ -65,37 +66,43 @@ class _TrackingWorkflowInbound(WorkflowInboundInterceptor):
 
         tracking_enabled = workflow.patched(_TRACKING_PATCH_ID)
 
-        if tracking_enabled:
-            try:
-                await workflow.start_activity(
-                    _STATUS_ACTIVITY,
-                    WorkflowStatusEvent(
-                        workflow_id=info.workflow_id,
-                        run_id=info.run_id,
-                        status="running",
-                        workflow_type=info.workflow_type,
-                        timestamp=workflow.now(),
-                    ),
-                    schedule_to_close_timeout=timedelta(seconds=10),
-                )
-            except Exception:
-                workflow.logger.exception("failed to schedule running notification")
-
-        status = "completed"
+        post_final_status = tracking_enabled
+        status = WorkflowStatus2.COMPLETED
         failure_msg: str | None = None
         try:
+            if tracking_enabled:
+                try:
+                    await workflow.start_activity(
+                        _STATUS_ACTIVITY,
+                        WorkflowStatusEvent(
+                            workflow_id=info.workflow_id,
+                            run_id=info.run_id,
+                            status=WorkflowStatus2.RUNNING,
+                            workflow_type=info.workflow_type,
+                            timestamp=workflow.now(),
+                        ),
+                        schedule_to_close_timeout=timedelta(seconds=10),
+                    )
+                except (CancelledError, Exception) as e:
+                    # Swallowing an abort here would run the workflow body after the user cancelled it.
+                    # Runs that swallowed it before this patch keep doing so on replay.
+                    if is_abort(e) and workflow.patched(_RUNNING_CANCEL_PATCH_ID):
+                        raise
+                    if isinstance(e, CancelledError):
+                        # Before the patch a bare cancellation escaped here without a final post;
+                        # replays of those runs must not add one.
+                        post_final_status = False
+                        raise
+                    workflow.logger.exception("failed to schedule running notification")
             return await self.next.execute_workflow(input)
-        except CancelledError:
-            status, failure_msg = "cancelled", "cancelled"
-            raise
-        except FailureError as e:
-            status, failure_msg = "failed", str(e)[:500]
-            raise
-        except Exception as e:
-            status, failure_msg = "failed", str(e)[:500]
+        except (CancelledError, Exception) as e:
+            if ends_cancelled(e):
+                status, failure_msg = WorkflowStatus2.CANCELLED, "cancelled"
+            else:
+                status, failure_msg = WorkflowStatus2.FAILED, (str(e) or type(e).__name__)[:500]
             raise
         finally:
-            if tracking_enabled:
+            if post_final_status:
                 try:
                     await workflow.execute_activity(
                         _STATUS_ACTIVITY,
@@ -113,7 +120,7 @@ class _TrackingWorkflowInbound(WorkflowInboundInterceptor):
                         retry_policy=RetryPolicy(maximum_attempts=3),
                     )
                 except Exception:
-                    workflow.logger.exception("failed to schedule running notification")
+                    workflow.logger.exception("failed to post final status")
 
 
 class WorkflowTrackingWorkerInterceptor(WorkerInterceptor):

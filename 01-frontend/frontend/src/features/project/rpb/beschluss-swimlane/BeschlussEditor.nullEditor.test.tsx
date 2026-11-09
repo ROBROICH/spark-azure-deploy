@@ -23,6 +23,7 @@ const makeSection = (
   title: string,
   text: string,
 ): BeschlussSection => ({
+  content: null,
   depth: 0,
   index: 0,
   isEditable: true,
@@ -44,7 +45,7 @@ describe('BeschlussEditor null editor state', () => {
         selectedVaeNodeId="node-a"
         onVaeNodeSelect={vi.fn()}
         onExportClick={vi.fn()}
-        onTextBlur={vi.fn()}
+        onContentCommit={vi.fn()}
       />,
     );
 

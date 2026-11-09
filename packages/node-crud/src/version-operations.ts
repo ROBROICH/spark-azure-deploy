@@ -277,7 +277,11 @@ export async function copyProjectVersionNodes<Schema extends NodeSchema>(
     const overrideValidation = validateOverrides(node, directive.overrides);
     if (overrideValidation.isErr()) return overrideValidation;
     const group = byNodeType.get(directive.nodeType) ?? [];
-    group.push(directive);
+    group.push(
+      node.derive && Object.keys(directive.overrides).length > 0
+        ? { ...directive, overrides: node.derive.payload("patch", directive.overrides) }
+        : directive,
+    );
     byNodeType.set(directive.nodeType, group);
   }
 

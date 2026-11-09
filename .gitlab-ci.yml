@@ -75,14 +75,14 @@ frontend:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [01-frontend/frontend/**/*, .gitlab/ci/services/frontend.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [01-frontend/frontend/**/*, .gitlab/ci/services/frontend.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
 .typescript:
   stage: test
   image:
-    name: node:22.23.2
+    name: node:22.23.4
     pull_policy: if-not-present
   variables:
     COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -98,6 +98,7 @@ frontend:
         - scripts/**/*
         - .gitlab/ci/services/spark-backend.yml
         - .gitlab/ci/templates/devguard-oci-service.yml
+        - .gitlab/ci/intoto-start.sh
         - .gitlab-ci.yml
         - package.json
         - pnpm-lock.yaml
@@ -162,7 +163,7 @@ rechtsaenderungs-monitoring:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [04-shared-services/basiskomponenten/rechtsaenderungs-monitoring/**/*, .gitlab/ci/services/rechtsaenderungs-monitoring.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [04-shared-services/basiskomponenten/rechtsaenderungs-monitoring/**/*, .gitlab/ci/services/rechtsaenderungs-monitoring.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -178,7 +179,7 @@ gesetze-normen-db-service:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [04-shared-services/db-services/gesetze-normen-db-service/**/*, .gitlab/ci/services/gesetze-normen-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [04-shared-services/db-services/gesetze-normen-db-service/**/*, .gitlab/ci/services/gesetze-normen-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -194,7 +195,7 @@ gesetzesbegruendung-db-service:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [04-shared-services/db-services/gesetzesbegruendung-db-service/**/*, .gitlab/ci/services/gesetzesbegruendung-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [04-shared-services/db-services/gesetzesbegruendung-db-service/**/*, .gitlab/ci/services/gesetzesbegruendung-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -210,7 +211,7 @@ jura-db-service:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [04-shared-services/db-services/jura-db-service/**/*, .gitlab/ci/services/jura-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [04-shared-services/db-services/jura-db-service/**/*, .gitlab/ci/services/jura-db-service.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -226,7 +227,7 @@ llm-client:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [04-shared-services/llm/llm-client/**/*, .gitlab/ci/services/llm-client.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [04-shared-services/llm/llm-client/**/*, .gitlab/ci/services/llm-client.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -242,7 +243,7 @@ modul-anonymisierung:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-anonymisierung/**/*, .gitlab/ci/services/modul-anonymisierung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-anonymisierung/**/*, .gitlab/ci/services/modul-anonymisierung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -258,7 +259,7 @@ modul-bewertung:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-bewertung/**/*, .gitlab/ci/services/modul-bewertung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-bewertung/**/*, .gitlab/ci/services/modul-bewertung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -274,7 +275,7 @@ modul-einwendungsmanagement:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-einwendungsmanagement/**/*, .gitlab/ci/services/modul-einwendungsmanagement.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-einwendungsmanagement/**/*, .gitlab/ci/services/modul-einwendungsmanagement.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -290,7 +291,7 @@ modul-formale-pruefung:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-formale-pruefung/**/*, .gitlab/ci/services/modul-formale-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-formale-pruefung/**/*, .gitlab/ci/services/modul-formale-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -306,7 +307,7 @@ modul-inhaltsextraktion:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-inhaltsextraktion/**/*, .gitlab/ci/services/modul-inhaltsextraktion.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-inhaltsextraktion/**/*, .gitlab/ci/services/modul-inhaltsextraktion.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -322,7 +323,7 @@ modul-plausibilitaet-pruefung:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-plausibilitaet-pruefung/**/*, .gitlab/ci/services/modul-plausibilitaet-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-plausibilitaet-pruefung/**/*, .gitlab/ci/services/modul-plausibilitaet-pruefung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -338,7 +339,7 @@ modul-rechtsmethodik:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-rechtsmethodik/**/*, .gitlab/ci/services/modul-rechtsmethodik.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-rechtsmethodik/**/*, .gitlab/ci/services/modul-rechtsmethodik.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -354,7 +355,7 @@ modul-risikohinweiser:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-risikohinweiser/**/*, .gitlab/ci/services/modul-risikohinweiser.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-risikohinweiser/**/*, .gitlab/ci/services/modul-risikohinweiser.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 
@@ -370,7 +371,7 @@ modul-suche-und-zuordnung:
       when: never
     - if: '$CI_COMMIT_TAG'
       when: always
-    - changes: [05-modulcluster/modul-suche-und-zuordnung/**/*, .gitlab/ci/services/modul-suche-und-zuordnung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab-ci.yml, pyproject.toml, uv.lock]
+    - changes: [05-modulcluster/modul-suche-und-zuordnung/**/*, .gitlab/ci/services/modul-suche-und-zuordnung.yml, .gitlab/ci/templates/devguard-oci-service.yml, .gitlab/ci/intoto-start.sh, .gitlab-ci.yml, pyproject.toml, uv.lock]
       when: always
     - when: never
 

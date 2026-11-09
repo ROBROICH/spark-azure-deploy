@@ -8,6 +8,14 @@ tests:
       - isKind: {of: Job}
       - matchRegex: {path: 'metadata.annotations["helm.sh/hook"]', pattern: pre-install}
       - equal: {path: 'metadata.annotations["helm.sh/hook-delete-policy"]', value: before-hook-creation}
+      - equal: {path: 'metadata.annotations["helm.sh/hook-weight"]', value: "0"}
+
+  - it: orders database creation before later schema hooks on request
+    template: templates/jobs.yaml
+    set:
+      hookWeight: -5
+    asserts:
+      - equal: {path: 'metadata.annotations["helm.sh/hook-weight"]', value: "-5"}
 
   - it: refuses a database outside the stage's name pattern
     template: templates/prerequisites.yaml
@@ -36,6 +44,31 @@ tests:
       defaults.owner: ''
     asserts:
       - failedTemplate: {errorPattern: needs an owner}
+
+  - it: reads the owner from an existing Secret without a literal owner
+    template: templates/jobs.yaml
+    set:
+      defaults.owner: ''
+      defaults.ownerSecretRef: {name: app-login}
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: {name: DB_OWNER, valueFrom: {secretKeyRef: {name: app-login, key: username}}}
+
+  - it: refuses both a literal and a Secret-backed owner
+    template: templates/prerequisites.yaml
+    set:
+      defaults.ownerSecretRef: {name: app-login}
+    asserts:
+      - failedTemplate: {errorPattern: mutually exclusive}
+
+  - it: requires the owner Secret name
+    template: templates/prerequisites.yaml
+    set:
+      defaults.owner: ''
+      defaults.ownerSecretRef: {key: db-user}
+    asserts:
+      - failedTemplate: {errorPattern: ownerSecretRef.name is required}
 
   - it: refuses an unknown drop mode
     template: templates/prerequisites.yaml

@@ -1,6 +1,6 @@
 ARG BASE_IMAGE_DEV=python:3.13.14-slim-trixie
 # Internal mirror of the ZendIS Python image.
-ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal@sha256:6d5c42992913b6918097e3ab7df635134da62e7dcd41247a7066ffe367191ca6
+ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal@sha256:93407f75b2de819d8b79e3f06a03a2f533570c1e7878595239d5cfe857b6fc92
 
 FROM ${BASE_IMAGE_DEV} AS builder
 ENV DEBIAN_FRONTEND=noninteractive

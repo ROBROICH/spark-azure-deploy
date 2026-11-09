@@ -10,7 +10,7 @@ from enum import StrEnum
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from pydantic import AnyUrl, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, constr
+from pydantic import AnyUrl, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, StringConstraints
 
 from temporal.contracts_base import CamelWireModel
 from temporal.registry import GeneratedDateTime, GeneratedStringId, GeneratedUUID
@@ -319,7 +319,12 @@ class RechtsmethodikWorkflowOutput(CamelWireModel):
     )
     gesetz: StrictStr
     jurabk: StrictStr
-    standangaben: list[dict[constr(pattern=r"^(.*)$", strict=True), StrictStr | StrictFloat | StrictBool | None]]
+    standangaben: list[
+        dict[
+            Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)],
+            StrictStr | StrictFloat | StrictBool | None,
+        ]
+    ]
     paragraph_nr: Annotated[StrictStr, Field(serialization_alias="paragraphNr")]
     paragraph_titel: Annotated[StrictStr, Field(serialization_alias="paragraphTitel")]
     paragraph_text: Annotated[StrictStr, Field(serialization_alias="paragraphText")]
@@ -452,7 +457,7 @@ class SubChunk(CamelWireModel):
     chunk_id: Annotated[GeneratedUUID, Field(serialization_alias="chunkId")]
     parent_chunk_id: Annotated[UUID | None, Field(serialization_alias="parentChunkId")] = None
     page_content: Annotated[StrictStr, Field(serialization_alias="pageContent")]
-    metadata: dict[constr(pattern=r"^(.*)$", strict=True), Any] = {}
+    metadata: dict[Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)], Any] = {}
     header: StrictStr | None = None
 
 
@@ -465,7 +470,7 @@ class Chunk(CamelWireModel):
     chunk_id: Annotated[GeneratedUUID, Field(serialization_alias="chunkId")]
     parent_chunk_id: Annotated[UUID | None, Field(serialization_alias="parentChunkId")] = None
     page_content: Annotated[StrictStr, Field(serialization_alias="pageContent")]
-    metadata: dict[constr(pattern=r"^(.*)$", strict=True), Any] = {}
+    metadata: dict[Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)], Any] = {}
     sub_chunks: Annotated[list[SubChunk], Field(serialization_alias="subChunks", validate_default=True)] = []
     header: StrictStr | None = None
     page_index_node: Annotated[PageIndexNode | None, Field(serialization_alias="pageIndexNode")] = None
@@ -612,7 +617,7 @@ class Bundesland(StrEnum):
 
 class BaseRelevantLaws(CamelWireModel):
     parser: StrictStr
-    extra: dict[constr(pattern=r"^(.*)$", strict=True), Any] = {}
+    extra: dict[Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)], Any] = {}
     base_url: Annotated[AnyUrl, Field(serialization_alias="baseUrl")]
     gesetz: list[StrictStr] | None = None
     verordnung: list[StrictStr] | None = None
@@ -826,7 +831,9 @@ class BewertungsWorkflowOutput(CamelWireModel):
     kurzform: StrictStr | None = None
     kapitel: list[KapitelOutput]
     full_text: Annotated[StrictStr, Field(serialization_alias="fullText")]
-    sources: Annotated[dict[constr(pattern=r"^(.*)$", strict=True), Quelle], Field(validate_default=True)] = {}
+    sources: Annotated[
+        dict[Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)], Quelle], Field(validate_default=True)
+    ] = {}
 
 
 class DMSFileResponse(CamelWireModel):
@@ -1060,7 +1067,11 @@ class CreateProjectVersionOutput(CamelWireModel):
     status: StrictStr
     new_version: Annotated[StrictInt | None, Field(serialization_alias="newVersion")] = None
     id_mappings: Annotated[
-        dict[constr(pattern=r"^(.*)$", strict=True), dict[constr(pattern=r"^(.*)$", strict=True), StrictStr]] | None,
+        dict[
+            Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)],
+            dict[Annotated[str, StringConstraints(pattern=r"^(.*)$", strict=True)], StrictStr],
+        ]
+        | None,
         Field(serialization_alias="idMappings"),
     ] = None
     message: StrictStr | None = None

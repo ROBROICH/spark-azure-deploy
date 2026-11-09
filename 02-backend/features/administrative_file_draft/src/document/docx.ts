@@ -15,17 +15,63 @@ const xmlEscape = (value: string): string =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&apos;");
 
-const paragraph = (text: string, headingLevel?: number): string =>
+type Run = { text: string; marks: readonly string[] };
+
+// OOXML requires this order inside w:rPr.
+const RUN_PROPERTIES = [
+  ["bold", "<w:b/>"],
+  ["italic", "<w:i/>"],
+  ["underline", '<w:u w:val="single"/>'],
+] as const;
+
+const run = ({ text, marks }: Run): string => {
+  const properties = RUN_PROPERTIES.filter(([mark]) => marks.includes(mark))
+    .map(([, xml]) => xml)
+    .join("");
+  return `<w:r>${properties === "" ? "" : `<w:rPr>${properties}</w:rPr>`}<w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r>`;
+};
+
+const paragraph = (runs: readonly Run[], headingLevel?: number): string =>
   `<w:p>${
     headingLevel === undefined ? "" : `<w:pPr><w:pStyle w:val="berschrift${headingLevel}"/></w:pPr>`
-  }<w:r><w:t xml:space="preserve">${xmlEscape(text)}</w:t></w:r></w:p>`;
+  }${runs.map(run).join("")}</w:p>`;
+
+// Each hard break or newline starts a Word paragraph. Lines keep the plain-text export rules:
+// trimmed across their runs, and dropped when empty.
+const contentLines = (node: ExportTreeNode): Run[][] => {
+  const lines: Run[][] = [[]];
+  if (node.content === null) {
+    for (const [index, text] of node.text.split(/\r?\n/).entries()) {
+      if (index > 0) lines.push([]);
+      lines.at(-1)!.push({ text, marks: [] });
+    }
+  } else {
+    for (const inline of node.content.content[0]!.content ?? []) {
+      if (inline.type === "hardBreak") {
+        lines.push([]);
+        continue;
+      }
+      const marks = (inline.marks ?? []).map(({ type }) => type);
+      for (const [index, text] of inline.text.split(/\r?\n/).entries()) {
+        if (index > 0) lines.push([]);
+        lines.at(-1)!.push({ text, marks });
+      }
+    }
+  }
+  return lines.flatMap((runs) => {
+    const trimmed = runs.map((item) => ({ ...item }));
+    while (trimmed[0] && trimmed[0].text.trimStart() === "") trimmed.shift();
+    while (trimmed.at(-1) && trimmed.at(-1)!.text.trimEnd() === "") trimmed.pop();
+    if (trimmed.length === 0) return [];
+    trimmed[0]!.text = trimmed[0]!.text.trimStart();
+    trimmed.at(-1)!.text = trimmed.at(-1)!.text.trimEnd();
+    return [trimmed];
+  });
+};
 
 const renderNode = (node: ExportTreeNode, depth: number): string => {
-  const content = [paragraph(node.title, Math.min(depth, 9))];
-  for (const line of node.text.split(/\r?\n/)) {
-    const normalized = line.trim();
-    if (normalized !== "") content.push(paragraph(normalized));
-  }
+  const content = [paragraph([{ text: node.title, marks: [] }], Math.min(depth, 9))];
+  for (const runs of contentLines(node)) content.push(paragraph(runs));
   for (const child of node.children) content.push(renderNode(child, depth + 1));
   return content.join("");
 };
@@ -67,6 +113,13 @@ const renderDocumentXml = (
   );
 };
 
+const replaceElementText = (xml: string, tag: string, value: string): string =>
+  xml.replace(new RegExp(`(<${tag}\\b[^>]*>)[^<]*(</${tag}>)`), `$1${xmlEscape(value)}$2`);
+
+const EMPTY_PEOPLE_XML =
+  '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+  '<w15:people xmlns:w15="http://schemas.microsoft.com/office/word/2012/wordml"/>';
+
 const enableUpdateFields = (settings: string): string => {
   const existing = /<w:updateFields\b[^>]*\/?\s*>/;
   if (existing.test(settings)) {
@@ -100,5 +153,37 @@ export async function generateDocx(
     }),
   );
   archive["word/settings.xml"] = encoder.encode(enableUpdateFields(decoder.decode(settingsPart)));
+  neutralizeTemplateMetadata(archive, new Date());
   return zipSync(archive, { level: 6 });
+}
+
+// Template document properties name the template's editors and their organization; the export
+// must not pass them on to the recipients of the decision, whatever template is bundled.
+export function neutralizeTemplateMetadata(
+  archive: Record<string, Uint8Array>,
+  exportedAt: Date,
+): void {
+  const timestamp = exportedAt.toISOString().replace(/\.\d{3}Z$/, "Z");
+  const corePart = archive["docProps/core.xml"];
+  if (corePart !== undefined) {
+    let core = decoder
+      .decode(corePart)
+      .replace(/<cp:lastPrinted\b[^>]*(?:\/>|>[^<]*<\/cp:lastPrinted>)/, "");
+    for (const tag of ["dc:creator", "cp:lastModifiedBy"]) core = replaceElementText(core, tag, "");
+    core = replaceElementText(core, "cp:revision", "1");
+    for (const tag of ["dcterms:created", "dcterms:modified"]) {
+      core = replaceElementText(core, tag, timestamp);
+    }
+    archive["docProps/core.xml"] = encoder.encode(core);
+  }
+  const appPart = archive["docProps/app.xml"];
+  if (appPart !== undefined) {
+    archive["docProps/app.xml"] = encoder.encode(
+      replaceElementText(decoder.decode(appPart), "Company", ""),
+    );
+  }
+  // Content types and document relationships reference people.xml, so it stays as an empty list.
+  if (archive["word/people.xml"] !== undefined) {
+    archive["word/people.xml"] = encoder.encode(EMPTY_PEOPLE_XML);
+  }
 }

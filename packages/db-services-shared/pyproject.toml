@@ -34,6 +34,7 @@ dev = [
     "ruff>=0.14.6,<0.15",
     "pyrefly>=0.49.0",
     "pytest>=9.0.3,<10",
+    "pytest-asyncio>=1.3.0",
     "pytest-cov>=6.2.1,<7",
     "pytest-xdist>=3.8.0,<4",
     "pytest-postgresql>=8.0.0,<9",
@@ -56,7 +57,7 @@ build-backend = "hatchling.build"
 
 [tool.pytest.ini_options]
 markers = ["integration: mark a test as an integration test (uses real external services)"]
-addopts = "-m 'not integration' -cov=src -p no:warnings -v"
+addopts = "-m 'not integration' --cov=db_services_shared -p no:warnings -v"
 testpaths = ["tests"]
 norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
 

@@ -1,10 +1,12 @@
 import { administrativeFileDraftErrors } from "../errors.ts";
+import type { BeschlussContent } from "../schemas.ts";
 
 export interface ExportNode {
   id: string;
   parentVaeNodeId: string | null;
   title: string;
   text: string;
+  content: BeschlussContent | null;
   order: number;
   isHidden: boolean;
   isDeleted: boolean;
@@ -14,6 +16,7 @@ export interface ExportTreeNode {
   id: string;
   title: string;
   text: string;
+  content: BeschlussContent | null;
   order: number;
   children: ExportTreeNode[];
 }
@@ -29,6 +32,7 @@ export function buildExportTree(nodes: readonly ExportNode[]): ExportTreeNode[] 
             id: node.id,
             title: node.title,
             text: node.text,
+            content: node.content,
             order: node.order,
             children: [],
           } satisfies ExportTreeNode,

@@ -1,7 +1,7 @@
 # Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
 # inventory.toml, style.d2);
 # der Pfad steht in .agents/config.json unter architectureModelPath.
-# architecture-rendered-at: 06.10.2026, 15:51 UTC
+# architecture-rendered-at: 20.10.2026, 08:55 UTC
 
 # SPARK Workflow — Styleguide der Architekturansichten
 #
@@ -361,6 +361,25 @@ classes: {
     }
   }
 
+  # -- Fremdsoftware --------------------------------------------------------
+  #
+  # Software Dritter, die mit dem System ausgeliefert wird, aber nicht Teil des
+  # Produkts ist. Durchgezogener Rand (sie wird aus dem Repository ausgeliefert,
+  # also nicht gestrichelt) mit eckigen Ecken und bernsteinfarbener Füllung:
+  # Die Ecken tragen die Unterscheidung auch dort, wo Farbe nicht wahrgenommen
+  # wird.
+
+  third-party: {
+    style: {
+      stroke: "#a16207"
+      stroke-width: 2
+      fill: "#fefce8"
+      font-color: "#713f12"
+      font-size: 16
+      border-radius: 0
+    }
+  }
+
   # -- Kantentypen ----------------------------------------------------------
   #
   # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
@@ -516,41 +535,41 @@ graph: "Laufzeitbeziehungen" {
     class: group
     gesetze-normen-db-service: "Gesetz- und Normendatenbankdienst\nPython, FastAPI, Temporal" { class: service }
     jura-db-service: "Juristischer Datenbankdienst\nPython, FastAPI, Temporal" { class: service }
-    gesetzesbegruendung-db-service: "Gesetzesbegruendungsdatenbankdienst\nPython, FastAPI, Temporal" { class: service }
+    gesetzesbegruendung-db-service: "Gesetzesbegründungsdatenbankdienst\nPython, FastAPI, Temporal" { class: service }
   }
 
-  rechtsaenderungs-monitoring: "Rechtsaenderungsmonitoring\nPython, FastAPI, Temporal" { class: platform }
+  rechtsaenderungs-monitoring: "Rechtsänderungsmonitoring\nPython, FastAPI, Temporal" { class: platform }
 
 
   kontext-infrastructure: "Betreiberseitig bereitgestellt" {
     class: layer-infrastructure
     postgresql: "PostgreSQL" { class: infrastructure }
     object-storage: "S3-kompatibler Objektspeicher" { class: infrastructure }
-    identity-provider: "Identitaets- und Autorisierungsdienst" { class: infrastructure }
+    identity-provider: "Identitäts- und Autorisierungsdienst" { class: infrastructure }
     llm-proxy: "LLM-Proxy" { class: infrastructure }
   }
 
   frontend-anwendungen.frontend -> spark-backend: "Fachdaten und Dokumente" { class: http-primary }
-  frontend-anwendungen.frontend -> rechtsaenderungs-monitoring: "Rechtsaenderungen" { class: http }
+  frontend-anwendungen.frontend -> rechtsaenderungs-monitoring: "Rechtsänderungen" { class: http }
   spark-backend -> kontext-infrastructure.postgresql: "Fachdaten" { class: datastore }
-  spark-backend -> kontext-infrastructure.object-storage: "Dokumente, Quarantaene, Workflow-Archiv" { class: objectstore }
-  spark-backend -> kontext-infrastructure.identity-provider: "Token-Pruefung und Nutzerverwaltung" { class: http-primary }
+  spark-backend -> kontext-infrastructure.object-storage: "Dokumente, Quarantäne, Workflow-Archiv" { class: objectstore }
+  spark-backend -> kontext-infrastructure.identity-provider: "Token-Prüfung und Nutzerverwaltung" { class: http-primary }
   spark-backend -> datenbankdienste.gesetze-normen-db-service: "Normen nachschlagen" { class: http-primary }
   datenbankdienste.gesetzesbegruendung-db-service -> datenbankdienste.gesetze-normen-db-service: "Normenbezug" { class: http }
   integrationsdienste.llm-client -> kontext-infrastructure.llm-proxy: "Modellaufrufe" { class: llm }
   rechtsaenderungs-monitoring -> integrationsdienste.llm-client: "Anreicherung per Sprachmodell" { class: queue }
   datenbankdienste.gesetze-normen-db-service -> kontext-infrastructure.postgresql: "Gesetze und Normen" { class: datastore }
   datenbankdienste.jura-db-service -> kontext-infrastructure.postgresql: "Gerichtsentscheidungen" { class: datastore }
-  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.postgresql: "Gesetzesbegruendungen" { class: datastore }
-  rechtsaenderungs-monitoring -> kontext-infrastructure.postgresql: "Anstehende Aenderungen" { class: datastore }
+  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.postgresql: "Gesetzesbegründungen" { class: datastore }
+  rechtsaenderungs-monitoring -> kontext-infrastructure.postgresql: "Anstehende Änderungen" { class: datastore }
   datenbankdienste.jura-db-service -> kontext-infrastructure.llm-proxy: "Embeddings" { class: llm }
   datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.llm-proxy: "Embeddings" { class: llm }
-  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.identity-provider: "Dienst-Token fuer Docling" { class: http }
+  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.identity-provider: "Dienst-Token für Docling" { class: http }
   rechtsaenderungs-monitoring -> datenbankdienste.gesetze-normen-db-service: "Normtexte" { class: http }
-  datenbankdienste.gesetze-normen-db-service -> kontext-infrastructure.identity-provider: "Token-Pruefung" { class: http }
-  datenbankdienste.jura-db-service -> kontext-infrastructure.identity-provider: "Token-Pruefung" { class: http }
-  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.identity-provider: "Token-Pruefung" { class: http }
-  rechtsaenderungs-monitoring -> kontext-infrastructure.identity-provider: "Token-Pruefung" { class: http }
+  datenbankdienste.gesetze-normen-db-service -> kontext-infrastructure.identity-provider: "Token-Prüfung" { class: http }
+  datenbankdienste.jura-db-service -> kontext-infrastructure.identity-provider: "Token-Prüfung" { class: http }
+  datenbankdienste.gesetzesbegruendung-db-service -> kontext-infrastructure.identity-provider: "Token-Prüfung" { class: http }
+  rechtsaenderungs-monitoring -> kontext-infrastructure.identity-provider: "Token-Prüfung" { class: http }
 }
 
 
@@ -564,7 +583,7 @@ dokumentation: "Legende und Metadaten" {
     grid-gap: 32
     l-pool: "Backend-Pool" { class: pool }
     l-modulith: "SPARK Backend (Modulith)" { class: modulith }
-    l-service: "Eigenstaendiger Dienst" { class: service }
+    l-service: "Eigenständiger Dienst" { class: service }
     l-ai: "KI-Modul" { class: ai-module }
     l-platform: "Plattformdienst" { class: platform }
     l-infra: "Betreiberseitig bereitgestellt" { class: infrastructure }
@@ -584,19 +603,19 @@ dokumentation: "Legende und Metadaten" {
       text-datastore: "Zugriff auf eine relationale oder Vektordatenbank" { class: legend-label }
       von-http: "" { class: legend-anchor }
       nach-http: "" { class: legend-anchor }
-      text-http: "Synchroner Aufruf ueber HTTP" { class: legend-label }
+      text-http: "Synchroner Aufruf über HTTP" { class: legend-label }
       von-http-primary: "" { class: legend-anchor }
       nach-http-primary: "" { class: legend-anchor }
       text-http-primary: "Synchroner HTTP am SPARK Backend (hervorgehoben)" { class: legend-label }
       von-llm: "" { class: legend-anchor }
       nach-llm: "" { class: legend-anchor }
-      text-llm: "Aufruf eines Sprachmodells ueber den LLM-Proxy" { class: legend-label }
+      text-llm: "Aufruf eines Sprachmodells über den LLM-Proxy" { class: legend-label }
       von-objectstore: "" { class: legend-anchor }
       nach-objectstore: "" { class: legend-anchor }
       text-objectstore: "Zugriff auf S3-kompatiblen Objektspeicher" { class: legend-label }
       von-queue: "" { class: legend-anchor }
       nach-queue: "" { class: legend-anchor }
-      text-queue: "Asynchrone Uebergabe ueber Temporal oder RQ" { class: legend-label }
+      text-queue: "Asynchrone Übergabe über Temporal oder RQ" { class: legend-label }
       von-datastore -> nach-datastore: { class: datastore }
       von-http -> nach-http: { class: http }
       von-http-primary -> nach-http-primary: { class: http-primary }
@@ -606,7 +625,7 @@ dokumentation: "Legende und Metadaten" {
     }
 
     metadaten: |md
-      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Erstellt am** 20.10.2026, 08:55 UTC\
       **Ansicht** c2-integration (C2, Fokus)\
       **Renderer** d2 v0.8.2\
       **Quelle** kuratiertes Modell\
@@ -618,10 +637,10 @@ dokumentation: "Legende und Metadaten" {
   }
   hinweis: |md
     Ausschnitt der C2-Karte mit 21 hier gezeichneten\
-    Laufzeitbeziehungen von insgesamt 78 im Inventar.
+    Laufzeitbeziehungen von insgesamt 75 im Inventar.
 
-    Fette HTTP-Kanten beruehren spark-backend. Jede Kante ist einzeln\
-    bestaetigt; der Beleg steht in inventory.toml.
+    Fette HTTP-Kanten berühren spark-backend. Jede Kante ist einzeln\
+    bestätigt; der Beleg steht in inventory.toml.
   | {
     class: note
   }

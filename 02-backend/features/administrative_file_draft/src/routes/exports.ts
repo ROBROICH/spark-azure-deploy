@@ -51,6 +51,7 @@ async function exportDocument(
         parentVaeNodeId: true,
         title: true,
         text: true,
+        content: true,
         order: true,
         isHidden: true,
         isDeleted: true,

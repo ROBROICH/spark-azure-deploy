@@ -10,6 +10,8 @@
 #   https://go.temporal.io/helm-charts  version 1.6.0  (appVersion 1.31.2)
 #   The packaged archive is committed under charts/; `helm dependency update`
 #   (run in this directory) refreshes it and needs network access.
+#   The committed archive includes upstream-sql-user-secret.patch. Reapply
+#   that patch after an upstream refresh (see UPSTREAM-PATCH.md).
 #
 # Persistence is PostgreSQL (e.g. Cloud SQL), reached via a DIRECT connection
 # to the server — no transaction-mode pooler in between: Temporal and its
@@ -31,7 +33,7 @@
 
 # Stage name appended to wrapper-level resource names as a suffix (e.g. "-my-env").
 # Propagated automatically via global.stage.name when deployed inside an
-# umbrella chart. NOTE: only wrapper-owned resources (search-attributes Job)
+# umbrella chart. NOTE: only wrapper-owned resources (bootstrap/search-attributes Jobs)
 # carry the suffix — the upstream subchart is not stage-aware and names its
 # resources {release}-temporal-<component>.
 stage:
@@ -45,6 +47,37 @@ namespaceOverride: ""
 # Extra labels applied to wrapper-level resources (flat key-value map).
 # global.labels entries are merged in by the templates.
 labels: {}
+
+# ── First-install reconciliation ──────────────────────────────────────────────
+# Opt-in replacement for the upstream namespace Job and the PostSync
+# search-attributes hook. Runs alongside the servers in Sync wave 0, waiting
+# inside one pod until Temporal, default and its search attributes are usable.
+# When enabled, set temporal.server.config.namespaces.create=false and
+# searchAttributesJob.enabled=false to avoid competing bootstrap Jobs.
+bootstrapJob:
+  enabled: false
+  image:
+    repository: temporalio/admin-tools
+    tag: "1.31.2"
+  temporalAddress: ""
+  retention: 60d
+  pollIntervalSeconds: 5
+  # Includes scheduling, server startup and namespace cache propagation.
+  activeDeadlineSeconds: 900
+  serviceAccountName: ""
+  imagePullSecrets: []
+  securityContext:
+    seccompProfile: {type: RuntimeDefault}
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities: {drop: [ALL]}
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
 
 # ── Search-attributes post-install Job ───────────────────────────────────────
 # Registers project-specific custom search attributes (ProjectId: Keyword,
@@ -150,6 +183,10 @@ temporal:
               # Secret holding the database user's password (key secretKey).
               existingSecret: "postgres-credentials"
               secretKey: password
+              # Optional username key in existingSecret. When set, overrides
+              # user in schema/admin tools and every server's runtime config.
+              # Empty preserves the upstream literal-user behavior.
+              userSecretKey: ""
               maxConns: 5
               maxIdleConns: 2
               maxConnLifetime: "1h"
@@ -168,6 +205,7 @@ temporal:
               user: "<env>-user"
               existingSecret: "postgres-credentials"
               secretKey: password
+              userSecretKey: ""
               maxConns: 5
               maxIdleConns: 2
               maxConnLifetime: "1h"

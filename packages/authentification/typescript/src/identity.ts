@@ -51,7 +51,7 @@ export function normalizeIdentity(payload: KeycloakClaims) {
   } as const satisfies NormalizedIdentity);
 }
 
-export function machineUser(_namespace: string, _serviceAccount: string): NormalizedIdentity {
+export function machineUser(): NormalizedIdentity {
   return {
     sub: "00000000-0000-0000-0000-000000000001",
     realmRoles: ["service"],

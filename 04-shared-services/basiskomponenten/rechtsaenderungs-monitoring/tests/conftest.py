@@ -16,11 +16,22 @@ from rechtsaenderungsmonitoring.parser import get_parser
 from rechtsaenderungsmonitoring.service import app
 from rechtsaenderungsmonitoring.schemas.db import Document, Norm
 
+from pytest_postgresql import factories
+
 from db_services_shared.constants import Bundesland
 from db_services_shared.models.db.database import get_db_session
 from db_services_shared.models.db.migrate import run_alembic_upgrade, run_alembic_downgrade
+from db_services_shared.testing.postgres import (
+    external_postgres_server,
+    use_external_postgres,
+)
 
 from tests.data.test_doc import _TEST_NORM, _TEST_DOCUMENT
+
+# Use an already-running PostgreSQL if PYTEST_POSTGRES_EXTERNAL is set.
+if use_external_postgres():
+    postgresql_noproc = external_postgres_server()
+    postgresql = factories.postgresql("postgresql_noproc")
 
 
 @pytest.fixture(autouse=True)

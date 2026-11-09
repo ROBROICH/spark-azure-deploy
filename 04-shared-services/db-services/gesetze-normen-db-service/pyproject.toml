@@ -56,14 +56,16 @@ packages = ["db_pipelines"]
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 markers = ["integration: mark a test as an integration test (uses real external services)"]
-addopts = "-m 'not integration' -cov=db_pipelines -p no:warnings -v --ignore=./db-data"
+addopts = "-m 'not integration' --cov=db_pipelines -p no:warnings -v --ignore=./db-data"
 testpaths = ["tests"]
 norecursedirs = [".*", "build", "dist", "CVS", "_darcs", "{arch}", "*.egg"]
-postgresql_dbname = "gesetze-normen"
+# Separate test database, recreated per test.
+postgresql_dbname = "gesetze-normen-test"
 postgresql_port = "15432"
 postgresql_password = "postgres"
 env = [
     "D:DB_PORT=15432",
+    "D:DB_NAME=gesetze-normen-test",
 ]
 
 [tool.coverage.report]
@@ -84,24 +86,8 @@ exclude_also = [
 [tool.coverage.run]
 source = ["db_pipelines"]
 omit = [
-    # omit this single file
     "tests/*",
     "alembic/*",
-    "db_pipelines/state_laws/bawue/*",
-    "db_pipelines/state_laws/bayern/*",
-    "db_pipelines/state_laws/berlin/*",
-    "db_pipelines/state_laws/brandenburg/*",
-    "db_pipelines/state_laws/bremen/*",
-    "db_pipelines/state_laws/hamburg/*",
-    "db_pipelines/state_laws/hessen/*",
-    "db_pipelines/state_laws/meckpomm/*",
-    "db_pipelines/state_laws/niedersachsen/*",
-    "db_pipelines/state_laws/rlp/*",
-    "db_pipelines/state_laws/saarland/*",
-    "db_pipelines/state_laws/sachsen/*",
-    "db_pipelines/state_laws/sachsenanhalt/*",
-    "db_pipelines/state_laws/schleswig/*",
-    "db_pipelines/state_laws/thueringen/*",
     ]
 
 

@@ -57,6 +57,7 @@ let activeRuntime:
       algorithms: readonly string[];
       spiceDb?: v1.ZedClientInterface;
       allowedMachineIdentities: string;
+      zeroTrustDisabled: boolean;
     }>
   | EvlogError
   | undefined;
@@ -91,6 +92,7 @@ function runtime() {
     algorithms: configured.value.algorithms,
     spiceDb: spiceDb.value,
     allowedMachineIdentities: configured.value.allowedMachineIdentities,
+    zeroTrustDisabled: configured.value.zeroTrustDisabled,
   };
   return activeRuntime;
 }
@@ -99,20 +101,20 @@ async function identityFromRequest(
   request: Request,
   current: Exclude<NonNullable<typeof activeRuntime>, EvlogError | { mode: "disabled" }>,
 ) {
-  const authorization = request.headers.get("authorization");
-  const token = authorization
-    ? /^Bearer\s+(.+)$/i.exec(authorization.trim())?.[1]?.trim()
-    : undefined;
+  const authorization = request.headers.get("authorization")?.trim();
+  const token = authorization && /^Bearer\s+(.+)$/i.exec(authorization)?.[1]?.trim();
   if (token) return verifyToken(token, current);
 
-  const machine = machineIdentityFromXfcc(
-    request.headers.get("x-forwarded-client-cert") ?? undefined,
-    current.allowedMachineIdentities,
-  );
-  if (!machine) return Result.err(authenticationErrors.MISSING_CREDENTIAL());
-  if (!machine.allowed) return Result.err(authenticationErrors.MACHINE_IDENTITY_NOT_ALLOWED());
+  if (!current.zeroTrustDisabled) {
+    const machine = machineIdentityFromXfcc(
+      request.headers.get("x-forwarded-client-cert") ?? undefined,
+      current.allowedMachineIdentities,
+    );
+    if (!machine) return Result.err(authenticationErrors.MISSING_CREDENTIAL());
+    if (!machine.allowed) return Result.err(authenticationErrors.MACHINE_IDENTITY_NOT_ALLOWED());
+  }
   adoptForwardedAuditContext(request.headers);
-  return Result.ok(machineUser(machine.namespace, machine.serviceAccount));
+  return Result.ok(machineUser());
 }
 
 async function checkPermissions(

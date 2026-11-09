@@ -9,7 +9,7 @@ import { Textarea } from '@/features/ui/form/textarea';
 import { Button } from '@/features/ui/button/Button';
 import { SelectMenu } from '@/features/ui/select-menu/SelectMenu';
 import { toast } from '@/features/ui/toast/Toast';
-import { useForm } from '@tanstack/react-form';
+import { revalidateLogic, useForm } from '@tanstack/react-form';
 import { getRouteApi } from '@tanstack/react-router';
 import * as Sentry from '@sentry/react';
 import { useEffect, useId, useRef } from 'react';
@@ -24,7 +24,10 @@ import type {
   CommentProcessStep,
   CommentSourceRef,
 } from '@/features/project/comments/data/schemas/comment.schema';
-import { createCommentFormSchema } from './commentFormSchema';
+import {
+  createCommentFormSchema,
+  toCommentTitleDraft,
+} from './commentFormSchema';
 
 const route = getRouteApi('/verfahren/$verfahrenId');
 
@@ -88,12 +91,19 @@ export const CommentForm = (props: CommentFormProps) => {
     defaultValues: {
       processStep:
         processStep ?? editItem?.processStep ?? ('' as CommentProcessStep),
-      title: editItem?.title ?? initialTitle ?? '',
+      title:
+        editItem?.title ??
+        (initialTitle === undefined ? '' : toCommentTitleDraft(initialTitle)),
       content: editItem?.content ?? initialContent ?? '',
     },
+    // Validate first on submit, then on every change: an error from leaving an
+    // empty field would linger while typing and swallow the first save click.
+    validationLogic: revalidateLogic({
+      mode: 'submit',
+      modeAfterSubmission: 'change',
+    }),
     validators: {
-      onSubmit: commentFormSchema,
-      onBlur: commentFormSchema,
+      onDynamic: commentFormSchema,
     },
     onSubmit: async ({ value }) => {
       if (!canMutateProject) {
@@ -277,14 +287,19 @@ export const CommentForm = (props: CommentFormProps) => {
           <Button type="button" variant="ghost" size="sm" onClick={onClose}>
             {t('Sidebar.commentForm.cancel')}
           </Button>
-          <Button
-            type="submit"
-            variant="primary"
-            size="sm"
-            disabled={!canMutateProject}
-          >
-            {t('Sidebar.commentForm.save')}
-          </Button>
+          <form.Subscribe selector={(state) => state.isSubmitting}>
+            {(isSubmitting) => (
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                loading={isSubmitting}
+                disabled={!canMutateProject}
+              >
+                {t('Sidebar.commentForm.save')}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
       </form>
     </div>

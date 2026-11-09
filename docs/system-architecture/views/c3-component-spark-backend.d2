@@ -1,7 +1,7 @@
 # Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
 # inventory.toml, style.d2);
 # der Pfad steht in .agents/config.json unter architectureModelPath.
-# architecture-rendered-at: 06.10.2026, 15:51 UTC
+# architecture-rendered-at: 20.10.2026, 08:55 UTC
 
 # SPARK Workflow — Styleguide der Architekturansichten
 #
@@ -361,6 +361,25 @@ classes: {
     }
   }
 
+  # -- Fremdsoftware --------------------------------------------------------
+  #
+  # Software Dritter, die mit dem System ausgeliefert wird, aber nicht Teil des
+  # Produkts ist. Durchgezogener Rand (sie wird aus dem Repository ausgeliefert,
+  # also nicht gestrichelt) mit eckigen Ecken und bernsteinfarbener Füllung:
+  # Die Ecken tragen die Unterscheidung auch dort, wo Farbe nicht wahrgenommen
+  # wird.
+
+  third-party: {
+    style: {
+      stroke: "#a16207"
+      stroke-width: 2
+      fill: "#fefce8"
+      font-color: "#713f12"
+      font-size: 16
+      border-radius: 0
+    }
+  }
+
   # -- Kantentypen ----------------------------------------------------------
   #
   # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
@@ -502,13 +521,13 @@ spark-backend: "SPARK Backend: ein Container" {
     grid-columns: 4
     feat-administrative-file-draft: "Beschlusserstellung\n@spark-workflow/administrative-file-draft" { class: component }
     feat-comment-service: "Kommentarverwaltung\n@spark-workflow/comment-service" { class: component }
-    feat-examination-service: "Rechtliche Pruefung\n@spark-workflow/examination-service" { class: component }
+    feat-examination-service: "Rechtliche Prüfung\n@spark-workflow/examination-service" { class: component }
     feat-feedback-service: "Feedbackverwaltung\n@spark-workflow/feedback-service" { class: component }
-    feat-formal-completeness-check: "Formale Vollstaendigkeitspruefung\n@spark-workflow/formal-completeness-check" { class: component }
+    feat-formal-completeness-check: "Formale Vollständigkeitsprüfung\n@spark-workflow/formal-completeness-check" { class: component }
     feat-fpp-service: "Fachplanungsportalintegration\n@spark-workflow/fpp-service" { class: component }
-    feat-identity-management-service: "Identitaetsverwaltung\n@spark-workflow/identity-management-service" { class: component }
+    feat-identity-management-service: "Identitätsverwaltung\n@spark-workflow/identity-management-service" { class: component }
     feat-objections-management-service: "Einwendungsverwaltung\n@spark-workflow/objections-management-service" { class: component }
-    feat-plausibility-notes: "Plausibilitaetshinweise\n@spark-workflow/plausibility-notes" { class: component }
+    feat-plausibility-notes: "Plausibilitätshinweise\n@spark-workflow/plausibility-notes" { class: component }
     feat-supplementary-requests-service: "Nachforderungsverwaltung\n@spark-workflow/supplementary-requests-service" { class: component }
     feat-temporal-job-service: "Workflowmanagement\n@spark-workflow/temporal-job-service" { class: component }
   }
@@ -532,7 +551,7 @@ spark-backend: "SPARK Backend: ein Container" {
   }
 }
 
-worker: "Pools mit eigener Worker-Identitaet" {
+worker: "Pools mit eigener Worker-Identität" {
   class: layer-service
   grid-columns: 2
   project-logic-service: "Verfahrensverwaltung\nACTIVE_FEATURE_WORKER=project-logic" { class: pool }
@@ -550,7 +569,7 @@ dokumentation: "Legende und Metadaten" {
     class: legend
     grid-columns: 1
     l-component: "Feature- oder Shared-Paket" { class: component }
-    l-pool: "Pool mit Worker-Identitaet" { class: pool }
+    l-pool: "Pool mit Worker-Identität" { class: pool }
     l-container: "Modulith-Container" { class: layer-service }
   }
 
@@ -558,7 +577,7 @@ dokumentation: "Legende und Metadaten" {
     class: legend-column
     grid-columns: 1
     metadaten: |md
-      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Erstellt am** 20.10.2026, 08:55 UTC\
       **Ansicht** c3-component-spark-backend (C3)\
       **Renderer** d2 v0.8.2\
       **Quelle** kuratiertes Modell\
@@ -569,14 +588,14 @@ dokumentation: "Legende und Metadaten" {
 
   }
   hinweis: |md
-    Ein Container, kein Dienstverbund: die Feature-Pakete sind Komponenten\
-    des SPARK Backend, keine eigenen deploybaren Einheiten.
+    Ein Container, kein Dienstverbund: Die Feature-Pakete sind Komponenten\
+    des SPARK Backend, keine eigenständig auslieferbaren Einheiten.
 
     Die 15 Pools der C2-Karte sind Betriebsinstanzen genau dieses\
-    Images. Jeder stellt den vollstaendigen HTTP-Graphen bereit;\
-    nur die hier gezeigten 4 starten zusaetzlich einen Temporal-Worker.
+    Images. Jeder stellt den vollständigen HTTP-Graphen bereit;\
+    nur die hier gezeigten 4 starten zusätzlich einen Temporal-Worker.
 
-    Features greifen ueber Resources und Core aufeinander zu.\
+    Features greifen über Resources und Core aufeinander zu.\
     Einzige Schema-Ausnahme: formal-completeness-check liest\
     die Tabelle supplementary_request.
   | {

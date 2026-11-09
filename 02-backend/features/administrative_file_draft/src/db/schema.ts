@@ -8,6 +8,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   primaryKey,
@@ -17,6 +18,8 @@ import {
   uuid,
   varchar,
 } from "drizzle-orm/pg-core";
+
+import type { BeschlussContent } from "../schemas";
 
 const timestampRange = customType<{ data: string; driverData: string }>({
   dataType: () => "tstzrange",
@@ -32,6 +35,7 @@ export const vaeNodes = pgTable(
     id: uuid("id").notNull(),
     title: varchar("title").notNull(),
     text: text("text").notNull(),
+    content: jsonb("content").$type<BeschlussContent>(),
     checkedByAssignee: boolean("checked_by_assignee").notNull().default(false),
     checkedByLeader: boolean("checked_by_leader").notNull().default(false),
     checkedAtAssignee: timestamp("checked_at_assignee", { mode: "date", withTimezone: true }),
@@ -86,6 +90,7 @@ export const vaeNodeHistory = pgTable(
     id: uuid("id").notNull(),
     title: varchar("title").notNull(),
     text: text("text").notNull(),
+    content: jsonb("content").$type<BeschlussContent>(),
     checkedByAssignee: boolean("checked_by_assignee").notNull(),
     checkedByLeader: boolean("checked_by_leader").notNull(),
     checkedAtAssignee: timestamp("checked_at_assignee", { mode: "date", withTimezone: true }),

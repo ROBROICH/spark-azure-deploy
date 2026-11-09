@@ -5,9 +5,7 @@ import { Plugin, PluginKey, TextSelection } from '@tiptap/pm/state';
 import type { BeschlussSection } from '../rpbBeschluss.types';
 import { ParagraphFocusExtension } from './beschlussParagraphFocusExtension';
 import {
-  extractNodeText,
   extractTextFromNode,
-  extractTextFromProseMirrorNode,
   isMultilineText,
   textToParagraphContent,
 } from './beschlussEditorText';
@@ -58,6 +56,16 @@ const ParagraphSelectAllExtension = Extension.create({
   },
 });
 
+const hasMarkedChild = (node: ProseMirrorNode) => {
+  for (let index = 0; index < node.childCount; index += 1) {
+    if (node.child(index).marks.length > 0) {
+      return true;
+    }
+  }
+
+  return false;
+};
+
 /**
  * Verifies the immutable top-level editor skeleton so generated headings stay fixed
  * and users can only edit paragraph content inside the expected block layout.
@@ -84,7 +92,7 @@ const matchesStructureTemplate = (
     if (node.attrs.level !== expected.level) {
       return false;
     }
-    if (node.textContent !== expected.text) {
+    if (node.textContent !== expected.text || hasMarkedChild(node)) {
       return false;
     }
   }
@@ -94,7 +102,7 @@ const matchesStructureTemplate = (
 
 /**
  * Guards the Beschluss editor's generated heading/paragraph skeleton and,
- * when provided, blocks paragraph text mutations for read-only outline nodes.
+ * when provided, blocks paragraph text and mark mutations for read-only outline nodes.
  */
 const createStructureGuardExtension = (
   getTemplate: () => ReadonlyArray<StructureItem>,
@@ -131,10 +139,7 @@ const createStructureGuardExtension = (
               const beforeParagraph = transaction.before.child(paragraphIndex);
               const nextParagraph = transaction.doc.child(paragraphIndex);
 
-              return (
-                extractTextFromProseMirrorNode(beforeParagraph) ===
-                extractTextFromProseMirrorNode(nextParagraph)
-              );
+              return beforeParagraph.eq(nextParagraph);
             });
           },
         }),
@@ -187,7 +192,9 @@ const buildEditorContent = (sections: BeschlussSection[]): JSONContent => {
     },
     {
       type: 'paragraph',
-      content: textToParagraphContent(section.text),
+      content: section.content
+        ? section.content.content[0].content
+        : textToParagraphContent(section.text),
     },
   ]);
 
@@ -304,7 +311,6 @@ export {
   buildEditorContent,
   buildStructureTemplate,
   createStructureGuardExtension,
-  extractNodeText,
   extractNodeTexts,
   getFirstParagraphSelectionPos,
   getOutlineNodeIdAtPosition,

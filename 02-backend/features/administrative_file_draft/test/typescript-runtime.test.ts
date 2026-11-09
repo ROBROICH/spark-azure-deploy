@@ -2,11 +2,12 @@ import { afterEach, describe, expect, expectTypeOf, test } from "bun:test";
 import { Result } from "better-result";
 import { getTableConfig, type AnyPgTable } from "drizzle-orm/pg-core";
 import { EvlogError } from "evlog";
+import { unzipSync } from "fflate";
 
 import fixture from "../fixtures/canonical-export.json";
 import deepTreeFixture from "../fixtures/deep-tree-export.json";
 import { risks, vaeNodes } from "../src/db/schema";
-import { generateDocx } from "../src/document/docx";
+import { generateDocx, neutralizeTemplateMetadata } from "../src/document/docx";
 import { buildExportTree } from "../src/document/tree";
 import { UnoConverter } from "../src/document/uno";
 import {
@@ -157,6 +158,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
         parentVaeNodeId: node.parentVaeNodeId,
         title: node.title,
         text: node.text,
+        content: null,
         order: node.order,
         isHidden: node.isHidden,
         isDeleted: node.isDeleted,
@@ -182,6 +184,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
         parentVaeNodeId: node.parentVaeNodeId,
         title: node.title,
         text: node.text,
+        content: null,
         order: node.order,
         isHidden: node.isHidden,
         isDeleted: node.isDeleted,
@@ -197,6 +200,73 @@ describe("Administrative File Draft TypeScript runtime", () => {
     expect(document.bodyHeadingLevels).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 9]);
   });
 
+  test("carries no personal or organizational metadata from the template", async () => {
+    const before = new Date();
+    before.setUTCMilliseconds(0);
+    const bytes = await generateDocx(
+      fixture.nodes.map((node) => ({
+        id: node.id,
+        parentVaeNodeId: node.parentVaeNodeId,
+        title: node.title,
+        text: node.text,
+        content: null,
+        order: node.order,
+        isHidden: node.isHidden,
+        isDeleted: node.isDeleted,
+      })),
+      fixture.project.name,
+      fixture.project.internalProjectNumber,
+    );
+    const archive = unzipSync(bytes);
+    const part = (name: string) => new TextDecoder().decode(archive[name]);
+    const element = (xml: string, tag: string) =>
+      xml.match(new RegExp(`<${tag}\\b[^>]*>([^<]*)</${tag}>`))?.[1];
+    const core = part("docProps/core.xml");
+
+    // A cleaned template may omit these elements entirely; absent counts as neutral.
+    expect(element(core, "dc:creator") ?? "").toBe("");
+    expect(element(core, "cp:lastModifiedBy") ?? "").toBe("");
+    expect(core).not.toContain("cp:lastPrinted");
+    expect(element(core, "cp:revision") ?? "1").toBe("1");
+    for (const tag of ["dcterms:created", "dcterms:modified"]) {
+      const value = element(core, tag);
+      if (value !== undefined) expect(new Date(value).getTime()).toBeGreaterThanOrEqual(before.getTime());
+    }
+    expect(element(part("docProps/app.xml"), "Company") ?? "").toBe("");
+    expect(part("word/people.xml")).not.toContain("<w15:person");
+  });
+
+  test("neutralizes template metadata in core, app and people parts", () => {
+    const encoder = new TextEncoder();
+    const archive = {
+      "docProps/core.xml": encoder.encode(
+        '<cp:coreProperties xmlns:cp="cp" xmlns:dc="dc" xmlns:dcterms="dcterms" xmlns:xsi="xsi">' +
+          "<dc:creator>Template Author</dc:creator><cp:lastModifiedBy>Template Editor</cp:lastModifiedBy>" +
+          "<cp:revision>6</cp:revision><cp:lastPrinted>2023-10-13T09:30:00Z</cp:lastPrinted>" +
+          '<dcterms:created xsi:type="dcterms:W3CDTF">2020-01-01T00:00:00Z</dcterms:created>' +
+          '<dcterms:modified xsi:type="dcterms:W3CDTF">2020-01-02T00:00:00Z</dcterms:modified>' +
+          "</cp:coreProperties>",
+      ),
+      "docProps/app.xml": encoder.encode("<Properties><Company>Template Authority</Company></Properties>"),
+      "word/people.xml": encoder.encode(
+        '<w15:people xmlns:w15="w15"><w15:person w15:author="Template Editor"/></w15:people>',
+      ),
+    } satisfies Record<string, Uint8Array>;
+
+    neutralizeTemplateMetadata(archive, new Date("2026-10-15T09:30:00.123Z"));
+    const part = (name: keyof typeof archive) => new TextDecoder().decode(archive[name]);
+
+    expect(part("docProps/core.xml")).toBe(
+      '<cp:coreProperties xmlns:cp="cp" xmlns:dc="dc" xmlns:dcterms="dcterms" xmlns:xsi="xsi">' +
+        "<dc:creator></dc:creator><cp:lastModifiedBy></cp:lastModifiedBy><cp:revision>1</cp:revision>" +
+        '<dcterms:created xsi:type="dcterms:W3CDTF">2026-10-15T09:30:00Z</dcterms:created>' +
+        '<dcterms:modified xsi:type="dcterms:W3CDTF">2026-10-15T09:30:00Z</dcterms:modified>' +
+        "</cp:coreProperties>",
+    );
+    expect(part("docProps/app.xml")).toBe("<Properties><Company></Company></Properties>");
+    expect(part("word/people.xml")).not.toContain("Template ");
+  });
+
   test("preserves literal metadata and resolves original chapter markers once", async () => {
     const name = "Project [Aktenzeichen] $` $' $$ $& <&>";
     const reference = "REF [vorhaben_name]";
@@ -207,6 +277,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
           parentVaeNodeId: null,
           title: "[vorhaben_name]",
           text: "[Aktenzeichen]\n[unknown]",
+          content: null,
           order: 0,
           isHidden: false,
           isDeleted: false,
@@ -231,6 +302,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
       ...node,
       title: node.id,
       text: "",
+      content: null,
       order: 0,
       isHidden: false,
       isDeleted: false,
@@ -253,6 +325,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
         parentVaeNodeId: null,
         title: "hidden",
         text: "",
+        content: null,
         order: 1,
         isHidden: true,
         isDeleted: false,
@@ -262,6 +335,7 @@ describe("Administrative File Draft TypeScript runtime", () => {
         parentVaeNodeId: "hidden",
         title: "visible",
         text: "",
+        content: null,
         order: 2,
         isHidden: false,
         isDeleted: false,

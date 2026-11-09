@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { auditLogs } from "@spark-workflow/audit-client/schema";
+import { Type } from "@sinclair/typebox";
 import { and, asc, eq, inArray } from "drizzle-orm";
 
 import type { NodeDatabase, NodePersistence } from "../src";
@@ -15,6 +16,7 @@ import {
   documents,
   documentTypeHistory,
   documentTypes,
+  formalCompletenessNodeMetadata,
   formalCompletenessSchema,
 } from "./fixtures/formal-completeness/schema";
 
@@ -26,12 +28,14 @@ const PARTIAL_PROJECT = "11000000-0000-4000-8000-000000000002";
 const MISSING_PROJECT = "11000000-0000-4000-8000-000000000003";
 const ROLLBACK_PROJECT = "11000000-0000-4000-8000-000000000004";
 const PEER_PROJECT = "11000000-0000-4000-8000-000000000005";
+const DERIVE_PROJECT = "11000000-0000-4000-8000-000000000006";
 const PROJECTS = [
   COPY_PROJECT,
   PARTIAL_PROJECT,
   MISSING_PROJECT,
   ROLLBACK_PROJECT,
   PEER_PROJECT,
+  DERIVE_PROJECT,
 ] as const;
 
 const COPY_CATEGORY = "21000000-0000-4000-8000-000000000001";
@@ -44,6 +48,8 @@ const MISSING_CATEGORY = "23000000-0000-4000-8000-000000000001";
 const ROLLBACK_CATEGORY = "24000000-0000-4000-8000-000000000001";
 const ROLLBACK_TYPE = "34000000-0000-4000-8000-000000000001";
 const PEER_CATEGORY = "25000000-0000-4000-8000-000000000001";
+const DERIVE_CATEGORY = "26000000-0000-4000-8000-000000000001";
+const DERIVE_TYPE = "36000000-0000-4000-8000-000000000001";
 const FILE = "51000000-0000-4000-8000-000000000001";
 const ACTOR = "61000000-0000-4000-8000-000000000001";
 const REQUEST = "61000000-0000-4000-8000-000000000002";
@@ -527,6 +533,61 @@ realPostgres("node project-version operations against Formal Completeness", () =
           .where(eq(auditLogs.projectId, PEER_PROJECT)),
       ).toEqual([]);
       expect(() => fake.assertComplete()).not.toThrow();
+    } finally {
+      fake.stop();
+    }
+  });
+  test("derives fields from a copy override", async () => {
+    await seedCategory(database, DERIVE_PROJECT, DERIVE_CATEGORY, 1, "Derive source");
+    await seedDocumentType(database, DERIVE_PROJECT, DERIVE_TYPE, DERIVE_CATEGORY, 1);
+    const lock = {
+      operation: "validate-version-lock" as const,
+      projectId: DERIVE_PROJECT,
+      input: { sourceVersion: 1, targetVersion: 2, lockToken: "derive-lock" },
+      result: { status: 204 as const },
+    };
+    const fake = startProjectLogicFake([lock]);
+    const documentType = formalCompletenessNodeMetadata.documentTypes;
+    try {
+      const app = createVersionOperationsApp(persistence, createProjectLogicClient(fake.url), {
+        ...formalCompletenessNodeMetadata,
+        documentTypes: {
+          ...documentType,
+          fieldRules: { updateType: documentType.fieldRules.updateType },
+          schemas: {
+            ...documentType.schemas,
+            insert: Type.Omit(documentType.schemas.insert, ["description"]),
+            patch: Type.Omit(documentType.schemas.patch, ["description"]),
+          },
+          derive: {
+            fields: ["description"],
+            payload: (_kind, payload) =>
+              payload.name === undefined
+                ? payload
+                : { ...payload, description: `derived:${payload.name}` },
+          },
+        },
+      });
+      expect(
+        await post(app, `/${DERIVE_PROJECT}/copy-version`, {
+          sourceVersion: 1,
+          targetVersion: 2,
+          lockToken: "derive-lock",
+          dryRun: false,
+          nodes: [
+            { nodeType: "category", id: DERIVE_CATEGORY },
+            { nodeType: "document_type", id: DERIVE_TYPE, overrides: { name: "Renamed type" } },
+          ],
+        }),
+      ).toEqual({ status: 200, body: { dryRun: false, copied: 2 } });
+      expect(
+        await database
+          .select({ name: documentTypes.name, description: documentTypes.description })
+          .from(documentTypes)
+          .where(
+            and(eq(documentTypes.projectId, DERIVE_PROJECT), eq(documentTypes.projectVersion, 2)),
+          ),
+      ).toEqual([{ name: "Renamed type", description: "derived:Renamed type" }]);
     } finally {
       fake.stop();
     }

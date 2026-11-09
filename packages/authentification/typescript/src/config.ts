@@ -70,5 +70,6 @@ export function parseAuthConfig(environment: Environment = Bun.env) {
             insecure: environment.AUTH_SPICE_DB_INSECURE?.toLowerCase() === "true",
           },
     allowedMachineIdentities: environment.AUTH_ALLOWED_MACHINE_IDENTITIES?.trim() ?? "",
+    zeroTrustDisabled: environment.DANGEROUS_ZERO_TRUST_DISABLED?.toLowerCase() === "true",
   } as const);
 }

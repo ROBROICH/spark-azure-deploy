@@ -23499,14 +23499,134 @@
                               "type": "object",
                               "required": [
                                 "title",
-                                "text"
+                                "content"
                               ],
                               "properties": {
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "type": "object",
+                                  "required": [
+                                    "type",
+                                    "content"
+                                  ],
+                                  "properties": {
+                                    "type": {
+                                      "const": "doc",
+                                      "type": "string"
+                                    },
+                                    "content": {
+                                      "minItems": 1,
+                                      "maxItems": 1,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "paragraph",
+                                            "type": "string"
+                                          },
+                                          "content": {
+                                            "maxItems": 50000,
+                                            "type": "array",
+                                            "items": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type",
+                                                    "text"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "text",
+                                                      "type": "string"
+                                                    },
+                                                    "text": {
+                                                      "minLength": 1,
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "hardBreak",
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -23768,8 +23888,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -24069,14 +24316,134 @@
                               "type": "object",
                               "required": [
                                 "title",
-                                "text"
+                                "content"
                               ],
                               "properties": {
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "type": "object",
+                                  "required": [
+                                    "type",
+                                    "content"
+                                  ],
+                                  "properties": {
+                                    "type": {
+                                      "const": "doc",
+                                      "type": "string"
+                                    },
+                                    "content": {
+                                      "minItems": 1,
+                                      "maxItems": 1,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "paragraph",
+                                            "type": "string"
+                                          },
+                                          "content": {
+                                            "maxItems": 50000,
+                                            "type": "array",
+                                            "items": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type",
+                                                    "text"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "text",
+                                                      "type": "string"
+                                                    },
+                                                    "text": {
+                                                      "minLength": 1,
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "hardBreak",
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -24338,8 +24705,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -24639,14 +25133,134 @@
                               "type": "object",
                               "required": [
                                 "title",
-                                "text"
+                                "content"
                               ],
                               "properties": {
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "type": "object",
+                                  "required": [
+                                    "type",
+                                    "content"
+                                  ],
+                                  "properties": {
+                                    "type": {
+                                      "const": "doc",
+                                      "type": "string"
+                                    },
+                                    "content": {
+                                      "minItems": 1,
+                                      "maxItems": 1,
+                                      "type": "array",
+                                      "items": {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "paragraph",
+                                            "type": "string"
+                                          },
+                                          "content": {
+                                            "maxItems": 50000,
+                                            "type": "array",
+                                            "items": {
+                                              "anyOf": [
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type",
+                                                    "text"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "text",
+                                                      "type": "string"
+                                                    },
+                                                    "text": {
+                                                      "minLength": 1,
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                },
+                                                {
+                                                  "type": "object",
+                                                  "required": [
+                                                    "type"
+                                                  ],
+                                                  "properties": {
+                                                    "type": {
+                                                      "const": "hardBreak",
+                                                      "type": "string"
+                                                    },
+                                                    "marks": {
+                                                      "maxItems": 3,
+                                                      "type": "array",
+                                                      "items": {
+                                                        "type": "object",
+                                                        "required": [
+                                                          "type"
+                                                        ],
+                                                        "properties": {
+                                                          "type": {
+                                                            "anyOf": [
+                                                              {
+                                                                "const": "bold",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "italic",
+                                                                "type": "string"
+                                                              },
+                                                              {
+                                                                "const": "underline",
+                                                                "type": "string"
+                                                              }
+                                                            ]
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -24908,8 +25522,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -25282,8 +26023,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -25576,8 +26444,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -25870,8 +26865,135 @@
                                 "title": {
                                   "type": "string"
                                 },
-                                "text": {
-                                  "type": "string"
+                                "content": {
+                                  "anyOf": [
+                                    {
+                                      "type": "object",
+                                      "required": [
+                                        "type",
+                                        "content"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "doc",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "minItems": 1,
+                                          "maxItems": 1,
+                                          "type": "array",
+                                          "items": {
+                                            "type": "object",
+                                            "required": [
+                                              "type"
+                                            ],
+                                            "properties": {
+                                              "type": {
+                                                "const": "paragraph",
+                                                "type": "string"
+                                              },
+                                              "content": {
+                                                "maxItems": 50000,
+                                                "type": "array",
+                                                "items": {
+                                                  "anyOf": [
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type",
+                                                        "text"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "text",
+                                                          "type": "string"
+                                                        },
+                                                        "text": {
+                                                          "minLength": 1,
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    },
+                                                    {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "const": "hardBreak",
+                                                          "type": "string"
+                                                        },
+                                                        "marks": {
+                                                          "maxItems": 3,
+                                                          "type": "array",
+                                                          "items": {
+                                                            "type": "object",
+                                                            "required": [
+                                                              "type"
+                                                            ],
+                                                            "properties": {
+                                                              "type": {
+                                                                "anyOf": [
+                                                                  {
+                                                                    "const": "bold",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "italic",
+                                                                    "type": "string"
+                                                                  },
+                                                                  {
+                                                                    "const": "underline",
+                                                                    "type": "string"
+                                                                  }
+                                                                ]
+                                                              }
+                                                            }
+                                                          }
+                                                        }
+                                                      }
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
                                 },
                                 "checkedByAssignee": {
                                   "type": "boolean"
@@ -102924,6 +104046,7 @@
                           "id",
                           "title",
                           "text",
+                          "content",
                           "checkedByAssignee",
                           "checkedByLeader",
                           "checkedAtAssignee",
@@ -102955,6 +104078,136 @@
                           },
                           "text": {
                             "type": "string"
+                          },
+                          "content": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "content"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "doc",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "minItems": 1,
+                                    "maxItems": 1,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "required": [
+                                        "type"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "const": "paragraph",
+                                          "type": "string"
+                                        },
+                                        "content": {
+                                          "maxItems": 50000,
+                                          "type": "array",
+                                          "items": {
+                                            "anyOf": [
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "type",
+                                                  "text"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "const": "text",
+                                                    "type": "string"
+                                                  },
+                                                  "text": {
+                                                    "minLength": 1,
+                                                    "type": "string"
+                                                  },
+                                                  "marks": {
+                                                    "maxItems": 3,
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "anyOf": [
+                                                            {
+                                                              "const": "bold",
+                                                              "type": "string"
+                                                            },
+                                                            {
+                                                              "const": "italic",
+                                                              "type": "string"
+                                                            },
+                                                            {
+                                                              "const": "underline",
+                                                              "type": "string"
+                                                            }
+                                                          ]
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              },
+                                              {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "const": "hardBreak",
+                                                    "type": "string"
+                                                  },
+                                                  "marks": {
+                                                    "maxItems": 3,
+                                                    "type": "array",
+                                                    "items": {
+                                                      "type": "object",
+                                                      "required": [
+                                                        "type"
+                                                      ],
+                                                      "properties": {
+                                                        "type": {
+                                                          "anyOf": [
+                                                            {
+                                                              "const": "bold",
+                                                              "type": "string"
+                                                            },
+                                                            {
+                                                              "const": "italic",
+                                                              "type": "string"
+                                                            },
+                                                            {
+                                                              "const": "underline",
+                                                              "type": "string"
+                                                            }
+                                                          ]
+                                                        }
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           },
                           "checkedByAssignee": {
                             "type": "boolean"
@@ -103202,14 +104455,134 @@
                 "type": "object",
                 "required": [
                   "title",
-                  "text"
+                  "content"
                 ],
                 "properties": {
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "content"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "doc",
+                        "type": "string"
+                      },
+                      "content": {
+                        "minItems": 1,
+                        "maxItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "type"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "paragraph",
+                              "type": "string"
+                            },
+                            "content": {
+                              "maxItems": 50000,
+                              "type": "array",
+                              "items": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type",
+                                      "text"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "text",
+                                        "type": "string"
+                                      },
+                                      "text": {
+                                        "minLength": 1,
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "hardBreak",
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -103338,14 +104711,134 @@
                 "type": "object",
                 "required": [
                   "title",
-                  "text"
+                  "content"
                 ],
                 "properties": {
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "content"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "doc",
+                        "type": "string"
+                      },
+                      "content": {
+                        "minItems": 1,
+                        "maxItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "type"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "paragraph",
+                              "type": "string"
+                            },
+                            "content": {
+                              "maxItems": 50000,
+                              "type": "array",
+                              "items": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type",
+                                      "text"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "text",
+                                        "type": "string"
+                                      },
+                                      "text": {
+                                        "minLength": 1,
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "hardBreak",
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -103474,14 +104967,134 @@
                 "type": "object",
                 "required": [
                   "title",
-                  "text"
+                  "content"
                 ],
                 "properties": {
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "content"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "doc",
+                        "type": "string"
+                      },
+                      "content": {
+                        "minItems": 1,
+                        "maxItems": 1,
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "type"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "paragraph",
+                              "type": "string"
+                            },
+                            "content": {
+                              "maxItems": 50000,
+                              "type": "array",
+                              "items": {
+                                "anyOf": [
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type",
+                                      "text"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "text",
+                                        "type": "string"
+                                      },
+                                      "text": {
+                                        "minLength": 1,
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  },
+                                  {
+                                    "type": "object",
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "hardBreak",
+                                        "type": "string"
+                                      },
+                                      "marks": {
+                                        "maxItems": 3,
+                                        "type": "array",
+                                        "items": {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "anyOf": [
+                                                {
+                                                  "const": "bold",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "italic",
+                                                  "type": "string"
+                                                },
+                                                {
+                                                  "const": "underline",
+                                                  "type": "string"
+                                                }
+                                              ]
+                                            }
+                                          }
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -103618,6 +105231,7 @@
                     "id",
                     "title",
                     "text",
+                    "content",
                     "checkedByAssignee",
                     "checkedByLeader",
                     "checkedAtAssignee",
@@ -103649,6 +105263,136 @@
                     },
                     "text": {
                       "type": "string"
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "content"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "doc",
+                              "type": "string"
+                            },
+                            "content": {
+                              "minItems": 1,
+                              "maxItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "paragraph",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "maxItems": 50000,
+                                    "type": "array",
+                                    "items": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "text",
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "minLength": 1,
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "hardBreak",
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "checkedByAssignee": {
                       "type": "boolean"
@@ -103872,6 +105616,7 @@
                     "id",
                     "title",
                     "text",
+                    "content",
                     "checkedByAssignee",
                     "checkedByLeader",
                     "checkedAtAssignee",
@@ -103903,6 +105648,136 @@
                     },
                     "text": {
                       "type": "string"
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "content"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "doc",
+                              "type": "string"
+                            },
+                            "content": {
+                              "minItems": 1,
+                              "maxItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "paragraph",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "maxItems": 50000,
+                                    "type": "array",
+                                    "items": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "text",
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "minLength": 1,
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "hardBreak",
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "checkedByAssignee": {
                       "type": "boolean"
@@ -104123,8 +105998,135 @@
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "content"
+                        ],
+                        "properties": {
+                          "type": {
+                            "const": "doc",
+                            "type": "string"
+                          },
+                          "content": {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "type"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "paragraph",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "maxItems": 50000,
+                                  "type": "array",
+                                  "items": {
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "text",
+                                            "type": "string"
+                                          },
+                                          "text": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "hardBreak",
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -104255,8 +106257,135 @@
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "content"
+                        ],
+                        "properties": {
+                          "type": {
+                            "const": "doc",
+                            "type": "string"
+                          },
+                          "content": {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "type"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "paragraph",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "maxItems": 50000,
+                                  "type": "array",
+                                  "items": {
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "text",
+                                            "type": "string"
+                                          },
+                                          "text": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "hardBreak",
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -104387,8 +106516,135 @@
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "content"
+                        ],
+                        "properties": {
+                          "type": {
+                            "const": "doc",
+                            "type": "string"
+                          },
+                          "content": {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "type"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "paragraph",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "maxItems": 50000,
+                                  "type": "array",
+                                  "items": {
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "text",
+                                            "type": "string"
+                                          },
+                                          "text": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "hardBreak",
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -104525,6 +106781,7 @@
                     "id",
                     "title",
                     "text",
+                    "content",
                     "checkedByAssignee",
                     "checkedByLeader",
                     "checkedAtAssignee",
@@ -104556,6 +106813,136 @@
                     },
                     "text": {
                       "type": "string"
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "content"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "doc",
+                              "type": "string"
+                            },
+                            "content": {
+                              "minItems": 1,
+                              "maxItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "paragraph",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "maxItems": 50000,
+                                    "type": "array",
+                                    "items": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "text",
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "minLength": 1,
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "hardBreak",
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "checkedByAssignee": {
                       "type": "boolean"
@@ -104777,6 +107164,7 @@
                     "id",
                     "title",
                     "text",
+                    "content",
                     "checkedByAssignee",
                     "checkedByLeader",
                     "checkedAtAssignee",
@@ -104808,6 +107196,136 @@
                     },
                     "text": {
                       "type": "string"
+                    },
+                    "content": {
+                      "anyOf": [
+                        {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "content"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "doc",
+                              "type": "string"
+                            },
+                            "content": {
+                              "minItems": 1,
+                              "maxItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "paragraph",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "maxItems": 50000,
+                                    "type": "array",
+                                    "items": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "text",
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "minLength": 1,
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "hardBreak",
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
                     },
                     "checkedByAssignee": {
                       "type": "boolean"
@@ -181609,14 +184127,134 @@
                       "type": "object",
                       "required": [
                         "title",
-                        "text"
+                        "content"
                       ],
                       "properties": {
                         "title": {
                           "type": "string"
                         },
-                        "text": {
-                          "type": "string"
+                        "content": {
+                          "type": "object",
+                          "required": [
+                            "type",
+                            "content"
+                          ],
+                          "properties": {
+                            "type": {
+                              "const": "doc",
+                              "type": "string"
+                            },
+                            "content": {
+                              "minItems": 1,
+                              "maxItems": 1,
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "paragraph",
+                                    "type": "string"
+                                  },
+                                  "content": {
+                                    "maxItems": 50000,
+                                    "type": "array",
+                                    "items": {
+                                      "anyOf": [
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type",
+                                            "text"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "text",
+                                              "type": "string"
+                                            },
+                                            "text": {
+                                              "minLength": 1,
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        },
+                                        {
+                                          "type": "object",
+                                          "required": [
+                                            "type"
+                                          ],
+                                          "properties": {
+                                            "type": {
+                                              "const": "hardBreak",
+                                              "type": "string"
+                                            },
+                                            "marks": {
+                                              "maxItems": 3,
+                                              "type": "array",
+                                              "items": {
+                                                "type": "object",
+                                                "required": [
+                                                  "type"
+                                                ],
+                                                "properties": {
+                                                  "type": {
+                                                    "anyOf": [
+                                                      {
+                                                        "const": "bold",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "italic",
+                                                        "type": "string"
+                                                      },
+                                                      {
+                                                        "const": "underline",
+                                                        "type": "string"
+                                                      }
+                                                    ]
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      ]
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
                         },
                         "checkedByAssignee": {
                           "type": "boolean"
@@ -181878,8 +184516,135 @@
                         "title": {
                           "type": "string"
                         },
-                        "text": {
-                          "type": "string"
+                        "content": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "required": [
+                                "type",
+                                "content"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "doc",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "minItems": 1,
+                                  "maxItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "paragraph",
+                                        "type": "string"
+                                      },
+                                      "content": {
+                                        "maxItems": 50000,
+                                        "type": "array",
+                                        "items": {
+                                          "anyOf": [
+                                            {
+                                              "type": "object",
+                                              "required": [
+                                                "type",
+                                                "text"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "const": "text",
+                                                  "type": "string"
+                                                },
+                                                "text": {
+                                                  "minLength": 1,
+                                                  "type": "string"
+                                                },
+                                                "marks": {
+                                                  "maxItems": 3,
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "object",
+                                                    "required": [
+                                                      "type"
+                                                    ],
+                                                    "properties": {
+                                                      "type": {
+                                                        "anyOf": [
+                                                          {
+                                                            "const": "bold",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "italic",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "underline",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "const": "hardBreak",
+                                                  "type": "string"
+                                                },
+                                                "marks": {
+                                                  "maxItems": 3,
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "object",
+                                                    "required": [
+                                                      "type"
+                                                    ],
+                                                    "properties": {
+                                                      "type": {
+                                                        "anyOf": [
+                                                          {
+                                                            "const": "bold",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "italic",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "underline",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "checkedByAssignee": {
                           "type": "boolean"
@@ -182230,6 +184995,7 @@
           "id",
           "title",
           "text",
+          "content",
           "checkedByAssignee",
           "checkedByLeader",
           "checkedAtAssignee",
@@ -182268,6 +185034,136 @@
           },
           "text": {
             "type": "string"
+          },
+          "content": {
+            "anyOf": [
+              {
+                "type": "object",
+                "required": [
+                  "type",
+                  "content"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "doc",
+                    "type": "string"
+                  },
+                  "content": {
+                    "minItems": 1,
+                    "maxItems": 1,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "required": [
+                        "type"
+                      ],
+                      "properties": {
+                        "type": {
+                          "const": "paragraph",
+                          "type": "string"
+                        },
+                        "content": {
+                          "maxItems": 50000,
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "object",
+                                "required": [
+                                  "type",
+                                  "text"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "text",
+                                    "type": "string"
+                                  },
+                                  "text": {
+                                    "minLength": 1,
+                                    "type": "string"
+                                  },
+                                  "marks": {
+                                    "maxItems": 3,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "required": [
+                                        "type"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "anyOf": [
+                                            {
+                                              "const": "bold",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "const": "italic",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "const": "underline",
+                                              "type": "string"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              },
+                              {
+                                "type": "object",
+                                "required": [
+                                  "type"
+                                ],
+                                "properties": {
+                                  "type": {
+                                    "const": "hardBreak",
+                                    "type": "string"
+                                  },
+                                  "marks": {
+                                    "maxItems": 3,
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "required": [
+                                        "type"
+                                      ],
+                                      "properties": {
+                                        "type": {
+                                          "anyOf": [
+                                            {
+                                              "const": "bold",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "const": "italic",
+                                              "type": "string"
+                                            },
+                                            {
+                                              "const": "underline",
+                                              "type": "string"
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "checkedByAssignee": {
             "type": "boolean"
@@ -182545,8 +185441,135 @@
                   "title": {
                     "type": "string"
                   },
-                  "text": {
-                    "type": "string"
+                  "content": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "type",
+                          "content"
+                        ],
+                        "properties": {
+                          "type": {
+                            "const": "doc",
+                            "type": "string"
+                          },
+                          "content": {
+                            "minItems": 1,
+                            "maxItems": 1,
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "required": [
+                                "type"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "paragraph",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "maxItems": 50000,
+                                  "type": "array",
+                                  "items": {
+                                    "anyOf": [
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type",
+                                          "text"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "text",
+                                            "type": "string"
+                                          },
+                                          "text": {
+                                            "minLength": 1,
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "type": "object",
+                                        "required": [
+                                          "type"
+                                        ],
+                                        "properties": {
+                                          "type": {
+                                            "const": "hardBreak",
+                                            "type": "string"
+                                          },
+                                          "marks": {
+                                            "maxItems": 3,
+                                            "type": "array",
+                                            "items": {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "anyOf": [
+                                                    {
+                                                      "const": "bold",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "italic",
+                                                      "type": "string"
+                                                    },
+                                                    {
+                                                      "const": "underline",
+                                                      "type": "string"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            }
+                                          }
+                                        }
+                                      }
+                                    ]
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "checkedByAssignee": {
                     "type": "boolean"
@@ -182833,8 +185856,135 @@
                         "title": {
                           "type": "string"
                         },
-                        "text": {
-                          "type": "string"
+                        "content": {
+                          "anyOf": [
+                            {
+                              "type": "object",
+                              "required": [
+                                "type",
+                                "content"
+                              ],
+                              "properties": {
+                                "type": {
+                                  "const": "doc",
+                                  "type": "string"
+                                },
+                                "content": {
+                                  "minItems": 1,
+                                  "maxItems": 1,
+                                  "type": "array",
+                                  "items": {
+                                    "type": "object",
+                                    "required": [
+                                      "type"
+                                    ],
+                                    "properties": {
+                                      "type": {
+                                        "const": "paragraph",
+                                        "type": "string"
+                                      },
+                                      "content": {
+                                        "maxItems": 50000,
+                                        "type": "array",
+                                        "items": {
+                                          "anyOf": [
+                                            {
+                                              "type": "object",
+                                              "required": [
+                                                "type",
+                                                "text"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "const": "text",
+                                                  "type": "string"
+                                                },
+                                                "text": {
+                                                  "minLength": 1,
+                                                  "type": "string"
+                                                },
+                                                "marks": {
+                                                  "maxItems": 3,
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "object",
+                                                    "required": [
+                                                      "type"
+                                                    ],
+                                                    "properties": {
+                                                      "type": {
+                                                        "anyOf": [
+                                                          {
+                                                            "const": "bold",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "italic",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "underline",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            },
+                                            {
+                                              "type": "object",
+                                              "required": [
+                                                "type"
+                                              ],
+                                              "properties": {
+                                                "type": {
+                                                  "const": "hardBreak",
+                                                  "type": "string"
+                                                },
+                                                "marks": {
+                                                  "maxItems": 3,
+                                                  "type": "array",
+                                                  "items": {
+                                                    "type": "object",
+                                                    "required": [
+                                                      "type"
+                                                    ],
+                                                    "properties": {
+                                                      "type": {
+                                                        "anyOf": [
+                                                          {
+                                                            "const": "bold",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "italic",
+                                                            "type": "string"
+                                                          },
+                                                          {
+                                                            "const": "underline",
+                                                            "type": "string"
+                                                          }
+                                                        ]
+                                                      }
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            }
+                                          ]
+                                        }
+                                      }
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "checkedByAssignee": {
                           "type": "boolean"

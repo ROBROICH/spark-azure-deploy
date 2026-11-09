@@ -2,7 +2,7 @@
 # docker build -f 01-frontend/handbuch/Dockerfile -t spark-handbuch .
 
 # Stage 1: Build the static handbook
-FROM node:24-alpine3.23 AS builder
+FROM node:24.22.1-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2 AS builder
 
 WORKDIR /app/01-frontend/handbuch
 
@@ -17,7 +17,7 @@ COPY docs/handbuch/ /app/docs/handbuch/
 RUN pnpm run build
 
 # Stage 2: Serve the static output with Nginx
-FROM nginx:1.30.5-alpine3.24-slim
+FROM nginx:1.30.6-alpine3.24-slim
 
 # Temporary guard until upstream nginx alpine image refreshes vulnerable Alpine packages
 RUN apk add --no-cache --upgrade \

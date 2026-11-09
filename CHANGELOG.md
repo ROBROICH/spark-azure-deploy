@@ -16,6 +16,40 @@ All notable changes to this project will be documented in this file.
 
 ---
 
+## [0.3.1] - 2026-10-27
+
+### Added
+
+* A new environment variable disables the XFCC checks to enable meshless environments
+* Helm: opt-in bootstrap Job in the Temporal chart that creates the `default` namespace and its search attributes on a first installation, and an optional `userSecretKey` that reads the Temporal SQL user from the existing Secret
+* Helm: `ownerSecretRef` and `hookWeight` in the db-init chart, and annotations for ExternalSecrets in the environment-config chart
+
+### Changed
+
+* The request and comment forms show a loading state while saving
+
+### Fixed
+
+* Bold, italic and underlined text in the decision editor is kept after saving and reloading and appears in the exported decision
+* Processing runs canceled by the user end as canceled instead of failed and are shown as "Canceled"
+* The audit log shows the before and after values of created, changed and deleted entries again, including in the download
+* Supplementary requests and comments are saved on the first click
+* Long document type names are truncated with a tooltip, prefilled comment titles are shortened to the 255-character limit, and an overlong document type name from table-of-contents parsing no longer fails the formal completeness check
+* Legal norm lookups return the requested norm instead of a neighbouring one, and return an empty result instead of an error when no norm matches
+* Legal norm texts keep their paragraph numbers and structure
+* JSON responses of the material completeness check and of search and assignment are parsed when the closing code fence is missing
+* Visual-element summaries in content extraction are capped at `VLM_SUMMARY_MAX_TOKENS` output tokens (default 8192), so a looping model can no longer generate output without limit
+* Files from ZIP archives whose names contain special characters such as `#`, `%` or `[` are stored under sanitized names
+* The anonymization image contains the fonts Ghostscript needs to process PDFs
+
+### Security
+
+* Exported decisions no longer contain the template's metadata, such as authors, last editor and organization
+* The prompt-injection filter matches URLs and e-mail addresses in linear time, removes nested markers such as `[IN[INST]ST]`, recognizes the control tokens of Mistral, Qwen, Gemma, DeepSeek and GLM, and masks domains without a scheme
+* Node.js 24.22.1, Bun 1.4.4 and nginx 1.30.6 in the frontend, handbook and backend images and in CI, and tinypool 2.1.2 in the development tooling, close known vulnerabilities
+
+---
+
 ## [0.3.0] - 2026-10-12
 
 ### Added

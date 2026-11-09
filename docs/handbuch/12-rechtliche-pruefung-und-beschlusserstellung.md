@@ -33,7 +33,7 @@ Personen mit der Rolle Bearbeitende können Kapitel ihres Themenbereichs als abg
 
 ② Fortschrittsanzeige: visualisiert den Bearbeitungsstand des Beschlusses. Bearbeitende können die von ihnen bearbeiteten Kapitel als „Abgeschlossen“ und bereit zur Freigabe durch die Rolle Verfahrensleitung oder Administration markieren. Durch Bearbeitende abgeschlossene Kapitel werden der Verfahrensleitung oder Administration durch ein Icon angezeigt.
 
-③ Bereich „Beschluss“: bildet den zentralen Arbeitsbereich zur Erstellung und Überarbeitung des Beschlusses. Im Editor wird der bestehende Text des aktuell ausgewählten Gliederungspunkts angezeigt und bearbeitet. Änderungen werden automatisch gespeichert und bleiben beim Wechsel zwischen Gliederungspunkten erhalten.
+③ Bereich „Beschluss“: bildet den zentralen Arbeitsbereich zur Erstellung und Überarbeitung des Beschlusses. Im Editor wird der bestehende Text des aktuell ausgewählten Gliederungspunkts angezeigt und bearbeitet. Änderungen werden automatisch gespeichert und bleiben beim Wechsel zwischen Gliederungspunkten erhalten. Über die Werkzeugleiste kann Text „Fett“, „Kursiv“ oder „Unterstrichen“ formatiert werden. Die Formatierung wird wie eine Textänderung gespeichert, bleibt nach dem Neuladen erhalten und erscheint im exportierten Beschluss. In schreibgeschützten Abschnitten und Überschriften lässt sich die Formatierung nicht ändern.
 
 ④ Aktionsanzeige: zeigt den aktuellen Speicherstatus des Beschlusstextes an und stellt exportbezogene Funktionen bereit.
 

@@ -131,6 +131,11 @@ runId: ''
 backoffLimit: 1
 activeDeadlineSeconds: 3600
 
+# Database Jobs' pre-install/pre-upgrade hook weight. Prerequisites run at -10;
+# keep this greater than -10. Set -5 to finish database creation before another
+# pre-install hook at weight 0 (e.g. Temporal's schema migration).
+hookWeight: 0
+
 # Defaults merged into every database entry.
 # Switch whole requests here (e.g. --set defaults.restore=true,
 # defaults.drop=database); a database's own keys win.
@@ -139,12 +144,18 @@ activeDeadlineSeconds: 3600
 # them out of a chart-wide drop as well.
 defaults:
   owner: ''
+  # Alternative to owner: {name: postgres-credentials, key: username}.
+  # The Secret must exist before the database hook runs. The admin connection
+  # still uses admin credentials; only DB_OWNER is read from this Secret.
+  # Mutually exclusive with a literal owner; key defaults to username.
+  ownerSecretRef: {}
   create: false
   drop: none
   restore: false
 
 # One entry per database, keyed freely. Per entry: name (tpl), owner (tpl;
-# default defaults.owner), dump (tpl), create, drop, restore, extensions,
+# default defaults.owner), ownerSecretRef (alternative {name, key}), dump (tpl),
+# create, drop, restore, extensions,
 # enabled (default true). Example:
 #   databases:
 #     application:

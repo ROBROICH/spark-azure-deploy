@@ -413,6 +413,58 @@ describe("explicit node v2 REST binding", () => {
     );
   });
 
+  test("derives fields for a v2 patch before field authorization", async () => {
+    const fixture = databaseFixture([authorRow(adaId, "Ada")]);
+    const derivedDescriptor = defineNodeDescriptor({
+      name: "representative-app",
+      auditLogEnabled: false,
+      schema: representativeSchema,
+      nodeMetadata: {
+        ...representativeNodeMetadata,
+        authors: {
+          ...representativeNodeMetadata.authors,
+          derive: {
+            fields: ["bio"],
+            payload: (_kind, payload) =>
+              payload.name === undefined ? payload : { ...payload, bio: `derived:${payload.name}` },
+          },
+        },
+      },
+    });
+    const checks: { action: string; field: string; value: unknown }[] = [];
+    const runtime = bindNodeRuntime(derivedDescriptor, {
+      persistence: fixture.runtime.persistence,
+      versionPeer: fixture.runtime.versionPeer,
+      authorizeFields: async (fieldRequest) => {
+        for (const { action, field, value } of fieldRequest.checks) {
+          checks.push({ action, field, value });
+        }
+        return Result.err(new EvlogError({ message: "stop before persistence", status: 403 }));
+      },
+    });
+    const app = bindNodeEntityV2Routes(
+      new Elysia({ normalize: false }).macro({
+        auth: () => ({ resolve: () => ({ auth: trustedServiceAuthorization }) }),
+      }),
+      derivedDescriptor,
+      () => createNodeEntityService(runtime, "author"),
+      { nodeType: "author", collection: "authors", filters: ["name"], auth: policies },
+      "authors",
+    );
+
+    await app.handle(
+      request(`${itemPath(adaId)}?projectVersion=1`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: "Grace" }),
+      }),
+    );
+
+    expect(checks.filter(({ field }) => field === "bio")).toEqual([
+      { action: "update", field: "bio", value: "derived:Grace" },
+    ]);
+  });
+
   test("does not expose another descriptor node without another binding", async () => {
     const fixture = databaseFixture([authorRow(adaId, "Ada")]);
     const { app } = createTestApp(fixture);

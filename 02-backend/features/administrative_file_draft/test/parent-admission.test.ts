@@ -19,6 +19,11 @@ import { afdSchema, vaeNodes } from "../src/db/schema.ts";
 import { assignTemplate } from "../src/versioning.ts";
 import { createPostgresApp, databaseUrl } from "./support/postgres-app.ts";
 
+const plainContent = (text: string) => ({
+  type: "doc" as const,
+  content: [{ type: "paragraph" as const, content: [{ type: "text" as const, text }] }],
+});
+
 const databaseTests = databaseUrl === undefined ? describe.skip : describe;
 
 databaseTests("chapter external parent admission", () => {
@@ -131,7 +136,7 @@ databaseTests("chapter external parent admission", () => {
             {
               nodeType: "vae_node",
               id: insertId,
-              payload: { title: "Stale chapter", text: "Draft", [field]: parentId },
+              payload: { title: "Stale chapter", content: plainContent("Draft"), [field]: parentId },
             },
           ],
         },
@@ -142,7 +147,7 @@ databaseTests("chapter external parent admission", () => {
           {
             nodeType: "vae_node",
             id: nodeId,
-            payload: { text: "Must not overwrite", [field]: parentId },
+            payload: { content: plainContent("Must not overwrite"), [field]: parentId },
           },
         ],
       });
@@ -202,7 +207,7 @@ databaseTests("chapter external parent admission", () => {
         inserts: [
           {
             nodeType: "vae_node",
-            payload: { title: "Concurrent chapter", text: "Preserved", topicId },
+            payload: { title: "Concurrent chapter", content: plainContent("Preserved"), topicId },
           },
         ],
       }),
@@ -350,7 +355,7 @@ databaseTests("chapter external parent admission", () => {
         {
           nodeType: "vae_node",
           id: remapNodeId,
-          overrides: { topicId: remapTopic, text: "Retargeted" },
+          overrides: { topicId: remapTopic, content: plainContent("Retargeted") },
         },
       ],
     };

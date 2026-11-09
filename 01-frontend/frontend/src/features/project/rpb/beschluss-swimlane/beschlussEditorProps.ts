@@ -1,6 +1,7 @@
+import { isEqual } from 'es-toolkit';
 import { invariant } from 'es-toolkit/util';
 import type { ReactNode } from 'react';
-import type { BeschlussSection } from '../rpbBeschluss.types';
+import type { BeschlussContent, BeschlussSection } from '../rpbBeschluss.types';
 
 export type BeschlussEditorProps = {
   canExport: boolean;
@@ -9,7 +10,10 @@ export type BeschlussEditorProps = {
   selectedVaeNodeId: string;
   onVaeNodeSelect: (vaeNodeId: string) => void;
   onExportClick: () => void;
-  onTextBlur: (outlineNodeId: string, nextText: string) => void;
+  onContentCommit: (
+    outlineNodeId: string,
+    nextContent: BeschlussContent,
+  ) => void;
 };
 
 const areBeschlussSectionsEqual = (
@@ -33,6 +37,7 @@ const areBeschlussSectionsEqual = (
       leftSection.order !== rightSection.order ||
       leftSection.parentVaeNodeId !== rightSection.parentVaeNodeId ||
       leftSection.text !== rightSection.text ||
+      !isEqual(leftSection.content, rightSection.content) ||
       leftSection.title !== rightSection.title ||
       leftSection.vaeNodeId !== rightSection.vaeNodeId
     ) {
@@ -49,7 +54,7 @@ export const areBeschlussEditorPropsEqual = (
 ) => {
   return (
     previous.onExportClick === next.onExportClick &&
-    previous.onTextBlur === next.onTextBlur &&
+    previous.onContentCommit === next.onContentCommit &&
     previous.onVaeNodeSelect === next.onVaeNodeSelect &&
     previous.canExport === next.canExport &&
     previous.headerAccessory === next.headerAccessory &&

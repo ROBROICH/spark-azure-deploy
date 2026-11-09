@@ -100,3 +100,21 @@ tests:
       - equal: {path: spec.oidc.defaultTokenTTL, value: 900s}
       - equal: {path: spec.cors.maxAge, value: 600s}
       - equal: {path: spec.oidc.redirectURL, value: https://dashboard.ci.example.com/app/oauth2/callback}
+
+  - it: preserves default API JWT extraction unless explicitly opted in
+    template: templates/security-policy-jwt.yaml
+    asserts:
+      - notExists:
+          path: spec.jwt.providers[0].extractFrom
+
+  - it: takes the API JWT only from the Authorization header when opted in
+    template: templates/security-policy-jwt.yaml
+    set:
+      auth.jwtHeaderOnly: true
+    asserts:
+      - equal:
+          path: spec.jwt.providers[0].extractFrom
+          value:
+            headers:
+              - name: Authorization
+                valuePrefix: "Bearer "

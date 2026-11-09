@@ -108,6 +108,9 @@ auth:
     - admin
   # JWT audiences. Empty = no audience check (the field is omitted).
   audiences: []
+  # Opt-in: match header-only backend token extraction for meshless callers.
+  # Default false preserves behavior outside opted-in demo1/full branches.
+  jwtHeaderOnly: false
 
 # CORS for the api + dashboard SecurityPolicies.
 # Empty list = the environment's own dashboard origin, https://dashboard.<domain>.

@@ -45,6 +45,13 @@ spec:
         {{- end }}
         remoteJWKS:
           uri: {{ include "gateway-routes.keycloakIssuer" . }}/protocol/openid-connect/certs
+        {{- if .Values.auth.jwtHeaderOnly }}
+        # Match backend token extraction; query tokens must not become service calls.
+        extractFrom:
+          headers:
+            - name: Authorization
+              valuePrefix: "Bearer "
+        {{- end }}
   authorization:
     defaultAction: Deny
     rules:

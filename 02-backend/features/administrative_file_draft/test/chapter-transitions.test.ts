@@ -12,6 +12,11 @@ import { eq } from "drizzle-orm";
 import { vaeNodes } from "../src/db/schema.ts";
 import { createPostgresApp, databaseUrl } from "./support/postgres-app.ts";
 
+const plainContent = (text: string) => ({
+  type: "doc" as const,
+  content: [{ type: "paragraph" as const, content: [{ type: "text" as const, text }] }],
+});
+
 const databaseTests = databaseUrl === undefined ? describe.skip : describe;
 const member: RequestAuthorization = {
   user: { sub: crypto.randomUUID() },
@@ -100,7 +105,7 @@ databaseTests("chapter completion transitions", () => {
         {
           nodeType: "vae_node",
           id: nodeId,
-          payload: { parentVaeNodeId: secondId, text: "Must roll back" },
+          payload: { parentVaeNodeId: secondId, content: plainContent("Must roll back") },
         },
         { nodeType: "vae_node", id: secondId, payload: { parentVaeNodeId: nodeId } },
       ],

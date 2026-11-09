@@ -64,7 +64,7 @@ The child pipeline `.gitlab/ci/services/spark-backend.yml` owns the bundle:
 typescript-bundle -> oci-image -> attestation
 ```
 
-Its `typescript-build` job uses `node:22.23.2`, enables Corepack, activates the
+Its `typescript-build` job uses `node:22.23.4`, enables Corepack, activates the
 root package's pinned pnpm version, installs with `--frozen-lockfile`, and
 builds only `@spark-workflow/spark-backend` with `NODE_ENV=production`. It publishes
 `02-backend/apps/spark-backend/dist/` as an artifact. The image job downloads
@@ -157,6 +157,8 @@ image_suffix
 artifact_name
 context
 dockerfile
+intoto_materials
+intoto_workspace_manifests
 base_image_dev
 base_image
 build_needs
@@ -167,6 +169,28 @@ build_needs
 `build_needs` defaults to an empty array. A child can supply local artifact-producing
 jobs here; the image job downloads their artifacts alongside the generated tag.
 Existing frontend and Python children require no additional build dependencies.
+
+`intoto_materials` is a required newline-separated list of repository-relative
+input paths, not glob patterns or shell expressions. `.gitlab/ci/intoto-start.sh`
+records those paths, the Dockerfile, and the effective ignore file
+(`Dockerfile.dockerignore` takes precedence over the context's `.dockerignore`).
+It records the ignore file itself; it does not parse Docker ignore rules.
+Missing configured inputs fail before the build starts. Inputs are normalized to
+repository-relative paths; duplicates and entries already covered recursively by
+a selected directory are removed regardless of input order. Absolute paths must
+be inside the checkout; root and parent-traversal paths are rejected. Temporary
+files use the writable checkout and are removed before the scanner starts.
+
+Frontend materials include its source tree because its Dockerfile builds the
+application. Backend materials include the `dist` downloaded from the child-local
+`typescript-build` job; its existing `build_needs` dependency is unchanged. Python
+services include their service directory, shared `packages`, root dependency
+files and `docker/python-build`. With `intoto_workspace_manifests: true`, workspace
+`pyproject.toml` files outside selected directories are also recorded.
+
+Shared in-toto exclusions omit Git metadata, `node_modules`, `.venv`, Python
+bytecode caches and test/type/lint caches. Build contexts, scanner image pins,
+base-image arguments and the DevGuard API's 1 MiB payload limit remain unchanged.
 
 Example service child pipeline:
 
@@ -183,8 +207,10 @@ include:
       artifact_name: "pkg:oci/frontend"
       context: "$CI_PROJECT_DIR/01-frontend/frontend/."
       dockerfile: "$CI_PROJECT_DIR/01-frontend/frontend/Dockerfile"
-      base_image_dev: "node:24-alpine3.23"
-      base_image: "nginx:1.30-alpine3.23-slim"
+      intoto_materials: |
+        01-frontend/frontend
+      base_image_dev: "node:24.22.1-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2"
+      base_image: "nginx:1.30.6-alpine3.24-slim"
 ```
 
 ## Why The DevGuard Templates Are Included Directly
@@ -236,7 +262,7 @@ build and push image -> scan image from registry
 The build job still records DevGuard in-toto/SLSA provenance by wrapping the Kaniko build with:
 
 ```bash
-/devguard-scanner intoto start --step=build ...
+sh .gitlab/ci/intoto-start.sh /devguard-scanner intoto start --step=build ...
 /devguard-scanner intoto stop --step=build --products=image-digest.txt --generateSlsaProvenance ...
 ```
 
@@ -264,13 +290,14 @@ registry.gitlab.com/.../frontend:main-a12b68f6c9e4d7b1f3a2c5e8d9f0a1b2c3d4e5f6-a
 
 Container scanning reads the pushed image back from the registry instead of scanning an uploaded `image.tar` artifact. This avoids GitLab artifact size limits for large service images.
 
-The registry tag is also used by the sign job:
+The image build waits for `generate_tag` and preserves its proposed `IMAGE_TAG`.
+It keeps the existing branch-and-commit-specific or release tag and additionally
+applies DevGuard's generated tag to the same built digest. The generated reference
+must use the same service repository; tagging failures fail the build.
 
-```yaml
-image: "$CI_REGISTRY_IMAGE/<image-suffix>:$CI_COMMIT_REF_SLUG-$CI_COMMIT_SHA-amd64"
-```
-
-This keeps image tags from being overwritten on every `main` build and ensures the registry tag exists before signing. Without pushing a plain tag, signing can fail with `MANIFEST_UNKNOWN` because the pushed image may only be addressable by digest.
+Scanning, signing and attestation import `IMAGE_TAG` only from the build's
+`variables.env`, which pins the actual built image by digest. They do not import
+the generator's dotenv report, avoiding competing values and mutable-tag races.
 
 ## Per-Service Execution
 
@@ -281,6 +308,7 @@ Frontend and Python service triggers watch:
 - The service source directory
 - The service child pipeline file
 - The shared DevGuard OCI template
+- The shared `intoto-start.sh` helper
 - `.gitlab-ci.yml`
 - `pyproject.toml`
 - `uv.lock`

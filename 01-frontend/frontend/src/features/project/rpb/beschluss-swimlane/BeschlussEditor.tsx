@@ -1,6 +1,6 @@
 import type { Editor, JSONContent } from '@tiptap/core';
+import type { Node as ProseMirrorNode } from '@tiptap/pm/model';
 import { useEditor } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
 import {
   memo,
   useCallback,
@@ -9,6 +9,7 @@ import {
   useLayoutEffect,
   useMemo,
   useRef,
+  type RefObject,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BeschlussEditorLayout } from './BeschlussEditorLayout';
@@ -16,17 +17,16 @@ import {
   areBeschlussEditorPropsEqual,
   type BeschlussEditorProps,
 } from './beschlussEditorProps';
+import { createBeschlussEditorExtensions } from './beschlussEditorExtensionList';
 import {
-  createStructureGuardExtension,
-  extractNodeText,
   getOutlineNodeIdAtPosition,
-  PastePlainTextAsHardBreaksExtension,
-  ParagraphSelectAllExtension,
-  TextareaEnterExtension,
   type StructureItem,
 } from './beschlussEditorExtensions';
 import { buildBeschlussEditorState } from './beschlussEditorState';
-import { ParagraphFocusExtension } from './beschlussParagraphFocusExtension';
+import {
+  getEditorSectionDocument,
+  toBeschlussContent,
+} from './beschlussSectionContent';
 import { useBeschlussEditorExternalSelectionSync } from './useBeschlussEditorExternalSelectionSync';
 
 const H3_SELECTOR = '[&_h3';
@@ -36,16 +36,31 @@ const EDITOR_CLASS = [
   `${H3_SELECTOR}]:cursor-default ${H3_SELECTOR}]:rounded-lg ${H3_SELECTOR}]:px-2 ${H3_SELECTOR}]:py-[5px] ${H3_SELECTOR}]:text-base ${H3_SELECTOR}]:font-medium ${H3_SELECTOR}]:leading-[22px] ${H3_SELECTOR}]:tracking-[-0.01em] ${H3_SELECTOR}]:text-brand-950`,
 ].join(' ');
 
+// Replacing the document moves the selection. That move must not commit the
+// previous section from the external document, which can predate the user's edit.
+const applyExternalContent = (
+  editor: Editor,
+  content: JSONContent,
+  isApplyingExternalContentRef: RefObject<boolean>,
+) => {
+  isApplyingExternalContentRef.current = true;
+  try {
+    editor.commands.setContent(content, { emitUpdate: false });
+  } finally {
+    isApplyingExternalContentRef.current = false;
+  }
+};
+
 /**
  * Renders one structured TipTap document for the full live VAE outline and
- * keeps URL selection, editor focus, and per-node text commits aligned.
+ * keeps URL selection, editor focus, and per-node content commits aligned.
  */
 const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
   const {
     canExport,
     headerAccessory,
     onExportClick,
-    onTextBlur,
+    onContentCommit,
     onVaeNodeSelect,
     sections,
     selectedVaeNodeId,
@@ -64,7 +79,7 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
     contentJson,
     outlineNodeIds,
     outlineNodeIdsKey,
-    persistedTextByOutlineNodeId,
+    persistedContentKeyByOutlineNodeId,
     sectionByOutlineNodeId,
     structureTemplate,
   } = editorContentState;
@@ -84,71 +99,50 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
     editableOutlineNodeIds,
   );
   const onVaeNodeSelectRef = useRef(onVaeNodeSelect);
-  const onTextBlurRef = useRef(onTextBlur);
+  const onContentCommitRef = useRef(onContentCommit);
   const lastExternalContentJsonRef = useRef(contentJson);
   const pendingExternalContentRef = useRef<JSONContent | null>(null);
+  const isApplyingExternalContentRef = useRef(false);
   const activeOutlineNodeIdRef = useRef<string | null>(null);
   const outlineNodeIdsRef = useRef(outlineNodeIds);
   const sectionByOutlineNodeIdRef = useRef(sectionByOutlineNodeId);
-  const persistedTextByOutlineNodeIdRef = useRef(persistedTextByOutlineNodeId);
+  const persistedContentKeyByOutlineNodeIdRef = useRef(
+    persistedContentKeyByOutlineNodeId,
+  );
 
   useLayoutEffect(() => {
     onVaeNodeSelectRef.current = onVaeNodeSelect;
-    onTextBlurRef.current = onTextBlur;
+    onContentCommitRef.current = onContentCommit;
     editableOutlineNodeIdsRef.current = editableOutlineNodeIds;
     outlineNodeIdsRef.current = outlineNodeIds;
     structureTemplateRef.current = structureTemplate;
     sectionByOutlineNodeIdRef.current = sectionByOutlineNodeId;
-    persistedTextByOutlineNodeIdRef.current = persistedTextByOutlineNodeId;
+    persistedContentKeyByOutlineNodeIdRef.current =
+      persistedContentKeyByOutlineNodeId;
   }, [
     editableOutlineNodeIds,
-    onTextBlur,
+    onContentCommit,
     onVaeNodeSelect,
     outlineNodeIds,
-    persistedTextByOutlineNodeId,
+    persistedContentKeyByOutlineNodeId,
     sectionByOutlineNodeId,
     structureTemplate,
   ]);
 
   // eslint-disable-next-line no-restricted-syntax -- TipTap extensions must be stable across renders; the structure guard reads the current template via ref.
   const extensions = useMemo(
-    () => [
-      StarterKit.configure({
-        heading: {
-          levels: [3],
-          HTMLAttributes: {
-            contenteditable: 'false',
-            'data-readonly-heading': 'true',
-          },
-        },
-        bulletList: false,
-        orderedList: false,
-        listItem: false,
-        blockquote: false,
-        codeBlock: false,
-        horizontalRule: false,
-        link: false,
-      }),
-      createStructureGuardExtension(
+    () =>
+      createBeschlussEditorExtensions(
         () => structureTemplate,
         () => outlineNodeIds,
         () => editableOutlineNodeIds,
       ),
-      ParagraphFocusExtension,
-      ParagraphSelectAllExtension,
-      TextareaEnterExtension,
-      // Multi-line external paste must stay textarea-like so the structure guard does not reject new paragraph nodes.
-      PastePlainTextAsHardBreaksExtension,
-    ],
     [editableOutlineNodeIds, outlineNodeIds, structureTemplate],
   );
 
   // eslint-disable-next-line no-restricted-syntax -- TipTap event handlers need a stable commit command that reads the latest editor ownership refs.
-  const commitOutlineNodeText = useCallback(
-    (
-      doc: Parameters<typeof extractNodeText>[0],
-      outlineNodeId: string | null,
-    ) => {
+  const commitOutlineNodeContent = useCallback(
+    (doc: ProseMirrorNode, outlineNodeId: string | null) => {
       if (!outlineNodeId) {
         return;
       }
@@ -158,20 +152,31 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
         return;
       }
 
-      const nextText = extractNodeText(
+      const sectionDocument = getEditorSectionDocument(
         doc,
         outlineNodeId,
         outlineNodeIdsRef.current,
       );
-      const persistedText =
-        persistedTextByOutlineNodeIdRef.current.get(outlineNodeId) ?? '';
-
-      if (nextText === undefined || nextText === persistedText) {
+      if (sectionDocument === undefined) {
         return;
       }
 
-      persistedTextByOutlineNodeIdRef.current.set(outlineNodeId, nextText);
-      onTextBlurRef.current(section.vaeNodeId, nextText);
+      const nextContentKey = JSON.stringify(sectionDocument);
+      if (
+        nextContentKey ===
+        persistedContentKeyByOutlineNodeIdRef.current.get(outlineNodeId)
+      ) {
+        return;
+      }
+
+      persistedContentKeyByOutlineNodeIdRef.current.set(
+        outlineNodeId,
+        nextContentKey,
+      );
+      onContentCommitRef.current(
+        section.vaeNodeId,
+        toBeschlussContent(sectionDocument),
+      );
     },
     [],
   );
@@ -179,7 +184,7 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
   // eslint-disable-next-line no-restricted-syntax -- TipTap callbacks and the external-selection effect share one stable active-node transition command.
   const setActiveOutlineNodeId = useCallback(
     (
-      doc: Parameters<typeof extractNodeText>[0],
+      doc: ProseMirrorNode,
       nextOutlineNodeId: string | null,
       shouldSyncUrl: boolean,
     ) => {
@@ -194,18 +199,20 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
 
       // Commit the previous paragraph before changing selection so edits are not
       // lost while users navigate between outline nodes.
-      commitOutlineNodeText(doc, activeOutlineNodeIdRef.current);
+      if (!isApplyingExternalContentRef.current) {
+        commitOutlineNodeContent(doc, activeOutlineNodeIdRef.current);
+      }
       activeOutlineNodeIdRef.current = nextOutlineNodeId;
       if (shouldSyncUrl) {
         onVaeNodeSelectRef.current(nextOutlineNodeId);
       }
     },
-    [commitOutlineNodeText],
+    [commitOutlineNodeContent],
   );
 
   // eslint-disable-next-line no-restricted-syntax -- the external-selection effect needs a stable command for TipTap's imperative state sync.
   const setExternalActiveOutlineNodeId = useCallback(
-    (doc: Parameters<typeof extractNodeText>[0], nextOutlineNodeId: string) => {
+    (doc: ProseMirrorNode, nextOutlineNodeId: string) => {
       setActiveOutlineNodeId(doc, nextOutlineNodeId, false);
     },
     [setActiveOutlineNodeId],
@@ -266,7 +273,7 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
       );
     },
     onBlur: ({ editor: editorInstance }) => {
-      commitOutlineNodeText(
+      commitOutlineNodeContent(
         editorInstance.state.doc,
         activeOutlineNodeIdRef.current,
       );
@@ -276,9 +283,11 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
         const pendingJson = JSON.stringify(pendingContent);
         const currentEditorJson = JSON.stringify(editorInstance.getJSON());
         if (currentEditorJson !== pendingJson) {
-          editorInstance.commands.setContent(pendingContent, {
-            emitUpdate: false,
-          });
+          applyExternalContent(
+            editorInstance,
+            pendingContent,
+            isApplyingExternalContentRef,
+          );
         }
         lastExternalContentJsonRef.current = pendingJson;
         pendingExternalContentRef.current = null;
@@ -300,7 +309,7 @@ const BeschlussEditorComponent = (props: BeschlussEditorProps) => {
       return;
     }
     if (JSON.stringify(editor.getJSON()) !== contentJson) {
-      editor.commands.setContent(content, { emitUpdate: false });
+      applyExternalContent(editor, content, isApplyingExternalContentRef);
     }
     lastExternalContentJsonRef.current = contentJson;
     pendingExternalContentRef.current = null;
