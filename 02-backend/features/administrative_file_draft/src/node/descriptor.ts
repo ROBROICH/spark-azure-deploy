@@ -18,7 +18,8 @@ import { Result } from "better-result";
 
 import { afdSchema } from "../db/schema";
 import { administrativeFileDraftErrors } from "../errors.ts";
-import { DateTimeSchema, RiskStatusSchema } from "../schemas";
+import { BeschlussContentSchema, DateTimeSchema, RiskStatusSchema } from "../schemas";
+import { beschlussPlainText, canonicalBeschlussContent } from "./beschluss-content";
 
 const dateRule: NodeFieldRule = {
   toDatabase: (value) => (value === null ? null : new Date(`${value}`)),
@@ -120,18 +121,32 @@ export const administrativeFileDraftDescriptor = defineNodeDescriptor({
         checkedAtLeader: { ...dateRule, ...approveRule },
         checkedByLeader: approveRule,
       },
+      // `text` is the plain-text copy of `content` for readers that need no formatting.
+      derive: {
+        fields: ["text"],
+        payload: (_kind, payload) => {
+          if (payload.content === undefined || payload.content === null) return payload;
+          const content = canonicalBeschlussContent(
+            Value.Parse(BeschlussContentSchema, payload.content),
+          );
+          return { ...payload, content, text: beschlussPlainText(content) };
+        },
+      },
       schemaOverrides: {
         response: {
           checkedAtAssignee: Type.Union([DateTimeSchema, Type.Null()]),
           checkedAtLeader: Type.Union([DateTimeSchema, Type.Null()]),
+          content: Type.Union([BeschlussContentSchema, Type.Null()]),
         },
         insert: {
           checkedAtAssignee: Type.Optional(Type.Union([DateTimeSchema, Type.Null()])),
           checkedAtLeader: Type.Optional(Type.Union([DateTimeSchema, Type.Null()])),
+          content: BeschlussContentSchema,
         },
         patch: {
           checkedAtAssignee: Type.Optional(Type.Union([DateTimeSchema, Type.Null()])),
           checkedAtLeader: Type.Optional(Type.Union([DateTimeSchema, Type.Null()])),
+          content: Type.Optional(Type.Union([BeschlussContentSchema, Type.Null()])),
         },
       },
     },

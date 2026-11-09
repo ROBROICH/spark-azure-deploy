@@ -1,6 +1,4 @@
 import type { PostgresScope } from "@spark-workflow/postgres-runtime";
-import { type Static, Type as T } from "@sinclair/typebox";
-import { Value } from "@sinclair/typebox/value";
 import { Result, type Result as ResultType } from "better-result";
 
 import { protocolErrors } from "../errors.ts";
@@ -13,31 +11,26 @@ import {
 } from "../history/types.ts";
 import { protocolSourceDefinitions } from "../sources.ts";
 
-import type { HttpJson } from "@spark-workflow/http-host";
+import type { HttpJsonObject } from "@spark-workflow/http-host";
 type ProtocolSourceUnavailableError = ReturnType<typeof protocolErrors.SOURCE_UNAVAILABLE>;
 
-const NullableStringSchema = T.Union([T.String(), T.Null()]);
-const HistoryRowObjectSchema = T.Object({}, { additionalProperties: true });
-const ProtocolDatabaseRowSchema = T.Object(
-  {
-    entity_type: T.String(),
-    change_type: T.String(),
-    id: NullableStringSchema,
-    update_type: NullableStringSchema,
-    timestamp: T.String(),
-    new_row: T.Union([HistoryRowObjectSchema, T.Null()]),
-    old_row: T.Union([HistoryRowObjectSchema, T.Null()]),
-    actor_user_id: NullableStringSchema,
-    triggered_by_user_id: NullableStringSchema,
-    workflow_run_id: NullableStringSchema,
-    workflow_type: NullableStringSchema,
-    action_type: NullableStringSchema,
-    request_id: NullableStringSchema,
-    group_count: T.String(),
-    total_count: T.String(),
-  },
-  { additionalProperties: false },
-);
+type ProtocolDatabaseRow = {
+  entity_type: string;
+  change_type: string;
+  id: string | null;
+  update_type: string | null;
+  timestamp: string;
+  new_row: HttpJsonObject | null;
+  old_row: HttpJsonObject | null;
+  actor_user_id: string | null;
+  triggered_by_user_id: string | null;
+  workflow_run_id: string | null;
+  workflow_type: string | null;
+  action_type: string | null;
+  request_id: string | null;
+  group_count: string;
+  total_count: string;
+};
 
 const internalRowKeys = new Set(["sys_period", "timestamp", "change_type", "update_type"]);
 const timestampPattern =
@@ -69,13 +62,11 @@ function changeType(value: string): HistoryChangeType {
   throw new TypeError(`Protocol history contains unsupported change type '${String(value)}'`);
 }
 
-function publicRow(
-  value: Static<typeof HistoryRowObjectSchema> | null,
-): { [key: string]: HttpJson } | null {
+function publicRow(value: HttpJsonObject | null): HttpJsonObject | null {
   if (value === null) return null;
-  const row: { [key: string]: HttpJson } = {};
+  const row: HttpJsonObject = {};
   for (const [key, nested] of Object.entries(value)) {
-    if (!internalRowKeys.has(key)) row[key] = nested as HttpJson;
+    if (!internalRowKeys.has(key)) row[key] = nested;
   }
   return row;
 }
@@ -107,7 +98,7 @@ export async function readHistory(
   const queried = await Result.tryPromise({
     try: () =>
       postgres.query((database) =>
-        database.execute<Static<typeof ProtocolDatabaseRowSchema>>(statement),
+        database.execute<ProtocolDatabaseRow>(statement),
       ),
     catch: (cause) =>
       protocolErrors.SOURCE_UNAVAILABLE({
@@ -116,7 +107,7 @@ export async function readHistory(
       }),
   });
   if (queried.isErr()) return queried;
-  const rows = queried.value.map((row) => Value.Parse(ProtocolDatabaseRowSchema, row));
+  const rows = queried.value;
   const total = rows.length === 0 ? 0 : Number(rows[0]?.total_count);
   if (!Number.isSafeInteger(total) || total < 0) {
     throw new TypeError(

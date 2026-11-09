@@ -12,7 +12,7 @@ import type { NodeSchema } from "./database";
 import { InvalidNodeRequestError, UnknownNodeTypeError } from "./errors";
 import type { NodePersistence } from "./persistence";
 import type { PreparedNodeMutation } from "./service";
-import type { NodeDatabaseRow, NodeDatabaseValue } from "./values";
+import type { NodeDatabaseRow, NodeDatabaseValue, NodeJson } from "./values";
 import type { ProjectVersionPeer } from "./version-peer";
 
 export type { NodeDatabase, NodeSchema } from "./database";
@@ -42,6 +42,17 @@ export interface NodeFieldRule {
 
 interface NodeFieldRules {
   [field: string]: NodeFieldRule;
+}
+
+export type NodePayload = { readonly [key: string]: NodeJson | undefined };
+
+/**
+ * Server-derived fields. They leave the client insert and patch schemas and only `payload`
+ * writes them, on every parsed insert, non-empty patch, and copy override.
+ */
+export interface NodeDerivation {
+  readonly fields: readonly string[];
+  readonly payload: (kind: "insert" | "patch", payload: NodePayload) => NodePayload;
 }
 
 export const NODE_SYSTEM_FIELDS = [
@@ -104,6 +115,7 @@ export interface NodeDefinition<
   readonly readonlyFields?: readonly string[];
   /** Only semantics which Drizzle cannot infer belong here. */
   readonly fieldRules?: Readonly<NodeFieldRules>;
+  readonly derive?: NodeDerivation;
   readonly parents: readonly NodeParent[];
   readonly schemas: {
     readonly response: TObject;
@@ -113,6 +125,7 @@ export interface NodeDefinition<
 }
 
 export interface NodeMetadata {
+  readonly derive?: NodeDerivation;
   readonly externalParents?: readonly ExternalParent[];
   readonly fieldRules?: Readonly<Record<string, NodeFieldRule>>;
   readonly nodeType?: string;
@@ -258,15 +271,17 @@ const nodeSchemas = (
   table: AnyPgTable,
   fields: readonly string[],
   overrides: NodeSchemaOverrides = {},
+  derivedFields: readonly string[] = [],
 ): NodeDefinition["schemas"] => {
+  const inputFields = fields.filter((field) => !derivedFields.includes(field));
   const response = physicalProperties(table, createSelectSchema(table).properties);
   const insert = selectedProperties(
     physicalProperties(table, createInsertSchema(table).properties),
-    fields,
+    inputFields,
   );
   const patch = selectedProperties(
     physicalProperties(table, createUpdateSchema(table).properties),
-    fields,
+    inputFields,
   );
   response.createdAt = DateTimeSchema;
   response.updatedAt = DateTimeSchema;
@@ -320,8 +335,11 @@ const nodeDefinitionFromTable = (
     fields,
     readonlyFields,
     fieldRules,
+    ...(metadata.derive && { derive: metadata.derive }),
     parents: [...parents, ...(metadata.externalParents ?? [])],
-    schemas: metadata.schemas ?? nodeSchemas(table, fields, metadata.schemaOverrides),
+    schemas:
+      metadata.schemas ??
+      nodeSchemas(table, fields, metadata.schemaOverrides, metadata.derive?.fields),
   };
 };
 
@@ -392,6 +410,19 @@ const assertDefinition = (node: NodeDefinition, knownTypes: ReadonlySet<string>)
       throw InvalidNodeRequestError({
         internal: {
           message: `Node '${node.nodeType}' input schema exposes non-mutable field '${field}'`,
+        },
+      });
+    }
+  }
+  for (const field of node.derive?.fields ?? []) {
+    if (
+      !node.fields.includes(field) ||
+      field in node.schemas.insert.properties ||
+      field in node.schemas.patch.properties
+    ) {
+      throw InvalidNodeRequestError({
+        internal: {
+          message: `Node '${node.nodeType}' derived field '${field}' must be mutable and absent from the input schemas`,
         },
       });
     }

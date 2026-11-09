@@ -1,3 +1,14 @@
+## Version 0.3.1 (27.10.2026)
+
+- Fett, kursiv und unterstrichen formatierter Text im Beschluss-Editor bleibt nach dem Speichern, beim Wechsel zwischen Gliederungspunkten und nach dem Neuladen erhalten und erscheint im exportierten Beschluss.
+- Abgebrochene Verarbeitungen erscheinen in der Seitenleiste „Workflows“ als „Abgebrochen“ statt als „Fehlgeschlagen“. Eine abgebrochene formale Vollständigkeitsprüfung wird nicht mehr als fehlgeschlagen beendet.
+- Die Protokollierung eines Verfahrens zeigt bei angelegten, geänderten und gelöschten Einträgen wieder die Felder mit ihren Werten vorher und nachher, statt „Dieser Eintrag enthält keine Zeilendifferenz.“ Auch der Download der Protokollierung enthält diese Werte wieder.
+- Nachforderungen und Kommentare werden beim ersten Klick auf „Speichern“ gespeichert.
+- Lange Namen von Unterlagentypen werden gekürzt und vollständig im Tooltip angezeigt.
+- Die Suche nach Rechtsnormen liefert die angefragte Norm statt einer benachbarten.
+- Exportierte Beschlüsse enthalten keine Metadaten der Vorlage wie Autorinnen und Autoren mehr.
+- Weitere Fehlerbehebungen und Optimierungen wurden vorgenommen.
+
 ## Version 0.3.0 (12.10.2026)
 
 - Ein Administrationsbereich für Verfahrensarten steht zur Verfügung, einschließlich Themenkatalogen mit Rechtsgrundlagen, erforderlichen Unterlagen und Beschlussvorlagen.

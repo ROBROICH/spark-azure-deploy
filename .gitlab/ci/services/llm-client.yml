@@ -10,5 +10,12 @@ include:
       artifact_name: "pkg:oci/llm-client"
       context: "$CI_PROJECT_DIR/."
       dockerfile: "$CI_PROJECT_DIR/04-shared-services/llm/llm-client/Dockerfile"
+      intoto_workspace_manifests: true
+      intoto_materials: |
+        04-shared-services/llm/llm-client
+        packages
+        docker/python-build
+        pyproject.toml
+        uv.lock
       base_image_dev: "python:3.13-slim"
       base_image: "registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal"

@@ -21,7 +21,7 @@ environment: {{ . | quote }}
 
 {{/*
 Databases that asked for an action, resolved: list of dicts with key, name,
-owner, create, drop, url. Validates the switches and the guard.
+owner or ownerSecretRef, create, drop, url. Validates the switches and the guard.
 */}}
 {{- define "db-init.databases" -}}
 {{- $root := . -}}
@@ -32,6 +32,7 @@ owner, create, drop, url. Validates the switches and the guard.
 {{- if ne (toString (dig "enabled" true $db)) "false" -}}
 {{- $name := tpl (toString (required (printf "db-init: databases.%s.name is required" $key) $db.name)) $root -}}
 {{- $owner := tpl (toString ($db.owner | default "")) $root -}}
+{{- $ownerRef := $db.ownerSecretRef | default dict -}}
 {{- $dump := tpl (toString ($db.dump | default "")) $root -}}
 {{- $restore := eq (toString $db.restore) "true" -}}
 {{- if and $restore (not $dump) -}}
@@ -55,8 +56,16 @@ owner, create, drop, url. Validates the switches and the guard.
 {{- $extensions = append $extensions (toString .) -}}
 {{- end -}}
 {{- if or $create (ne $drop "none") $url $extensions -}}
-{{- if not $owner -}}
-{{- fail (printf "db-init: databases.%s needs an owner (defaults.owner)" $key) -}}
+{{- if and $owner $ownerRef -}}
+{{- fail (printf "db-init: databases.%s: owner and ownerSecretRef are mutually exclusive" $key) -}}
+{{- end -}}
+{{- if $ownerRef -}}
+{{- if not (kindIs "map" $ownerRef) -}}
+{{- fail (printf "db-init: databases.%s.ownerSecretRef must be a map {name, key}" $key) -}}
+{{- end -}}
+{{- $ownerRef = dict "name" (required (printf "db-init: databases.%s.ownerSecretRef.name is required" $key) $ownerRef.name) "key" ($ownerRef.key | default "username") -}}
+{{- else if not $owner -}}
+{{- fail (printf "db-init: databases.%s needs an owner (defaults.owner) or ownerSecretRef" $key) -}}
 {{- end -}}
 {{- $pattern := tpl (toString ($root.Values.guard.namePattern | default "")) $root -}}
 {{- if and $pattern (not (regexMatch $pattern $name)) -}}
@@ -65,7 +74,7 @@ owner, create, drop, url. Validates the switches and the guard.
 {{- if $url -}}
 {{- include "db-init.checkDump" (dict "root" $root "what" (printf "databases.%s.dump" $key) "url" $url) -}}
 {{- end -}}
-{{- $out = append $out (dict "key" $key "name" $name "owner" $owner "create" $create "drop" $drop "url" $url "extensions" (join " " $extensions)) -}}
+{{- $out = append $out (dict "key" $key "name" $name "owner" $owner "ownerSecretRef" $ownerRef "create" $create "drop" $drop "url" $url "extensions" (join " " $extensions)) -}}
 {{- end -}}
 {{- end -}}
 {{- end -}}

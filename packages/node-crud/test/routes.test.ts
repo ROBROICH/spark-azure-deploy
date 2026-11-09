@@ -13,6 +13,7 @@ import {
   NodeVersionError,
   type NodeDatabase,
   type NodeDatabaseRow,
+  type NodeMutationInput,
   type NodePersistence,
   type NodeRuntime,
   type ProjectVersionPeer,
@@ -647,6 +648,70 @@ describe("named Elysia node routes", () => {
       body: await ordinaryAbsentResponse.text(),
     });
     expect(mutationSeamEvents).toEqual([]);
+  });
+
+  test("derives fields for v1 inserts and patches before field authorization", async () => {
+    const checks: { action: string; field: string; value: unknown }[] = [];
+    const derivedRoutes = createTestRoutes(
+      bindNodeRuntime(
+        defineNodeDescriptor<typeof representativeSchema>({
+          name: "derived-route-test",
+          auditLogEnabled: false,
+          schema: representativeSchema,
+          nodeMetadata: {
+            ...representativeNodeMetadata,
+            authors: {
+              ...representativeNodeMetadata.authors,
+              derive: {
+                fields: ["bio"],
+                payload: (_kind, payload) =>
+                  payload.name === undefined
+                    ? payload
+                    : { ...payload, bio: `derived:${payload.name}` },
+              },
+            },
+          },
+        }),
+        {
+          persistence: {
+            query: async (callback) => callback(databaseTrap),
+            streamRows: emptyNodeRowStream,
+            transact: async (callback) => callback(),
+          },
+          versionPeer: {
+            validateWriteVersion: async () => Result.ok(undefined),
+            resolveLatestVersion: async () => Result.ok(1),
+            validateVersionLock: async () => Result.ok(undefined),
+          },
+          authorizeFields: async (request) => {
+            for (const { action, field, value } of request.checks) {
+              checks.push({ action, field, value });
+            }
+            return Result.err(
+              NodeVersionError({ internal: { message: "stop before persistence" } }),
+            );
+          },
+        },
+      ),
+    );
+    const update = (body: NodeMutationInput) =>
+      derivedRoutes.handle(
+        new Request(`http://node.test/${projectId}/update?projectVersion=1`, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        }),
+      );
+
+    await update({ inserts: [{ nodeType: "author", payload: { name: "Ada" } }] });
+    await update({
+      updates: [{ nodeType: "author", id: crypto.randomUUID(), payload: { name: "Grace" } }],
+    });
+
+    expect(checks.filter(({ field }) => field === "bio")).toEqual([
+      { action: "create", field: "bio", value: "derived:Ada" },
+      { action: "update", field: "bio", value: "derived:Grace" },
+    ]);
   });
 
   test("publishes update by default and when explicitly enabled", async () => {

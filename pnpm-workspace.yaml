@@ -5,9 +5,6 @@ packages:
   - 'packages/temporal/contracts'
   - 'packages/*/typescript'
 
-overrides:
-  tinypool: 2.1.2
-
 catalog:
   camelcase-keys: 10.0.2
   es-toolkit: 1.45.1

@@ -65,6 +65,24 @@ describe('continued workflow executions', () => {
   });
 });
 
+describe('aborted workflow executions', () => {
+  it.each(['canceled', 'terminated'] as const)(
+    'shows a %s run as canceled instead of failed',
+    (status) => {
+      const abortedRun: WorkflowsBase = {
+        ...makeWorkflow(WORKFLOW_TYPE_FVP),
+        status,
+        workflowCloseTime: '2026-05-19T00:01:00.000Z',
+      };
+
+      expect(getWorkflowBadgeStatus(abortedRun)).toBe('canceled');
+      expect(getLatestWorkflowsByType([abortedRun])).toMatchObject([
+        { badgeStatus: 'canceled' },
+      ]);
+    },
+  );
+});
+
 describe('getWorkflowNameLabelKey', () => {
   it('resolves the product name key for mixed-case Temporal types', () => {
     // Regression: the lookup normalizes (lowercases) the workflow type, so the

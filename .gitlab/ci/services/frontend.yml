@@ -10,5 +10,7 @@ include:
       artifact_name: "pkg:oci/frontend"
       context: "$CI_PROJECT_DIR/01-frontend/frontend/."
       dockerfile: "$CI_PROJECT_DIR/01-frontend/frontend/Dockerfile"
-      base_image_dev: "node:24-alpine3.23"
-      base_image: "nginx:1.30-alpine3.23-slim"
+      intoto_materials: |
+        01-frontend/frontend
+      base_image_dev: "node:24.22.1-alpine3.23@sha256:0468540aa58203ff9e40c2aab3907c52644ab818af6176b1c70a026137dc92a2"
+      base_image: "nginx:1.30.6-alpine3.24-slim"

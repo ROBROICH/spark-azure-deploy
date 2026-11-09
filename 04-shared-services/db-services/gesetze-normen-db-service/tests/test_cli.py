@@ -49,7 +49,7 @@ async def test_write_to_db(db_engine):
 def test_download_nonexistent(cli_client, respx_mock, caplog):
     """should log an error if the slug does not exist, but keep going"""
     respx_mock.get("http://test.test/foo/xml.zip").mock(return_value=Response(404))
-    response = cli_client.invoke(app, ["parse-to-db", "-cf", "tests/data/nonexistant_laws.json"])
+    response = cli_client.invoke(app, ["parse-to-db", "-cf", "tests/data/nonexistent_laws.json"])
     assert response.exit_code == 0
     assert "Could not ingest foo" in caplog.text
     assert "Could not ingest bar" in caplog.text

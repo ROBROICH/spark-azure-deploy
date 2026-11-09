@@ -257,6 +257,7 @@ const buildVaeNode = (
     updatedAt: '',
     order: 0,
     text: '',
+    content: null,
     title: '',
     canAddChild: false,
     isHidden: false,

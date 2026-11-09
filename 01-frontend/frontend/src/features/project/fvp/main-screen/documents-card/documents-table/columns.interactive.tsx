@@ -10,6 +10,7 @@ import {
   ActionMenuTrigger,
 } from '@/features/ui/action-menu/ActionMenu';
 import { Button } from '@/features/ui/button/Button';
+import { OverflowTooltip } from '@/features/ui/tooltip/Tooltip';
 import {
   type CellContext,
   type ColumnDef,
@@ -48,9 +49,15 @@ function renderDocumentTypeCell(
 
   if (node.isDeleted && node.linkedDocumentType) {
     return (
-      <span className="text-text-disabled text-[13px] leading-[18px] tracking-[-0.01em] line-through">
-        {node.linkedDocumentType.name}
-      </span>
+      <OverflowTooltip content={node.linkedDocumentType.name} side="top">
+        <span
+          // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- tooltip trigger anchor inside TooltipTrigger asChild; tabIndex makes truncated text keyboard-accessible
+          tabIndex={0}
+          className="focus-ring text-text-disabled block truncate rounded text-[13px] leading-[18px] tracking-[-0.01em] line-through"
+        >
+          {node.linkedDocumentType.name}
+        </span>
+      </OverflowTooltip>
     );
   }
 

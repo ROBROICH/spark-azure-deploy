@@ -1,7 +1,7 @@
 # Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
 # inventory.toml, style.d2);
 # der Pfad steht in .agents/config.json unter architectureModelPath.
-# architecture-rendered-at: 06.10.2026, 15:51 UTC
+# architecture-rendered-at: 20.10.2026, 08:55 UTC
 
 # SPARK Workflow — Styleguide der Architekturansichten
 #
@@ -361,6 +361,25 @@ classes: {
     }
   }
 
+  # -- Fremdsoftware --------------------------------------------------------
+  #
+  # Software Dritter, die mit dem System ausgeliefert wird, aber nicht Teil des
+  # Produkts ist. Durchgezogener Rand (sie wird aus dem Repository ausgeliefert,
+  # also nicht gestrichelt) mit eckigen Ecken und bernsteinfarbener Füllung:
+  # Die Ecken tragen die Unterscheidung auch dort, wo Farbe nicht wahrgenommen
+  # wird.
+
+  third-party: {
+    style: {
+      stroke: "#a16207"
+      stroke-width: 2
+      fill: "#fefce8"
+      font-color: "#713f12"
+      font-size: 16
+      border-radius: 0
+    }
+  }
+
   # -- Kantentypen ----------------------------------------------------------
   #
   # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
@@ -488,7 +507,7 @@ grid-gap: 32
 title: |md
   # C2 Dienste und Orchestrierung
 
-  Frontend, Backend-Pools, Workflow Engine und Plattformdienste mit ihren belegten Laufzeitbeziehungen
+  Frontend, Backend-Pools, Workflow-Engine und Plattformdienste mit ihren belegten Laufzeitbeziehungen
 | {
   near: top-center
   style: { font-size: 24; font-color: "#1e1b4b" }
@@ -521,18 +540,18 @@ graph: "Laufzeitbeziehungen" {
     class: group
     comment-service: "Kommentarverwaltung" { class: pool }
     supplementary-requests-service: "Nachforderungsverwaltung" { class: pool }
-    identity-management-service: "Identitaetsverwaltung" { class: pool }
+    identity-management-service: "Identitätsverwaltung" { class: pool }
     objections-management-service: "Einwendungsverwaltung" { class: pool }
   }
 
-  pruefungsdienste: "Pruefungsdienste" {
+  pruefungsdienste: "Prüfungsdienste" {
     class: group
-    formal-completeness-check: "Formale Vollstaendigkeitspruefung" { class: pool }
-    plausibility-notes: "Plausibilitaetshinweise" { class: pool }
-    examination-service: "Pruefungsdienst" { class: pool }
+    formal-completeness-check: "Formale Vollständigkeitsprüfung" { class: pool }
+    plausibility-notes: "Plausibilitätshinweise" { class: pool }
+    examination-service: "Prüfungsdienst" { class: pool }
     protocol-service: "Protokollverwaltung" { class: pool }
     feedback-service: "Feedbackverwaltung" { class: pool }
-    rechtsaenderungs-monitoring: "Rechtsaenderungsmonitoring\nPython, FastAPI, Temporal" { class: service }
+    rechtsaenderungs-monitoring: "Rechtsänderungsmonitoring\nPython, FastAPI, Temporal" { class: service }
   }
 
   beschlussdienste: "Beschlussdienste" {
@@ -540,20 +559,20 @@ graph: "Laufzeitbeziehungen" {
     administrative-file-draft: "Beschlusserstellung" { class: pool }
   }
 
-  orchestration-layer: "Orchestration Layer" {
+  orchestration-layer: "Orchestrierungsschicht" {
     class: layer-orchestration
-    workflow-engine: "Workflow Engine" {
+    workflow-engine: "Workflow-Engine" {
       class: group
-      temporal: "Temporal\nTemporal" { class: orchestration }
+      temporal: "Temporal\nTemporal" { class: third-party }
     }
   }
 
   plattformdienste: "Plattformdienste" {
     class: group
-    spicedb: "SpiceDB\nSpiceDB" { class: platform }
-    qdrant: "Qdrant\nQdrant" { class: platform }
-    unoserver: "Unoserver\nUnoserver, LibreOffice" { class: platform }
-    clamav: "ClamAV\nClamAV, clamav-api (REST)" { class: platform }
+    spicedb: "SpiceDB\nSpiceDB" { class: third-party }
+    qdrant: "Qdrant\nQdrant" { class: third-party }
+    unoserver: "Unoserver\nUnoserver, LibreOffice" { class: third-party }
+    clamav: "ClamAV\nClamAV, clamav-api (REST)" { class: third-party }
     docling-rq: "Docling\nDocling, RQ" { class: platform }
   }
 
@@ -561,22 +580,22 @@ graph: "Laufzeitbeziehungen" {
     class: layer-infrastructure
     postgresql: "PostgreSQL" { class: infrastructure }
     object-storage: "S3-kompatibler Objektspeicher" { class: infrastructure }
-    identity-provider: "Identitaets- und Autorisierungsdienst" { class: infrastructure }
+    identity-provider: "Identitäts- und Autorisierungsdienst" { class: infrastructure }
   }
 
   frontend-layer.frontend-anwendungen.frontend -> spark-backend: "Fachdaten und Dokumente" { class: http-primary }
-  frontend-layer.frontend-anwendungen.frontend -> pruefungsdienste.rechtsaenderungs-monitoring: "Rechtsaenderungen" { class: http }
+  frontend-layer.frontend-anwendungen.frontend -> pruefungsdienste.rechtsaenderungs-monitoring: "Rechtsänderungen" { class: http }
   spark-backend -> kontext-infrastructure.postgresql: "Fachdaten" { class: datastore }
-  spark-backend -> kontext-infrastructure.object-storage: "Dokumente, Quarantaene, Workflow-Archiv" { class: objectstore }
-  spark-backend -> plattformdienste.spicedb: "Berechtigungspruefung" { class: authz }
-  spark-backend -> kontext-infrastructure.identity-provider: "Token-Pruefung und Nutzerverwaltung" { class: http-primary }
-  spark-backend -> orchestration-layer.workflow-engine.temporal: "Workflows starten und ausfuehren" { class: queue }
+  spark-backend -> kontext-infrastructure.object-storage: "Dokumente, Quarantäne, Workflow-Archiv" { class: objectstore }
+  spark-backend -> plattformdienste.spicedb: "Berechtigungsprüfung" { class: authz }
+  spark-backend -> kontext-infrastructure.identity-provider: "Token-Prüfung und Nutzerverwaltung" { class: http-primary }
+  spark-backend -> orchestration-layer.workflow-engine.temporal: "Workflows starten und ausführen" { class: queue }
   spark-backend -> plattformdienste.unoserver: "Dokumentkonvertierung" { class: http-primary }
-  spark-backend -> plattformdienste.clamav: "Virenpruefung" { class: http-primary }
+  spark-backend -> plattformdienste.clamav: "Virenprüfung" { class: http-primary }
   pruefungsdienste.rechtsaenderungs-monitoring -> workflow-dienste.temporal-job-service: "Workflow-Status melden" { class: http }
-  pruefungsdienste.rechtsaenderungs-monitoring -> kontext-infrastructure.postgresql: "Anstehende Aenderungen" { class: datastore }
+  pruefungsdienste.rechtsaenderungs-monitoring -> kontext-infrastructure.postgresql: "Anstehende Änderungen" { class: datastore }
   pruefungsdienste.rechtsaenderungs-monitoring -> orchestration-layer.workflow-engine.temporal: "Feed-Auswertung" { class: queue }
-  pruefungsdienste.rechtsaenderungs-monitoring -> kontext-infrastructure.identity-provider: "Token-Pruefung" { class: http }
+  pruefungsdienste.rechtsaenderungs-monitoring -> kontext-infrastructure.identity-provider: "Token-Prüfung" { class: http }
   orchestration-layer.workflow-engine.temporal -> kontext-infrastructure.postgresql: "Workflow-Persistenz" { class: datastore }
   plattformdienste.spicedb -> kontext-infrastructure.postgresql: "Relationen" { class: datastore }
 }
@@ -592,9 +611,10 @@ dokumentation: "Legende und Metadaten" {
     grid-gap: 32
     l-pool: "Backend-Pool" { class: pool }
     l-modulith: "SPARK Backend (Modulith)" { class: modulith }
-    l-service: "Eigenstaendiger Dienst" { class: service }
+    l-service: "Eigenständiger Dienst" { class: service }
     l-ai: "KI-Modul" { class: ai-module }
     l-platform: "Plattformdienst" { class: platform }
+    l-third: "Fremdsoftware, nicht Teil des Produkts" { class: third-party }
     l-infra: "Betreiberseitig bereitgestellt" { class: infrastructure }
   }
 
@@ -615,7 +635,7 @@ dokumentation: "Legende und Metadaten" {
       text-datastore: "Zugriff auf eine relationale oder Vektordatenbank" { class: legend-label }
       von-http: "" { class: legend-anchor }
       nach-http: "" { class: legend-anchor }
-      text-http: "Synchroner Aufruf ueber HTTP" { class: legend-label }
+      text-http: "Synchroner Aufruf über HTTP" { class: legend-label }
       von-http-primary: "" { class: legend-anchor }
       nach-http-primary: "" { class: legend-anchor }
       text-http-primary: "Synchroner HTTP am SPARK Backend (hervorgehoben)" { class: legend-label }
@@ -624,7 +644,7 @@ dokumentation: "Legende und Metadaten" {
       text-objectstore: "Zugriff auf S3-kompatiblen Objektspeicher" { class: legend-label }
       von-queue: "" { class: legend-anchor }
       nach-queue: "" { class: legend-anchor }
-      text-queue: "Asynchrone Uebergabe ueber Temporal oder RQ" { class: legend-label }
+      text-queue: "Asynchrone Übergabe über Temporal oder RQ" { class: legend-label }
       von-authz -> nach-authz: { class: authz }
       von-datastore -> nach-datastore: { class: datastore }
       von-http -> nach-http: { class: http }
@@ -634,7 +654,7 @@ dokumentation: "Legende und Metadaten" {
     }
 
     metadaten: |md
-      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Erstellt am** 20.10.2026, 08:55 UTC\
       **Ansicht** c2-service-flows (C2, Fokus)\
       **Renderer** d2 v0.8.2\
       **Quelle** kuratiertes Modell\
@@ -646,10 +666,10 @@ dokumentation: "Legende und Metadaten" {
   }
   hinweis: |md
     Ausschnitt der C2-Karte mit 15 hier gezeichneten\
-    Laufzeitbeziehungen von insgesamt 78 im Inventar.
+    Laufzeitbeziehungen von insgesamt 75 im Inventar.
 
-    Fette HTTP-Kanten beruehren spark-backend. Jede Kante ist einzeln\
-    bestaetigt; der Beleg steht in inventory.toml.
+    Fette HTTP-Kanten berühren spark-backend. Jede Kante ist einzeln\
+    bestätigt; der Beleg steht in inventory.toml.
   | {
     class: note
   }

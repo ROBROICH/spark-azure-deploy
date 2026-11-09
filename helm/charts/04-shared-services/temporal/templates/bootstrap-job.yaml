@@ -1,0 +1,61 @@
+{{- if .Values.bootstrapJob.enabled }}
+{{- if .Values.temporal.server.config.namespaces.create }}
+{{- fail "temporal bootstrapJob: set temporal.server.config.namespaces.create=false (bootstrap replaces the upstream namespace Job)" }}
+{{- end }}
+{{- if .Values.searchAttributesJob.enabled }}
+{{- fail "temporal bootstrapJob: set searchAttributesJob.enabled=false (bootstrap registers search attributes during Sync)" }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-bootstrap" (include "temporal-wrapper.fullname" .) | trunc 63 | trimSuffix "-" }}
+  namespace: {{ include "temporal-wrapper.namespace" . }}
+  labels:
+    {{- include "temporal-wrapper.labels" . | nindent 4 }}
+    app.kubernetes.io/component: bootstrap
+  annotations:
+    # Normal Sync resource: PostSync/later waves can deadlock on dependent workers.
+    argocd.argoproj.io/sync-wave: "0"
+    # Recreate on explicit sync, including a previously failed/timed-out Job.
+    argocd.argoproj.io/sync-options: Force=true,Replace=true
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: {{ .Values.bootstrapJob.activeDeadlineSeconds }}
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- $sa := coalesce .Values.bootstrapJob.serviceAccountName (((.Values.global | default dict).serviceAccount | default dict).name) .Values.temporal.serviceAccount.name }}
+      {{- with $sa }}
+      serviceAccountName: {{ . }}
+      {{- end }}
+      {{- with .Values.bootstrapJob.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.bootstrapJob.securityContext | nindent 8 }}
+      containers:
+        - name: reconcile-default
+          image: "{{ .Values.bootstrapJob.image.repository }}:{{ .Values.bootstrapJob.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            {{- toYaml .Values.bootstrapJob.containerSecurityContext | nindent 12 }}
+          resources:
+            {{- toYaml .Values.bootstrapJob.resources | nindent 12 }}
+          env:
+            - name: TEMPORAL_ADDRESS
+              value: {{ .Values.bootstrapJob.temporalAddress | default (printf "%s-frontend.%s.svc.cluster.local:7233" (include "temporal-wrapper.upstreamFullname" .) (include "temporal-wrapper.namespace" .)) | quote }}
+            - name: NAMESPACE_RETENTION
+              value: {{ .Values.bootstrapJob.retention | quote }}
+            - name: POLL_INTERVAL_SECONDS
+              value: {{ .Values.bootstrapJob.pollIntervalSeconds | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              {{- .Files.Get "files/bootstrap.sh" | nindent 14 }}
+{{- end }}

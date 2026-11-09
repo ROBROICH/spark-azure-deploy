@@ -71,6 +71,7 @@ realPostgres("aggregate Protocol history", () => {
                   project_id uuid,
                   update_type text,
                   project_version integer,
+                  text text,
                   sys_period tstzrange NOT NULL
                 )
               `),
@@ -201,6 +202,38 @@ realPostgres("aggregate Protocol history", () => {
     expect([...first.items, ...second.items]).toEqual(full.items);
     expect(full.total).toBe(2);
     expect(full.items.map((item) => item.groupCount)).toEqual([1, 2]);
+  });
+
+  test("returns the row fields before and after an update", async () => {
+    const id = "79000000-0000-4000-8000-000000000001";
+    await runtime.query((database) =>
+      database.execute(sql`
+      INSERT INTO comment (id, project_id, project_version, text, sys_period)
+      VALUES (${id}::uuid, ${projectId}::uuid, 2, 'nachher', '[2026-02-01 09:00:00+00,)');
+    `),
+    );
+    await runtime.query((database) =>
+      database.execute(sql`
+      INSERT INTO comment_history (id, project_id, project_version, text, sys_period)
+      VALUES (${id}::uuid, ${projectId}::uuid, 2, 'vorher',
+        '[2026-02-01 08:00:00+00,2026-02-01 09:00:00+00)');
+    `),
+    );
+    const history = (
+      await readHistory(
+        runtime,
+        query({ service: "comment", from: "2026-02-01T00:00:00Z", to: "2026-02-01T23:59:59Z" }),
+      )
+    ).unwrap();
+    const row = { id, project_id: projectId, project_version: 2 };
+    const before = { ...row, text: "vorher" };
+    const after = { ...row, text: "nachher" };
+    expect(
+      history.items.map(({ changeType, oldRow, newRow }) => ({ changeType, oldRow, newRow })),
+    ).toEqual([
+      { changeType: "update", oldRow: before, newRow: after },
+      { changeType: "create", oldRow: null, newRow: before },
+    ]);
   });
 
   test("keeps distinct versions separate and filters by the displayed audit time", async () => {

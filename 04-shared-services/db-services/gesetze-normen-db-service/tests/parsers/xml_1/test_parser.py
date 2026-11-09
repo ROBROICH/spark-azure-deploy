@@ -1,5 +1,6 @@
 """gii_parser unit tests"""
 
+import re
 import shutil
 import xml.etree.ElementTree as ET
 from zipfile import BadZipFile
@@ -86,6 +87,51 @@ def test_parse_eingangsformel():
     processor = XmlProcessor1("testG", "gesetz", base_url="https://processor.test", base_path="tests/data")
     doc = processor.parse_doc()
     assert doc.eingangsformel is not None
+
+
+NORM_WITH_ABSAETZE = """
+<norm>
+  <metadaten>
+    <jurabk>TestG</jurabk>
+    <enbez>§ 1</enbez>
+    <titel>Testnorm</titel>
+  </metadaten>
+  <textdaten><text><Content>
+    <P>(1) Es ist verboten, <DL Type="arabic"><DT>1.</DT><DD><LA>zu verarbeiten</LA><LA>(Besitzverbote),</LA></DD><DT>2.</DT><DD><LA>zu verkaufen</LA></DD></DL>Artikel 9 bleibt unberührt.</P>
+    <P>(2) Die Verbote gelten auch für Waren.</P>
+  </Content></text></textdaten>
+</norm>
+"""
+
+
+def _extract_single_norm():
+    processor = XmlProcessor1("testG", "gesetz", base_url="https://processor.test", base_path="tests/data/")
+    [norm] = processor._extract_norms([ET.fromstring(NORM_WITH_ABSAETZE)], doknr="BJNRTEST", jurabk="TestG")
+    return norm
+
+
+def test_paragraph_text_keeps_absatz_numbers():
+    """splitting the absaetze must not strip their numbers from the paragraph text (#246)"""
+    norm = _extract_single_norm()
+    assert norm.paragraph_text.startswith("(1) Es ist verboten,")
+    assert "(2) Die Verbote gelten auch für Waren." in norm.paragraph_text
+    # the absatz rows keep the number in their own column, not in the text
+    assert [a.absatz_nr for a in norm.absaetze] == ["1", "2"]
+    assert norm.absaetze[0].absatz_text.startswith("Es ist verboten,")
+
+
+def test_paragraph_text_separates_absaetze_with_blank_line():
+    """text after a list belongs to its absatz; the next absatz starts after a blank line (#246)"""
+    norm = _extract_single_norm()
+    assert "Artikel 9 bleibt unberührt.\n\n(2) Die Verbote" in norm.paragraph_text
+
+
+def test_adjacent_la_blocks_are_not_glued():
+    """sibling <LA> blocks in one list item keep a separator (#246)"""
+    norm = _extract_single_norm()
+    assert "verarbeiten(Besitzverbote)" not in norm.paragraph_text
+    assert re.search(r"zu verarbeiten\s+\(Besitzverbote\),", norm.paragraph_text)
+    assert "verarbeiten(Besitzverbote)" not in norm.absaetze[0].absatz_text
 
 
 def test_get_doc_no_xml(respx_mock, tmpdir):

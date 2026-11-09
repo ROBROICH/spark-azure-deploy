@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import asyncio
 import time
-from enum import Enum
+from enum import Enum, StrEnum
 from typing import Any, Awaitable, Type, TypeVar
 
 from event_logging import EventLogger, LoggingSettings
@@ -20,12 +21,81 @@ from temporalio.worker import (
 )
 from temporalio.workflow import Info as WorkflowInfo
 
+from temporal.interceptors._cancellation import activity_ends_cancelled, ends_cancelled
+
 T = TypeVar("T")
 
 
 class TemporalEventAction(str, Enum):
     WORKFLOW_EXECUTE = "workflow_execute"
     ACTIVITY_EXECUTE = "activity_execute"
+
+
+class _RunEnd(StrEnum):
+    COMPLETED = "completed"
+    CANCELLED = "cancelled"
+    FAILED = "failed"
+
+
+def _ends_cancelled(error: BaseException, info: ActivityInfo | WorkflowInfo) -> bool:
+    """Whether Temporal ends the activity or workflow as cancelled because of this error."""
+    if isinstance(info, ActivityInfo):
+        return activity_ends_cancelled(error)
+    return ends_cancelled(error)
+
+
+def _is_workflow_replay(info: ActivityInfo | WorkflowInfo) -> bool:
+    """Whether a worker re-runs the workflow from its history, whose events were logged when they happened.
+
+    Outside a workflow event loop, Python is closing a run a stopped worker left behind; it did not end.
+    With several workers in one process another run's loop can be current then; entry points start one.
+    """
+    return isinstance(info, WorkflowInfo) and (not workflow.in_workflow() or workflow.unsafe.is_replaying())
+
+
+def _log_end(
+    logger: EventLogger,
+    end: _RunEnd,
+    action: TemporalEventAction,
+    entity_type: str,
+    entity_name: str,
+    *,
+    error_message: str,
+    duration_ns: int,
+    trace_id: str | None,
+    process_id: str | None,
+) -> None:
+    if end == _RunEnd.FAILED:
+        logger.error(
+            action=action,
+            outcome=EventOutcome.FAILURE,
+            category=EventCategory.API,
+            message=f"{entity_type} failed: {entity_name}",
+            error_message=error_message,
+            event_duration=duration_ns,
+            trace_id=trace_id,
+            process_id=process_id,
+        )
+    elif end == _RunEnd.CANCELLED:
+        logger.info(
+            action=action,
+            outcome=EventOutcome.UNKNOWN,
+            category=EventCategory.API,
+            message=f"{entity_type} cancelled: {entity_name}",
+            event_duration=duration_ns,
+            trace_id=trace_id,
+            process_id=process_id,
+        )
+    else:
+        logger.info(
+            action=action,
+            outcome=EventOutcome.SUCCESS,
+            category=EventCategory.API,
+            message=f"{entity_type} completed: {entity_name}",
+            event_duration=duration_ns,
+            trace_id=trace_id,
+            process_id=process_id,
+        )
 
 
 async def _with_logging(
@@ -45,24 +115,35 @@ async def _with_logging(
     else:
         raise ValueError(f"Invalid info type: {type(info)}")
 
-    logger.info(
-        action=action,
-        outcome=EventOutcome.UNKNOWN,
-        category=EventCategory.API,
-        message=f"{entity_type} started: {entity_name}",
-        trace_id=trace_id,
-        process_id=process_id,
-    )
+    if not _is_workflow_replay(info):
+        logger.info(
+            action=action,
+            outcome=EventOutcome.UNKNOWN,
+            category=EventCategory.API,
+            message=f"{entity_type} started: {entity_name}",
+            trace_id=trace_id,
+            process_id=process_id,
+        )
 
     start_time = time.perf_counter_ns()
-    error_message: str | None = None
+    end = _RunEnd.COMPLETED
+    error_message = ""
 
     try:
         return await coro
-    except ApplicationError:
+    except asyncio.CancelledError as e:
+        end = _RunEnd.CANCELLED if _ends_cancelled(e, info) else _RunEnd.FAILED
+        error_message = str(e) or type(e).__name__
+        raise
+    except ApplicationError as e:
+        end, error_message = _RunEnd.FAILED, str(e)
         raise
     except Exception as e:
-        error_message = str(e)
+        # Wrapping a cancellation in an ApplicationError would end a user abort as FAILED.
+        if _ends_cancelled(e, info):
+            end = _RunEnd.CANCELLED
+            raise
+        end, error_message = _RunEnd.FAILED, str(e)
         if isinstance(info, WorkflowInfo):
             raise ApplicationError(
                 f"{entity_type} '{entity_name}' failed: {error_message}",
@@ -70,25 +151,17 @@ async def _with_logging(
             ) from e
         raise
     finally:
-        duration_ns = time.perf_counter_ns() - start_time
-        if error_message is not None:
-            logger.error(
-                action=action,
-                outcome=EventOutcome.FAILURE,
-                category=EventCategory.API,
-                message=f"{entity_type} failed: {entity_name}",
-                event_duration=duration_ns,
-                trace_id=trace_id,
-                process_id=process_id,
+        # A cache eviction counts as replay: the SDK stops the run here and the next workflow
+        # task re-runs it, so this is not its end.
+        if not _is_workflow_replay(info):
+            _log_end(
+                logger,
+                end,
+                action,
+                entity_type,
+                entity_name,
                 error_message=error_message,
-            )
-        else:
-            logger.info(
-                action=action,
-                outcome=EventOutcome.SUCCESS,
-                category=EventCategory.API,
-                message=f"{entity_type} completed: {entity_name}",
-                event_duration=duration_ns,
+                duration_ns=time.perf_counter_ns() - start_time,
                 trace_id=trace_id,
                 process_id=process_id,
             )
@@ -128,7 +201,7 @@ class LoggingInterceptor(Interceptor):
 
     This interceptor automatically:
     - Logs workflow and activity start/end with duration and outcome
-    - Wraps unhandled workflow exceptions in ApplicationError
+    - Wraps unhandled workflow exceptions in ApplicationError, except Temporal cancellations
     """
 
     def __init__(self, service_name: str, env: Environment) -> None:

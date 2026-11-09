@@ -79,6 +79,17 @@ The admin must be able to create databases and act as the owner roles (the
 script grants itself membership `WITH SET` when missing — PostgreSQL 16 gives a
 `CREATEROLE` admin only ADMIN OPTION on the roles it created).
 
+Instead of a literal `defaults.owner` (or per-database `owner`), use
+`ownerSecretRef: {name: postgres-credentials, key: username}`. Clear any
+inherited literal owner; the two options are mutually exclusive. The key
+defaults to `username`. The Secret must exist before the database hooks run.
+Only `DB_OWNER` comes from this Secret; the connection still uses the separate
+admin credentials. Owner roles are checked at runtime, not with Helm `lookup`.
+
+`hookWeight` controls the database Jobs' pre-install/pre-upgrade ordering
+(default `0`). Prerequisites run at `-10`; set the database Jobs to `-5` when
+a later hook at `0` needs the databases, such as Temporal's schema migration.
+
 gs:// dumps need `serviceAccount.gcpServiceAccount` (a GSA with
 `storage.objectViewer` on the dump bucket and a Workload Identity binding for
 `<namespace>/<release>-db-init`) — or use signed https URLs.

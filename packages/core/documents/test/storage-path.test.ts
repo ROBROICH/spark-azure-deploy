@@ -55,6 +55,13 @@ describe("DMS object paths", () => {
     expect(() => sanitizeFilename("../..")).toThrow("Filename cannot be empty");
   });
 
+  test("replaces characters that are unsafe in S3 keys and signed URLs", () => {
+    expect(sanitizeFilename("invoice #123.pdf")).toBe("invoice__123.pdf");
+    expect(sanitizeFilename("100% done.pdf")).toBe("100__done.pdf");
+    expect(sanitizeFilename("draft{v2}.pdf")).toBe("draft_v2_.pdf");
+    expect(sanitizeFilename("a^b`c~d[e]f.pdf")).toBe("a_b_c_d_e_f.pdf");
+  });
+
   test("requires every identity needed by the selected path strategy", () => {
     expect(() =>
       buildObjectPath("basis.pdf", { type: "document", version: 1 }),

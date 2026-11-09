@@ -3,7 +3,7 @@ name: spark-platform
 description: >-
   One complete SPARK Workflow environment per release — testing, a branch deployment or a demo: the spark-environment application stack plus the per-environment add-ons (environment-config: ServiceAccount, ExternalSecrets, otel-collector, network policies, SpiceDBCluster; gateway-routes; the Temporal engine, unoserver, ClamAV, landing page, further modules and the per-provider llm-client workers). Every add-on can be switched off for environments that get it from elsewhere. Per-environment configuration lives in one values file per environment.
 type: application
-version: 0.5.0
+version: 0.5.1
 appVersion: "1.0.0"
 dependencies:
   - name: spark-environment
@@ -18,7 +18,7 @@ dependencies:
     repository: "file://../../03-infrastructure/environment-config"
     condition: environment-config.enabled
   - name: gateway-routes
-    version: "0.4.0"
+    version: "0.5.1"
     repository: "file://../../03-infrastructure/gateway-routes"
     condition: gateway-routes.enabled
   # Opt-in database initialization (create / drop / restore from GCS dumps,

@@ -1,22 +1,33 @@
 """pytest fixture definitions"""
 
 import pytest
+from contextlib import contextmanager
+from datetime import date
 from pathlib import Path
 from pytest_postgresql import factories
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from pydantic import HttpUrl
 from sqlmodel import select
 
-import pytest
 from db_services_shared.llm.embeddings import LLMProvider
 from db_services_shared.models.db.database import get_db_session
 from db_services_shared.models.db.migrate import run_alembic_downgrade, run_alembic_upgrade
+from db_services_shared.testing.postgres import (
+    external_postgres_server,
+    use_external_postgres,
+)
 from jura_db.service import app
 from jura_db.config import app_config
 from jura_db.rii_parser import parse_doc
-from jura_db.schemas.db import Chunk, Document
+from jura_db.schemas.db import Chunk, Document, Norm
 from fastapi.testclient import TestClient
 from typer.testing import CliRunner
+
+
+# Needs pgvector, so tests usually run against an external PostgreSQL.
+if use_external_postgres():
+    postgresql_noproc = external_postgres_server()
+    postgresql = factories.postgresql("postgresql_noproc")
 
 
 @pytest.fixture(autouse=True)
@@ -82,7 +93,6 @@ def sample_document(mock_query_embedding):
     }
     # add split chunk for testing
     test_chunk = Chunk(**example_chunk)
-    test_chunk
     doc.chunks.append(
         test_chunk
     )
@@ -107,9 +117,9 @@ def sample_document(mock_query_embedding):
     return doc
 
 
-@pytest.fixture
-def api_client(db_engine, sample_document):
-    """API test client. Creates sessions on TestClient's event loop to avoid cross-loop issues."""
+@contextmanager
+def _api_client_seeded_with(db_engine, documents):
+    """TestClient seeded with `documents`, sessions on its own event loop."""
     factory = async_sessionmaker(bind=db_engine, class_=AsyncSession, expire_on_commit=False)
 
     async def get_session_override():
@@ -117,15 +127,52 @@ def api_client(db_engine, sample_document):
             # Add test data if database is empty
             result = await session.execute(select(Document))
             if len(result.scalars().all()) == 0:
-                session.add(sample_document)
+                for document in documents:
+                    session.add(document)
                 await session.commit()
             yield session
 
     app.dependency_overrides[get_db_session] = get_session_override
 
-    with TestClient(app) as client:
+    try:
+        with TestClient(app) as client:
+            yield client
+    finally:
+        app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def api_client(db_engine, sample_document):
+    """API test client seeded with a single document."""
+    with _api_client_seeded_with(db_engine, [sample_document]) as client:
         yield client
-    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+def unrelated_document():
+    """A second document sharing no norms with ``sample_document``."""
+    return Document(
+        doc_id="TESTDOC0002",
+        aktenzeichen="9 C 99.99",
+        gericht="BVerwG",
+        spruchkoerper="9. Senat",
+        entsch_datum=date(2020, 1, 1),
+        doktyp="Urteil",
+        normen=[
+            Norm(
+                full_text="§ 99 UnrelatedG",
+                name="UnrelatedG",
+                paragraph_nr=99,
+            )
+        ],
+    )
+
+
+@pytest.fixture
+def api_client_two_docs(db_engine, sample_document, unrelated_document):
+    """API test client seeded with two documents that share no norms."""
+    with _api_client_seeded_with(db_engine, [sample_document, unrelated_document]) as client:
+        yield client
 
 
 @pytest.fixture

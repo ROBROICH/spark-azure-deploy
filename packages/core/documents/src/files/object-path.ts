@@ -14,7 +14,7 @@ export function sanitizeFilename(name: string): string {
   const sanitized = parts.flatMap((part) => {
     if (part === "" || part === "." || part === "..") return [];
     const value = part
-      .replace(/[<>:"/\\|?* \p{Cc}]/gu, "_")
+      .replace(/[<>:"/\\|?*#%{}^`~[\] \p{Cc}]/gu, "_")
       .replace(/\.+/g, ".")
       .replace(/^[ .]+|[ .]+$/g, "");
     return value === "" ? [] : [value];

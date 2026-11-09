@@ -268,6 +268,7 @@ const defaults: FixtureRows = {
     nodeType: "vae_node",
     title: "",
     text: "",
+    content: null,
     checkedByAssignee: false,
     checkedByLeader: false,
     checkedAtAssignee: null,

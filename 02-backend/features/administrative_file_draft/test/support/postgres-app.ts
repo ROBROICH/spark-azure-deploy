@@ -19,7 +19,7 @@ import {
   AdministrativeFileDraftConfiguration,
   parseAdministrativeFileDraftConfiguration,
 } from "../../src/env.ts";
-import { createRoutes, feature } from "../../src/index.ts";
+import { createRoutes, createV2Routes, feature } from "../../src/index.ts";
 import { AdministrativeFileDraftNodes } from "../../src/node/descriptor.ts";
 
 process.env.AUTH_MODE = "disabled";
@@ -80,9 +80,10 @@ export async function createPostgresApp(url: string) {
       }),
     ] as const),
   ), (resources) => resources.close());
-  const app = createHttpHost("administrative-file-draft-postgres-test").use(
-    createRoutes(createFeatureHttp(resources).for(feature)),
-  );
+  const featureHttp = createFeatureHttp(resources).for(feature);
+  const app = createHttpHost("administrative-file-draft-postgres-test")
+    .use(createRoutes(featureHttp))
+    .use(createV2Routes(featureHttp));
   const nodes = await resources.get(AdministrativeFileDraftNodes);
   const projectNodes = await resources.get(ProjectNodes);
   const projectsService = await resources.get(Projects);

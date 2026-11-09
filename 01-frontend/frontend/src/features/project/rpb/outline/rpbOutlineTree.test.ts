@@ -26,6 +26,7 @@ const createVaeNode = (
     id: overrides.id,
     title: overrides.title,
     text: overrides.text ?? '',
+    content: null,
     assignee: overrides.assignee ?? null,
     checkedByAssignee: overrides.checkedByAssignee ?? false,
     checkedByLeader: overrides.checkedByLeader ?? false,

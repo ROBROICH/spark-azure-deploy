@@ -134,6 +134,49 @@ def test_get_specific_norm_awkward_neighbours(api_client):
     assert json_response[0]["prev"] == "14a"
 
 
+def test_get_specific_norm_after_alphabetic_sibling(api_client_neighbours):
+    """should return the requested norm, not a neighbour, for §§ 4, 4a, 5.
+
+    Regression test for the reported symptom: querying § 5 returned § 4a.
+    Two independent IN clauses matched (paragraph_nr, sub_paragraph_nr) as a
+    cross product, so the unrelated § 4 joined the row set; with exactly three
+    rows the old code took the middle one positionally instead of the one that
+    was asked for.
+    """
+    response = api_client_neighbours.get("/norms/search?jurabk=NachbarG&paragraph_nr=5")
+    json_response = response.json()
+
+    assert response.status_code == 200
+    assert len(json_response) == 1
+    assert json_response[0]["paragraph_nr"] == "5"
+    assert json_response[0]["prev"] == "4a"
+    assert json_response[0]["next"] is None
+
+
+def test_get_specific_norm_alphabetic_sibling_itself(api_client_neighbours):
+    """should still resolve the alphabetic sibling itself correctly"""
+    response = api_client_neighbours.get("/norms/search?jurabk=NachbarG&paragraph_nr=4a")
+    json_response = response.json()
+
+    assert response.status_code == 200
+    assert len(json_response) == 1
+    assert json_response[0]["paragraph_nr"] == "4a"
+    assert json_response[0]["prev"] == "4"
+    assert json_response[0]["next"] == "5"
+
+
+def test_get_specific_norm_base_before_alphabetic_sibling(api_client_neighbours):
+    """§ 4 sits directly before § 4a, not before § 5"""
+    response = api_client_neighbours.get("/norms/search?jurabk=NachbarG&paragraph_nr=4")
+    json_response = response.json()
+
+    assert response.status_code == 200
+    assert len(json_response) == 1
+    assert json_response[0]["paragraph_nr"] == "4"
+    assert json_response[0]["prev"] == "3"
+    assert json_response[0]["next"] == "4a"
+
+
 def test_get_specific_norm_malformed_paragraph_nr(api_client):
     """should return a specific norm even when `paragraph_nr` has extra whitespace"""
     # add extra space in paragraph_nr string

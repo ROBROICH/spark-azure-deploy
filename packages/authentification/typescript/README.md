@@ -80,6 +80,16 @@ Set up Bun, pnpm, Keycloak, and SpiceDB through the [root setup guide](../../../
 | `AUTH_SPICE_DB_CERT_PATH` | SpiceDB TLS certificate | none | no |
 | `AUTH_SPICE_DB_INSECURE` | Turn off TLS to SpiceDB | `false` | no |
 | `AUTH_ALLOWED_MACHINE_IDENTITIES` | Comma-separated SPIFFE IDs of allowed services, `*` as wildcard | empty | for service callers |
+| `DANGEROUS_ZERO_TRUST_DISABLED` | `true` skips the service certificate check, so every request without a token is accepted as a service. See [Zero trust](#zero-trust). | `false` | no |
+
+#### Zero trust
+
+> [!WARNING]
+> Service-to-service authentication follows a zero trust approach. It relies on the mTLS-capable service mesh named in the [security notice](../../../README.md#security-notice). The mesh issues every workload a certificate with a SPIFFE identity, and its proxy passes the verified identity of the calling workload to the backend in the `x-forwarded-client-cert` (XFCC) header. The backend can trust this header only because the mesh proxy writes it from the mTLS connection.
+>
+> In an environment without a service mesh, or with a mesh whose proxies do not forward client certificate details, no one sets this header. Service callers are then rejected and calls between services fail. Such an environment is also not protected by the check: any caller could send a forged header itself and pass as an allowed service.
+>
+> `DANGEROUS_ZERO_TRUST_DISABLED=true` turns the check off. Every request without a login token is then accepted as a service with the role `service`, and the backend no longer protects its service access on its own. Only set it when the application is reachable solely through a gateway that authenticates every request. The gateway is then the only line of defence and a single point of failure, so also run the whole deployment inside a VPN or an equally isolated network. The operator is responsible for these controls.
 
 ### Running the Module / Service
 

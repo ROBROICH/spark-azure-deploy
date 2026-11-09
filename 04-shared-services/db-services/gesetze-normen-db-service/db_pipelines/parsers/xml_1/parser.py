@@ -513,7 +513,8 @@ class XmlProcessor1(BaseProcessor):
                     paragraph_nr=_paragraph_nr,
                     sub_paragraph_nr=sub_paragraph_nr,
                     titel=titel,
-                    paragraph_text="\n".join([html_elem_to_md(elem) for elem in content]),
+                    # a blank line between absaetze, as between list items
+                    paragraph_text="\n\n".join([html_elem_to_md(elem) for elem in content]),
                     absaetze=absaetze,
                 )
             )

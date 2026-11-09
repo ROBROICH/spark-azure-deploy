@@ -385,7 +385,8 @@
         "pending": "Ausstehend",
         "success": "Erfolgreich",
         "continued": "Fortgesetzt",
-        "failed": "Fehlgeschlagen"
+        "failed": "Fehlgeschlagen",
+        "canceled": "Abgebrochen"
       },
       "workflowNames": {
         "contentExtraction": "Inhaltsextraktion",

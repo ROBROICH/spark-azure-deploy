@@ -11,6 +11,7 @@ import type {
   FieldAuthorizationCheck,
   NodeDefinition,
   NodeDatabase,
+  NodePayload,
   NodeRuntime,
   NodeSchema,
   NodeMutationAction,
@@ -516,17 +517,30 @@ const completedMutationResults = (
 const parsedMutation = <Schema extends NodeSchema>(
   descriptor: NodeRuntime<Schema>,
   mutation: PreparedNodeMutation,
+  prepared: boolean,
 ) => {
+  // A prepared mutation already carries derived fields; they are re-derived, not re-validated.
+  const input = (node: NodeDefinition, payload: NodePayload) =>
+    prepared && node.derive
+      ? Object.fromEntries(
+          Object.entries(payload).filter(([field]) => !node.derive!.fields.includes(field)),
+        )
+      : payload;
   const inserts = mutation.inserts.map((item) => {
     const node = nodeDefinition(descriptor, item.nodeType);
-    return { ...item, node, payload: parsePayload(node, "insert", item.payload) };
+    const payload = parsePayload(node, "insert", input(node, item.payload));
+    return { ...item, node, payload: node.derive?.payload("insert", payload) ?? payload };
   });
   const updates = mutation.updates
     .map((item) => {
       const node = nodeDefinition(descriptor, item.nodeType);
-      return { ...item, node, payload: parsePayload(node, "patch", item.payload) };
+      return { ...item, node, payload: parsePayload(node, "patch", input(node, item.payload)) };
     })
-    .filter(({ payload }) => Object.keys(payload).length > 0);
+    .filter(({ payload }) => Object.keys(payload).length > 0)
+    .map((item) => ({
+      ...item,
+      payload: item.node.derive?.payload("patch", item.payload) ?? item.payload,
+    }));
   const deletes = mutation.deletes;
   for (const item of deletes) {
     nodeDefinition(descriptor, item.nodeType);
@@ -545,14 +559,18 @@ async function runNodeMutation<Schema extends NodeSchema>(
     callback: () => Promise<Result<ExecutedNodeMutation, EvlogError>>,
   ) => Promise<Result<ExecutedNodeMutation, EvlogError>>,
 ) {
-  const requested = parsedMutation(descriptor, {
-    inserts: (input.inserts ?? []).map((item) => ({
-      ...item,
-      id: item.id ?? crypto.randomUUID(),
-    })),
-    updates: input.updates ?? [],
-    deletes: input.deletes ?? [],
-  });
+  const requested = parsedMutation(
+    descriptor,
+    {
+      inserts: (input.inserts ?? []).map((item) => ({
+        ...item,
+        id: item.id ?? crypto.randomUUID(),
+      })),
+      updates: input.updates ?? [],
+      deletes: input.deletes ?? [],
+    },
+    false,
+  );
   if (
     requested.inserts.length === 0 &&
     requested.updates.length === 0 &&
@@ -592,7 +610,7 @@ async function runNodeMutation<Schema extends NodeSchema>(
     const prepared = await descriptor.prepareMutation?.(projectId, projectVersion, requested, auth);
     if (prepared?.isErr()) return prepared;
     const { inserts, updates, deletes } = prepared?.isOk()
-      ? parsedMutation(descriptor, prepared.value)
+      ? parsedMutation(descriptor, prepared.value, true)
       : requested;
     const referenced = referencedPersistedParents(
       [...inserts, ...updates],

@@ -1,4 +1,4 @@
-import { Type } from "@sinclair/typebox";
+import { type Static, Type } from "@sinclair/typebox";
 
 import { NullableTopicValueSchema } from "./topics";
 
@@ -15,6 +15,38 @@ export const RiskStatusSchema = Type.Union([
   Type.Literal("corrected"),
   Type.Literal("ignored"),
 ]);
+const BeschlussMarkSchema = Type.Object({
+  type: Type.Union([Type.Literal("bold"), Type.Literal("italic"), Type.Literal("underline")]),
+});
+const BeschlussMarksSchema = Type.Optional(Type.Array(BeschlussMarkSchema, { maxItems: 3 }));
+
+/** One chapter: a Tiptap document with one paragraph; line breaks are hardBreak nodes. */
+export const BeschlussContentSchema = Type.Object({
+  type: Type.Literal("doc"),
+  content: Type.Array(
+    Type.Object({
+      type: Type.Literal("paragraph"),
+      content: Type.Optional(
+        Type.Array(
+          Type.Union([
+            Type.Object({
+              type: Type.Literal("text"),
+              // No length cap: merging adjacent runs must not push a stored run over it, and
+              // `vae_node.text` is unbounded too.
+              text: Type.String({ minLength: 1 }),
+              marks: BeschlussMarksSchema,
+            }),
+            Type.Object({ type: Type.Literal("hardBreak"), marks: BeschlussMarksSchema }),
+          ]),
+          { maxItems: MAX_TEXT_LENGTH },
+        ),
+      ),
+    }),
+    { minItems: 1, maxItems: 1 },
+  ),
+});
+export type BeschlussContent = Static<typeof BeschlussContentSchema>;
+
 export const UpdateTypeSchema = Type.Union([
   Type.Literal("automated"),
   Type.Literal("manual"),

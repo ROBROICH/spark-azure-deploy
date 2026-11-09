@@ -24,6 +24,7 @@ export const WORKFLOW_STATUS_BADGE_VARIANT = {
   pending: 'warning',
   success: 'success',
   failed: 'error',
+  canceled: 'default',
   continued: 'neutral',
 } as const satisfies Record<WorkflowBadgeStatus, StatusBadgeVariant>;
 
@@ -31,6 +32,7 @@ export const WORKFLOW_STATUS_LABEL_KEY: Record<WorkflowBadgeStatus, string> = {
   pending: 'Sidebar.runningWorkflowsPanel.status.pending',
   success: 'Sidebar.runningWorkflowsPanel.status.success',
   failed: 'Sidebar.runningWorkflowsPanel.status.failed',
+  canceled: 'Sidebar.runningWorkflowsPanel.status.canceled',
   continued: 'Sidebar.runningWorkflowsPanel.status.continued',
 };
 

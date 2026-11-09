@@ -1,7 +1,7 @@
 # Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
 # inventory.toml, style.d2);
 # der Pfad steht in .agents/config.json unter architectureModelPath.
-# architecture-rendered-at: 06.10.2026, 15:51 UTC
+# architecture-rendered-at: 20.10.2026, 08:55 UTC
 
 # SPARK Workflow — Styleguide der Architekturansichten
 #
@@ -361,6 +361,25 @@ classes: {
     }
   }
 
+  # -- Fremdsoftware --------------------------------------------------------
+  #
+  # Software Dritter, die mit dem System ausgeliefert wird, aber nicht Teil des
+  # Produkts ist. Durchgezogener Rand (sie wird aus dem Repository ausgeliefert,
+  # also nicht gestrichelt) mit eckigen Ecken und bernsteinfarbener Füllung:
+  # Die Ecken tragen die Unterscheidung auch dort, wo Farbe nicht wahrgenommen
+  # wird.
+
+  third-party: {
+    style: {
+      stroke: "#a16207"
+      stroke-width: 2
+      fill: "#fefce8"
+      font-color: "#713f12"
+      font-size: 16
+      border-radius: 0
+    }
+  }
+
   # -- Kantentypen ----------------------------------------------------------
   #
   # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
@@ -512,7 +531,7 @@ kontext: "Kontext" {
     beteiligte: "Ohne Systemzugang" {
       class: group
       direction: down
-      vorhabentraegerin: "Vorhabentraegerin\nOhne Systemzugang" { class: actor-indirect }
+      vorhabentraegerin: "Vorhabenträgerin\nOhne Systemzugang" { class: actor-indirect }
       antragstellende: "Antragstellende\nOhne Systemzugang" { class: actor-indirect }
       einwendende: "Einwendende\nOhne Systemzugang" { class: actor-indirect }
     }
@@ -521,7 +540,7 @@ kontext: "Kontext" {
   anbindung: "Anbindungen" {
     class: group
     direction: down
-    behoerdenplattformen: "Behoerdenplattformen" {
+    behoerdenplattformen: "Behördenplattformen" {
       class: group
       direction: down
       fachplanungsportal: "Fachplanungsportal" { class: external }
@@ -545,7 +564,7 @@ kontext: "Kontext" {
   akteure.beteiligte.vorhabentraegerin -> system: "mittelbar" { class: uses-indirect }
   akteure.beteiligte.antragstellende -> system: "mittelbar" { class: uses-indirect }
   akteure.beteiligte.einwendende -> system: "mittelbar" { class: uses-indirect }
-  system -> anbindung.behoerdenplattformen.fachplanungsportal: "Antraege / Beteiligung" { class: http }
+  system -> anbindung.behoerdenplattformen.fachplanungsportal: "Anträge / Beteiligung" { class: http }
   system -> anbindung.behoerdenplattformen.diplan: "Planwerke / Verfahren" { class: http }
   system -> anbindung.sprachmodelle: "LLM-Proxy" { class: llm }
 }
@@ -562,7 +581,7 @@ dokumentation: "Legende und Metadaten" {
     ls-akteur: "Angemeldete Rolle\nKeycloak / SpiceDB" { class: actor }
     ls-beteiligt: "Verfahrensbeteiligung\nohne Systemzugang" { class: actor-indirect }
     ls-system: "SPARK Workflow (System)" { class: system }
-    ls-extern: "Behoerdenplattform (extern)" { class: external }
+    ls-extern: "Behördenplattform (extern)" { class: external }
     ls-llm: "Sprachmodell (extern)" { class: language-model }
   }
 
@@ -577,10 +596,10 @@ dokumentation: "Legende und Metadaten" {
       vertical-gap: 16
       von-http: "" { class: legend-anchor }
       nach-http: "" { class: legend-anchor }
-      text-http: "Synchroner Aufruf ueber HTTP" { class: legend-label }
+      text-http: "Synchroner Aufruf über HTTP" { class: legend-label }
       von-llm: "" { class: legend-anchor }
       nach-llm: "" { class: legend-anchor }
-      text-llm: "Aufruf eines Sprachmodells ueber den LLM-Proxy" { class: legend-label }
+      text-llm: "Aufruf eines Sprachmodells über den LLM-Proxy" { class: legend-label }
       von-uses: "" { class: legend-anchor }
       nach-uses: "" { class: legend-anchor }
       text-uses: "Benutzung durch einen menschlichen Akteur" { class: legend-label }
@@ -594,7 +613,7 @@ dokumentation: "Legende und Metadaten" {
     }
 
     metadaten: |md
-      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Erstellt am** 20.10.2026, 08:55 UTC\
       **Ansicht** c1-system-context (C1)\
       **Renderer** d2 v0.8.2\
       **Quelle** kuratiertes Modell\

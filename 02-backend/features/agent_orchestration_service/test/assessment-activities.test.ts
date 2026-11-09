@@ -655,6 +655,51 @@ describe("AOS assessment peer activities", () => {
     });
   });
 
+  test("reads the derived plain text of a chapter stored with formatted content", async () => {
+    const activity = createAssessmentActivities(
+      dependencies({
+        administrativeFileDraft: {
+          batchGetNodes: afdReader({
+            vaeNodes: [
+              nodeFixture("vaeNodes", {
+                id: ids.vae,
+                title: "1.1 Umwelt",
+                text: "Flora bleibt\ngeschützt.",
+                content: {
+                  type: "doc",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [
+                        { type: "text", marks: [{ type: "bold" }], text: "Flora" },
+                        { type: "text", text: " bleibt" },
+                        { type: "hardBreak" },
+                        { type: "text", text: "geschützt." },
+                      ],
+                    },
+                  ],
+                },
+              }),
+            ],
+          }),
+          async getRisks() {
+            return [];
+          },
+          async updateNodes() {
+            return {};
+          },
+        },
+      }),
+    );
+
+    expect(
+      await activity._fetch_risikohinweis_chapter({
+        projectId: ids.project,
+        vaeNodeId: ids.vae,
+      }),
+    ).toEqual({ id: ids.vae, title: "1.1 Umwelt", text: "Flora bleibt\ngeschützt." });
+  });
+
   test("suppresses hidden or blank VAE chapters", async () => {
     const activity = createAssessmentActivities(
       dependencies({

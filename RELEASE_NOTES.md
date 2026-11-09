@@ -1,3 +1,32 @@
+### Release 0.3.1 — 2026-10-27
+
+Release 0.3.1 is a maintenance release of the 0.3 line. It fixes errors reported since 0.3.0, among them lost formatting in the decision editor and missing values in the audit log. Operators of 0.3.0 should update, because exported decisions no longer carry personal metadata from the decision template and the prompt-injection filter is hardened.
+
+#### Included changes
+
+* Add environment variable to enable support for meshless environments
+* Formatting in the decision editor kept after saving and reloading and in the exported decision
+* Processing runs canceled by the user shown as "Canceled" instead of "Failed"
+* Before and after values back in the audit log and its download
+* Supplementary requests and comments saved on the first click
+* Long document type names truncated in the interface and no longer failing the formal completeness check
+* Legal norm lookups return the requested norm instead of a neighbouring one, and norm texts keep their paragraph numbers
+* More robust LLM response handling: JSON without a closing code fence is accepted, and visual-element summaries are length-limited
+* Files from ZIP archives with special characters in their names are stored correctly
+* Filenames are sanitized to be handled properly in URLs
+* Fonts for PDF processing in the anonymization image
+* Improved prompt injection guardrails
+
+#### Security
+
+* Exported decisions no longer contain the template's metadata, such as authors, last editor and organization
+* The prompt-injection filter can no longer be blocked by crafted URLs or e-mail addresses, removes nested markers and recognizes the control tokens of further model families
+* Updated base images and tooling close known vulnerabilities: Node.js 24.22.1, Bun 1.4.4, nginx 1.30.6 and tinypool 2.1.2
+
+See [CHANGELOG.md](CHANGELOG.md) for the complete list of changes.
+
+---
+
 ### Release 0.3.0 "Waldkauz" — 2026-10-12
 
 Release 0.3.0 consolidates the backend services into a single TypeScript backend, is certified accessible under BITV 2.0, and can be adapted to the procedures of each authority. It also makes the AI-supported checks more transparent with a reworked plausibility check and review hints for AI suggestions.

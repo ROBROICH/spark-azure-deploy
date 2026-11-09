@@ -28,6 +28,7 @@ import { EvlogError } from "evlog";
 
 import { dmsErrors } from "../errors.ts";
 import { FilenameSchema } from "./file-types.ts";
+import { sanitizeFilename } from "./object-path.ts";
 import type { VirusScanResult } from "../scanner/clamav-client.ts";
 import type {
   SingleFileResult,
@@ -81,6 +82,7 @@ export interface ZipExtractionInput {
 interface StoredZipEntry {
   readonly entry: FileEntry;
   readonly name: string;
+  readonly storageName: string;
 }
 
 interface OpenZip {
@@ -219,14 +221,20 @@ const limitedEntries = (
     if (!Value.Check(FilenameSchema, name)) {
       return invalid("ZIP filename exceeds the supported path limits");
     }
-    if (names.has(name)) {
+    let storageName: string;
+    try {
+      storageName = sanitizeFilename(name);
+    } catch {
+      return invalid(`ZIP entry '${name}' has no usable filename`);
+    }
+    if (names.has(storageName)) {
       return Result.err(
         dmsErrors.ZIP_AMBIGUOUS({
           message: `ZIP contains duplicate normalized filename '${name}'`,
         }),
       );
     }
-    names.add(name);
+    names.add(storageName);
     if (entry.uncompressedSize > limits.maxSingleEntryBytes) {
       return invalid(
         `Entry '${name}' is ${entry.uncompressedSize} bytes, exceeding limit of ${limits.maxSingleEntryBytes}`,
@@ -246,7 +254,7 @@ const limitedEntries = (
         `ZIP total uncompressed size exceeds limit of ${limits.maxTotalUncompressedBytes}`,
       );
     }
-    entries.push({ entry, name });
+    entries.push({ entry, name, storageName });
   }
   return Result.ok(entries);
 };
@@ -361,7 +369,7 @@ const sha256 = (bytes: Uint8Array): string => {
 async function extractEntry(
   dependencies: ZipExtractionDependencies,
   input: ZipExtractionInput,
-  { entry, name }: StoredZipEntry,
+  { entry, name, storageName }: StoredZipEntry,
 ): Promise<Result<string, EvlogError>> {
   if (input.fileType === "ewms_zip" && !ewmsFilename(name)) {
     return Result.err(dmsErrors.INVALID_FILENAME());
@@ -378,7 +386,7 @@ async function extractEntry(
       }),
     );
   }
-  const bucketPath = `tmp/${input.projectId}/${input.zipFileId}/${name}`;
+  const bucketPath = `tmp/${input.projectId}/${input.zipFileId}/${storageName}`;
   await dependencies.target.upload(bucketPath, bytes.value, {
     overwrite: true,
     contentType: "application/pdf",

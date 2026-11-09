@@ -81,3 +81,83 @@ describe('RequestForm priority radio group accessibility', () => {
     );
   });
 });
+
+describe('RequestForm priority change', () => {
+  it('saves a "should" request on the first submit after the priority change', async () => {
+    const user = userEvent.setup();
+    vi.mocked(addRequestItem).mockResolvedValueOnce(undefined);
+
+    // A pre-filled title focuses the empty reason field, as when a
+    // contradiction is filed from the plausibility check.
+    render(
+      <RequestForm
+        onClose={() => {}}
+        canMutateProject
+        initialTitle="WA-0001"
+      />,
+    );
+
+    await user.click(
+      screen.getByRole('radio', { name: 'RequestListPanel.priority.should' }),
+    );
+    expect(
+      screen.queryByText('RequestListPanel.form.validation.reasonRequired'),
+    ).not.toBeInTheDocument();
+
+    await user.type(
+      screen.getByLabelText('RequestListPanel.form.reasonLabel'),
+      'Widerspruch klären',
+    );
+    await user.click(
+      screen.getByRole('button', { name: 'RequestListPanel.form.save' }),
+    );
+
+    await waitFor(() => {
+      expect(addRequestItem).toHaveBeenCalledTimes(1);
+    });
+    expect(vi.mocked(addRequestItem).mock.calls[0]?.slice(0, 4)).toEqual([
+      'project-1',
+      'should',
+      'WA-0001',
+      'Widerspruch klären',
+    ]);
+  });
+});
+
+describe('RequestForm saving state', () => {
+  it('marks the save button busy until saving finishes', async () => {
+    const user = userEvent.setup();
+    let finishSave = () => {};
+    vi.mocked(addRequestItem).mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        finishSave = resolve;
+      }),
+    );
+
+    render(
+      <RequestForm
+        onClose={() => {}}
+        canMutateProject
+        initialTitle="WA-0001"
+      />,
+    );
+    await user.type(
+      screen.getByLabelText('RequestListPanel.form.reasonLabel'),
+      'Widerspruch klären',
+    );
+    const saveButton = screen.getByRole('button', {
+      name: 'RequestListPanel.form.save',
+    });
+    await user.click(saveButton);
+
+    await waitFor(() => {
+      expect(saveButton).toHaveAttribute('aria-busy', 'true');
+    });
+    expect(saveButton).toBeDisabled();
+
+    finishSave();
+    await waitFor(() => {
+      expect(saveButton).toHaveAttribute('aria-busy', 'false');
+    });
+  });
+});

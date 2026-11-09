@@ -52,11 +52,18 @@ const isTraversableObject = (val: unknown): val is Record<string, unknown> => {
   );
 };
 
-export type AuditLogDiffRow = {
-  path: string;
-  oldValue: unknown;
-  newValue: unknown;
-};
+const FORMATTED_CONTENT_PATH = 'content';
+
+export type AuditLogDiffRow =
+  | { kind: 'value'; path: string; oldValue: unknown; newValue: unknown }
+  | { kind: 'formattedContent'; path: typeof FORMATTED_CONTENT_PATH };
+
+// Only decision sections store formatted content as JSON; other entities keep string `content` diffs.
+const isFormattedContentPath = (entityType: string, path: string) =>
+  entityType === 'vae_node' &&
+  (path === FORMATTED_CONTENT_PATH ||
+    path.startsWith(`${FORMATTED_CONTENT_PATH}.`) ||
+    path.startsWith(`${FORMATTED_CONTENT_PATH}[`));
 
 const recordEmptyContainer = (
   path: string,
@@ -125,7 +132,23 @@ const flattenJsonRecord = (
   return rows;
 };
 
+const toAuditLogDiffRow = (
+  entityType: string,
+  path: string,
+  oldValues: Map<string, unknown>,
+  newValues: Map<string, unknown>,
+): AuditLogDiffRow =>
+  isFormattedContentPath(entityType, path)
+    ? { kind: 'formattedContent', path: FORMATTED_CONTENT_PATH }
+    : {
+        kind: 'value',
+        path,
+        oldValue: oldValues.get(path),
+        newValue: newValues.get(path),
+      };
+
 export const getAuditLogDiffRows = (params: {
+  entityType: string;
   oldRow: Record<string, unknown> | null | undefined;
   newRow: Record<string, unknown> | null | undefined;
 }) => {
@@ -135,15 +158,21 @@ export const getAuditLogDiffRows = (params: {
     new Set([...oldValues.keys(), ...newValues.keys()]),
   ).sort((left, right) => left.localeCompare(right));
 
-  return paths
+  const rows = paths
     .filter(
       (path) =>
         stableJsonStringify(oldValues.get(path)) !==
         stableJsonStringify(newValues.get(path)),
     )
-    .map<AuditLogDiffRow>((path) => ({
-      path,
-      oldValue: oldValues.get(path),
-      newValue: newValues.get(path),
-    }));
+    .map((path) =>
+      toAuditLogDiffRow(params.entityType, path, oldValues, newValues),
+    );
+
+  // Keep one folded row, at the sorted position of the first content path.
+  return rows.filter(
+    (row, index) =>
+      row.kind === 'value' ||
+      rows.findIndex((candidate) => candidate.kind === 'formattedContent') ===
+        index,
+  );
 };

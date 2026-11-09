@@ -1,7 +1,7 @@
 ARG INCLUDE_DEPENDENCIES=prod
 ARG BASE_IMAGE_DEV=python:3.13.14-slim-trixie
 # Internal mirror of the ZendIS Python image.
-ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal@sha256:6d5c42992913b6918097e3ab7df635134da62e7dcd41247a7066ffe367191ca6
+ARG BASE_IMAGE=registry.opencode.de/oci-community/images/zendis/python3:3.13-minimal@sha256:93407f75b2de819d8b79e3f06a03a2f533570c1e7878595239d5cfe857b6fc92
 
 FROM ${BASE_IMAGE_DEV} AS builder
 
@@ -63,6 +63,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     tesseract-ocr \
     tesseract-ocr-deu \
     ghostscript \
+    fonts-urw-base35 \
     poppler-utils \
     qpdf \
     && rm -rf /var/lib/apt/lists/*
@@ -89,10 +90,13 @@ RUN set -eux; \
         ln -sf "$(basename "$real")" "/ocr-root$so"; \
       fi; \
     done; \
-    for d in tesseract-ocr tessdata ghostscript poppler color; do \
+    for d in tesseract-ocr tessdata ghostscript poppler color fonts fontconfig; do \
       [ -d "/usr/share/$d" ] && cp -a "/usr/share/$d" /ocr-root/usr/share/ || true; \
     done; \
-    [ -d /etc/fonts ] && cp -a /etc/fonts/. /ocr-root/etc/fonts/ || true
+    cp -a /etc/fonts/. /ocr-root/etc/fonts/; \
+    cp -a /etc/ghostscript /ocr-root/etc/; \
+    mkdir -p /ocr-root/var/lib; \
+    cp -a /var/lib/ghostscript /ocr-root/var/lib/
 
 FROM ${BASE_IMAGE} AS final
 
@@ -109,6 +113,7 @@ COPY --from=selected-deps /app/.venv /app/.venv
 # Runtime libs staged in the builder. Placed AFTER the OCR lib overlay so our
 # known-good libstdc++/libgcc_s/libgomp land last.
 COPY --from=builder /extra-libs/ /usr/lib/
+RUN ["gs", "-q", "-dNOPAUSE", "-dBATCH", "-sDEVICE=nullpage", "-c", "[/Helvetica /Times-Roman /Courier /Symbol /ZapfDingbats] { findfont 12 scalefont setfont 72 72 moveto (OCR font smoke test) show } forall showpage"]
 COPY . .
 
 CMD ["python", "05-modulcluster/modul-anonymisierung/main.py"]

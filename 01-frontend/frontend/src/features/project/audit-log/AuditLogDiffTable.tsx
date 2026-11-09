@@ -19,6 +19,7 @@ export function AuditLogDiffTable(props: AuditLogDiffTableProps) {
   // eslint-disable-next-line no-restricted-syntax -- Diff row disclosure is ephemeral UI state, not URL state.
   const [visibleRowCount, setVisibleRowCount] = useState(DIFF_ROW_BATCH_SIZE);
   const rows = getAuditLogDiffRows({
+    entityType: item.entityType,
     oldRow: item.oldRow,
     newRow: item.newRow,
   });
@@ -76,22 +77,35 @@ export function AuditLogDiffTable(props: AuditLogDiffTableProps) {
                   scope="row"
                   className="border-r border-neutral-200 px-3 py-2 text-left align-top font-medium break-all text-neutral-700"
                 >
-                  {row.path}
+                  {row.kind === 'formattedContent'
+                    ? t('diff.formattedContentField')
+                    : row.path}
                 </th>
-                <td className="min-w-0 border-r border-neutral-200 px-3 py-2 align-top text-neutral-700">
-                  <PositionalDiff
-                    oldVal={row.oldValue}
-                    newVal={row.newValue}
-                    mode="old"
-                  />
-                </td>
-                <td className="min-w-0 px-3 py-2 align-top text-neutral-700">
-                  <PositionalDiff
-                    oldVal={row.oldValue}
-                    newVal={row.newValue}
-                    mode="new"
-                  />
-                </td>
+                {row.kind === 'formattedContent' ? (
+                  <td
+                    colSpan={2}
+                    className="min-w-0 px-3 py-2 align-top text-neutral-700"
+                  >
+                    {t('diff.formattedContentChanged')}
+                  </td>
+                ) : (
+                  <>
+                    <td className="min-w-0 border-r border-neutral-200 px-3 py-2 align-top text-neutral-700">
+                      <PositionalDiff
+                        oldVal={row.oldValue}
+                        newVal={row.newValue}
+                        mode="old"
+                      />
+                    </td>
+                    <td className="min-w-0 px-3 py-2 align-top text-neutral-700">
+                      <PositionalDiff
+                        oldVal={row.oldValue}
+                        newVal={row.newValue}
+                        mode="new"
+                      />
+                    </td>
+                  </>
+                )}
               </tr>
             ))}
           </tbody>

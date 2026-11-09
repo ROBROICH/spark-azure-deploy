@@ -1,7 +1,7 @@
 # Quelle: das kuratierte Architekturmodell (landscape.toml, views.toml,
 # inventory.toml, style.d2);
 # der Pfad steht in .agents/config.json unter architectureModelPath.
-# architecture-rendered-at: 06.10.2026, 15:51 UTC
+# architecture-rendered-at: 20.10.2026, 08:55 UTC
 
 # SPARK Workflow — Styleguide der Architekturansichten
 #
@@ -361,6 +361,25 @@ classes: {
     }
   }
 
+  # -- Fremdsoftware --------------------------------------------------------
+  #
+  # Software Dritter, die mit dem System ausgeliefert wird, aber nicht Teil des
+  # Produkts ist. Durchgezogener Rand (sie wird aus dem Repository ausgeliefert,
+  # also nicht gestrichelt) mit eckigen Ecken und bernsteinfarbener Füllung:
+  # Die Ecken tragen die Unterscheidung auch dort, wo Farbe nicht wahrgenommen
+  # wird.
+
+  third-party: {
+    style: {
+      stroke: "#a16207"
+      stroke-width: 2
+      fill: "#fefce8"
+      font-color: "#713f12"
+      font-size: 16
+      border-radius: 0
+    }
+  }
+
   # -- Kantentypen ----------------------------------------------------------
   #
   # Das Vokabular ist in landscape.toml unter [relation_types] festgelegt.
@@ -488,7 +507,7 @@ grid-gap: 32
 title: |md
   # C2 Container
 
-  Deploybare Einheiten im veroeffentlichten Architekturumfang
+  Deploybare Einheiten im veröffentlichten Architekturumfang
 | {
   near: top-center
   style: { font-size: 24; font-color: "#1e1b4b" }
@@ -505,7 +524,7 @@ frontend-layer: "Frontend" {
   }
 }
 
-service-layer: "Service Layer" {
+service-layer: "Dienstschicht" {
   class: layer-service
   grid-columns: 4
   spark-backend: "SPARK Backend\nTypeScript, Elysia, Bun\nImage aller 15 Pools" { class: modulith }
@@ -522,18 +541,18 @@ service-layer: "Service Layer" {
     grid-columns: 4
     comment-service: "Kommentarverwaltung" { class: pool }
     supplementary-requests-service: "Nachforderungsverwaltung" { class: pool }
-    identity-management-service: "Identitaetsverwaltung" { class: pool }
+    identity-management-service: "Identitätsverwaltung" { class: pool }
     objections-management-service: "Einwendungsverwaltung" { class: pool }
   }
-  pruefungsdienste: "Pruefungsdienste" {
+  pruefungsdienste: "Prüfungsdienste" {
     class: group
     grid-columns: 5
-    formal-completeness-check: "Formale Vollstaendigkeitspruefung" { class: pool }
-    plausibility-notes: "Plausibilitaetshinweise" { class: pool }
-    examination-service: "Pruefungsdienst" { class: pool }
+    formal-completeness-check: "Formale Vollständigkeitsprüfung" { class: pool }
+    plausibility-notes: "Plausibilitätshinweise" { class: pool }
+    examination-service: "Prüfungsdienst" { class: pool }
     protocol-service: "Protokollverwaltung" { class: pool }
     feedback-service: "Feedbackverwaltung" { class: pool }
-    rechtsaenderungs-monitoring: "Rechtsaenderungsmonitoring\nPython, FastAPI, Temporal" { class: service }
+    rechtsaenderungs-monitoring: "Rechtsänderungsmonitoring\nPython, FastAPI, Temporal" { class: service }
   }
   beschlussdienste: "Beschlussdienste" {
     class: group
@@ -551,32 +570,32 @@ service-layer: "Service Layer" {
     grid-columns: 2
     gesetze-normen-db-service: "Gesetz- und Normendatenbankdienst\nPython, FastAPI, Temporal" { class: service }
     jura-db-service: "Juristischer Datenbankdienst\nPython, FastAPI, Temporal" { class: service }
-    gesetzesbegruendung-db-service: "Gesetzesbegruendungsdatenbankdienst\nPython, FastAPI, Temporal" { class: service }
+    gesetzesbegruendung-db-service: "Gesetzesbegründungsdatenbankdienst\nPython, FastAPI, Temporal" { class: service }
   }
 }
 
-orchestration-layer: "Orchestration Layer" {
+orchestration-layer: "Orchestrierungsschicht" {
   class: layer-orchestration
   grid-columns: 1
-  workflow-engine: "Workflow Engine" {
+  workflow-engine: "Workflow-Engine" {
     class: group
     grid-columns: 1
-    temporal: "Temporal\nTemporal" { class: orchestration }
+    temporal: "Temporal\nTemporal" { class: third-party }
   }
 }
 
-ai-module-layer: "AI Module Layer" {
+ai-module-layer: "KI-Modulschicht" {
   class: layer-ai
   grid-columns: 2
   ki-module: "KI-Module" {
     class: group
     grid-columns: 5
     inhaltsextraktion: "Inhaltsextraktion\nPython, Temporal-Worker" { class: ai-module }
-    formale-vollstaendigkeitspruefung: "Formale Vollstaendigkeitspruefung\nPython, Temporal-Worker" { class: ai-module }
-    plausibilitaetspruefung: "Plausibilitaetspruefung\nPython, Temporal-Worker" { class: ai-module }
-    materielle-vollstaendigkeitspruefung: "Materielle Vollstaendigkeitspruefung\nPython, Temporal-Worker" { class: ai-module }
+    formale-vollstaendigkeitspruefung: "Formale Vollständigkeitsprüfung\nPython, Temporal-Worker" { class: ai-module }
+    plausibilitaetspruefung: "Plausibilitätsprüfung\nPython, Temporal-Worker" { class: ai-module }
+    materielle-vollstaendigkeitspruefung: "Materielle Vollständigkeitsprüfung\nPython, Temporal-Worker" { class: ai-module }
     einwendungsmanagement: "Einwendungsmanagement\nPython, Temporal-Worker" { class: ai-module }
-    rechtliche-pruefung-und-bewertung: "Rechtliche Pruefung und Bewertung\nPython, Temporal-Worker" { class: ai-module }
+    rechtliche-pruefung-und-bewertung: "Rechtliche Prüfung und Bewertung\nPython, Temporal-Worker" { class: ai-module }
     rechtsmethodik: "Rechtsmethodik\nPython, Temporal-Worker" { class: ai-module }
     anonymisierung: "Anonymisierung\nPython, Temporal-Worker" { class: ai-module }
     risikohinweiser: "Risikohinweiser\nPython, Temporal-Worker" { class: ai-module }
@@ -589,25 +608,22 @@ basisdienste: "Basisdienste" {
   plattformdienste: "Plattformdienste" {
     class: group
     grid-columns: 5
-    spicedb: "SpiceDB\nSpiceDB" { class: platform }
-    qdrant: "Qdrant\nQdrant" { class: platform }
-    unoserver: "Unoserver\nUnoserver, LibreOffice" { class: platform }
-    clamav: "ClamAV\nClamAV, clamav-api (REST)" { class: platform }
+    spicedb: "SpiceDB\nSpiceDB" { class: third-party }
+    qdrant: "Qdrant\nQdrant" { class: third-party }
+    unoserver: "Unoserver\nUnoserver, LibreOffice" { class: third-party }
+    clamav: "ClamAV\nClamAV, clamav-api (REST)" { class: third-party }
     docling-rq: "Docling\nDocling, RQ" { class: platform }
   }
   datenhaltung: "Datenhaltung" {
     class: group
     grid-columns: 5
-    redis-shared: "Redis (geteilt)\nRedis" { class: platform }
-    redis-datenbanken: "Redis (Datenbankdienste)\nRedis" { class: platform }
-    redis-formale-pruefung: "Redis (Formale Pruefung)\nRedis" { class: platform }
-    redis-rechtsmethodik: "Redis (Rechtsmethodik)\nRedis" { class: platform }
-    redis-sessions: "Redis (Sitzungen)\nRedis" { class: platform }
+    redis-shared: "Redis (geteilt)\nRedis" { class: third-party }
+    redis-sessions: "Redis (Sitzungen)\nRedis" { class: third-party }
   }
   werkzeuge: "Werkzeuge" {
     class: group
     grid-columns: 1
-    service-api-docs: "Service-API-Dokumentation\nSwagger UI" { class: platform }
+    service-api-docs: "API-Dokumentation der Dienste\nSwagger UI" { class: platform }
   }
 }
 
@@ -617,9 +633,9 @@ betreiberseitig: "Betreiberseitig bereitgestellt" {
   postgresql: "PostgreSQL" { class: infrastructure }
   object-storage: "S3-kompatibler Objektspeicher" { class: infrastructure }
   redis: "Redis" { class: infrastructure }
-  identity-provider: "Identitaets- und Autorisierungsdienst" { class: infrastructure }
+  identity-provider: "Identitäts- und Autorisierungsdienst" { class: infrastructure }
   service-mesh: "mTLS-Service-Mesh" { class: infrastructure }
-  secrets-management: "Secrets- und Schluesselverwaltung" { class: infrastructure }
+  secrets-management: "Secrets- und Schlüsselverwaltung" { class: infrastructure }
   metrics: "Metrikdienst" { class: infrastructure }
   telemetry: "Telemetriedienst" { class: infrastructure }
   llm-proxy: "LLM-Proxy" { class: infrastructure }
@@ -636,18 +652,19 @@ dokumentation: "Legende und Metadaten" {
     grid-columns: 3
     grid-gap: 32
     l-pool: "Backend-Pool\n15 Instanzen eines Images" { class: pool }
-    l-service: "Eigenstaendiger Dienst" { class: service }
+    l-service: "Eigenständiger Dienst" { class: service }
     l-modulith: "SPARK Backend\nModulith-Image" { class: modulith }
     l-ai: "KI-Modul" { class: ai-module }
     l-platform: "Plattformdienst" { class: platform }
-    l-infra: "Betreiberseitig, nicht aus diesem Repository" { class: infrastructure }
+    l-third: "Fremdsoftware, nicht Teil des Produkts" { class: third-party }
+    l-infra: "Betreiberseitig bereitgestellt, nicht aus diesem Repository" { class: infrastructure }
   }
 
   legende-text: "" {
     class: legend-column
     grid-columns: 1
     metadaten: |md
-      **Erstellt am** 06.10.2026, 15:51 UTC\
+      **Erstellt am** 20.10.2026, 08:55 UTC\
       **Ansicht** c2-container (C2)\
       **Renderer** d2 v0.8.2\
       **Quelle** kuratiertes Modell\
@@ -658,16 +675,16 @@ dokumentation: "Legende und Metadaten" {
 
   }
   hinweis: |md
-    44 deploybare Einheiten aus diesem Repository,\
+    Das Inventar umfasst 41 Container,\
     dazu 10 betreiberseitig bereitgestellte Bausteine.
 
-    Die 15 Backend-Pools starten dasselbe Image und stellen jeweils\
-    den vollstaendigen HTTP-Graphen bereit. Getrennt sind Name, Service,\
-    Routing-Praefix, Worker-Identitaet und Skalierung, nicht die\
-    Fachlichkeit. Die Gruppen benennen den Verkehr, den ein Pool bedient.
+    Die 15 Backend-Pools sind Instanzen desselben Images und stellen\
+    jeweils den vollständigen HTTP-Graphen bereit. Sie unterscheiden sich in\
+    Name, Dienst, Routing-Präfix, Worker-Identität und Skalierung, nicht in\
+    der Fachlichkeit. Die Gruppen benennen den Verkehr, den ein Pool bedient.
 
     Die Karte zeigt das Inventar ohne Laufzeitkanten. Die\
-    78 belegten Beziehungen stehen in den\
+    75 belegten Beziehungen stehen in den\
     fokussierten C2-Ansichten und in inventory.toml.
 
     SPARK Backend, KI-Module und Datenbankdienste melden an den\

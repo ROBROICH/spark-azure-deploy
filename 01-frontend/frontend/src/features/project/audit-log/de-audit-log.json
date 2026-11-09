@@ -156,6 +156,8 @@
   "diff": {
     "field": "Feld",
     "before": "Vorher",
-    "after": "Nachher"
+    "after": "Nachher",
+    "formattedContentField": "Formatierter Inhalt",
+    "formattedContentChanged": "Geändert"
   }
 }

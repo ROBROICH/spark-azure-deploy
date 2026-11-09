@@ -19,6 +19,7 @@ export type WorkflowBadgeStatus =
   | 'pending'
   | 'success'
   | 'failed'
+  | 'canceled'
   | 'continued';
 
 export type WorkflowFailure = NonNullable<WorkflowsBase['failure']>;

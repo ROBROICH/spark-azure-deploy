@@ -1,5 +1,11 @@
 # gateway-routes
 
+With `auth.jwtHeaderOnly: true`, API JWTs are extracted only from
+`Authorization: Bearer …`, never from query or cookie tokens. The default is
+`false`. Header-only extraction must match backends that trust tokenless calls
+with `DANGEROUS_ZERO_TRUST_DISABLED`; this chart alone does not isolate backend
+ingress.
+
 Per-environment Envoy Gateway routing for a SPARK environment. Deployed
 **into the environment namespace** (e.g. `my-env`) as a subchart of the
 `spark-platform` umbrella. The Gateway `api-gateway` itself lives in

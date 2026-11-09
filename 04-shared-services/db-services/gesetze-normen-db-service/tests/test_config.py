@@ -18,7 +18,7 @@ def test_env_aliases():
 
 def test_pipeline_config_from_file():
     """tets if pipeline config entries are populated from json file"""
-    pipeline_config: PipelineConfig = PipelineConfig(json_location="tests/data/nonexistant_laws.json")
+    pipeline_config: PipelineConfig = PipelineConfig(json_location="tests/data/nonexistent_laws.json")
 
     assert "foo" in pipeline_config.relevant_laws.bund.gesetz
     assert "bar" in pipeline_config.relevant_laws.bund.verordnung

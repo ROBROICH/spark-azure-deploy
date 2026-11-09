@@ -32,7 +32,8 @@
         "realm": {"type": ["string", "null"]},
         "clientID": {"type": "string"},
         "allowedRoles": {"type": "array", "items": {"type": "string"}},
-        "audiences": {"type": ["array", "null"], "items": {"type": "string"}}
+        "audiences": {"type": ["array", "null"], "items": {"type": "string"}},
+        "jwtHeaderOnly": {"type": "boolean"}
       }
     },
     "cors": {"type": "object", "properties": {"allowOrigins": {"type": ["array", "null"], "items": {"type": "string"}}, "allowCredentials": {"type": "boolean"}}},

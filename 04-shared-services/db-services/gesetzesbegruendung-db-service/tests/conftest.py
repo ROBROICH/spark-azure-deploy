@@ -11,9 +11,19 @@ from begruendungen_db.parsers.dip_druck import DIPDruckProcessor
 from begruendungen_db.service import app
 from db_services_shared.models.db.database import get_db_session
 from db_services_shared.models.db.migrate import run_alembic_downgrade, run_alembic_upgrade
+from db_services_shared.testing.postgres import (
+    external_postgres_server,
+    use_external_postgres,
+)
 from httpx import ASGITransport, AsyncClient
+from pytest_postgresql import factories
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from typer.testing import CliRunner
+
+# Use an already-running PostgreSQL if PYTEST_POSTGRES_EXTERNAL is set.
+if use_external_postgres():
+    postgresql_noproc = external_postgres_server()
+    postgresql = factories.postgresql("postgresql_noproc")
 
 
 @pytest.fixture(autouse=True)

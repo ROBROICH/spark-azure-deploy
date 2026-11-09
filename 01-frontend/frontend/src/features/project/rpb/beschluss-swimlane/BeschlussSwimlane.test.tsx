@@ -5,8 +5,20 @@ import { toCompositeKey } from '@/db/nodes/compositeKey';
 import type { NodePayloadByType } from '@/db/nodes/types';
 import type { ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { BeschlussSection } from '../rpbBeschluss.types';
+import type { BeschlussContent, BeschlussSection } from '../rpbBeschluss.types';
 import { BeschlussSwimlane } from './BeschlussSwimlane';
+
+const editedContent: BeschlussContent = {
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      content: [
+        { type: 'text', marks: [{ type: 'bold' }], text: 'edited text' },
+      ],
+    },
+  ],
+};
 
 const mocks = vi.hoisted(() => ({
   canExportBeschluss: false,
@@ -111,7 +123,10 @@ vi.mock('./BeschlussEditor', () => ({
     canExport: boolean;
     headerAccessory?: ReactNode;
     onExportClick: () => void;
-    onTextBlur: (outlineNodeId: string, nextText: string) => void;
+    onContentCommit: (
+      outlineNodeId: string,
+      nextContent: BeschlussContent,
+    ) => void;
     sections: BeschlussSection[];
   }) => (
     <div>
@@ -128,7 +143,9 @@ vi.mock('./BeschlussEditor', () => ({
           key={section.vaeNodeId}
           type="button"
           data-editable={section.isEditable}
-          onClick={() => props.onTextBlur(section.vaeNodeId, 'edited text')}
+          onClick={() =>
+            props.onContentCommit(section.vaeNodeId, editedContent)
+          }
         >
           {section.vaeNodeId}
         </button>
@@ -163,6 +180,7 @@ const createVaeNode = (
     subtopicId: null,
     templateId: null,
     text: 'original text',
+    content: null,
     title,
     topicId: null,
     updateType: null,
@@ -279,37 +297,8 @@ describe('BeschlussSwimlane', () => {
 
     recipe(draft);
 
-    expect(draft.text).toBe('edited text');
-  });
-
-  it('does not track a commit for unchanged Beschluss text', async () => {
-    const user = userEvent.setup();
-    mocks.canMutateProject = true;
-    mocks.selectedVaeNodeAssignedTopicId = undefined;
-    mocks.useNodesByTypeMock.mockImplementation((nodeType: string) => {
-      if (nodeType === 'topic') {
-        return { data: [] };
-      }
-
-      return {
-        data: [
-          createVaeNode({
-            id: 'root',
-            text: 'edited text',
-            title: 'Root',
-            topicId: null,
-          }),
-        ],
-      };
-    });
-
-    render(<BeschlussSwimlane />);
-
-    await user.click(screen.getByRole('button', { name: 'root' }));
-
-    expect(mocks.transactMock).not.toHaveBeenCalled();
-    expect(mocks.trackBeschlussCommitMock).not.toHaveBeenCalled();
-    expect(mocks.updateMock).not.toHaveBeenCalled();
+    expect(draft.content).toEqual(editedContent);
+    expect(draft.text).toBe('original text');
   });
 
   it('passes the selected inherited topic assignees to the Beschluss header badge', () => {

@@ -10,8 +10,8 @@ erneut renderbar.
 | Ansicht | Zeigt |
 |---|---|
 | [C1 Systemkontext](./views/c1-system-context.svg) | SPARK Workflow, seine Akteure, die angebundenen Behördenplattformen und die Sprachmodelle |
-| [C2 Container](./views/c2-container.svg) | Die deploybaren Einheiten im veröffentlichten Architekturumfang, nach Layern und Dienstgruppen |
-| [C2 Dienste und Orchestrierung](./views/c2-service-flows.svg) | Frontend, Backend-Pools, Workflow Engine und Plattformdienste mit ihren belegten Laufzeitbeziehungen |
+| [C2 Container](./views/c2-container.svg) | Die deploybaren Einheiten im veröffentlichten Architekturumfang, nach Schichten und Dienstgruppen |
+| [C2 Dienste und Orchestrierung](./views/c2-service-flows.svg) | Frontend, Backend-Pools, Workflow-Engine und Plattformdienste mit ihren belegten Laufzeitbeziehungen |
 | [C2 Integration](./views/c2-integration.svg) | Integrationsdienste, Rechtsdatenbanken und der Modellzugang über den LLM-Client |
 | [C2 KI-Verarbeitung](./views/c2-ai.svg) | KI-Module, Modellzugang, Vorverarbeitung und die Dienste, die sie aufrufen |
 | [C3 Komponenten des SPARK Backend](./views/c3-component-spark-backend.svg) | Den Modulithen von innen: Feature-Pakete, geteilte Pakete und die Pools mit eigener Worker-Identität |
@@ -58,31 +58,31 @@ Laufzeitbeziehungen stehen in den drei fokussierten C2-Ansichten.
 >
 > *Die C2-Ansicht zeigt darüber hinaus die Betriebssicht: `spark-backend` wird als
 > fünfzehn Pools desselben Images betrieben. Jeder Pool stellt den vollständigen
-> HTTP-Graphen bereit; getrennt sind Name, Service, Routing-Präfix,
+> HTTP-Graphen bereit; getrennt sind Name, Dienst, Routing-Präfix,
 > Worker-Identität und Skalierung.*
 
 
-Die Applikation SPARK Workflow ist als containerisierte Service-Architektur umgesetzt und ist nativ für den Betrieb auf einem, gegebenenfalls gemanagten, Kubernetes-Cluster auf Basis einer (Cloud-)Serverinfrastruktur ausgelegt. SPARK Workflow ist sowohl als Open-Source-Software als auch plattformunabhängig konzipiert und auf jeder Kubernetes-kompatiblen Infrastruktur lauffähig – sei es in Public-Cloud-Umgebungen, in Private-Cloud-Umgebungen oder auf On-Premise-Infrastruktur.
+Das System SPARK Workflow ist als containerisierte Dienstarchitektur umgesetzt und ist nativ für den Betrieb auf einem, gegebenenfalls gemanagten, Kubernetes-Cluster auf Basis einer (Cloud-)Serverinfrastruktur ausgelegt. SPARK Workflow ist sowohl als Open-Source-Software als auch plattformunabhängig konzipiert und auf jeder Kubernetes-kompatiblen Infrastruktur lauffähig – sei es in Public-Cloud-Umgebungen, in Private-Cloud-Umgebungen oder auf On-Premise-Infrastruktur.
 
-Die Systemarchitektur von SPARK Workflow sieht eine Trennung der Applikation von der für den Betrieb der Applikation benötigten Infrastruktur, den anzubindenden Behördenplattformen und den Sprachmodellen vor. Die Gruppen Infrastruktur, bestehende Behördenplattformen und Sprachmodelle sind nicht Teil der Applikation SPARK Workflow und müssen für die ordnungsgemäße Funktionsfähigkeit der Applikation durch die betreibende Stelle eigenverantwortlich bereitgestellt und angebunden werden.
+Die Systemarchitektur von SPARK Workflow sieht eine Trennung des Systems von der für seinen Betrieb benötigten Infrastruktur, den anzubindenden Behördenplattformen und den Sprachmodellen vor. Die Gruppen Infrastruktur, bestehende Behördenplattformen und Sprachmodelle sind nicht Teil des Systems SPARK Workflow und müssen für dessen ordnungsgemäße Funktionsfähigkeit durch die betreibende Stelle eigenverantwortlich bereitgestellt und angebunden werden.
 
-Dabei ist es der betreibenden Stelle überlassen, ob die Komponenten der Gruppen zum Beispiel als selbst verwaltete Services oder als Managed Services der gewählten Betriebsplattform bereitgestellt werden.
+Dabei ist es der betreibenden Stelle überlassen, ob die Komponenten der Gruppen zum Beispiel als selbst verwaltete Dienste oder als verwaltete Dienste der gewählten Betriebsplattform bereitgestellt werden.
 
-# (2) Applikation SPARK Workflow
+# (2) System SPARK Workflow
 
-Innerhalb der Applikation SPARK Workflow ist eine dreischichtige Architektur mit einem Headless-Frontend für die Anwenderinteraktion realisiert. Diese Trennung wird unter anderem durch das Deployment mit dezidierten Namespaces innerhalb des Kubernetes‑Clusters realisiert.
+Innerhalb des Systems SPARK Workflow ist eine dreischichtige Architektur mit einem Headless-Frontend für die Interaktion der Nutzenden realisiert. Diese Trennung wird unter anderem durch das Deployment mit dezidierten Namespaces innerhalb des Kubernetes‑Clusters realisiert.
 
-## (2.1) Service Layer
+## (2.1) Dienstschicht
 
-Der Service Layer umfasst insgesamt sechs Dienstgruppen und drei eigenständige Komponenten. Die sechs Dienstgruppen umfassen wie folgt:
+Die Dienstschicht umfasst insgesamt sechs Dienstgruppen und drei eigenständige Komponenten. Die sechs Dienstgruppen umfassen wie folgt:
 
-- Die Gruppe „Workflow-Dienste“ umfasst Basisdienste, die Kernfunktionalitäten der Applikation bereitstellen. Dies sind Dienste zur Verfahrensverwaltung, zum Workflowmanagement, zum Dokumentenmanagement, zur Agentenorchestrierung und zur Protokollverwaltung.
+- Die Gruppe „Workflow-Dienste“ umfasst Basisdienste, die Kernfunktionalitäten des Systems bereitstellen. Dies sind Dienste zur Verfahrensverwaltung, zum Workflowmanagement, zum Dokumentenmanagement, zur Agentenorchestrierung und zur Protokollverwaltung.
 
 - Die Gruppe „Interaktionsdienste“ umfasst Dienste für die Anreicherung des gesamten Planungs- und Genehmigungsprozesses um zusätzliche Eingaben. Dies sind Dienste zur Kommentarverwaltung, zur Nachforderungsverwaltung, zur Identitätsverwaltung, zur Einwendungsverwaltung und zur Feedbackverwaltung.
 
 - Die Gruppe „Datenbankdienste“ umfasst Dienste zur Interaktion mit den angebundenen Datenbanken. Dies sind Dienste für die Gesetz- und Normendatenbank, für die juristische Datenbank und für die Gesetzesbegründungsdatenbank.
 
-- Die Gruppe „Integrationsdienste“ umfasst spezialisierte Dienste für die Anbindung externer Behördenplattformen an die Applikation SPARK Workflow und ermöglicht die dafür notwendigen Datenflüsse. Dies sind Dienste für die Fachplanungsportalintegration und die DiPlan-Integration.
+- Die Gruppe „Integrationsdienste“ umfasst spezialisierte Dienste für die Anbindung externer Behördenplattformen an das System SPARK Workflow und ermöglicht die dafür notwendigen Datenflüsse. Dies sind Dienste für die Fachplanungsportalintegration und die DiPlan-Integration.
 
 - Die Gruppe „Beschlussdienste“ umfasst einen Dienst zur Erstellung von Beschlüssen (Verwaltungsakt).
 
@@ -99,18 +99,18 @@ Die drei eigenständigen Komponenten umfassen wie folgt:
 
   - Produktdokumentation: <https://github.com/unoconv/unoserver>
 
-- Die Komponente „ClamAV“ dient der Prüfung von Dateien auf Signaturen bekannter Computerviren. Dies ist insbesondere deswegen notwendig, da über das Frontend Dateien von außerhalb der Applikation in die Applikation geladen werden und diese – nach Annahme des
+- Die Komponente „ClamAV“ dient der Prüfung von Dateien auf Signaturen bekannter Computerviren. Dies ist insbesondere deswegen notwendig, da über das Frontend Dateien von außerhalb des Systems in das System geladen werden und diese – nach Annahme des
   Zero-Trust-Grundsatzes – potenziell schädlich sein könnten.
 
   - Produktdokumentation: <https://www.clamav.net/>
 
-## (2.2) Orchestration Layer
+## (2.2) Orchestrierungsschicht
 
-Der zweite Layer, der „Orchestration Layer“, umfasst ausschließlich die Komponente „Temporal“. Diese ist als Workflow Engine für das Workflowmanagement der gesamten Applikation führend und ermöglicht die Steuerung und Nachverfolgung der Prozesse von SPARK Workflow.
+Die zweite Schicht, die „Orchestrierungsschicht“, umfasst ausschließlich die Komponente „Temporal“. Diese ist als Workflow-Engine für das Workflowmanagement des gesamten Systems führend und ermöglicht die Steuerung und Nachverfolgung der Prozesse von SPARK Workflow.
 
-## (2.3) AI Module Layer
+## (2.3) KI-Modulschicht
 
-Der dritte Layer, der „AI Module Layer“, umfasst insgesamt zehn Modulgruppen und drei eigenständige Komponenten. Die zehn Modulgruppen umfassen wie folgt:
+Die dritte Schicht, die „KI-Modulschicht“, umfasst insgesamt neun Modulgruppen und drei eigenständige Komponenten. Die neun Modulgruppen umfassen wie folgt:
 
 - Die Gruppe „Inhaltsextraktion“ umfasst das gleichnamige Modul. Dieses ist Grundlage für den Prozessschritt „Formale Vollständigkeitsprüfung“ im Frontend.
 
@@ -126,15 +126,13 @@ Der dritte Layer, der „AI Module Layer“, umfasst insgesamt zehn Modulgruppen
 
 - Die Gruppe „Rechtsmethodik“ umfasst das gleichnamige Modul. Dieses dient der Bereitstellung von grundlegenden rechtsmethodischen Funktionalitäten, auf welche die anderen Module zugreifen.
 
-- Die Gruppe „Normenermittlung“ umfasst das gleichnamige Modul. Dieses führt die formale Anwendbarkeitsprüfung und die Auflösung von Normenkollisionen durch und stellt die ermittelten Rechtsnormen für die rechtliche Prüfung bereit.
-
 - Die Gruppe „Anonymisierung“ umfasst das gleichnamige Modul. Dieses stellt die KI-Funktionalitäten für das KI-Werkzeug „Schwärzungsagent“ im Frontend bereit.
 
 - Die Gruppe „Risikohinweiser“ umfasst das gleichnamige Modul. Dieses stellt die KI-Funktionalitäten für den Prozessschritt „Rechtliche Prüfung und Beschlusserstellung“ im Frontend bereit.
 
 Die drei eigenständigen Komponenten umfassen wie folgt:
 
-- Die Komponente „LLM-Proxy“ dient gleichzeitig sowohl als LLM API Abstraction Layer, als LLM-Proxy und als LLM-Gateway. Die Komponente vereinheitlicht, steuert und überwacht das Ansprechen der extern bereitgestellten Sprachmodelle über OpenAI-API-kompatible Schnittstellen. Die Komponente muss durch die Betreiberin der Applikation bereitgestellt werden. Mögliche Umsetzung: „LiteLLM“, Bereitstellung als „litellm-proxy“ und als „llm-client“.
+- Die Komponente „LLM-Proxy“ dient gleichzeitig sowohl als LLM API Abstraction Layer, als LLM-Proxy und als LLM-Gateway. Die Komponente vereinheitlicht, steuert und überwacht das Ansprechen der extern bereitgestellten Sprachmodelle über OpenAI-API-kompatible Schnittstellen. Die Komponente muss durch die betreibende Stelle des Systems bereitgestellt werden. Mögliche Umsetzung: „LiteLLM“, Bereitstellung als „litellm-proxy“ und als „llm-client“.
 
   - Produktdokumentation: <https://www.litellm.ai/>
 
@@ -158,11 +156,11 @@ Die Untergruppe „Sicherheits-, Identitäts- und Vertrauensmanagement“ umfass
 
   - Produktdokumentation: <https://istio.io/>, <https://www.cncf.io/projects/envoy/>
 
-- Die Komponentenanforderung „OIDC‑ & OAuth 2.0‑konformer Identitäts‑ und Autorisierungsdienst“ beschreibt die Notwendigkeit der Bereitstellung eines kompatiblen Identitätsverwaltungsdiensts und Reverse-Proxys, um den Zugriff auf die Applikation zu steuern und abzusichern. Für den Betrieb des Envoy-Proxys ist ein OIDC-konformer Identity Provider erforderlich. Damit der Proxy Authentifizierungs- und Autorisierungsentscheidungen treffen kann, müssen ihm außerdem die spezifischen Konfigurationsinformationen des Identity Provider bereitgestellt werden. Mögliche Umsetzung: „Keycloak“ und „OAuth2 Proxy“.
+- Die Komponentenanforderung „OIDC‑ & OAuth 2.0‑konformer Identitäts‑ und Autorisierungsdienst“ beschreibt die Notwendigkeit der Bereitstellung eines kompatiblen Identitätsverwaltungsdiensts und Reverse-Proxys, um den Zugriff auf das System zu steuern und abzusichern. Für den Betrieb des Envoy-Proxys ist ein OIDC-konformer Identity Provider erforderlich. Damit der Proxy Authentifizierungs- und Autorisierungsentscheidungen treffen kann, müssen ihm außerdem die spezifischen Konfigurationsinformationen des Identity Provider bereitgestellt werden. Mögliche Umsetzung: „Keycloak“ und „OAuth2 Proxy“.
 
   - Produktdokumentation: <https://www.keycloak.org/>, <https://oauth2-proxy.github.io/oauth2-proxy/>
 
-- Die Komponentenanforderungen „Secrets- & Schlüsselverwaltung“ und „TLS‑Zertifikatsverwaltung (X.509‑PKI)“ beschreiben die Notwendigkeit der Bereitstellung einer kompatiblen Secrets- und Schlüsselverwaltung, einschließlich Schlüsselsynchronisation und Zertifikatsverwaltung. Die Applikation SPARK Workflow setzt dabei einen External-Secrets-Operator-kompatiblen Dienst für ordnungsgemäße Funktionsfähigkeit voraus. Mögliche Umsetzung: „HashiCorp Vault“, „External Secrets Operator“ und „cert-manager“.
+- Die Komponentenanforderungen „Secrets- & Schlüsselverwaltung“ und „TLS‑Zertifikatsverwaltung (X.509‑PKI)“ beschreiben die Notwendigkeit der Bereitstellung einer kompatiblen Secrets- und Schlüsselverwaltung, einschließlich Schlüsselsynchronisation und Zertifikatsverwaltung. Das System SPARK Workflow setzt dabei einen External-Secrets-Operator-kompatiblen Dienst für seine ordnungsgemäße Funktionsfähigkeit voraus. Mögliche Umsetzung: „HashiCorp Vault“, „External Secrets Operator“ und „cert-manager“.
 
   - Produktdokumentation: <https://www.hashicorp.com/de/products/vault>, <https://external-secrets.io/latest/>, <https://cert-manager.io/>
 
@@ -170,12 +168,12 @@ Die Untergruppe „Sicherheits-, Identitäts- und Vertrauensmanagement“ umfass
 
 Die Untergruppe „Überwachung“ umfasst zwei Komponentenanforderungen an die Betriebsumgebungen. Diese sind wie folgt:
 
-- Die Komponentenanforderung „Prometheus-Metrics-kompatibler Metrikdienst“ beschreibt die Notwendigkeit der Bereitstellung eines Dienstes, um in den Komponenten der Applikation erzeugte Metriken abzuholen, sie zu aggregieren und für Dashboards vorzuhalten.
+- Die Komponentenanforderung „Prometheus-Metrics-kompatibler Metrikdienst“ beschreibt die Notwendigkeit der Bereitstellung eines Dienstes, um in den Komponenten des Systems erzeugte Metriken abzuholen, sie zu aggregieren und für Dashboards vorzuhalten.
   Mögliche Umsetzung: „Prometheus“ und „Grafana“.
 
   - Produktdokumentation: <https://prometheus.io/>, <https://grafana.com/>
 
-- Die Komponentenanforderung „OpenTelemetry-kompatibler Telemetriedienst“ beschreibt die Notwendigkeit der Bereitstellung eines kompatiblen Dienstes, um in den Komponenten der Applikation erzeugte Logs abzuholen, zu aggregieren und für Abfragen vorzuhalten.
+- Die Komponentenanforderung „OpenTelemetry-kompatibler Telemetriedienst“ beschreibt die Notwendigkeit der Bereitstellung eines kompatiblen Dienstes, um in den Komponenten des Systems erzeugte Logs abzuholen, zu aggregieren und für Abfragen vorzuhalten.
   Mögliche Umsetzung: „OpenTelemetry Collector“ und „Grafana Loki“.
 
   - Produktdokumentation: <https://opentelemetry.io/docs/collector/>, <https://grafana.com/oss/loki/?plcmt=oss-nav>
@@ -184,11 +182,11 @@ Die Untergruppe „Überwachung“ umfasst zwei Komponentenanforderungen an die 
 
 Die Untergruppe „Datenhaltung“ umfasst drei Komponentenanforderungen an die Betriebsumgebungen. Diese sind wie folgt:
 
-- Die Komponentenanforderung „PostgreSQL“ beschreibt die Notwendigkeit der Bereitstellung eines hochverfügbaren „PostgreSQL“-Datenbankclusters für die Sicherung der Verfahrensdaten. Die PostgreSQL-Datenbank muss aus dem Kubernetes-Cluster heraus erreichbar sein, da mehrere Komponenten auf die relationale Datenbank für ihre ordnungsgemäße Funktionsfähigkeit angewiesen sind. Darüber hinaus muss diese professionell gemanagt sein und muss dynamisch mit den Arbeitslasten der Applikation skalieren. Mögliche Umsetzung: „CloudNativePG“ und „PostgreSQL“.
+- Die Komponentenanforderung „PostgreSQL“ beschreibt die Notwendigkeit der Bereitstellung eines hochverfügbaren „PostgreSQL“-Datenbankclusters für die Sicherung der Verfahrensdaten. Die PostgreSQL-Datenbank muss aus dem Kubernetes-Cluster heraus erreichbar sein, da mehrere Komponenten auf die relationale Datenbank für ihre ordnungsgemäße Funktionsfähigkeit angewiesen sind. Darüber hinaus muss diese professionell gemanagt sein und muss dynamisch mit den Arbeitslasten des Systems skalieren. Mögliche Umsetzung: „CloudNativePG“ und „PostgreSQL“.
 
   - Produktdokumentation: <https://cloudnative-pg.io/>, <https://www.postgresql.org/>
 
-- Die Komponentenanforderung „S3-kompatibler Objektspeicher“ beschreibt die Notwendigkeit der Bereitstellung eines hochverfügbaren verteilten Objektspeichers mit S3-kompatibler Schnittstelle für die Ablage von Arbeitsdaten. Die S3-Kompatibilität ist von kritischer Relevanz für die Applikation, da nahezu alle Komponenten auf diese Datenablage zugreifen. Mögliche Umsetzung: „Rook“ und „Ceph“.
+- Die Komponentenanforderung „S3-kompatibler Objektspeicher“ beschreibt die Notwendigkeit der Bereitstellung eines hochverfügbaren verteilten Objektspeichers mit S3-kompatibler Schnittstelle für die Ablage von Arbeitsdaten. Die S3-Kompatibilität ist von kritischer Relevanz für das System, da nahezu alle Komponenten auf diese Datenablage zugreifen. Mögliche Umsetzung: „Rook“ und „Ceph“.
 
   - Produktdokumentation: <https://rook.io/>, <https://ceph.io/en/>
 
@@ -199,7 +197,7 @@ Die Untergruppe „Datenhaltung“ umfasst drei Komponentenanforderungen an die 
 
 # (4) Bestehende Behördenplattformen
 
-Die Applikation SPARK Workflow kann mit bestehenden behördlichen Plattformen verbunden werden. Exemplarisch wurde bereits die Anbindung an folgende Plattformen betrachtet:
+Das System SPARK Workflow kann mit bestehenden behördlichen Plattformen verbunden werden. Exemplarisch wurde bereits die Anbindung an folgende Plattformen betrachtet:
 
 - [Das Antrags- und Beteiligungsportal](https://beteiligung.bund.de/) für Verkehr und Offshore-Vorhaben (Fachplanungsportal) des Bundesministeriums für Verkehr ermöglicht die digitale Antragseinreichung und Durchführung der Behörden- und Öffentlichkeitsbeteiligung mit Webzugängen. Das Portal umfasst Infrastrukturprojekte im Geschäftsbereich des Bundesministeriums für Verkehr in den Bereichen Eisenbahnen, Fernstraßen und Wasserstraßen des Bundes sowie Windenergie auf See.
 
@@ -207,7 +205,7 @@ Die Applikation SPARK Workflow kann mit bestehenden behördlichen Plattformen ve
 
 # (5) Sprachmodelle
 
-Die Applikation SPARK Workflow ist für die ordnungsgemäße Funktionsfähigkeit der integrierten Agenten auf die Anbindung spezialisierter Sprachmodelle angewiesen. Die Module der Applikation sind dabei jeweils spezifisch auf genau ein Sprachmodell angepasst. Die ordnungsgemäße Funktionsfähigkeit eines Moduls kann nicht gewährleistet werden, wenn ein anderes Sprachmodell als das vorgegebene angebunden wird. Die Anbindung der Sprachmodelle erfolgt über die Bereitstellung OpenAI-API-kompatibler Schnittstellen der Sprachmodelle und über die Konfiguration des LLM-Proxys für den Zugriff auf diese Schnittstellen. Die eingesetzten Sprachmodelle sind wie folgt:
+Das System SPARK Workflow ist für die ordnungsgemäße Funktionsfähigkeit der integrierten Agenten auf die Anbindung spezialisierter Sprachmodelle angewiesen. Die Module des Systems sind dabei jeweils spezifisch auf genau ein Sprachmodell angepasst. Die ordnungsgemäße Funktionsfähigkeit eines Moduls kann nicht gewährleistet werden, wenn ein anderes Sprachmodell als das vorgegebene angebunden wird. Die Anbindung der Sprachmodelle erfolgt über die Bereitstellung OpenAI-API-kompatibler Schnittstellen der Sprachmodelle und über die Konfiguration des LLM-Proxys für den Zugriff auf diese Schnittstellen. Die eingesetzten Sprachmodelle sind wie folgt:
 
 - Das Sprachmodell „BGE-M3“ ist ein Embedding-Modell und dient der Erzeugung hochwertiger, mehrsprachiger Vektorrepräsentationen für Suche, Matching und RAG‑Systeme.
 
@@ -233,11 +231,11 @@ Die Auswirkungen von Quantisierung auf die Ergebnisqualität / Modelleffizienz w
 
 # (6) Kubernetes-Cluster
 
-Kubernetes bildet die zentrale Orchestrierungsplattform für den Betrieb der containerisierten Service-Architektur von SPARK Workflow und ermöglicht die automatisierte Bereitstellung, Skalierung und Überwachung der Applikation. Der gewünschte Systemzustand wird dabei deklarativ beschrieben und durch kontinuierliche Ist-Soll-Abgleiche sichergestellt. Die Applikationskomponenten werden in Form von Pods betrieben und über standardisierte Ressourcen wie Deployments, Services und Ingress gesteuert. Sicherheitsmechanismen wie ReBAC, Namespace-Isolation und Network Policies gewährleisten einen kontrollierten und abgesicherten Betrieb.
+Kubernetes bildet die zentrale Orchestrierungsplattform für den Betrieb der containerisierten Dienstarchitektur von SPARK Workflow und ermöglicht die automatisierte Bereitstellung, Skalierung und Überwachung des Systems. Der gewünschte Systemzustand wird dabei deklarativ beschrieben und durch kontinuierliche Ist-Soll-Abgleiche sichergestellt. Die Systemkomponenten werden in Form von Pods betrieben und über standardisierte Ressourcen wie Deployments, Services und Ingress gesteuert. Sicherheitsmechanismen wie ReBAC, Namespace-Isolation und Network Policies gewährleisten einen kontrollierten und abgesicherten Betrieb.
 
 ## (6.1) Node Pools
 
-Damit die Applikation SPARK Workflow ordnungsgemäß betrieben und gewartet werden kann, müssen die über den Node Pool bereitgestellten Knoten den nachfolgenden Mindesthardwareanforderungen entsprechen. Kubernetes‑Mechanismen wie Pod-Scheduling, Netzwerksegmentierung und Zugriffskontrollen sind obligatorisch zur Absicherung des Kubernetes-Clusters.
+Damit das System SPARK Workflow ordnungsgemäß betrieben und gewartet werden kann, müssen die über den Node Pool bereitgestellten Knoten den nachfolgenden Mindesthardwareanforderungen entsprechen. Kubernetes‑Mechanismen wie Pod-Scheduling, Netzwerksegmentierung und Zugriffskontrollen sind obligatorisch zur Absicherung des Kubernetes-Clusters.
 
 ### Default Node Pool
 
@@ -249,7 +247,7 @@ Der Default Node Pool umfasst mindestens drei virtuelle Maschinen (VM) mit jewei
 
 - Lokaler SSD‑Speicher (ephemeral)
 
-Für den ordnungsgemäßen Betrieb der Applikation werden die Komponenten Docling und Qdrant benötigt. Diese müssen von der Betriebsplattform dediziert bereitgestellt werden. Für den Betrieb dieser Komponenten werden die nachfolgenden zwei Node Pools empfohlen:
+Für den ordnungsgemäßen Betrieb des Systems werden die Komponenten Docling und Qdrant benötigt. Die Manifeste hierfür liegen unter `04-shared-services`; die Betriebsplattform muss die dedizierten Knoten dafür bereitstellen. Für den Betrieb dieser Komponenten werden die nachfolgenden zwei Node Pools empfohlen:
 
 ### Large Node Pool für Qdrant
 

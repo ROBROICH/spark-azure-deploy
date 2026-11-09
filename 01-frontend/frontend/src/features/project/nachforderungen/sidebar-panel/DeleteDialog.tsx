@@ -76,7 +76,9 @@ export const DeleteDialog = (props: DeleteDialogProps) => {
           <DialogDescription id={descriptionId} className="mb-4">
             {t('RequestListPanel.deleteDialog.description')}
           </DialogDescription>
-          <p className="text-[13px] font-medium">{itemToDelete?.title}</p>
+          <p className="line-clamp-3 text-[13px] font-medium break-words">
+            {itemToDelete?.title}
+          </p>
         </DialogBody>
 
         <DialogFooter>

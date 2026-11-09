@@ -3,8 +3,6 @@
 import json
 import pytest
 
-pytestmark = pytest.mark.skip("ci does not load data, cannot reproduce")
-
 
 @pytest.mark.asyncio
 async def test_get_documents(api_client):
@@ -95,7 +93,6 @@ async def test_search_fundstelle(api_client):
     assert content[0]["id"] == "123"
 
 @pytest.mark.asyncio
-@pytest.mark.skip("data not present in DB")
 async def test_search_vorgangsbezug(api_client):
     """test searching vorgangsbezug"""
     response = await api_client.get("/vorgangsbezug/search?doknr=123")
@@ -106,7 +103,7 @@ async def test_search_vorgangsbezug(api_client):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip("data not present in DB")
+@pytest.mark.skip("fixtures under tests/data/complete have autoren_anzeige: null")
 async def test_search_autoren_anzeige(api_client):
     """test searching vorgangsbezug"""
     response = await api_client.get("/autoren_anzeige/search?doknr=123&id=51")
@@ -130,17 +127,16 @@ async def test_get_urheber_for_document(api_client):
     )
 
 
-@pytest.mark.skip("data not present in DB")
 @pytest.mark.asyncio
 async def test_get_document_for_urheber(api_client):
-    """test getting documents for urheber"""
+    """test getting documents for urheber ("BT" is only on UTCG_812)"""
     response = await api_client.get(
-        "/documents_for_urheber/?einbringer=false&rolle=undefiniert&bezeichnung=BR"
+        "/documents_for_urheber/?einbringer=false&rolle=undefiniert&bezeichnung=BT"
     )
     assert response.status_code == 200
     content = json.loads(response.text)
     assert len(content) == 1
-    assert content[0]["doknr"] == 123
+    assert content[0]["doknr"] == 812
 
 
 @pytest.mark.asyncio

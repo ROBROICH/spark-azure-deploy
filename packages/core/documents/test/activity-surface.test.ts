@@ -160,6 +160,7 @@ describe("DMS activity implementations", () => {
       ["report.pdf", "./report.pdf"],
       ["ä.pdf", "a\u0308.pdf"],
       ["folder/report.pdf", "folder\\report.pdf"],
+      ["invoice #1.pdf", "invoice__1.pdf"],
     ]) {
       const source = new MemoryStorage();
       const target = new MemoryStorage();
@@ -838,6 +839,56 @@ describe("DMS activity implementations", () => {
     expect(
       await activities.validateZip({ zipPath: "uploads/archive.zip", filename: "archive.zip" }),
     ).toMatchObject({ ok: false, failure: { code: "ZIP_AMBIGUOUS" } });
+  });
+
+  test("sanitizes unsafe characters in extracted entry names when building the bucket path", async () => {
+    const source = new MemoryStorage();
+    const clean = new MemoryStorage();
+    const pdf = new TextEncoder().encode("%PDF-1.7\nfixture");
+    source.objects.set("uploads/archive.zip", {
+      bytes: await storedZip({ "invoice #1.pdf": pdf }),
+      contentType: "application/zip",
+      metadata: {},
+    });
+    const activities = createDmsActivities({
+      repository: repository(),
+      zipSourceStorage: source,
+      cleanStorage: clean,
+      scanner: {
+        async scanBytes() {
+          return { isClean: true, threatName: null };
+        },
+      },
+      scanAndPromote: {
+        async execute() {
+          return { isClean: true, threatName: null };
+        },
+      },
+      config,
+    });
+
+    const results = await activities.extractZip({
+      zipFileId: "10000000-0000-4000-8000-000000000001",
+      filename: "archive.zip",
+      projectId: "20000000-0000-4000-8000-000000000002",
+      zipPath: "uploads/archive.zip",
+      fileType: "zip",
+    });
+    expect(results).toEqual({
+      ok: true,
+      value: [
+        {
+          success: true,
+          filename: "invoice #1.pdf",
+          action: "UNZIP",
+          fileId: null,
+          bucketPath:
+            "tmp/20000000-0000-4000-8000-000000000002/10000000-0000-4000-8000-000000000001/invoice__1.pdf",
+          errorCode: null,
+          errorMessage: null,
+        },
+      ],
+    });
   });
 
   test("computes EWMS duplicate detection and reports infected single uploads as non-retryable", async () => {

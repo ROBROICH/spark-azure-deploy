@@ -1,0 +1,49 @@
+suite: temporal bootstrap reconciliation
+release: {name: rel, namespace: ci}
+templates: [templates/bootstrap-job.yaml]
+set:
+  bootstrapJob.enabled: true
+  temporal.server.config.namespaces.create: false
+  searchAttributesJob.enabled: false
+tests:
+  - it: waits in a bounded Sync job without Kubernetes retries
+    asserts:
+      - isKind: {of: Job}
+      - equal: {path: metadata.name, value: rel-temporal-bootstrap}
+      - equal: {path: 'metadata.annotations["argocd.argoproj.io/sync-wave"]', value: "0"}
+      - equal: {path: 'metadata.annotations["argocd.argoproj.io/sync-options"]', value: "Force=true,Replace=true"}
+      - notExists: {path: 'metadata.annotations["helm.sh/hook"]'}
+      - notExists: {path: 'metadata.annotations["argocd.argoproj.io/hook"]'}
+      - equal: {path: spec.backoffLimit, value: 0}
+      - equal: {path: spec.activeDeadlineSeconds, value: 900}
+      - equal: {path: spec.template.spec.restartPolicy, value: Never}
+      - notExists: {path: spec.ttlSecondsAfterFinished}
+
+  - it: uses the upstream fullname and the shared service account
+    set:
+      temporal.fullnameOverride: engine
+      global.serviceAccount.name: spark-workflow
+    asserts:
+      - equal: {path: spec.template.spec.serviceAccountName, value: spark-workflow}
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content: {name: TEMPORAL_ADDRESS, value: engine-frontend.ci.svc.cluster.local:7233}
+      - equal: {path: spec.template.spec.automountServiceAccountToken, value: false}
+
+  - it: renders nothing unless enabled
+    set:
+      bootstrapJob.enabled: false
+    asserts:
+      - hasDocuments: {count: 0}
+
+  - it: refuses a competing namespace creator
+    set:
+      temporal.server.config.namespaces.create: true
+    asserts:
+      - failedTemplate: {errorPattern: bootstrap replaces the upstream namespace Job}
+
+  - it: refuses the competing PostSync attribute hook
+    set:
+      searchAttributesJob.enabled: true
+    asserts:
+      - failedTemplate: {errorPattern: bootstrap registers search attributes during Sync}
